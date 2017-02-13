@@ -112,4 +112,11 @@ return [
     'internal_link_placeholder' => 'Slug interno. Es: \'admin/page\' (no quotes) for \':url\'',
     'external_link' => 'Link Esterno',
 
+    //Table field
+    'table_cant_add' => 'Impossibile aggiungere nuovo :entity',
+    'table_max_reached' => 'Massimo numero di :max reggiunto',
+
+    // address_google field - notification bubbles
+    'address_google_error_title' => 'Oops qualcosa è andato storto...',
+    'address_google_error_message' => 'Google non conosce questo indirizzo.'.PHP_EOL.'I campi devono essere riempiti manualmente... ',
 ];

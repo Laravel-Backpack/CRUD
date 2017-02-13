@@ -117,4 +117,8 @@ return [
     'table_cant_add' => 'Cannot add new :entity',
     'table_max_reached' => 'Maximum number of :max reached',
 
+    // address_google field - notification bubbles
+    'address_google_error_title' => 'Oops something went wrong...',
+    'address_google_error_message' => 'Google doesn\'t know this address.'.PHP_EOL.'The fields must be filled manually... ',
+
 ];
