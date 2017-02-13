@@ -84,9 +84,11 @@ trait Create
                 $model->{$field['name']}()->sync($values);
 
                 if (isset($field['pivotFields'])) {
-                    foreach ($field['pivotFields'] as $pivotField) {
-                        foreach ($data[$pivotField] as $pivot_id =>  $field) {
-                            $model->{$field['name']}()->updateExistingPivot($pivot_id, [$pivotField => $field]);
+                    $pivotFields = array_keys($field['pivotFields']);
+
+                    foreach ($pivotFields as $pivotField) {
+                        foreach ($data[$pivotField] as $pivot_id => $pivotValue) {
+                            $model->{$field['name']}()->updateExistingPivot($pivot_id, [$pivotField => $pivotValue]);
                         }
                     }
                 }
