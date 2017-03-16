@@ -64,16 +64,21 @@ trait Tabs
         return $this->setTabsType('vertical');
     }
 
-    public function tabExists($label)
+    public function boxHasTabs($boxLabel)
     {
-        $tabs = $this->getTabs();
-
-        return in_array($label, $tabs);
+        return $this->tabsEnabled() && count($this->getTabs($boxLabel)) > 0;
     }
 
-    public function getLastTab()
+    public function tabExists($boxLabel, $tabLabel)
     {
-        $tabs = $this->getTabs();
+        $tabs = $this->getTabs($boxLabel);
+
+        return in_array($tabLabel, $tabs);
+    }
+
+    public function getLastTab($boxLabel)
+    {
+        $tabs = $this->getTabs($boxLabel);
 
         if (count($tabs)) {
             return last($tabs);
@@ -82,22 +87,22 @@ trait Tabs
         return false;
     }
 
-    public function isLastTab($label)
+    public function isLastTab($boxLabel, $tabLabel)
     {
-        return $this->getLastTab() == $label;
+        return $this->getLastTab($boxLabel) == $tabLabel;
     }
 
-    public function getTabFields($label)
+    public function getTabFields($boxLabel, $tabLabel)
     {
-        if ($this->tabExists($label)) {
-            $all_fields = $this->getCurrentFields();
+        if ($this->boxExists($boxLabel) && $this->tabExists($boxLabel, $tabLabel)) {
+            $boxFields = $this->getBoxFields($boxLabel);
 
-            $fields_for_current_tab = collect($all_fields)->filter(function ($value, $key) use ($label) {
-                return isset($value['tab']) && $value['tab'] == $label;
+            $fields_for_current_tab = collect($boxFields)->filter(function ($value, $key) use ($tabLabel) {
+                return isset($value['tab']) && $value['tab'] == $tabLabel;
             });
 
-            if ($this->isLastTab($label)) {
-                $fields_without_a_tab = collect($all_fields)->filter(function ($value, $key) {
+            if ($this->isLastTab($boxLabel, $tabLabel)) {
+                $fields_without_a_tab = collect($boxFields)->filter(function ($value, $key) {
                     return ! isset($value['tab']);
                 });
 
@@ -110,10 +115,10 @@ trait Tabs
         return [];
     }
 
-    public function getTabs()
+    public function getTabs($boxLabel)
     {
         $tabs = [];
-        $fields = $this->getCurrentFields();
+        $fields = $this->getBoxFields($boxLabel);
 
         $fields_with_tabs = collect($fields)
             ->filter(function ($value, $key) {
