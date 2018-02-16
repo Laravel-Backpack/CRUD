@@ -15,6 +15,9 @@
 @endsection
 
 @section('content')
+  @if ($crud->ajax_crud)
+    @include('crud::inc.ajax_modal')
+  @endif
 <!-- Default box -->
   <div class="row">
 

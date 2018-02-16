@@ -28,9 +28,10 @@
     <!-- CRUD FORM CONTENT - crud_fields_scripts stack -->
     @stack('crud_fields_scripts')
 
-    <script>
-    jQuery('document').ready(function($){
-
+    <script type="text/javascript">
+      @if (!$request->ajax())
+      jQuery('document').ready(function($){
+      @endif
       // Save button has multiple actions: save and exit, save and edit, save and new
       var saveActions = $('#saveActions'),
       crudForm        = saveActions.parents('form'),
@@ -117,6 +118,8 @@
 
       @endif
 
+      @if (!$request->ajax())
       });
+      @endif
     </script>
 @endsection
