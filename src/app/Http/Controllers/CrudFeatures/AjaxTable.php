@@ -2,6 +2,8 @@
 
 namespace Backpack\CRUD\app\Http\Controllers\CrudFeatures;
 
+use Maatwebsite\Excel\Facades\Excel;
+
 trait AjaxTable
 {
     /**
@@ -11,8 +13,33 @@ trait AjaxTable
      */
     public function search()
     {
-        $this->crud->hasAccessOrFail('list');
+        $requestType = Request()->request_type;
 
+        if ($requestType === 'excel') {
+            $filename = $this->crud->getExcelFileName();
+            $result = $this->crud->query->get();
+
+            $data = [];
+            foreach ($result as $item) {
+                $data[] = ! method_exists($item, 'toExport') ? $item->toArray() : $item->toExport();
+            }
+
+            $path = config('backpack.crud.public_export_path');
+            $pathDownload = config('backpack.crud.public_export_download_path');
+
+            Excel::create($filename, function ($excel) use ($data) {
+                $excel->sheet('Sheet', function ($sheet) use ($data) {
+                    $sheet->with($data);
+                });
+            })->store('xls', $path);
+
+            return response()->json([
+                'error' => '',
+                'download' => $pathDownload.'/'.$filename.'.xls',
+            ]);
+        }
+
+        $this->crud->hasAccessOrFail('list');
         $totalRows = $filteredRows = $this->crud->count();
 
         // if a search term was present

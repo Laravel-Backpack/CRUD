@@ -27,6 +27,10 @@ return [
     'show_grouped_errors' => true,
     'show_inline_errors' => true,
 
+    // Default export public path in
+    'public_export_path' => public_path('exports'),
+    'public_export_download_path' => url('exports'),
+
     /*
     |------------
     | READ

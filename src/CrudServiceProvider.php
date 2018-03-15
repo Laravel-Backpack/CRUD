@@ -22,7 +22,6 @@ class CrudServiceProvider extends ServiceProvider
     public function boot()
     {
         // LOAD THE VIEWS
-
         // - first the published/overwritten views (in case they have any changes)
         $this->loadViewsFrom(resource_path('views/vendor/backpack/crud'), 'crud');
         // - then the stock views that come with the package, in case a published view might be missing
@@ -44,7 +43,7 @@ class CrudServiceProvider extends ServiceProvider
 
         // publish custom files for elFinder
         $this->publishes([
-            __DIR__.'/config/elfinder.php'      => config_path('elfinder.php'),
+            __DIR__.'/config/elfinder.php' => config_path('elfinder.php'),
             __DIR__.'/resources/views-elfinder' => resource_path('views/vendor/elfinder'),
         ], 'elfinder');
 
@@ -80,6 +79,7 @@ class CrudServiceProvider extends ServiceProvider
         $this->app->register(\Backpack\Base\BaseServiceProvider::class);
         $this->app->register(\Barryvdh\Elfinder\ElfinderServiceProvider::class);
         $this->app->register(\Intervention\Image\ImageServiceProvider::class);
+        $this->app->register(\Maatwebsite\Excel\ExcelServiceProvider::class);
 
         // register their aliases
         $loader = \Illuminate\Foundation\AliasLoader::getInstance();

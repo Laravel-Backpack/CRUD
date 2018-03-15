@@ -2,6 +2,7 @@
 
 namespace Backpack\CRUD;
 
+use Carbon\Carbon;
 use Backpack\CRUD\PanelTraits\Read;
 use Backpack\CRUD\PanelTraits\Tabs;
 use Backpack\CRUD\PanelTraits\Query;
@@ -65,8 +66,9 @@ class CrudPanel
     // TONE FIELDS - TODO: find out what he did with them, replicate or delete
     public $sort = [];
 
-    // The following methods are used in CrudController or your EntityCrudController to manipulate the variables above.
+    private $excel_filename = null;
 
+    // The following methods are used in CrudController or your EntityCrudController to manipulate the variables above.
     public function __construct()
     {
         $this->setErrorDefaults();
@@ -181,7 +183,7 @@ class CrudPanel
      * Return the first element in an array that has the given 'type' attribute.
      *
      * @param string $type
-     * @param array  $array
+     * @param array $array
      *
      * @return array
      */
@@ -266,5 +268,29 @@ class CrudPanel
         }, $this->model);
 
         return get_class($result);
+    }
+
+    /**
+     * Enables server side export button in filters bar.
+     *
+     * @param string|null $filename
+     */
+    public function enableServerSideExport(string $filename = null)
+    {
+        $this->excel_filename = $filename;
+
+        $this->addFilter([
+            'type' => 'export',
+            'name' => 'exel_export',
+            'label' => 'Exel Export',
+        ]);
+    }
+
+    public function getExcelFileName()
+    {
+        return ucfirst(
+            (empty($this->excel_filename) ? $this->entity_name_plural : $this->excel_filename)
+            .'-'.Carbon::now()->toDateString()
+        );
     }
 }
