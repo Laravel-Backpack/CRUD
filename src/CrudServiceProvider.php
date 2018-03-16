@@ -2,6 +2,7 @@
 
 namespace Backpack\CRUD;
 
+use Backpack\CRUD\Facades\TestFacade;
 use Route;
 use Illuminate\Support\ServiceProvider;
 
@@ -76,6 +77,14 @@ class CrudServiceProvider extends ServiceProvider
             return new CRUD($app);
         });
 
+        $this->app->bind('CRUDPanel', function ($app) {
+            return new \Backpack\CRUD\CrudPanel();
+        });
+
+        $this->app->bind('CRUDColumns', function ($app) {
+            return new \Backpack\CRUD\CrudColumns();
+        });
+
         // register its dependencies
         $this->app->register(\Backpack\Base\BaseServiceProvider::class);
         $this->app->register(\Barryvdh\Elfinder\ElfinderServiceProvider::class);
@@ -84,6 +93,8 @@ class CrudServiceProvider extends ServiceProvider
         // register their aliases
         $loader = \Illuminate\Foundation\AliasLoader::getInstance();
         $loader->alias('Image', \Intervention\Image\Facades\Image::class);
+        $loader->alias('CRUDPanel', \Backpack\CRUD\Facades\CRUDPanel::class);
+        $loader->alias('CRUDColumns', \Backpack\CRUD\Facades\CRUDColumns::class);
 
         // map the elfinder prefix
         if (! \Config::get('elfinder.route.prefix')) {

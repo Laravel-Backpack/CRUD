@@ -2,7 +2,7 @@
 
 namespace Backpack\CRUD\app\Http\Controllers;
 
-use Backpack\CRUD\CrudPanel;
+use Backpack\CRUD\Facades\CRUDPanel;
 use Illuminate\Http\Request;
 use Illuminate\Http\Request as StoreRequest;
 use Illuminate\Support\Facades\Form as Form;
@@ -33,7 +33,7 @@ class CrudController extends BaseController
     public function __construct()
     {
         if (! $this->crud) {
-            $this->crud = app()->make(CrudPanel::class);
+            $this->crud = CRUDPanel::getFacadeRoot();
 
             // call the setup function inside this closure to also have the request there
             // this way, developers can use things stored in session (auth variables, etc)
@@ -44,6 +44,9 @@ class CrudController extends BaseController
 
                 return $next($request);
             });
+        } else {
+            // swap the facade root if provided via subclass
+            CRUDPanel::swap($this->crud);
         }
     }
 

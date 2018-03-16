@@ -2,6 +2,8 @@
 
 namespace Backpack\CRUD\PanelTraits;
 
+use Backpack\CRUD\Columns\Column;
+
 trait Columns
 {
     // ------------
@@ -32,7 +34,7 @@ trait Columns
         if (is_array($columns) && count($columns)) {
             foreach ($columns as $key => $column) {
                 // if label and other details have been defined in the array
-                if (is_array($column)) {
+                if (is_array($column) || $column instanceof Column) {
                     $this->addColumn($column);
                 } else {
                     $this->addColumn([
@@ -63,6 +65,9 @@ trait Columns
      */
     public function addColumn($column)
     {
+        if ($column instanceof Column) {
+            $column = $column->toArray();
+        }
         // if a string was passed, not an array, change it to an array
         if (! is_array($column)) {
             $column = ['name' => $column];
@@ -127,6 +132,7 @@ trait Columns
                 $this->addColumn($column);
             }
         }
+        return $this;
     }
 
     /**
