@@ -2,14 +2,14 @@
 
 namespace Backpack\CRUD\app\Http\Controllers\CrudFeatures;
 
+use Illuminate\Http\Request;
+
 trait Reorder
 {
     /**
      *  Reorder the items in the database using the Nested Set pattern.
      *
-     *  Database columns needed: id, parent_id, lft, rgt, depth, name/title
-     *
-     *  @return Response
+     *  @return \Illuminate\Http\Response
      */
     public function reorder()
     {
@@ -31,21 +31,19 @@ trait Reorder
     /**
      * Save the new order, using the Nested Set pattern.
      *
-     * Database columns needed: id, parent_id, lft, rgt, depth, name/title
-     *
-     * @return
+     * @param  \Illuminate\Http\Request  $request
+     * @return string|false
      */
-    public function saveReorder()
+    public function saveReorder(Request $request)
     {
         $this->crud->hasAccessOrFail('reorder');
 
-        $all_entries = \Request::input('tree');
-
-        if (count($all_entries)) {
-            $count = $this->crud->updateTreeOrder($all_entries);
-        } else {
+        $entries = $request->tree;
+        if (empty($entries)) {
             return false;
         }
+
+        $count = $this->crud->updateTreeOrder($entries);
 
         return 'success for '.$count.' items';
     }
