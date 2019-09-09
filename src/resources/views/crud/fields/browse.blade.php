@@ -19,8 +19,8 @@
 			>
 
 			<span class="input-group-append">
-			  	<button type="button" data-inputid="{{ $field['name'] }}-filemanager" class="btn btn-light btn-sm popup_selector"><i class="fa fa-cloud-upload"></i> {{ trans('backpack::crud.browse_uploads') }}</button>
-				<button type="button" data-inputid="{{ $field['name'] }}-filemanager" class="btn btn-light btn-sm clear_elfinder_picker"><i class="fa fa-eraser"></i> {{ trans('backpack::crud.clear') }}</button>
+			  	<button type="button" data-inputid="{{ $field['name'] }}-filemanager" class="btn btn-outline-primary btn-sm popup_selector"><i class="fa fa-cloud-upload"></i> {{ trans('backpack::crud.browse_uploads') }}</button>
+				<button type="button" data-inputid="{{ $field['name'] }}-filemanager" class="btn btn-outline-primary btn-sm clear_elfinder_picker"><i class="fa fa-eraser"></i> {{ trans('backpack::crud.clear') }}</button>
 			</span>
 		</div>
 	</div>
