@@ -2,7 +2,8 @@
 
 namespace Backpack\CRUD\PanelTraits;
 
-use Illuminate\Database\Eloquent\Relations\HasOneOrMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 trait Update
 {
@@ -92,8 +93,10 @@ trait Update
             }, $model);
 
             $relationMethod = end($relationArray);
-            if ($relatedModel->{$relationMethod} && $relatedModel->{$relationMethod}() instanceof HasOneOrMany) {
-                return $relatedModel->{$relationMethod}->{$field['name']};
+            if ($relatedModel->{$relationMethod} && $relatedModel->{$relationMethod}() instanceof HasOne) {
+                return $relatedModel->{$relationMethod}->getKey();
+            } elseif ($relatedModel->{$relationMethod} && $relatedModel->{$relationMethod}() instanceof HasMany) {
+                return $relatedModel->{$relationMethod};
             } else {
                 return $relatedModel->{$field['name']};
             }

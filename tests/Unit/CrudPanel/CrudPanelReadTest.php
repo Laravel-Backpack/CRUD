@@ -186,7 +186,7 @@ class CrudPanelReadTest extends BaseDBCrudPanelTest
         $entries = $this->crudPanel->getEntries();
 
         $this->assertInstanceOf(Collection::class, $entries);
-        $this->assertEquals(1, $entries->count());
+        $this->assertEquals(2, $entries->count());
         $this->assertEquals(User::find(1), $entries->first());
     }
 
