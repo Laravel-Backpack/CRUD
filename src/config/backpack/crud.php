@@ -39,6 +39,10 @@ return [
     // To override per view use $this->crud->setRevisionsTimelineContentClass('class-string')
     'revisions_timeline_content_class'   => 'col-md-10 col-md-offset-1',
 
+    // Here you may set whether to enable enum-auto-set
+    // Notice that not every database support enum type, that may cause some problem
+    'enable_enum_auto_set' => false,
+
     /*
     |------------
     | READ

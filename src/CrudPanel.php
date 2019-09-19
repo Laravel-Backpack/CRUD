@@ -83,6 +83,7 @@ class CrudPanel
 
     // TONE FIELDS - TODO: find out what he did with them, replicate or delete
     public $sort = [];
+    public $enum_type_auto_set = false;
 
     // The following methods are used in CrudController or your EntityCrudController to manipulate the variables above.
 
@@ -90,6 +91,7 @@ class CrudPanel
     {
         $this->setErrorDefaults();
         $this->initButtons();
+        $this->enum_type_auto_set = config('backpack.crud.enable_enum_auto_set', false);
     }
 
     // ------------------------------------------------------

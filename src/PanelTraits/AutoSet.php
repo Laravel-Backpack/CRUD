@@ -2,12 +2,24 @@
 
 namespace Backpack\CRUD\PanelTraits;
 
+use Backpack\CRUD\DBAL\Type\EnumType;
+use Doctrine\DBAL\Types\Type;
+
 trait AutoSet
 {
     // ------------------------------------------------------
     // AUTO-SET-FIELDS-AND-COLUMNS FUNCTIONALITY
     // ------------------------------------------------------
     public $labeller = false;
+
+    /**
+     * Enable this setting
+     * Temporary EnumType will inject into DBAL
+     */
+    public function enableEnumTypeAutoSet()
+    {
+        $this->enum_type_auto_set = true;
+    }
 
     /**
      * For a simple CRUD Panel, there should be no need to add/define the fields.
@@ -17,6 +29,12 @@ trait AutoSet
      */
     public function setFromDb()
     {
+        if ($this->enum_type_auto_set) {
+            Type::addType('enum', EnumType::class);
+            $platform = $this->model->getConnection()->getDoctrineSchemaManager()->getDatabasePlatform();
+            $platform->registerDoctrineTypeMapping('enum', 'enum');
+        }
+
         if (! $this->driverIsMongoDb()) {
             $this->setDoctrineTypesMapping();
             $this->getDbColumnTypes();
@@ -123,9 +141,9 @@ trait AutoSet
                 return 'text';
                 break;
 
-            // case 'enum':
-            //     return 'enum';
-            // break;
+            case 'enum':
+                return !$this->enum_type_auto_set ? 'text' : 'enum';
+            break;
 
             case 'boolean':
                 return 'boolean';
