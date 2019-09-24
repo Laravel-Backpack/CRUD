@@ -1,8 +1,8 @@
 <?php
 
-namespace Backpack\CRUD\ModelTraits\SpatieTranslatable;
+namespace Backpack\CRUD\ModelTraits\AstrotomicTranslatable;
 
-use Spatie\Translatable\HasTranslations as OriginalHasTranslations;
+use Astrotomic\Translatable\Translatable as OriginalHasTranslations;
 
 trait HasTranslations
 {
@@ -15,66 +15,86 @@ trait HasTranslations
 
     /*
     |--------------------------------------------------------------------------
-    |                 SPATIE/LARAVEL-TRANSLATABLE OVERWRITES
+    |                 ASTROTOMIC/LARAVEL-TRANSLATABLE OVERWRITES
     |--------------------------------------------------------------------------
     */
 
-    /**
-     * Use the forced locale if present.
-     *
-     * @param string $key
-     * @return mixed
-     */
+    public function isTranslation($key)
+    {
+        return $this->isTranslationAttribute($key);
+    }
+
     public function getAttributeValue($key)
     {
-        if (! $this->isTranslatableAttribute($key)) {
+        if (! $this->isTranslation($key)) {
             return parent::getAttributeValue($key);
         }
 
-        $translation = $this->getTranslation($key, $this->locale ?: config('app.locale'));
+        $translation = $this->getAttribute($key);
 
         // if it's a fake field, json_encode it
         if (is_array($translation)) {
-            return json_encode($translation, JSON_UNESCAPED_UNICODE);
+            return json_encode($translation);
         }
 
         return $translation;
     }
 
-    public function getAttributes()
+    public function getAttribute($key)
     {
-        return $this->getTranslatableAttributes();
+        [$attribute, $locale] = $this->getAttributeAndLocale($key);
+
+        if ($this->isTranslationAttribute($attribute)) {
+            if ($this->getTranslation($locale) === null) {
+                return ''; //$this->getAttributeValue($attribute);
+            }
+
+            // If the given $attribute has a mutator, we push it to $attributes and then call getAttributeValue
+            // on it. This way, we can use Eloquent's checking for Mutation, type casting, and
+            // Date fields.
+            if ($this->hasGetMutator($attribute)) {
+                $this->attributes[$attribute] = $this->getAttributeOrFallback($locale, $attribute);
+
+                return $this->getAttributeValue($attribute);
+            }
+
+            return $this->getAttributeOrFallback($locale, $attribute);
+        }
+
+        return parent::getAttribute($key);
     }
 
-    public function isTranslation($key)
-    {
-        return $this->isTranslatableAttribute($key);
-    }
+    /*public function getAttributes(){
+        return $this->translatedAttributes;
+    }*/
 
     public function orderTranslationBy($query, $field, $order)
     {
-        return $query;
-        //return $query->orderByRaw('ORDER BY CAST(JSON_EXTRACT(jdoc, \'$.id\') AS UNSIGNED)');
+        $query = $this->addTranslationJoin($query);
+
+        return $query->orderBy('t.'.$field, $order);
     }
 
     public function addTranslationJoin($query)
     {
-        return $query;
-    }
-
-    public function getTranslation(string $key, string $locale, bool $useFallbackLocale = true)
-    {
-        $locale = $this->normalizeLocale($key, $locale, $useFallbackLocale);
-
-        $translations = $this->getTranslations($key);
-
-        $translation = $translations[$locale] ?? '';
-
-        if ($this->hasGetMutator($key)) {
-            return $this->mutateAttribute($key, $translation);
+        $table = $this->getTable();
+        $ttable = $this->getTranslationsTable();
+        $relationKey = $this->getRelationKey();
+        if ($query->getQuery()->joins) {
+            foreach ($query->getQuery()->joins as $JoinClause) {
+                if ($JoinClause->table == $ttable.' as t') {
+                    return $query;
+                }
+            }
         }
 
-        return $translation;
+        return $query->leftJoin($ttable.' as t', function ($join) use ($table, $relationKey) {
+            $join->on($table.'.id', '=', 't.'.$relationKey)
+                ->where('t.locale', '=', $this->getLocale());
+        })
+        ->select($table.'.*')
+        ->groupBy($table.'.id')
+        ->with('translations');
     }
 
     /*
@@ -91,21 +111,14 @@ trait HasTranslations
      */
     public static function create(array $attributes = [])
     {
-        $locale = $attributes['locale'] ?? \App::getLocale();
         $attributes = array_except($attributes, ['locale']);
-        $non_translatable = [];
-
         $model = new static();
 
         // do the actual saving
         foreach ($attributes as $attribute => $value) {
-            if ($model->isTranslatableAttribute($attribute)) { // the attribute is translatable
-                $model->setTranslation($attribute, $locale, $value);
-            } else { // the attribute is NOT translatable
-                $non_translatable[$attribute] = $value;
-            }
+            $model->setAttribute($attribute, $value);
         }
-        $model->fill($non_translatable)->save();
+        $model->save();
 
         return $model;
     }
@@ -123,20 +136,14 @@ trait HasTranslations
             return false;
         }
 
-        $locale = $attributes['locale'] ?? \App::getLocale();
         $attributes = array_except($attributes, ['locale']);
-        $non_translatable = [];
 
         // do the actual saving
         foreach ($attributes as $attribute => $value) {
-            if ($this->isTranslatableAttribute($attribute)) { // the attribute is translatable
-                $this->setTranslation($attribute, $locale, $value);
-            } else { // the attribute is NOT translatable
-                $non_translatable[$attribute] = $value;
-            }
+            $this->setAttribute($attribute, $value);
         }
 
-        return $this->fill($non_translatable)->save($options);
+        return $this->save($options);
     }
 
     /*
@@ -145,6 +152,11 @@ trait HasTranslations
     |--------------------------------------------------------------------------
     */
 
+    public function setTranslation($attribute, $locale, $value)
+    {
+        $this->translate($locale)->$attribute = $value;
+    }
+
     /**
      * Check if a model is translatable, by the adapter's standards.
      *
@@ -152,7 +164,7 @@ trait HasTranslations
      */
     public function translationEnabledForModel()
     {
-        return property_exists($this, 'translatable');
+        return property_exists($this, 'translatedAttributes');
     }
 
     /**
@@ -162,7 +174,13 @@ trait HasTranslations
      */
     public function getAvailableLocales()
     {
-        return config('backpack.crud.locales');
+        $locales = $this->getLocalesHelper()->all();
+        $locales_ok = [];
+        foreach ($locales as $k => $l) {
+            $locales_ok[$l] = $l;
+        }
+
+        return $locales_ok;
     }
 
     /**
@@ -173,7 +191,7 @@ trait HasTranslations
      */
     public function setLocale($locale)
     {
-        $this->locale = $locale;
+        $this->setDefaultLocale($locale);
     }
 
     /**
@@ -184,11 +202,7 @@ trait HasTranslations
      */
     public function getLocale()
     {
-        if ($this->locale) {
-            return $this->locale;
-        }
-
-        return \Request::input('locale', \App::getLocale());
+        return $this->locale();
     }
 
     /**
@@ -213,12 +227,12 @@ trait HasTranslations
                 if ($translation_locale) {
                     $item = parent::__call($method, $parameters);
 
-                    if ($item instanceof \Traversable) {
-                        foreach ($item as $instance) {
-                            $instance->setLocale($translation_locale);
+                    if ($item) {
+                        try {
+                            $item->setLocale($translation_locale);
+                        } catch (\Exception $e) {
+                            report($e);
                         }
-                    } elseif ($item) {
-                        $item->setLocale($translation_locale);
                     }
 
                     return $item;

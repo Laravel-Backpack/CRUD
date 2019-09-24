@@ -22,5 +22,5 @@
 
     </div>
 
-    <a href="{{ $crud->hasAccess('list') ? url($crud->route) : url()->previous() }}" class="btn btn-default"><span class="fa fa-ban"></span> &nbsp;{{ trans('backpack::crud.cancel') }}</a>
+    <a href="{{ $crud->hasAccess('list') ? url($crud->route) . "?" . http_build_query($crud->request->query()) : url()->previous() }}" class="btn btn-default"><span class="fa fa-ban"></span> &nbsp;{{ trans('backpack::crud.cancel') }}</a>
 </div>

@@ -70,7 +70,14 @@ trait Search
                 case 'email':
                 case 'text':
                 case 'textarea':
-                    $query->orWhere($column['name'], 'like', '%'.$searchTerm.'%');
+                    if (method_exists($this->model, 'translationEnabledForModel') && $this->model->translationEnabledForModel() && $this->model->isTranslation($column['name'])) {
+                        $query->orWhereHas('translations', function ($q) use ($column, $searchTerm) {
+                            $q->where('locale', \App::getLocale())
+                            ->where($column['name'], 'like', '%'.$searchTerm.'%');
+                        });
+                    } else {
+                        $query->orWhere($column['name'], 'like', '%'.$searchTerm.'%');
+                    }
                     break;
 
                 case 'date':

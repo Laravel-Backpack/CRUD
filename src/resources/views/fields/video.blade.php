@@ -29,11 +29,14 @@ if (is_array($value)) {
                 </a>
             </div>
             <div class="video-dummy">
-                <a class="video-previewLink youtube dummy" target="_blank" href="">
+                <a class="video-previewLink youtube dummy" target="_blank" href="javascript:;">
                     <i class="fa fa-youtube video-previewIcon dummy"></i>
                 </a>
-                <a class="video-previewLink vimeo dummy" target="_blank" href="">
+                <a class="video-previewLink vimeo dummy" target="_blank" href="javascript:;">
                     <i class="fa fa-vimeo video-previewIcon dummy"></i>
+                </a>
+                <a class="video-previewLink facebook dummy" target="_blank" href="javascript:;">
+                    <i class="fa fa-facebook video-previewIcon dummy"></i>
                 </a>
             </div>
         </div>
@@ -57,10 +60,11 @@ if (is_array($value)) {
         <style media="screen">
             .video-previewSuffix {
                 border: 0;
-                min-width: 68px; }
+                min-width: 102px; }
             .video-noPadding {
                 padding: 0; }
             .video-preview {
+                margin-left: 34px;
                 display: none; }
             .video-previewLink {
                  color: #fff;
@@ -72,6 +76,8 @@ if (is_array($value)) {
                 background: #DA2724; }
             .video-previewLink.vimeo {
                 background: #00ADEF; }
+            .video-previewLink.facebook {
+                background: #3b5998; }
             .video-previewIcon {
                 transform: translateY(10px); }
             .video-previewImage {
@@ -142,6 +148,22 @@ if (is_array($value)) {
 
                     return id;
                 };
+                
+                var tryFacebook = function( link ){
+
+                    var id = null;
+
+                    // RegExps for Facebook video
+                    var facebookExpr = /^(https?:\/\/www\.facebook\.com\/(?:video\.php\?v=(\d+)|.*?\/videos\/(\d+)\/*))$/i;
+
+                    var match = link.match(facebookExpr);
+
+                    if (match != null){
+                        id = match[2] || match[3];
+                    }
+
+                    return id;
+                };
 
                 var fetchYouTube = function( videoId, callback ){
 
@@ -196,6 +218,30 @@ if (is_array($value)) {
                         }
                     });
                 };
+                
+                var fetchFacebook = function( videoId, callback ){
+
+                    var api = 'https://graph.facebook.com/' + videoId + '?fields=picture,id,title,permalink_url&access_token=212933132386357%7ChuO0oE-d9rPMBVz4YtNj9sF4-ew';
+
+                    var video = {
+                        provider: 'facebook',
+                        id: null,
+                        title: null,
+                        image: null,
+                        url: null
+                    };
+
+                    $.getJSON(api, function( data, status, xhr ){
+                        if (typeof data.error == "undefined") {
+                            video.id = data.id;
+                            video.title = data.title;
+                            video.image = data.picture;
+                            video.url = "https://www.facebook.com"+data.permalink_url;
+
+                            callback(video);
+                        }
+                    });
+                };
 
                 var parseVideoLink = function( link, callback ){
 
@@ -204,43 +250,45 @@ if (is_array($value)) {
                     try {
                         var parser = document.createElement('a');
                     } catch(e){
-                        response.message = 'Please post a valid youtube/vimeo url';
+                        response.message = 'Please post a valid youtube/vimeo/facebook url';
                         return response;
                     }
 
 
                     var id = tryYouTube(link);
-
                     if( id ){
-
                         return fetchYouTube(id, function(video){
-
                             if( video ){
                                 response.success = true;
                                 response.message = 'video found';
                                 response.data = video;
                             }
-
                             callback(response);
                         });
                     }
-                    else {
-
-                        id = tryVimeo(link);
-
-                        if( id ){
-
-                            return fetchVimeo(id, function(video){
-
-                                if( video ){
-                                    response.success = true;
-                                    response.message = 'video found';
-                                    response.data = video;
-                                }
-
-                                callback(response);
-                            });
-                        }
+                    
+                    var id = tryVimeo(link);
+                    if( id ){
+                        return fetchVimeo(id, function(video){
+                            if( video ){
+                                response.success = true;
+                                response.message = 'video found';
+                                response.data = video;
+                            }
+                            callback(response);
+                        });
+                    }
+                    
+                    var id = tryFacebook(link);
+                    if( id ){
+                        return fetchFacebook(id, function(video){
+                            if( video ){
+                                response.success = true;
+                                response.message = 'video found';
+                                response.data = video;
+                            }
+                            callback(response);
+                        });
                     }
 
                     response.message = 'We could not detect a YouTube or Vimeo ID, please try obtain the URL again'
@@ -260,14 +308,14 @@ if (is_array($value)) {
 
                     pLink
                     .attr('href', video.url)
-                    .removeClass('youtube vimeo hidden')
+                    .removeClass('youtube vimeo facebook hidden')
                     .addClass(video.provider);
 
                     pImage
                     .css('backgroundImage', 'url('+video.image+')');
 
                     pIcon
-                    .removeClass('fa-vimeo fa-youtube')
+                    .removeClass('fa-vimeo fa-youtube fa-facebook')
                     .addClass('fa-' + video.provider);
                     pWrap.fadeIn();
                 };

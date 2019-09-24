@@ -51,14 +51,21 @@ trait ListOperation
         }
         // overwrite any order set in the setup() method with the datatables order
         if ($this->request->input('order')) {
-            $column_number = $this->request->input('order')[0]['column'];
-            $column_direction = $this->request->input('order')[0]['dir'];
-            $column = $this->crud->findColumnById($column_number);
-            if ($column['tableColumn']) {
-                // clear any past orderBy rules
-                $this->crud->query->getQuery()->orders = null;
-                // apply the current orderBy rules
-                $this->crud->query->orderBy($column['name'], $column_direction);
+            // clear any past orderBy rules
+            $this->crud->query->getQuery()->orders = null;
+
+            foreach ($this->request->input('order') as $order) {
+                $column_number = $order['column'];
+                $column_direction = $order['dir'];
+                if (is_numeric($column_number)) {
+                    $column = $this->crud->findColumnById($column_number);
+                    if ($column['tableColumn']) {
+                        // apply the current orderBy rules
+                        $this->crud->orderBy($column['name'], $column_direction);
+                    }
+                } else {
+                    $this->crud->orderBy($column_number, $column_direction);
+                }
             }
 
             // check for custom order logic in the column definition

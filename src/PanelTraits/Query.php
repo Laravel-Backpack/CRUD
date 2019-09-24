@@ -55,6 +55,12 @@ trait Query
             return $this->query;
         }
 
+        if (method_exists($this->model, 'translationEnabledForModel') && $this->model->translationEnabledForModel()) {
+            if ($this->model->isTranslation($field)) {
+                return $this->model->orderTranslationBy($this->query, $field, $order);
+            }
+        }
+
         return $this->query->orderBy($field, $order);
     }
 
@@ -137,6 +143,10 @@ trait Query
      */
     public function count()
     {
-        return $this->query->count();
+        if (method_exists($this->model, 'translationEnabledForModel') && $this->model->translationEnabledForModel()) {
+            $this->query = $this->model->addTranslationJoin($this->query);
+        }
+
+        return $this->query->get()->count();
     }
 }

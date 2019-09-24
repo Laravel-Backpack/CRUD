@@ -417,6 +417,9 @@ trait Columns
             $columns = $cache[$table];
         } else {
             $columns = $cache[$table] = $this->getSchema()->getColumnListing($table);
+            if (method_exists($this->model, 'translationEnabledForModel') && $this->model->translationEnabledForModel()) {
+                $columns = $cache[$table] = array_merge($cache[$table], $this->model->getAttributes());
+            }
         }
 
         return in_array($name, $columns);
