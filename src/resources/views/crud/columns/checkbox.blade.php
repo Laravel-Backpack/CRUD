@@ -2,7 +2,7 @@
 <span>
     <input type="checkbox"
     		class="crud_bulk_actions_row_checkbox"
-    		data-primary-key-value="{{ $entry->getKey() }}"
+    		data-primary-key-value="{{ $entry->getRouteKey() }}"
     		style="width: 16px; height: 16px;"
     		>
 </span>

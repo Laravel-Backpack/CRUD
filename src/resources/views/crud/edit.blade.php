@@ -30,10 +30,9 @@
 		<!-- Default box -->
 
 		@include('crud::inc.grouped_errors')
-
 		  <form method="post"
-		  		action="{{ url($crud->route.'/'.$entry->getKey()) }}"
-				@if ($crud->hasUploadFields('update', $entry->getKey()))
+		  		action="{{ url($crud->route.'/'.$entry->getRouteKey()) }}"
+				@if ($crud->hasUploadFields('update', $entry->getRouteKey()))
 				enctype="multipart/form-data"
 				@endif
 		  		>
@@ -49,7 +48,7 @@
 				  </button>
 				  <ul class="dropdown-menu">
 				  	@foreach ($crud->model->getAvailableLocales() as $key => $locale)
-					  	<a class="dropdown-item" href="{{ url($crud->route.'/'.$entry->getKey().'/edit') }}?locale={{ $key }}">{{ $locale }}</a>
+					  	<a class="dropdown-item" href="{{ url($crud->route.'/'.$entry->getRouteKey().'/edit') }}?locale={{ $key }}">{{ $locale }}</a>
 				  	@endforeach
 				  </ul>
 				</div>

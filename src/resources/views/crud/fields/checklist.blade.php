@@ -11,9 +11,9 @@
                   <label class="font-weight-normal">
                     <input type="checkbox"
                       name="{{ $field['name'] }}[]"
-                      value="{{ $connected_entity_entry->getKey() }}"
+                      value="{{ $connected_entity_entry->getRouteKey() }}"
 
-                      @if( ( old( $field["name"] ) && in_array($connected_entity_entry->getKey(), old( $field["name"])) ) || (isset($field['value']) && in_array($connected_entity_entry->getKey(), $field['value']->pluck($connected_entity_entry->getKeyName(), $connected_entity_entry->getKeyName())->toArray())))
+                      @if( ( old( $field["name"] ) && in_array($connected_entity_entry->getRouteKey(), old( $field["name"])) ) || (isset($field['value']) && in_array($connected_entity_entry->getRouteKey(), $field['value']->pluck($connected_entity_entry->getRouteKeyName(), $connected_entity_entry->getRouteKeyName())->toArray())))
                              checked = "checked"
                       @endif > {!! $connected_entity_entry->{$field['attribute']} !!}
                   </label>

@@ -34,13 +34,13 @@ function tree_element($entry, $key, $all_entries, $crud)
         $entry->tree_element_shown = true;
 
         // show the tree element
-        echo '<li id="list_'.$entry->getKey().'">';
+        echo '<li id="list_'.$entry->getRouteKey().'">';
         echo '<div><span class="disclose"><span></span></span>'.object_get($entry, $crud->get('reorder.label')).'</div>';
 
         // see if this element has any children
         $children = [];
         foreach ($all_entries as $key => $subentry) {
-            if ($subentry->parent_id == $entry->getKey()) {
+            if ($subentry->parent_id == $entry->getRouteKey()) {
                 $children[] = $subentry;
             }
         }
@@ -51,7 +51,7 @@ function tree_element($entry, $key, $all_entries, $crud)
         if (count($children)) {
             echo '<ol>';
             foreach ($children as $key => $child) {
-                $children[$key] = tree_element($child, $child->getKey(), $all_entries, $crud);
+                $children[$key] = tree_element($child, $child->getRouteKey(), $all_entries, $crud);
             }
             echo '</ol>';
         }
@@ -70,7 +70,7 @@ function tree_element($entry, $key, $all_entries, $crud)
 
             <ol class="sortable mt-0">
             <?php
-                $all_entries = collect($entries->all())->sortBy('lft')->keyBy($crud->getModel()->getKeyName());
+                $all_entries = collect($entries->all())->sortBy('lft')->keyBy($crud->getModel()->getRouteKeyName());
                 $root_entries = $all_entries->filter(function ($item) {
                     return $item->parent_id == 0;
                 });

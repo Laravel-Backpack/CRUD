@@ -39,7 +39,7 @@
 				  </button>
 				  <ul class="dropdown-menu">
 				  	@foreach ($crud->model->getAvailableLocales() as $key => $locale)
-					  	<a class="dropdown-item" href="{{ url($crud->route.'/'.$entry->getKey().'/show') }}?locale={{ $key }}">{{ $locale }}</a>
+					  	<a class="dropdown-item" href="{{ url($crud->route.'/'.$entry->getRouteKey().'/show') }}?locale={{ $key }}">{{ $locale }}</a>
 				  	@endforeach
 				  </ul>
 				</div>

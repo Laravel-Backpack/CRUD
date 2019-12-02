@@ -1,7 +1,7 @@
 <!-- select2 from ajax multiple -->
 @php
     $connected_entity = new $field['model'];
-    $connected_entity_key_name = $connected_entity->getKeyName();
+    $connected_entity_key_name = $connected_entity->getRouteKeyName();
     $old_value = old(square_brackets_to_dots($field['name'])) ?? $field['value'] ?? $field['default'] ?? false;
 @endphp
 
@@ -31,7 +31,7 @@
                         $item = $connected_entity->find($item);
                     @endphp
                 @endif
-                <option value="{{ $item->getKey() }}" selected>
+                <option value="{{ $item->getRouteKey() }}" selected>
                     {{ $item->{$field['attribute']} }}
                 </option>
             @endforeach

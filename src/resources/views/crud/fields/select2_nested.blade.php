@@ -11,12 +11,12 @@
 
     if (!function_exists('echoSelect2NestedEntry')) {
         function echoSelect2NestedEntry($entry, $field, $current_value) {
-            if ($current_value == $entry->getKey()) {
+            if ($current_value == $entry->getRouteKey()) {
                 $selected = ' selected ';
             } else {
                 $selected = '';
             }
-            echo "<option value='".$entry->getKey()."' '.$selected.'>";
+            echo "<option value='".$entry->getRouteKey()."' '.$selected.'>";
             echo str_repeat("-", (int)$entry->depth - 1).' '.$entry->{$field['attribute']};
             echo "</option>";
         }

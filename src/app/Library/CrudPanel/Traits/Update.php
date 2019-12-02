@@ -23,8 +23,8 @@ trait Update
     public function update($id, $data)
     {
         $data = $this->decodeJsonCastedAttributes($data);
-        $data = $this->compactFakeFields($data);
-        $item = $this->model->findOrFail($id);
+        $data = $this->compactFakeFields($data);        
+        $item = $this->model->findOrFail($id);//This will always use primary key. But since it is POST ok.
 
         $this->createRelations($item, $data);
 

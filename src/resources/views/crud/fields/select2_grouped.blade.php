@@ -30,8 +30,8 @@
                 @foreach ($categories as $category)
                     <optgroup label="{{ $category->{$field['group_by_attribute']} }}">
                         @foreach ($category->{$field['group_by_relationship_back']} as $subEntry)
-                            <option value="{{ $subEntry->getKey() }}"
-                                @if ( ( old($field['name']) && old($field['name']) == $subEntry->getKey() ) || (isset($field['value']) && $subEntry->getKey()==$field['value']))
+                            <option value="{{ $subEntry->getRouteKey() }}"
+                                @if ( ( old($field['name']) && old($field['name']) == $subEntry->getRouteKey() ) || (isset($field['value']) && $subEntry->getRouteKey()==$field['value']))
                                      selected
                                 @endif
                             >{{ $subEntry->{$field['attribute']} }}</option>
@@ -43,10 +43,10 @@
                     <optgroup label="-">
                         @foreach ($categorylessEntries as $subEntry)
 
-                            @if($current_value == $subEntry->getKey())
-                                <option value="{{ $subEntry->getKey() }}" selected>{{ $subEntry->{$field['attribute']} }}</option>
+                            @if($current_value == $subEntry->getRouteKey())
+                                <option value="{{ $subEntry->getRouteKey() }}" selected>{{ $subEntry->{$field['attribute']} }}</option>
                             @else
-                                <option value="{{ $subEntry->getKey() }}">{{ $subEntry->{$field['attribute']} }}</option>
+                                <option value="{{ $subEntry->getRouteKey() }}">{{ $subEntry->{$field['attribute']} }}</option>
                             @endif
                         @endforeach
                     </optgroup>

@@ -26,10 +26,10 @@
 
         @if (count($options))
             @foreach ($options as $connected_entity_entry)
-                @if($current_value == $connected_entity_entry->getKey())
-                    <option value="{{ $connected_entity_entry->getKey() }}" selected>{{ $connected_entity_entry->{$field['attribute']} }}</option>
+                @if($current_value == $connected_entity_entry->getRouteKey())
+                    <option value="{{ $connected_entity_entry->getRouteKey() }}" selected>{{ $connected_entity_entry->{$field['attribute']} }}</option>
                 @else
-                    <option value="{{ $connected_entity_entry->getKey() }}">{{ $connected_entity_entry->{$field['attribute']} }}</option>
+                    <option value="{{ $connected_entity_entry->getRouteKey() }}">{{ $connected_entity_entry->{$field['attribute']} }}</option>
                 @endif
             @endforeach
         @endif

@@ -24,10 +24,10 @@
 
     	@if (count($options))
     		@foreach ($options as $option)
-				@if( (old(square_brackets_to_dots($field["name"])) && in_array($option->getKey(), old(square_brackets_to_dots($field["name"])))) || (is_null(old(square_brackets_to_dots($field["name"]))) && isset($field['value']) && in_array($option->getKey(), $field['value']->pluck($option->getKeyName(), $option->getKeyName())->toArray())))
-					<option value="{{ $option->getKey() }}" selected>{{ $option->{$field['attribute']} }}</option>
+				@if( (old(square_brackets_to_dots($field["name"])) && in_array($option->getRouteKey(), old(square_brackets_to_dots($field["name"])))) || (is_null(old(square_brackets_to_dots($field["name"]))) && isset($field['value']) && in_array($option->getRouteKey(), $field['value']->pluck($option->getRouteKeyName(), $option->getRouteKeyName())->toArray())))
+					<option value="{{ $option->getRouteKey() }}" selected>{{ $option->{$field['attribute']} }}</option>
 				@else
-					<option value="{{ $option->getKey() }}">{{ $option->{$field['attribute']} }}</option>
+					<option value="{{ $option->getRouteKey() }}">{{ $option->{$field['attribute']} }}</option>
 				@endif
     		@endforeach
     	@endif

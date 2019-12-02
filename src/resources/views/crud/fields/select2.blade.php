@@ -28,10 +28,10 @@
 
         @if (count($options))
             @foreach ($options as $option)
-                @if($current_value == $option->getKey())
-                    <option value="{{ $option->getKey() }}" selected>{{ $option->{$field['attribute']} }}</option>
+                @if($current_value == $option->getRouteKey())
+                    <option value="{{ $option->getRouteKey() }}" selected>{{ $option->{$field['attribute']} }}</option>
                 @else
-                    <option value="{{ $option->getKey() }}">{{ $option->{$field['attribute']} }}</option>
+                    <option value="{{ $option->getRouteKey() }}">{{ $option->{$field['attribute']} }}</option>
                 @endif
             @endforeach
         @endif
