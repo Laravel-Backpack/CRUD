@@ -1,6 +1,6 @@
 {{-- regular object attribute --}}
 @php
-	$value = data_get($entry, $column['name']);
+	$value = data_get($entry, $column['name'], $column['default'] ?? null);
 
 	if (is_array($value)) {
 		$value = json_encode($value);
