@@ -60,14 +60,9 @@ trait FetchOperation
         $config['searchable_attributes'] = $config['searchable_attributes'] ?? $model_instance->identifiableAttribute();
         $config['query'] = isset($config['query']) && is_callable($config['query']) ? $config['query']($config['model']) : $model_instance; // if a closure that has been passed as "query", use the closure - otherwise use the model
 
-        // FetchOperation is aware of an optional parameter 'keys' that will fetch you the entity/entities that match the provided keys
+        // FetchOperation is aware of an optional parameter 'keys' that will fetch you the entity/entities with the provided ids
         if (request()->has('keys')) {
-            $array_keys = json_decode(request()->get('keys'));
-            if (is_array($array_keys) && count($array_keys) > 1) {
-                return $model_instance->whereIn($model_instance->getKeyName(), $array_keys)->get();
-            } else {
-                return $model_instance->where($model_instance->getKeyName(), $array_keys)->get();
-            }
+            return $model_instance->findMany(json_decode(request()->get('keys')));
         }
 
         // FetchOperation sends an empty query to retrieve the default entry for select when field is not nullable.
