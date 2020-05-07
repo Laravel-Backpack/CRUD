@@ -35,17 +35,23 @@
                 $item = $connected_entity->find($old_value);
             @endphp
             @if ($item)
+                @php
+                    if (!isset($field['option']))
+                        $attribute = $item->{$field['attribute']};
+                    else
+                        $attribute = call_user_func($field['option'], $field['model']::query()->find($old_value));
+                @endphp
 
-            {{-- allow clear --}}
-            @if ($entity_model::isColumnNullable($field['name']))
-            <option value="" selected>
-                {{ $field['placeholder'] }}
-            </option>
-            @endif
+                {{-- allow clear --}}
+                @if ($entity_model::isColumnNullable($field['name']))
+                    <option value="" selected>
+                        {{ $field['placeholder'] }}
+                    </option>
+                @endif
 
-            <option value="{{ $item->getKey() }}" selected>
-                {{ $item->{$field['attribute']} }}
-            </option>
+                <option value="{{ $item->getKey() }}" selected>
+                    {{ $attribute }}
+                </option>
             @endif
         @endif
     </select>
