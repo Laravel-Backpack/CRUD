@@ -1,5 +1,8 @@
 <!-- summernote editor -->
 @php
+    if(is_null(old(square_brackets_to_dots($field['name']))) && !empty(session()->getOldInput())) {
+        $field['value'] = '';
+    }
     // make sure that the options array is defined
     // and at the very least, dialogsInBody is true;
     // that's needed for modals to show above the overlay in Bootstrap 4

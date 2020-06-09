@@ -1,4 +1,9 @@
 @php
+
+    if(is_null(old(square_brackets_to_dots($field['name']))) && !empty(session()->getOldInput())) {
+        $field['value'] = '';
+    }
+
     $prefix = isset($field['prefix']) ? $field['prefix'] : '';
     $value = old(square_brackets_to_dots($field['name'])) ?? $field['value'] ?? $field['default'] ?? '';
     $value = $value

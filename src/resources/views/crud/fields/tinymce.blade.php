@@ -1,5 +1,8 @@
 <!-- Tiny MCE -->
 @php
+    if(is_null(old(square_brackets_to_dots($field['name']))) && !empty(session()->getOldInput())) {
+        $field['value'] = '';
+    }
 $defaultOptions = [
     'file_picker_callback' => 'elFinderBrowser',
     'selector' => 'textarea.tinymce',

@@ -13,6 +13,9 @@
     } elseif(isset($field['src']) && isset($entry)) {
         $value = $entry->find($entry->id)->{$field['src']}();
     } else {
+        if(is_null(old(square_brackets_to_dots($field['name']))) && !empty(session()->getOldInput())) {
+                $field['value'] = '';
+        }
         $value = $field['value'] ?? $field['default'] ?? '';
     }
 @endphp

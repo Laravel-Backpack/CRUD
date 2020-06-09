@@ -1,7 +1,9 @@
-<!-- text input -->
-
+<!-- address google -->
 <?php
 
+if (is_null(old(square_brackets_to_dots($field['name']))) && ! empty(session()->getOldInput())) {
+    $field['value'] = '';
+}
 // the field should work whether or not Laravel attribute casting is used
 if (isset($field['value']) && (is_array($field['value']) || is_object($field['value']))) {
     $field['value'] = json_encode($field['value']);

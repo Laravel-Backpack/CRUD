@@ -1,5 +1,9 @@
 <!-- checkbox field -->
-
+@php
+    if(is_null(old(square_brackets_to_dots($field['name']))) && !empty(session()->getOldInput())) {
+        $field['value'] = 0;
+    }
+@endphp
 @include('crud::fields.inc.wrapper_start')
     @include('crud::fields.inc.translatable_icon')
     <div class="checkbox">

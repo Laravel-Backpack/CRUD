@@ -1,4 +1,9 @@
 <!-- html5 time input -->
+@php
+    if(is_null(old(square_brackets_to_dots($field['name']))) && !empty(session()->getOldInput())) {
+        $field['value'] = '';
+    }
+@endphp
 @include('crud::fields.inc.wrapper_start')
     <label>{!! $field['label'] !!}</label>
     @include('crud::fields.inc.translatable_icon')

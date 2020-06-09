@@ -1,4 +1,7 @@
 @php
+    if(is_null(old(square_brackets_to_dots($field['name']))) && !empty(session()->getOldInput())) {
+        $field['value'] = '';
+    }
    if (!isset($field['wrapper']) || !isset($field['wrapper']['data-init-function'])){
         $field['wrapper']['data-init-function'] = 'bpFieldInitUploadElement';
     }

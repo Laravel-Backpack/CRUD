@@ -7,6 +7,9 @@
 {{-- 2. depth, lft attributes --}}
 
 @php
+    if(is_null(old(square_brackets_to_dots($field['name']))) && !empty(session()->getOldInput())) {
+        $field['value'] = '';
+    }
     $current_value = old($field['name']) ? old($field['name']) : (isset($field['value']) ? $field['value'] : (isset($field['default']) ? $field['default'] : '' ));
 
     if (!function_exists('echoSelect2NestedEntry')) {

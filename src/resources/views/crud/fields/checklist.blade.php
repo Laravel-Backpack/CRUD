@@ -1,24 +1,28 @@
 <!-- checklist -->
 @php
-  $model = new $field['model'];
-  $key_attribute = $model->getKeyName();
-  $identifiable_attribute = $field['attribute'];
+    $model = new $field['model'];
+    $key_attribute = $model->getKeyName();
+    $identifiable_attribute = $field['attribute'];
 
-  // calculate the checklist options
-  if (!isset($field['options'])) {
-      $field['options'] = $field['model']::all()->pluck($identifiable_attribute, $key_attribute)->toArray();
-  } else {
-      $field['options'] = call_user_func($field['options'], $field['model']::query());
-  }
+    // calculate the checklist options
+    if (!isset($field['options'])) {
+        $field['options'] = $field['model']::all()->pluck($identifiable_attribute, $key_attribute)->toArray();
+    } else {
+        $field['options'] = call_user_func($field['options'], $field['model']::query());
+    }
 
-  // calculate the value of the hidden input
-  $field['value'] = old(square_brackets_to_dots($field['name'])) ?? $field['value'] ?? $field['default'] ?? '';
-  if ($field['value'] instanceof Illuminate\Database\Eloquent\Collection) {
-    $field['value'] = $field['value']->pluck($key_attribute)->toArray();
-  }
+    // calculate the value of the hidden input
+    if(is_null(old(square_brackets_to_dots($field['name']))) && !empty(session()->getOldInput())) {
+        $field['value'] = '';
+    }
+    $field['value'] = old(square_brackets_to_dots($field['name'])) ?? $field['value'] ?? $field['default'] ?? '';
 
-  // define the init-function on the wrapper
-  $field['wrapper']['data-init-function'] =  $field['wrapper']['data-init-function'] ?? 'bpFieldInitChecklist';
+    if ($field['value'] instanceof Illuminate\Database\Eloquent\Collection) {
+        $field['value'] = $field['value']->pluck($key_attribute)->toArray();
+    }
+
+    // define the init-function on the wrapper
+    $field['wrapper']['data-init-function'] =  $field['wrapper']['data-init-function'] ?? 'bpFieldInitChecklist';
 @endphp
 
 @include('crud::fields.inc.wrapper_start')

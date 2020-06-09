@@ -1,23 +1,25 @@
 <!-- text input -->
 <?php
+    if (is_null(old(square_brackets_to_dots($field['name']))) && ! empty(session()->getOldInput())) {
+        $field['value'] = '';
+    }
+    $value = old(square_brackets_to_dots($field['name'])) ?? $field['value'] ?? $field['default'] ?? '';
 
-$value = old(square_brackets_to_dots($field['name'])) ?? $field['value'] ?? $field['default'] ?? '';
+    // if attribute casting is used, convert to JSON
+    if (is_array($value)) {
+        $value = json_encode((object) $value);
+    } elseif (is_object($value)) {
+        $value = json_encode($value);
+    } else {
+        $value = $value;
+    }
 
-// if attribute casting is used, convert to JSON
-if (is_array($value)) {
-    $value = json_encode((object) $value);
-} elseif (is_object($value)) {
-    $value = json_encode($value);
-} else {
-    $value = $value;
-}
+    $field['youtube_api_key'] = $field['youtube_api_key'] ?? 'AIzaSyBLRoVYovRmbIf_BH3X12IcTCudAEDRlCE';
 
-$field['youtube_api_key'] = $field['youtube_api_key'] ?? 'AIzaSyBLRoVYovRmbIf_BH3X12IcTCudAEDRlCE';
-
-$field['wrapper'] = $field['wrapper'] ?? $field['wrapperAttributes'] ?? [];
-$field['wrapper']['data-init-function'] = 'bpFieldInitVideoElement';
-$field['wrapper']['data-youtube-api-key'] = $field['youtube_api_key'];
-$field['wrapper']['data-video'] = '';
+    $field['wrapper'] = $field['wrapper'] ?? $field['wrapperAttributes'] ?? [];
+    $field['wrapper']['data-init-function'] = 'bpFieldInitVideoElement';
+    $field['wrapper']['data-youtube-api-key'] = $field['youtube_api_key'];
+    $field['wrapper']['data-video'] = '';
 ?>
 
 

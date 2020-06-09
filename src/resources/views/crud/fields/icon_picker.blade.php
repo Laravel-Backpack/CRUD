@@ -1,5 +1,8 @@
 <!-- icon picker input -->
 @php
+    if(is_null(old(square_brackets_to_dots($field['name']))) && !empty(session()->getOldInput())) {
+        $field['value'] = '';
+    }
     // if no iconset was provided, set the default iconset to Font-Awesome
     $field['iconset'] = $field['iconset'] ?? 'fontawesome';
 

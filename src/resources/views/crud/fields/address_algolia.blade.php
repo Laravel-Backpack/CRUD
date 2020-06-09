@@ -1,6 +1,10 @@
 <!-- address_algolia input -->
 
 <?php
+    if (is_null(old(square_brackets_to_dots($field['name']))) && ! empty(session()->getOldInput())) {
+        $field['value'] = '';
+    }
+
     $field['store_as_json'] = $field['store_as_json'] ?? false;
     $field['wrapper']['algolia-wrapper'] = $field['wrapper']['algolia-wrapper'] ?? 'true';
     $field['config'] = [
@@ -21,9 +25,9 @@
     @include('crud::fields.inc.translatable_icon')
 
     @if($field['store_as_json'])
-    <input type="hidden" 
-        value='{{ $field['value'] }}' 
-        name="{{ $field['name'] }}" 
+    <input type="hidden"
+        value='{{ $field['value'] }}'
+        name="{{ $field['name'] }}"
         data-algolia-hidden-input="{{ $field['name'] }}">
     @endif
 

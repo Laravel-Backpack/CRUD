@@ -1,5 +1,8 @@
 <!-- select2 -->
 @php
+    if(is_null(old(square_brackets_to_dots($field['name']))) && !empty(session()->getOldInput())) {
+        $field['value'] = '';
+    }
     $current_value = old($field['name']) ?? $field['value'] ?? $field['default'] ?? '';
     $entity_model = $crud->model;
 

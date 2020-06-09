@@ -1,5 +1,8 @@
 <!-- select_and_order -->
 @php
+    if(is_null(old(square_brackets_to_dots($field['name']))) && !empty(session()->getOldInput())) {
+        $field['value'] = [];
+    }
     $values = old($field['name']) ?? $field['value'] ?? $field['default'] ?? [];
     $values = (array)$values;
 @endphp
@@ -17,8 +20,8 @@
 
             {{-- The results will be stored here --}}
             <div data-identifier="results">
-                <select class="d-none" 
-                    name="{{ $field['name'] }}[]" 
+                <select class="d-none"
+                    name="{{ $field['name'] }}[]"
                     data-selected-options='@json($values)'
                     multiple>
                 </select>

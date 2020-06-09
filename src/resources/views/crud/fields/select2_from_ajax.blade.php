@@ -1,5 +1,8 @@
 <!-- select2 from ajax -->
 @php
+    if(is_null(old(square_brackets_to_dots($field['name']))) && !empty(session()->getOldInput())) {
+        $field['value'] = false;
+    }
     $connected_entity = new $field['model'];
     $connected_entity_key_name = $connected_entity->getKeyName();
     $old_value = old(square_brackets_to_dots($field['name'])) ?? $field['value'] ?? $field['default'] ?? false;
@@ -184,11 +187,11 @@
 
         // if we have selected options here we are on a repeatable field, we need to fetch the options with the keys
         // we have stored from the field and append those options in the select.
-        if (typeof $selectedOptions !== typeof undefined && 
-            $selectedOptions !== false &&  
-            $selectedOptions != '' && 
-            $selectedOptions != null && 
-            $selectedOptions != []) 
+        if (typeof $selectedOptions !== typeof undefined &&
+            $selectedOptions !== false &&
+            $selectedOptions != '' &&
+            $selectedOptions != null &&
+            $selectedOptions != [])
         {
             var optionsForSelect = [];
             select2AjaxFetchSelectedEntry(element).then(result => {
