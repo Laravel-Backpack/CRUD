@@ -47,4 +47,20 @@ return [
     'account_updated'        => 'Compte mis à jour avec succès.',
     'unknown_error'          => 'Un erreur s’est produite. Veuillez réessayer.',
     'error_saving'           => 'Erreur lors de l’enregistrement. Veuillez réessayer.',
+    'welcome'                => 'Bienvenue!',
+    'use_sidebar'            => 'Utilisez la barre latérale pour ajouter, modifier ou supprimer du contenu.',
+
+    'password_reset' => [
+        'greeting' => 'Bonjour!',
+        'subject'  => 'Réinitialisation du mot de passe',
+        'line_1'   => 'Vous recevez cet email car nous avons reçu une demande de réinitialisation de votre mot de passe.',
+        'line_2'   => 'Cliquez sur le lien suivant pour le réinitialiser:',
+        'button'   => 'Réinitialiser',
+        'notice'   => 'Si vous n’êtes pas à l’origine de la demande, vous pouvez ignorer ce message.',
+    ],
+
+    'step'                 => 'Étape',
+    'confirm_email'        => 'Confirmation de l’email',
+    'choose_new_password'  => 'Choix d’un mot de passe',
+    'confirm_new_password' => 'Confirmation du mot de passe',
 ];

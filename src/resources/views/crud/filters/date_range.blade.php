@@ -11,7 +11,7 @@
 		          <span class="input-group-text"><i class="la la-calendar"></i></span>
 		        </div>
 		        <input class="form-control pull-right"
-		        		id="daterangepicker-{{ Str::slug($filter->name) }}"
+		        		id="daterangepicker-{{ $filter->name }}"
 		        		type="text"
 		        		@if ($filter->currentValue)
 							@php
@@ -26,7 +26,7 @@
 					        placeholder="{{ $date_range }}"
 						@endif
 		        		>
-		        <div class="input-group-append daterangepicker-{{ Str::slug($filter->name) }}-clear-button">
+		        <div class="input-group-append daterangepicker-{{ $filter->name }}-clear-button">
 		          <a class="input-group-text" href=""><i class="la la-times"></i></a>
 		        </div>
 		    </div>
@@ -62,7 +62,7 @@
 	<script type="text/javascript" src="{{ asset('packages/bootstrap-daterangepicker/daterangepicker.js') }}"></script>
   <script>
 
-  		function applyDateRangeFilter{{Str::camel($filter->name)}}(start, end) {
+  		function applyDateRangeFilter{{$filter->name}}(start, end) {
   			if (start && end) {
   				var dates = {
 					'from': start.format('YYYY-MM-DD'),
@@ -98,7 +98,7 @@
   		}
 
 		jQuery(document).ready(function($) {
-			var dateRangeInput = $('#daterangepicker-{{ Str::slug($filter->name) }}').daterangepicker({
+			var dateRangeInput = $('#daterangepicker-{{ $filter->name }}').daterangepicker({
 				timePicker: false,
 		        ranges: {
 		            'Today': [moment().startOf('day'), moment().endOf('day')],
@@ -117,7 +117,7 @@
 			});
 
 			dateRangeInput.on('apply.daterangepicker', function(ev, picker) {
-				applyDateRangeFilter{{Str::camel($filter->name)}}(picker.startDate, picker.endDate);
+				applyDateRangeFilter{{$filter->name}}(picker.startDate, picker.endDate);
 			});
 
 			$('li[filter-name={{ $filter->name }}]').on('hide.bs.dropdown', function () {
@@ -132,9 +132,9 @@
 			});
 
 			// datepicker clear button
-			$(".daterangepicker-{{ Str::slug($filter->name) }}-clear-button").click(function(e) {
+			$(".daterangepicker-{{ $filter->name }}-clear-button").click(function(e) {
 				e.preventDefault();
-				applyDateRangeFilter{{Str::camel($filter->name)}}(null, null);
+				applyDateRangeFilter{{$filter->name}}(null, null);
 			})
 		});
   </script>

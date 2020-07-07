@@ -77,7 +77,7 @@ return [
     'lengthMenu'     => '_MENU_ record per pagina',
     'loadingRecords' => 'Caricamento...',
     'processing'     => 'Elaborazione...',
-    'search'         => 'Cerca: ',
+    'search'         => 'Cerca',
     'zeroRecords'    => 'Nessun record corrispondente',
     'paginate'       => [
         'first'    => 'Primo',

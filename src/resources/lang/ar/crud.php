@@ -46,7 +46,7 @@ return [
     'filters'                                 => 'الفلاتر',
     'to'                                      => 'الى',
     'reorder_success_title'                   => 'انتهى',
-    'search'                                  => 'بحث:',
+    'search'                                  => 'بحث',
     'toggle_filters'                          => 'تبديل الفلاتر',
     'undo'                                    => 'تراجع',
     'edit'                                    => 'تعديل',

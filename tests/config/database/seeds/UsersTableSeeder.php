@@ -26,9 +26,28 @@ class UsersTableSeeder extends Seeder
             'updated_at'     => $now,
         ]]);
 
+        DB::table('users')->insert([[
+            'id'             => 2,
+            'name'           => $faker->name,
+            'email'          => $faker->safeEmail,
+            'password'       => bcrypt('secret'),
+            'remember_token' => Str::random(10),
+            'created_at'     => $now,
+            'updated_at'     => $now,
+        ]]);
+
         DB::table('user_role')->insert([
             'user_id' => 1,
             'role_id' => 1,
+        ]);
+
+        DB::table('user_role')->insert([
+            'user_id' => 2,
+            'role_id' => 1,
+        ]);
+        DB::table('user_role')->insert([
+            'user_id' => 2,
+            'role_id' => 2,
         ]);
 
         DB::table('account_details')->insert([

@@ -49,12 +49,9 @@
 {{-- ########################################## --}}
 {{-- Extra CSS and JS for this particular field --}}
 {{-- If a field type is shown multiple times on a form, the CSS and JS will only be loaded once --}}
-@if ($crud->fieldTypeNotLoaded($field))
-    @php
-        $crud->markFieldTypeAsLoaded($field);
-    @endphp
     {{-- FIELD JS - will be loaded in the after_scripts section --}}
     @push('crud_fields_scripts')
+        @loadOnce('bpFieldInitChecklist')
         <script>
             function bpFieldInitChecklist(element) {
                 var hidden_input = element.find('input[type=hidden]');
@@ -90,8 +87,7 @@
                 });
             }
         </script>
+        @endLoadOnce
     @endpush
-
-@endif
 {{-- End of Extra CSS and JS --}}
 {{-- ########################################## --}}

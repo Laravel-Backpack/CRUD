@@ -33,7 +33,7 @@ class Install extends Command
      */
     public function handle()
     {
-        $this->progressBar = $this->output->createProgressBar(6);
+        $this->progressBar = $this->output->createProgressBar(5);
         $this->progressBar->minSecondsBetweenRedraws(0);
         $this->progressBar->maxSecondsBetweenRedraws(120);
         $this->progressBar->setRedrawFrequency(1);
@@ -43,18 +43,13 @@ class Install extends Command
         $this->info(' Backpack installation started. Please wait...');
         $this->progressBar->advance();
 
-        $this->line(' Publishing configs, langs, views, js and css files');
+        $this->line(' Publishing configs, views, js and css files');
         $this->executeArtisanProcess('vendor:publish', [
             '--provider' => 'Backpack\CRUD\BackpackServiceProvider',
             '--tag' => 'minimum',
         ]);
 
-        $this->line(' Publishing config for notifications - prologue/alerts');
-        $this->executeArtisanProcess('vendor:publish', [
-            '--provider' => 'Prologue\Alerts\AlertsServiceProvider',
-        ]);
-
-        $this->line(" Generating users table (using Laravel's default migrations)");
+        $this->line(" Creating users table (using Laravel's default migration)");
         $this->executeArtisanProcess('migrate');
 
         $this->line(" Creating App\Http\Middleware\CheckIfAdmin.php");

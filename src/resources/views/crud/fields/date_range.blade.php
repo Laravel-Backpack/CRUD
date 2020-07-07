@@ -64,20 +64,17 @@
 {{-- ########################################## --}}
 {{-- Extra CSS and JS for this particular field --}}
 {{-- If a field type is shown multiple times on a form, the CSS and JS will only be loaded once --}}
-@if ($crud->fieldTypeNotLoaded($field))
-    @php
-        $crud->markFieldTypeAsLoaded($field);
-    @endphp
 
     {{-- FIELD CSS - will be loaded in the after_styles section --}}
-    @push('crud_fields_styles')
-    <link rel="stylesheet" type="text/css" href="{{ asset('packages/bootstrap-daterangepicker/daterangepicker.css') }}" />
-    @endpush
+@push('crud_fields_styles')
+    @loadCssOnce('packages/bootstrap-daterangepicker/daterangepicker.css')
+@endpush
 
-    {{-- FIELD JS - will be loaded in the after_scripts section --}}
-    @push('crud_fields_scripts')
-    <script type="text/javascript" src="{{ asset('packages/moment/min/moment.min.js') }}"></script>
-    <script type="text/javascript" src="{{ asset('packages/bootstrap-daterangepicker/daterangepicker.js') }}"></script>
+{{-- FIELD JS - will be loaded in the after_scripts section --}}
+@push('crud_fields_scripts')
+    @loadJsOnce('packages/moment/min/moment.min.js')
+    @loadJsOnce('packages/bootstrap-daterangepicker/daterangepicker.js')
+    @loadOnce('bpFieldInitDateRangeElement')
     <script>
         function bpFieldInitDateRangeElement(element) {
                 var $visibleInput = element;
@@ -113,8 +110,8 @@
                 });
         }
     </script>
-    @endpush
+    @endLoadOnce
+@endpush
 
-@endif
 {{-- End of Extra CSS and JS --}}
 

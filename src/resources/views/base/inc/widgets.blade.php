@@ -7,7 +7,7 @@
 		@endphp
 
 		@if (isset($currentWidget['viewNamespace']))
-			@include($widgetsViewNamespace.'.'.$currentWidget['type'], ['widget' => $currentWidget])
+			@include($currentWidget['viewNamespace'].'.'.$currentWidget['type'], ['widget' => $currentWidget])
 		@else
 			@include(backpack_view('widgets.'.$currentWidget['type']), ['widget' => $currentWidget])
 		@endif

@@ -2,11 +2,11 @@
 @php
    $relationshipType = new ReflectionClass($entry->{$column['name']}());
    $relationshipType = $relationshipType->getShortName();
-   $allows_multiple = $crud->relationAllowsMultiple($relationshipType);
+   $allows_multiple = $crud->guessIfFieldHasMultipleFromRelationType($relationshipType);
 @endphp
 
 @if ($allows_multiple)
-    @include('crud::columns.select_multiple')
+	@include('crud::columns.select_multiple')
 @else
-    @include('crud::columns.select')
+	@include('crud::columns.select')
 @endif

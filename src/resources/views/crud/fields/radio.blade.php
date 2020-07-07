@@ -43,13 +43,9 @@
 
 @include('crud::fields.inc.wrapper_end')
 
-@if ($crud->fieldTypeNotLoaded($field))
-    @php
-        $crud->markFieldTypeAsLoaded($field);
-    @endphp
-
     {{-- FIELD JS - will be loaded in the after_scripts section --}}
     @push('crud_fields_scripts')
+    @loadOnce('bpFieldInitRadioElement')
     <script>
         function bpFieldInitRadioElement(element) {
             var hiddenInput = element.find('input[type=hidden]');
@@ -74,6 +70,5 @@
             element.find('input[type=radio][value="'+value+'"]').prop('checked', true);
         }
     </script>
+    @endLoadOnce
     @endpush
-
-@endif

@@ -8,35 +8,6 @@ use Illuminate\Support\Str;
 trait ColumnsProtectedMethods
 {
     /**
-     * The only REALLY MANDATORY attribute for a column is the 'name'.
-     * Everything else, Backpack can probably guess.
-     *
-     * This method checks that all necessary attributes are set.
-     * If not, it tries to guess them.
-     *
-     * @param  string|array $column The column definition array OR column name as string.
-     * @return array                Proper column definition array.
-     */
-    protected function makeSureColumnHasNeededAttributes($column)
-    {
-        $column = $this->makeSureColumnHasName($column);
-        $column = $this->makeSureColumnHasLabel($column);
-        $column = $this->makeSureColumnHasType($column);
-        $column = $this->makeSureColumnHasKey($column);
-        $column = $this->makeSureColumnHasModel($column);
-
-        // check if the column exists in the database (as a db column)
-        $columnExistsInDb = $this->hasDatabaseColumn($this->model->getTable(), $column['name']);
-
-        // make sure column has tableColumn, orderable and searchLogic
-        $column['tableColumn'] = $column['tableColumn'] ?? $columnExistsInDb;
-        $column['orderable'] = $column['orderable'] ?? $columnExistsInDb;
-        $column['searchLogic'] = $column['searchLogic'] ?? $columnExistsInDb;
-
-        return $column;
-    }
-
-    /**
      * Add a column to the current operation, using the Setting API.
      *
      * @param array $column Column definition array.
@@ -102,6 +73,12 @@ trait ColumnsProtectedMethods
      */
     protected function makeSureColumnHasType($column)
     {
+        // if it's got a method on the model with the same name
+        // then it should be a relationship
+        if (! isset($column['type']) && method_exists($this->model, $column['name'])) {
+            $column['type'] = 'relationship';
+        }
+
         if (! isset($column['type'])) {
             $column['type'] = 'text';
         }

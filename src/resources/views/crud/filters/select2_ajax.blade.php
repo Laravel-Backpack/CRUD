@@ -60,7 +60,7 @@
     @if (app()->getLocale() !== 'en')
     <script src="{{ asset('packages/select2/dist/js/i18n/' . app()->getLocale() . '.js') }}"></script>
     @endif
-    
+
     <script>
         jQuery(document).ready(function($) {
             // trigger select2 for each untriggered select2 box

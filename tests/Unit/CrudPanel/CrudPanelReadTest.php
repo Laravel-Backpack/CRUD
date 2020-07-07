@@ -3,6 +3,7 @@
 namespace Backpack\CRUD\Tests\Unit\CrudPanel;
 
 use Backpack\CRUD\Tests\Unit\Models\Article;
+use Backpack\CRUD\Tests\Unit\Models\Role;
 use Backpack\CRUD\Tests\Unit\Models\User;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Collection;
@@ -15,6 +16,14 @@ class CrudPanelReadTest extends BaseDBCrudPanelTest
         'type'      => 'select',
         'entity'    => 'user',
         'attribute' => 'name',
+    ];
+
+    private $relationshipMultipleColumn = [
+        'name'      => 'roles',
+        'type'      => 'select',
+        'entity'    => 'roles',
+        'attribute' => 'name',
+        'model' => Role::class,
     ];
 
     private $nonRelationshipColumn = [
@@ -155,7 +164,7 @@ class CrudPanelReadTest extends BaseDBCrudPanelTest
 
         $this->crudPanel->setModel(User::class);
 
-        $unknownId = DB::getPdo()->lastInsertId() + 1;
+        $unknownId = DB::getPdo()->lastInsertId() + 2;
         $this->crudPanel->getEntry($unknownId);
     }
 
@@ -187,7 +196,7 @@ class CrudPanelReadTest extends BaseDBCrudPanelTest
         $entries = $this->crudPanel->getEntries();
 
         $this->assertInstanceOf(Collection::class, $entries);
-        $this->assertEquals(1, $entries->count());
+        $this->assertEquals(2, $entries->count());
         $this->assertEquals(User::find(1), $entries->first());
     }
 
@@ -303,5 +312,77 @@ class CrudPanelReadTest extends BaseDBCrudPanelTest
         $exportButtons = $this->crudPanel->exportButtons();
 
         $this->assertFalse($exportButtons);
+    }
+
+    public function testGetRelatedEntriesAttributesFromBelongsToMany()
+    {
+        $this->crudPanel->setModel(User::class);
+        $this->crudPanel->setOperation('list');
+        $user = $this->crudPanel->getModel()->where('id', 2)->first();
+        $entries = $this->crudPanel->getRelatedEntriesAttributes($user, 'roles', 'name');
+        $this->assertEquals([1 => 'admin', 2 => 'user'], $entries);
+    }
+
+    public function testGetRelatedEntriesAttributesFromBelongsToManyWithAcessor()
+    {
+        $this->crudPanel->setModel(User::class);
+        $this->crudPanel->setOperation('list');
+        $user = $this->crudPanel->getModel()->where('id', 2)->first();
+        $entries = $this->crudPanel->getRelatedEntriesAttributes($user, 'roles', 'role_name');
+        $this->assertEquals([1 => 'admin++', 2 => 'user++'], $entries);
+    }
+
+    public function testGetRelatedEntriesAttributesFromHasMany()
+    {
+        $this->crudPanel->setModel(User::class);
+        $this->crudPanel->setOperation('list');
+        $user = $this->crudPanel->getModel()->first();
+        $entries = $this->crudPanel->getRelatedEntriesAttributes($user, 'articles', 'content');
+        $this->assertCount(1, $entries);
+    }
+
+    public function testGetRelatedEntriesAttributesFromHasManyWithAcessor()
+    {
+        $this->crudPanel->setModel(User::class);
+        $this->crudPanel->setOperation('list');
+        $user = $this->crudPanel->getModel()->first();
+        $entries = $this->crudPanel->getRelatedEntriesAttributes($user, 'articles', 'content_composed');
+        $this->assertCount(1, $entries);
+    }
+
+    public function testGetRelatedEntriesAttributesFromBelongsTo()
+    {
+        $this->crudPanel->setModel(Article::class);
+        $this->crudPanel->setOperation('list');
+        $article = $this->crudPanel->getModel()->first();
+        $entries = $this->crudPanel->getRelatedEntriesAttributes($article, 'user', 'name');
+        $this->assertCount(1, $entries);
+    }
+
+    public function testGetRelatedEntriesAttributesFromBelongsToWithAcessor()
+    {
+        $this->crudPanel->setModel(Article::class);
+        $this->crudPanel->setOperation('list');
+        $article = $this->crudPanel->getModel()->first();
+        $entries = $this->crudPanel->getRelatedEntriesAttributes($article, 'user', 'name_composed');
+        $this->assertCount(1, $entries);
+    }
+
+    public function testGetRelatedEntriesAttributesFromHasOne()
+    {
+        $this->crudPanel->setModel(User::class);
+        $this->crudPanel->setOperation('list');
+        $user = $this->crudPanel->getModel()->first();
+        $entries = $this->crudPanel->getRelatedEntriesAttributes($user, 'accountDetails', 'nickname');
+        $this->assertCount(1, $entries);
+    }
+
+    public function testGetRelatedEntriesAttributesFromHasOneWithAcessor()
+    {
+        $this->crudPanel->setModel(User::class);
+        $this->crudPanel->setOperation('list');
+        $user = $this->crudPanel->getModel()->first();
+        $entries = $this->crudPanel->getRelatedEntriesAttributes($user, 'accountDetails', 'nickname_composed');
+        $this->assertCount(1, $entries);
     }
 }

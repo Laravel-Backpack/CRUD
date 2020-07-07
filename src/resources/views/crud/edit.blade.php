@@ -60,8 +60,9 @@
 		      	@include('vendor.backpack.crud.form_content', ['fields' => $crud->fields(), 'action' => 'edit'])
 		      @else
 		      	@include('crud::form_content', ['fields' => $crud->fields(), 'action' => 'edit'])
-		      @endif
-
+              @endif
+              <!-- This makes sure that all field assets are loaded. -->
+            <div class="d-none" id="parentLoadedAssets">{{ json_encode(Assets::loadedAssets()) }}</div>
             @include('crud::inc.form_save_buttons')
 		  </form>
 	</div>

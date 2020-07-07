@@ -20,25 +20,24 @@
 {{-- ########################################## --}}
 {{-- Extra CSS and JS for this particular field --}}
 {{-- If a field type is shown multiple times on a form, the CSS and JS will only be loaded once --}}
-@if ($crud->fieldTypeNotLoaded($field))
-    @php
-        $crud->markFieldTypeAsLoaded($field);
-    @endphp
 
     {{-- FIELD CSS - will be loaded in the after_styles section --}}
     @push('crud_fields_styles')
-        <link rel="stylesheet" href="{{ asset('packages/easymde/dist/easymde.min.css') }}">
+        @loadCssOnce('packages/easymde/dist/easymde.min.css')
+        @loadOnce('easymdeCss')
         <style type="text/css">
             .editor-toolbar {
                 border: 1px solid #ddd;
                 border-bottom: none;
             }
         </style>
+        @endLoadOnce
     @endpush
 
     {{-- FIELD JS - will be loaded in the after_scripts section --}}
     @push('crud_fields_scripts')
-        <script src="{{ asset('packages/easymde/dist/easymde.min.js') }}"></script>
+        @loadJsOnce('packages/easymde/dist/easymde.min.js')
+        @loadOnce('bpFieldInitEasyMdeElement')
         <script>
             function bpFieldInitEasyMdeElement(element) {
                 if (element.attr('data-initialized') == 'true') {
@@ -77,9 +76,8 @@
                 // });
             }
         </script>
+        @endLoadOnce
     @endpush
-
-@endif
 
 {{-- End of Extra CSS and JS --}}
 {{-- ########################################## --}}

@@ -13,6 +13,14 @@
 	}
 @endphp
 
+@section('before_breadcrumbs_widgets')
+	@include(backpack_view('inc.widgets'), [ 'widgets' => app('widgets')->where('section', 'before_breadcrumbs')->toArray() ])
+@endsection
+
+@section('after_breadcrumbs_widgets')
+	@include(backpack_view('inc.widgets'), [ 'widgets' => app('widgets')->where('section', 'after_breadcrumbs')->toArray() ])
+@endsection
+
 @section('before_content_widgets')
 	@include(backpack_view('inc.widgets'), [ 'widgets' => app('widgets')->where('section', 'before_content')->toArray() ])
 @endsection
@@ -21,7 +29,5 @@
 @endsection
 
 @section('after_content_widgets')
-	@if (isset($widgets['after_content']))
-		@include(backpack_view('inc.widgets'), [ 'widgets' => app('widgets')->where('section', 'after_content')->toArray() ])
-	@endif
+	@include(backpack_view('inc.widgets'), [ 'widgets' => app('widgets')->where('section', 'after_content')->toArray() ])
 @endsection

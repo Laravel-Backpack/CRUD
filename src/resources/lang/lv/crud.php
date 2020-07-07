@@ -66,7 +66,7 @@ return [
     'lengthMenu'     => '_MENU_ ieraksti uz lapu',
     'loadingRecords' => 'Ielādē...',
     'processing'     => 'Apstrādā...',
-    'search'         => 'Meklēšana: ',
+    'search'         => 'Meklēšana',
     'zeroRecords'    => 'Peimēroti ieraksti nav atrasti',
     'paginate'       => [
         'first'    => 'Pirmā',

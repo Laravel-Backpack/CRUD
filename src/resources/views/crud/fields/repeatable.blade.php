@@ -40,19 +40,21 @@
     </div>
 
   </div>
-  <button type="button" class="btn btn-outline-primary btn-sm ml-1 add-repeatable-element-button">+ New Item</button>
+  <button type="button" class="btn btn-outline-primary btn-sm ml-1 add-repeatable-element-button">+ {{ trans('backpack::crud.new_item') }}</button>
 
 @include('crud::fields.inc.wrapper_end')
 
-@if ($crud->fieldTypeNotLoaded($field))
-  @php
-      $crud->markFieldTypeAsLoaded($field);
-  @endphp
+{{-- ########################################## --}}
+{{-- Extra CSS and JS for this particular field --}}
+{{-- If a field type is shown multiple times on a form, the CSS and JS will only be loaded once --}}
+
+
   {{-- FIELD EXTRA CSS  --}}
   {{-- push things in the after_styles section --}}
 
   @push('crud_fields_styles')
       <!-- no styles -->
+      @loadOnce('repeatableFieldStyle')
       <style type="text/css">
         .repeatable-element {
           border: 1px solid rgba(0,40,100,.12);
@@ -71,12 +73,14 @@
           background-color: #e8ebf0!important;;
         }
       </style>
+      @endLoadOnce
   @endpush
 
   {{-- FIELD EXTRA JS --}}
   {{-- push things in the after_scripts section --}}
 
   @push('crud_fields_scripts')
+      @loadOnce('bpFieldInitRepeatableElement')
       <script>
         /**
          * Takes all inputs and makes them an object.
@@ -184,5 +188,5 @@
             initializeFieldsWithJavascript(container);
         }
     </script>
+    @endLoadOnce
   @endpush
-@endif

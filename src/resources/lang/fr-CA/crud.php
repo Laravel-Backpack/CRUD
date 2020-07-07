@@ -66,7 +66,7 @@ return [
     'lengthMenu'     => '_MENU_ enregistrements par page',
     'loadingRecords' => 'Chargement...',
     'processing'     => 'Traitement...',
-    'search'         => 'Recherche : ',
+    'search'         => 'Recherche',
     'zeroRecords'    => 'Aucun enregistrement correspondant trouvé',
     'paginate'       => [
         'first'    => 'Premier',

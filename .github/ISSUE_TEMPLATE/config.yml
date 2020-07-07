@@ -1,0 +1,14 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Documentation issue
+    url: https://github.com/laravel-backpack/docs
+    about: For documentation issues, open an issue or pull request in our docs repository.
+  - name: Help & support
+    url: https://stackoverflow.com/questions/tagged/backpack-for-laravel
+    about: Backpack doesn't offer official support - only community support. Please post your question & code on StackOverflow, using the backpack-for-laravel tag. We've been blessed with a great community, that is happy to help.
+  - name: Quick question
+    url: https://gitter.im/BackpackForLaravel/Lobby
+    about: If you have an urgent matter that won't take much time to answer, use our 24/7 Gitter chatroom. Tens of people hang out there sometimes. But keep in mind chatrooms are NOT a good place to post code, or ask for anything more than a quick answer.
+  - name: Miscellaneous
+    url: https://www.reddit.com/r/BackpackForLaravel/
+    about: If you just want to bounce ideas off someone, share something you've made, or talk about Backpack, Laravel or web development in general - join our subreddit.

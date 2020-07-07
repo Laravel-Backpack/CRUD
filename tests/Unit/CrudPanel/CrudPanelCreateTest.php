@@ -121,9 +121,26 @@ class CrudPanelCreateTest extends BaseDBCrudPanelTest
         $this->assertEmpty($entry->articles);
     }
 
+    /**
+     * @group failing
+     */
     public function testCreateWithOneToOneRelationship()
     {
-        $this->markTestIncomplete('Not yet implemented');
+        $this->crudPanel->setModel(User::class);
+        $this->crudPanel->addFields($this->userInputFieldsNoRelationships);
+        $this->crudPanel->addFields($this->userInputHasOneRelation);
+        $faker = Factory::create();
+        $inputData = [
+            'name'     => $faker->name,
+            'email'    => $faker->safeEmail,
+            'password' => bcrypt($faker->password()),
+            'accountDetails' => [
+                'nickname' => $faker->name,
+                'profile_picture' => 'test.jpg',
+            ],
+        ];
+        $entry = $this->crudPanel->create($inputData);
+        $this->markTestIncomplete('Has one relation is not created in tests.');
     }
 
     public function testCreateWithOneToManyRelationship()

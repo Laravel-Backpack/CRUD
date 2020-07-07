@@ -78,7 +78,7 @@ return [
     'lengthMenu'     => '_MENU_ itens por página',
     'loadingRecords' => 'A carregar...',
     'processing'     => 'A processar...',
-    'search'         => 'Procurar: ',
+    'search'         => 'Procurar',
     'zeroRecords'    => 'Nenhum item encontrado',
     'paginate'       => [
         'first'    => 'Primeiro',

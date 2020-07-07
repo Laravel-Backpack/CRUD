@@ -79,7 +79,7 @@ return [
     'lengthMenu'     => '_MENU_ elementos por página',
     'loadingRecords' => 'Cargando...',
     'processing'     => 'Procesando...',
-    'search'         => 'Buscar: ',
+    'search'         => 'Buscar',
     'zeroRecords'    => 'No se encontraron elementos',
     'paginate'       => [
         'first'    => 'Primero',

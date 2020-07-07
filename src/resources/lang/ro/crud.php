@@ -66,7 +66,7 @@ return [
     'lengthMenu'                              => '_MENU_ pe pagină',
     'loadingRecords'                          => 'Se încarcă...',
     'processing'                              => 'Se procesează...',
-    'search'                                  => 'Caută: ',
+    'search'                                  => 'Caută',
     'zeroRecords'                             => 'Nu au fost găsite intrări care să se potrivească',
     'paginate'                                => [
         'first'             => 'Prima pagină',

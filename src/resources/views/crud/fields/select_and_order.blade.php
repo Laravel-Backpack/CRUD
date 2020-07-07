@@ -17,8 +17,8 @@
 
             {{-- The results will be stored here --}}
             <div data-identifier="results">
-                <select class="d-none" 
-                    name="{{ $field['name'] }}[]" 
+                <select class="d-none"
+                    name="{{ $field['name'] }}[]"
                     data-selected-options='@json($values)'
                     multiple>
                 </select>
@@ -36,14 +36,11 @@
 {{-- ########################################## --}}
 {{-- Extra CSS and JS for this particular field --}}
 {{-- If a field type is shown multiple times on a form, the CSS and JS will only be loaded once --}}
-@if ($crud->fieldTypeNotLoaded($field))
-    @php
-        $crud->markFieldTypeAsLoaded($field);
-    @endphp
 
-    {{-- FIELD CSS - will be loaded in the after_styles section --}}
-    @push('crud_fields_styles')
 
+{{-- FIELD CSS - will be loaded in the after_styles section --}}
+@push('crud_fields_styles')
+    @loadOnce('select_and_order_field_style')
     <style>
         .select_and_order_all,
         .select_and_order_selected {
@@ -91,15 +88,16 @@
             -ms-touch-action: none;
             touch-action: none;
         }
-
     </style>
-    @endpush
+    @endLoadOnce
+@endpush
 
 {{-- FIELD JS - will be loaded in the after_scripts section --}}
 @push('crud_fields_scripts')
-<script src="{{ asset('packages/jquery-ui-dist/jquery-ui.min.js') }}"></script>
+@loadJsOnce('packages/jquery-ui-dist/jquery-ui.min.js')
+@loadOnce('bpFieldInitSelectAndOrderElement')
 <script>
-    function bpFieldInitSelectAndOrderElement(element) {
+  function bpFieldInitSelectAndOrderElement(element) {
         var $dragSource = element.find('[data-identifier=drag-source]');
         var $dragDestination = element.find('[data-identifier=drag-destination]');
         var $hiddenSelect = element.find('[data-identifier=results] select');
@@ -170,11 +168,9 @@
             }
         }).disableSelection();
     }
-</script>
-
+    </script>
+    @endLoadOnce
 @endpush
-
-@endif
 
 {{-- End of Extra CSS and JS --}}
 {{-- ########################################## --}}

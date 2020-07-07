@@ -13,6 +13,18 @@ namespace Backpack\CRUD\app\Library\CrudPanel;
  *
  * And if the developer uses CrudColumn as Column in their CrudController:
  * - Column::name('price')->type('number');
+ *
+ * @method self type(string $value)
+ * @method self label(string $value)
+ * @method self searchLogic(mixed $value)
+ * @method self orderLogic(callable $value)
+ * @method self orderable(bool $value)
+ * @method self wrapper(array $value)
+ * @method self visibleInTable(bool $value)
+ * @method self visibleInModal(bool $value)
+ * @method self visibleInExport(bool $value)
+ * @method self visibleInShow(bool $value)
+ * @method self priority(int $value)
  */
 class CrudColumn
 {
@@ -32,7 +44,10 @@ class CrudColumn
             $this->setAttributeValue('name', $name);
         }
 
-        return $this->save();
+        // guess all attributes that weren't explicitly defined
+        $this->attributes = $this->crud()->makeSureColumnHasNeededAttributes($this->attributes);
+
+        $this->save();
     }
 
     public function crud()
@@ -59,8 +74,6 @@ class CrudColumn
     public function remove()
     {
         $this->crud()->removeColumn($this->attributes['name']);
-
-        return $this;
     }
 
     /**
@@ -130,6 +143,37 @@ class CrudColumn
         return $this;
     }
 
+    // -----------------
+    // DEBUGGING METHODS
+    // -----------------
+
+    /**
+     * Dump the current object to the screen,
+     * so that the developer can see its contents.
+     *
+     * @return CrudColumn
+     */
+    public function dump()
+    {
+        dump($this);
+
+        return $this;
+    }
+
+    /**
+     * Dump and die. Duumps the current object to the screen,
+     * so that the developer can see its contents, then stops
+     * the execution.
+     *
+     * @return CrudColumn
+     */
+    public function dd()
+    {
+        dd($this);
+
+        return $this;
+    }
+
     // ---------------
     // PRIVATE METHODS
     // ---------------
@@ -138,7 +182,7 @@ class CrudColumn
      * Set the value for a certain attribute on the CrudColumn object.
      *
      * @param string $attribute Name of the attribute.
-     * @param string $value     Value of that attribute.
+     * @param mixed $value     Value of that attribute.
      */
     private function setAttributeValue($attribute, $value)
     {

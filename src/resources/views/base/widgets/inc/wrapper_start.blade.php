@@ -5,7 +5,7 @@
     // each wrapper attribute can be a callback or a string
     // for those that are callbacks, run the callbacks to get the final string to use
     foreach($widget['wrapper'] as $attribute => $value) {
-        $widget['wrapper'][$attribute] = (is_callable($value) ? $value() : $value) ?? '';
+        $widget['wrapper'][$attribute] = (!is_string($value) && is_callable($value) ? $value() : $value) ?? '';
     }
 @endphp
 

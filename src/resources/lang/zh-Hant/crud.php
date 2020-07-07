@@ -66,7 +66,7 @@ return [
     'lengthMenu'     => '每頁 _MENU_ 項紀錄',
     'loadingRecords' => '載入中...',
     'processing'     => '處理中...',
-    'search'         => '搜尋: ',
+    'search'         => '搜尋',
     'zeroRecords'    => '找不到相關紀錄',
     'paginate'       => [
         'first'    => '第一頁',

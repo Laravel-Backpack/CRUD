@@ -108,7 +108,7 @@ trait ShowOperation
 
             // remove the character limit on columns that take it into account
             if (in_array($column['type'], ['text', 'email', 'model_function', 'model_function_attribute', 'phone', 'row_number', 'select'])) {
-                $this->crud->modifyColumn($column['key'], ['limit' => 999]);
+                $this->crud->modifyColumn($column['key'], ['limit' => ($column['limit'] ?? 999)]);
             }
         }
 

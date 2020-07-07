@@ -45,7 +45,12 @@ class AddSidebarContent extends Command
         $code = $this->argument('code');
 
         if ($disk->exists($path)) {
-            $contents = Storage::disk($disk_name)->get($path);
+            $contents = $disk->get($path);
+            $file_lines = file($disk->path($path), FILE_IGNORE_NEW_LINES);
+
+            if ($this->getLastLineNumberThatContains($code, $file_lines)) {
+                return $this->info('Sidebar item already exists!');
+            }
 
             if ($disk->put($path, $contents.PHP_EOL.$code)) {
                 $this->info('Successfully added code to sidebar_content file.');
@@ -55,5 +60,25 @@ class AddSidebarContent extends Command
         } else {
             $this->error('The sidebar_content file does not exist. Make sure Backpack is properly installed.');
         }
+    }
+
+    /**
+     * Parse the given file stream and return the line number where a string is found.
+     *
+     * @param  string $needle   The string that's being searched for.
+     * @param  array $haystack  The file where the search is being performed.
+     * @return bool|int         The last line number where the string was found. Or false.
+     */
+    private function getLastLineNumberThatContains($needle, $haystack)
+    {
+        $matchingLines = array_filter($haystack, function ($k) use ($needle) {
+            return strpos($k, $needle) !== false;
+        });
+
+        if ($matchingLines) {
+            return array_key_last($matchingLines);
+        }
+
+        return false;
     }
 }

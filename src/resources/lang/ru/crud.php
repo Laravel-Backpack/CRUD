@@ -17,6 +17,7 @@ return [
     'save_action_save_and_new'                => 'Сохранить и создать',
     'save_action_save_and_edit'               => 'Сохранить и продолжить редактирование',
     'save_action_save_and_back'               => 'Сохранить и выйти',
+    'save_action_save_and_preview'            => 'Сохранить и предпросмотр',
     'save_action_changed_notification'        => 'Действие после сохранения было изменено',
 
     // Create form
@@ -37,6 +38,7 @@ return [
     'all'                                     => 'Все ',
     'in_the_database'                         => 'в базе данных',
     'list'                                    => 'Список',
+    'reset'                                   => 'Сбросить',
     'actions'                                 => 'Действия',
     'preview'                                 => 'Предпросмотр',
     'delete'                                  => 'Удалить',
@@ -81,7 +83,7 @@ return [
     'lengthMenu'                              => '_MENU_ записей на странице',
     'loadingRecords'                          => 'Загрузка...',
     'processing'                              => 'Обработка...',
-    'search'                                  => 'Поиск: ',
+    'search'                                  => 'Поиск',
     'zeroRecords'                             => 'Совпадений не найдено',
     'paginate'                                => [
         'first'    => 'Первая',
@@ -93,7 +95,7 @@ return [
         'sortAscending'  => ': нажмите для сортировки по возрастанию',
         'sortDescending' => ': нажмите для сортировки по убыванию',
     ],
-    'export' => [
+    'export'                                  => [
         'export'            => 'Экспорт',
         'copy'              => 'Копировать в буфер',
         'excel'             => 'Excel',
@@ -140,6 +142,9 @@ return [
     'internal_link_placeholder'               => 'Внутренний путь. Например: \'admin/page\' (без кавычек) для \':url\'',
     'external_link'                           => 'Внешняя ссылка',
     'choose_file'                             => 'Выбрать файл',
+    'new_item'                                => 'Новый элемент',
+    'select_entry'                            => 'Выбрать запись',
+    'select_entries'                          => 'Выбрать записи',
 
     //Table field
     'table_cant_add'                          => 'Не удалось добавить новую :entity',
@@ -148,4 +153,7 @@ return [
     // File manager
     'file_manager'                            => 'Файловый менеджер',
 
+    // InlineCreateOperation
+    'related_entry_created_success'           => 'Связанная запись создана и выбрана.',
+    'related_entry_created_error'             => 'Не удалось создать связанную запись.',
 ];

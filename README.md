@@ -65,7 +65,7 @@ Alternatively, if you don't have 20 minutes right now, subscribe to our [drip em
 ## Install
 
 Installation guides:
-- [Install Backpack 4.0 on Laravel 6 or 7](https://backpackforlaravel.com/docs/4.1/installation) - recommended;
+- [Install Backpack 4.1 on Laravel 6 or 7](https://backpackforlaravel.com/docs/4.1/installation) - recommended;
 - [Install Backpack 4.0 on Laravel 5.8, 6 or 7](https://backpackforlaravel.com/docs/4.0/installation) - last feature update was 21st Apr 2020;
 - [Install Backpack 3.6 on Laravel 5.8 or 6.x](https://backpackforlaravel.com/docs/3.6/installation) - last feature update was 17th Sep 2019;
 - [Install Backpack 3.5 on Laravel 5.5, 5.6, 5.7](https://backpackforlaravel.com/docs/3.5/installation) - last feature update was 27th Feb 2019;
@@ -79,7 +79,7 @@ Play around in our [live demo](https://demo.backpackforlaravel.com/).
 
 ## Change Log
 
-Please see [CHANGELOG](CHANGELOG.md).
+For the current release (4.1.x) please see [the Releases tab](https://github.com/Laravel-Backpack/CRUD/releases). For previous versions (Backpack <=4.0.x), please see our old [CHANGELOG](CHANGELOG.md) file.
 
 ## Contributing Guidelines
 

@@ -38,9 +38,9 @@
             data-init-function="bpFieldInitTableElement"
             name="{{ $field['name'] }}"
             value="{{ $items }}"
-            data-max="{{$max}}" 
-            data-min="{{$min}}" 
-            data-maxErrorTitle="{{trans('backpack::crud.table_cant_add', ['entity' => $item_name])}}" 
+            data-max="{{$max}}"
+            data-min="{{$min}}"
+            data-maxErrorTitle="{{trans('backpack::crud.table_cant_add', ['entity' => $item_name])}}"
             data-maxErrorMessage="{{trans('backpack::crud.table_max_reached', ['max' => $max])}}">
 
     <div class="array-container form-group">
@@ -94,18 +94,14 @@
 {{-- ########################################## --}}
 {{-- Extra CSS and JS for this particular field --}}
 {{-- If a field type is shown multiple times on a form, the CSS and JS will only be loaded once --}}
-@if ($crud->fieldTypeNotLoaded($field))
-    @php
-        $crud->markFieldTypeAsLoaded($field);
-    @endphp
 
-    {{-- FIELD JS - will be loaded in the after_scripts section --}}
-    @push('crud_fields_scripts')
-        {{-- YOUR JS HERE --}}
-        <script type="text/javascript" src="{{ asset('packages/jquery-ui-dist/jquery-ui.min.js') }}"></script>
-
-        <script>
-            function bpFieldInitTableElement(element) {
+{{-- FIELD JS - will be loaded in the after_scripts section --}}
+@push('crud_fields_scripts')
+    {{-- YOUR JS HERE --}}
+    @loadJsOnce('packages/jquery-ui-dist/jquery-ui.min.js')
+    @loadOnce('bpFieldInitTableElement')
+    <script>
+          function bpFieldInitTableElement(element) {
                 var $tableWrapper = element.parent('[data-field-type=table]');
                 var $rows = (element.attr('value') != '') ? $.parseJSON(element.attr('value')) : '';
                 var $max = element.attr('data-max');
@@ -205,9 +201,7 @@
                         x.each(function() {
                             if(this.value.length > 0) {
                                 var key = $(this).attr('data-cell-name').replace('item.','');
-                                var value = this.value.replace(/(['"])/g, "\\$1"); // escapes single and double quotes
-
-                                itArr.push('"' + key + '":"' + value + '"');
+                                itArr.push('"' + key + '":' + JSON.stringify(this.value));
                             }
                         });
                         otArr.push('{' + itArr.join(',') + '}');
@@ -222,8 +216,9 @@
                 // on page load, make sure the input has the old values
                 updateTableFieldJson();
             }
-        </script>
-    @endpush
-@endif
+    </script>
+    @endLoadOnce
+@endpush
+
 {{-- End of Extra CSS and JS --}}
 {{-- ########################################## --}}

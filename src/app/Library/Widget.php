@@ -206,6 +206,37 @@ class Widget extends Fluent
         return $this;
     }
 
+    // -----------------
+    // DEBUGGING METHODS
+    // -----------------
+
+    /**
+     * Dump the current object to the screen,
+     * so that the developer can see its contents.
+     *
+     * @return Widget
+     */
+    public function dump()
+    {
+        dump($this);
+
+        return $this;
+    }
+
+    /**
+     * Dump and die. Duumps the current object to the screen,
+     * so that the developer can see its contents, then stops
+     * the execution.
+     *
+     * @return Widget
+     */
+    public function dd()
+    {
+        dd($this);
+
+        return $this;
+    }
+
     // -------------
     // MAGIC METHODS
     // -------------

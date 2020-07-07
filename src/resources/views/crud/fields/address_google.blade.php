@@ -52,13 +52,10 @@ if (isset($field['value']) && (is_array($field['value']) || is_object($field['va
 {{-- ########################################## --}}
 {{-- Extra CSS and JS for this particular field --}}
 {{-- If a field type is shown multiple times on a form, the CSS and JS will only be loaded once --}}
-@if ($crud->fieldTypeNotLoaded($field))
-    @php
-        $crud->markFieldTypeAsLoaded($field);
-    @endphp
 
     {{-- FIELD CSS - will be loaded in the after_styles section --}}
     @push('crud_fields_styles')
+    @loadOnce('AddressGoogleCss')
         <style>
             .ap-input-icon.ap-icon-pin {
                 right: 5px !important;
@@ -68,10 +65,12 @@ if (isset($field['value']) && (is_array($field['value']) || is_object($field['va
                 right: 10px !important;
             }
         </style>
+    @endLoadOnce
     @endpush
 
     {{-- FIELD JS - will be loaded in the after_scripts section --}}
     @push('crud_fields_scripts')
+        @loadOnce('bpFieldInitAddressGoogleElement')
         <script>
 
             function bpFieldInitAddressGoogleElement(element) {
@@ -124,8 +123,8 @@ if (isset($field['value']) && (is_array($field['value']) || is_object($field['va
         </script>
         <script src="https://maps.googleapis.com/maps/api/js?key={{ $field['api_key'] ?? config('services.google_places.key') }}&libraries=places&callback=initGoogleAddressAutocomplete" async defer></script>
 
+    @endLoadOnce
     @endpush
 
-@endif
 {{-- End of Extra CSS and JS --}}
 {{-- ########################################## --}}

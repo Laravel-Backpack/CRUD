@@ -21,14 +21,14 @@
 
                 if (row.child.isShown()) {
                     // This row is already open - close it
-                    btn.removeClass('fa-minus-square-o').addClass('fa-plus-square-o');
+                    btn.removeClass('la-minus-square-o').addClass('la-plus-square-o');
                     $('div.table_row_slider', row.child()).slideUp( function () {
                         row.child.hide();
                         tr.removeClass('shown');
                     } );
                 } else {
                     // Open this row
-                    btn.removeClass('fa-plus-square-o').addClass('fa-minus-square-o');
+                    btn.removeClass('la-plus-square-o').addClass('la-minus-square-o');
                     // Get the details with ajax
                     $.ajax({
                       url: '{{ url($crud->route) }}/'+btn.data('entry-id')+'/details',

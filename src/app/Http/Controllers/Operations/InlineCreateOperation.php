@@ -62,7 +62,7 @@ trait InlineCreateOperation
                 'crud' => $this->crud,
                 'entity' => request()->get('entity'),
                 'modalClass' => request()->get('modal_class'),
-                'parentLoadedFields' => request()->get('parent_loaded_fields'),
+                'parentLoadedAssets' => request()->get('parent_loaded_assets'),
             ]
         );
     }

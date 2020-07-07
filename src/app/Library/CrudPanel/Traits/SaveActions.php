@@ -188,7 +188,7 @@ trait SaveActions
      */
     public function removeAllSaveActions()
     {
-        $this->setOperationSettings('save_actions', []);
+        $this->setOperationSetting('save_actions', []);
     }
 
     /**

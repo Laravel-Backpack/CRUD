@@ -34,7 +34,7 @@ trait FetchOperation
      * Gets items from database and returns to selects.
      *
      * @param string|array $arg
-     * @return void
+     * @return \Illuminate\Http\JsonResponse|Illuminate\Database\Eloquent\Collection|Illuminate\Pagination\LengthAwarePaginator
      */
     private function fetch($arg)
     {
@@ -58,7 +58,7 @@ trait FetchOperation
         // set configuration defaults
         $config['paginate'] = isset($config['paginate']) ? $config['paginate'] : 10;
         $config['searchable_attributes'] = $config['searchable_attributes'] ?? $model_instance->identifiableAttribute();
-        $config['query'] = isset($config['query']) && is_callable($config['query']) ? $config['query']($config['model']) : $model_instance; // if a closure that has been passed as "query", use the closure - otherwise use the model
+        $config['query'] = isset($config['query']) && is_callable($config['query']) ? $config['query']($model_instance) : $model_instance; // if a closure that has been passed as "query", use the closure - otherwise use the model
 
         // FetchOperation is aware of an optional parameter 'keys' that will fetch you the entity/entities that match the provided keys
         if (request()->has('keys')) {
@@ -80,20 +80,39 @@ trait FetchOperation
             $config['query']->get();
         }
 
-        // we store the original model so we can use it to check column types
-        // when multiple searchable columns are provided.
-        $originalModel = $config['query'];
-
         $textColumnTypes = ['string', 'json_string', 'text', 'longText', 'json_array'];
-        // for each searchable attribute, add a WHERE clause
-        foreach ((array) $config['searchable_attributes'] as $k => $searchColumn) {
-            $operation = ($k == 0) ? 'where' : 'orWhere';
-            $columnType = $originalModel->getColumnType($searchColumn);
 
-            if (in_array($columnType, $textColumnTypes)) {
-                $config['query'] = $config['query']->{$operation}($searchColumn, 'LIKE', '%'.$search_string.'%');
-            } else {
-                $config['query'] = $config['query']->{$operation}($searchColumn, $search_string);
+        // if the query builder brings any where clause already defined by the user we must
+        // ensure that the where prevails and we should only use our search as a complement to the query constraints.
+        // e.g user want only the active products, so in fetch he would return something like:
+        // .... 'query' => function($model) { return $model->where('active', 1); }
+        // So it reads: SELECT ... WHERE active = 1 AND (XXX = x OR YYY = y) and not SELECT ... WHERE active = 1 AND XXX = x OR YYY = y;
+
+        if (! empty($config['query']->getQuery()->wheres)) {
+            $config['query'] = $config['query']->where(function ($query) use ($model_instance, $config, $search_string, $textColumnTypes) {
+                foreach ((array) $config['searchable_attributes'] as $k => $searchColumn) {
+                    $operation = ($k == 0) ? 'where' : 'orWhere';
+                    $columnType = $model_instance->getColumnType($searchColumn);
+
+                    if (in_array($columnType, $textColumnTypes)) {
+                        $tempQuery = $query->{$operation}($searchColumn, 'LIKE', '%'.$search_string.'%');
+                    } else {
+                        $tempQuery = $query->{$operation}($searchColumn, $search_string);
+                    }
+                }
+
+                return $tempQuery;
+            });
+        } else {
+            foreach ((array) $config['searchable_attributes'] as $k => $searchColumn) {
+                $operation = ($k == 0) ? 'where' : 'orWhere';
+                $columnType = $model_instance->getColumnType($searchColumn);
+
+                if (in_array($columnType, $textColumnTypes)) {
+                    $config['query'] = $config['query']->{$operation}($searchColumn, 'LIKE', '%'.$search_string.'%');
+                } else {
+                    $config['query'] = $config['query']->{$operation}($searchColumn, $search_string);
+                }
             }
         }
 

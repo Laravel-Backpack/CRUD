@@ -175,7 +175,8 @@
               "lengthMenu":     "{{ trans('backpack::crud.lengthMenu') }}",
               "loadingRecords": "{{ trans('backpack::crud.loadingRecords') }}",
               "processing":     "<img src='{{ asset('packages/backpack/crud/img/ajax-loader.gif') }}' alt='{{ trans('backpack::crud.processing') }}'>",
-              "search":         "<span class='d-none d-sm-inline'>{{ trans('backpack::crud.search') }}</span>",
+              "search": "_INPUT_",
+              "searchPlaceholder": "{{ trans('backpack::crud.search') }}...",
               "zeroRecords":    "{{ trans('backpack::crud.zeroRecords') }}",
               "paginate": {
                   "first":      "{{ trans('backpack::crud.paginate.first') }}",
@@ -223,7 +224,7 @@
       $("#crudTable_filter input").removeClass('form-control-sm');
 
       // move "showing x out of y" info to header
-      $("#datatable_info_stack").html($('#crudTable_info')).css('display','inline-flex');
+      $("#datatable_info_stack").html($('#crudTable_info')).css('display','inline-flex').addClass('animated fadeIn');
 
       @if($crud->getOperationSetting('resetButton') ?? true)
         // create the reset button

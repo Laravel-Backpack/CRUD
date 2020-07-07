@@ -320,7 +320,7 @@ class CrudButton
      */
     public function after($destination)
     {
-        $this->crud()->moveButton($this->name, 'after', $destinationName);
+        $this->crud()->moveButton($this->name, 'after', $destination);
 
         return $this;
     }
@@ -333,7 +333,7 @@ class CrudButton
      */
     public function before($destination)
     {
-        $this->crud()->moveButton($this->name, 'before', $destinationName);
+        $this->crud()->moveButton($this->name, 'before', $destination);
 
         return $this;
     }
@@ -373,6 +373,37 @@ class CrudButton
     public function crud()
     {
         return app('crud');
+    }
+
+    // -----------------
+    // DEBUGGING METHODS
+    // -----------------
+
+    /**
+     * Dump the current object to the screen,
+     * so that the developer can see its contents.
+     *
+     * @return CrudButton
+     */
+    public function dump()
+    {
+        dump($this);
+
+        return $this;
+    }
+
+    /**
+     * Dump and die. Duumps the current object to the screen,
+     * so that the developer can see its contents, then stops
+     * the execution.
+     *
+     * @return CrudButton
+     */
+    public function dd()
+    {
+        dd($this);
+
+        return $this;
     }
 
     // ---------------

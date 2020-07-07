@@ -81,7 +81,7 @@ return [
     'lengthMenu'     => '每页 _MENU_ 条记录',
     'loadingRecords' => '加载中...',
     'processing'     => '处理中...',
-    'search'         => '搜索: ',
+    'search'         => '搜索',
     'zeroRecords'    => '找不到相关记录',
     'paginate'       => [
         'first'    => '首页',

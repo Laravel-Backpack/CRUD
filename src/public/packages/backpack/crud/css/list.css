@@ -65,7 +65,7 @@
 		content: "\f142";
 		font-size: 21px;
 		box-shadow: none;
-		margin-top: 8px;
+		/*margin-top: 8px;*/
 		border: none;
 	}
 
@@ -183,7 +183,6 @@
 	}
 
 	.dataTables_filter input {
-		margin-left: 0.5em;
 	    display: inline-block;
 	    width: auto;
 	    border-radius: 25px;
@@ -204,8 +203,18 @@
 		min-height: calc(100% - 98px);
 	}
 
-	#datatable_search_stack {
-		min-height: 35px;
+	@media(max-width: 576px) {
+		#datatable_search_stack {
+			margin-top: .5rem;
+		}
+
+		#datatable_search_stack label {
+			width: 100%;
+		}
+	
+		#datatable_search_stack input[type="search"] {
+			width: 100%;
+		}
 	}
 
 	#crudTable thead>tr>th, table.dataTable thead>tr>td {

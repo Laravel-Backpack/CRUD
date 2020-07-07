@@ -8,13 +8,13 @@
 		<div class="form-group backpack-filter mb-0">
 			<div class="input-group">
 		        <input class="form-control pull-right"
-		        		id="text-filter-{{ Str::slug($filter->name) }}"
+		        		id="text-filter-{{ $filter->name }}"
 		        		type="text"
 						@if ($filter->currentValue)
 							value="{{ $filter->currentValue }}"
 						@endif
 		        		>
-		        <div class="input-group-append text-filter-{{ Str::slug($filter->name) }}-clear-button">
+		        <div class="input-group-append text-filter-{{ $filter->name }}-clear-button">
 		          <a class="input-group-text" href=""><i class="la la-times"></i></a>
 		        </div>
 		    </div>
@@ -33,7 +33,7 @@
 	<!-- include select2 js-->
   <script>
 		jQuery(document).ready(function($) {
-			$('#text-filter-{{ Str::slug($filter->name) }}').on('change', function(e) {
+			$('#text-filter-{{ $filter->name }}').on('change', function(e) {
 
 				var parameter = '{{ $filter->name }}';
 				var value = $(this).val();
@@ -58,18 +58,18 @@
 				}
 			});
 
-			$('li[filter-name={{ Str::slug($filter->name) }}]').on('filter:clear', function(e) {
+			$('li[filter-name={{ $filter->name }}]').on('filter:clear', function(e) {
 				$('li[filter-name={{ $filter->name }}]').removeClass('active');
-				$('#text-filter-{{ Str::slug($filter->name) }}').val('');
+				$('#text-filter-{{ $filter->name }}').val('');
 			});
 
 			// datepicker clear button
-			$(".text-filter-{{ Str::slug($filter->name) }}-clear-button").click(function(e) {
+			$(".text-filter-{{ $filter->name }}-clear-button").click(function(e) {
 				e.preventDefault();
 
-				$('li[filter-name={{ Str::slug($filter->name) }}]').trigger('filter:clear');
-				$('#text-filter-{{ Str::slug($filter->name) }}').val('');
-				$('#text-filter-{{ Str::slug($filter->name) }}').trigger('change');
+				$('li[filter-name={{ $filter->name }}]').trigger('filter:clear');
+				$('#text-filter-{{ $filter->name }}').val('');
+				$('#text-filter-{{ $filter->name }}').trigger('change');
 			})
 		});
   </script>

@@ -44,6 +44,7 @@ class BackpackServiceProvider extends ServiceProvider
         $this->setupRoutes($this->app->router);
         $this->setupCustomRoutes($this->app->router);
         $this->publishFiles();
+        $this->loadBladeDirectives();
         $this->checkLicenseCodeExists();
         $this->sendUsageStats();
     }
@@ -64,6 +65,15 @@ class BackpackServiceProvider extends ServiceProvider
         $this->app->singleton('widgets', function ($app) {
             return new Collection();
         });
+
+        // Bind the widgets collection object to Laravel's service container
+        $this->app->singleton('assets', function ($app) {
+            return new \Backpack\CRUD\app\Library\Assets\AssetManager();
+        });
+
+        //we register the Assets Facade so developer could use it in views like: Assets::isAssetLoaded($asset)
+        $loader = \Illuminate\Foundation\AliasLoader::getInstance();
+        $loader->alias('Assets', 'Backpack\CRUD\app\Library\Assets\AssetsFacade');
 
         // load a macro for Route,
         // helps developers load all routes for a CRUD resource in one line
@@ -281,6 +291,11 @@ class BackpackServiceProvider extends ServiceProvider
                 'provider' => 'backpack',
             ],
         ];
+    }
+
+    private function loadBladeDirectives()
+    {
+        require_once __DIR__.'/blade_directives.php';
     }
 
     /**

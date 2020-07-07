@@ -81,7 +81,7 @@ return [
     'lengthMenu'     => '_MENU_ masukan per halaman',
     'loadingRecords' => 'Memuat...',
     'processing'     => 'Memproses...',
-    'search'         => 'Cari: ',
+    'search'         => 'Cari',
     'zeroRecords'    => 'Tidak ada data yang cocok ditemukan',
     'paginate'       => [
         'first'    => 'Pertama',

@@ -69,7 +69,7 @@ return [
     'lengthMenu'     => '_MENU_ kayıt sayfa başına',
     'loadingRecords' => 'Yükleniyor...',
     'processing'     => 'İşleniyor...',
-    'search'         => 'Arama: ',
+    'search'         => 'Arama',
     'zeroRecords'    => 'Hiçbir eşleşen kayıt bulunamadı',
     'paginate'       => [
         'first'    => 'İlk',

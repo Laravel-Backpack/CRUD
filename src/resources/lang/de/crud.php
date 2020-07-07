@@ -63,7 +63,7 @@ return [
     'lengthMenu'     => '_MENU_ Einträge pro Seite',
     'loadingRecords' => 'Laden...',
     'processing'     => 'Verarbeiten...',
-    'search'         => 'Suchen: ',
+    'search'         => 'Suchen',
     'zeroRecords'    => 'Keine passenden Einträge gefunden',
     'paginate'       => [
         'first'    => 'Erste',

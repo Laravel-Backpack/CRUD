@@ -11,10 +11,11 @@
     // a crud field like this one.
     $field['type'] = 'fetch';
 
-    $field['multiple'] = $field['multiple'] ?? $crud->relationAllowsMultiple($field['relation_type']);
+    $field['multiple'] = $field['multiple'] ?? $crud->guessIfFieldHasMultipleFromRelationType($field['relation_type']);
     $field['data_source'] = $field['data_source'] ?? url($crud->route.'/fetch/'.$routeEntity);
     $field['attribute'] = $field['attribute'] ?? $connected_entity->identifiableAttribute();
-    $field['placeholder'] = $field['placeholder'] ?? $field['multiple'] ? 'Select entities' : 'Select an entity';
+    $field['placeholder'] = $field['placeholder'] ?? ($field['multiple'] ? trans('backpack::crud.select_entries') : trans('backpack::crud.select_entry'));
+    $field['include_all_form_fields'] = $field['include_all_form_fields'] ?? true;
     $field['allows_null'] = $field['allows_null'] ?? $crud->model::isColumnNullable($field['name']);
     // Note: isColumnNullable returns true if column is nullable in database, also true if column does not exist.
 
@@ -61,7 +62,7 @@
         name="{{ $field['name'].($field['multiple']?'[]':'') }}"
         data-init-function="bpFieldInitFetchElement"
         data-column-nullable="{{ var_export($field['allows_null']) }}"
-        data-dependencies="{{ isset($field['dependencies'])?json_encode(array_wrap($field['dependencies'])): json_encode([]) }}"
+        data-dependencies="{{ isset($field['dependencies'])?json_encode(Arr::wrap($field['dependencies'])): json_encode([]) }}"
         data-model-local-key="{{$crud->model->getKeyName()}}"
         data-placeholder="{{ $field['placeholder'] }}"
         data-minimum-input-length="{{ isset($field['minimum_input_length']) ? $field['minimum_input_length'] : 2 }}"
@@ -69,7 +70,7 @@
         data-data-source="{{ $field['data_source']}}"
         data-field-attribute="{{ $field['attribute'] }}"
         data-connected-entity-key-name="{{ $connected_entity_key_name }}"
-        data-include-all-form-fields="{{ $field['include_all_form_fields'] ?? 'true' }}"
+        data-include-all-form-fields="{{ var_export($field['include_all_form_fields']) }}"
         data-current-value="{{ $field['value'] }}"
         data-app-current-lang="{{ app()->getLocale() }}"
 
@@ -90,35 +91,27 @@
 {{-- ########################################## --}}
 {{-- Extra CSS and JS for this particular field --}}
 {{-- If a field type is shown multiple times on a form, the CSS and JS will only be loaded once --}}
-@if ($crud->fieldTypeNotLoaded($field))
-    @php
-        $crud->markFieldTypeAsLoaded($field);
-    @endphp
 
     {{-- FIELD CSS - will be loaded in the after_styles section --}}
     @push('crud_fields_styles')
-    <!-- include select2 css-->
-    <link href="{{ asset('packages/select2/dist/css/select2.min.css') }}" rel="stylesheet" type="text/css" />
-    <link href="{{ asset('packages/select2-bootstrap-theme/dist/select2-bootstrap.min.css') }}" rel="stylesheet" type="text/css" />
-
+        <!-- fetch field type css -->
+        @loadCssOnce('packages/select2/dist/css/select2.min.css')
+        @loadCssOnce('packages/select2-bootstrap-theme/dist/select2-bootstrap.min.css')
     @endpush
 
     {{-- FIELD JS - will be loaded in the after_scripts section --}}
     @push('crud_fields_scripts')
-    <!-- include select2 js-->
-    <script src="{{ asset('packages/select2/dist/js/select2.full.min.js') }}"></script>
-    @if (app()->getLocale() !== 'en')
-    <script src="{{ asset('packages/select2/dist/js/i18n/' . app()->getLocale() . '.js') }}"></script>
-    @endif
-    @endpush
+        <!-- fetch field type js -->
+        @loadJsOnce('packages/select2/dist/js/select2.full.min.js')
 
+        @if (app()->getLocale() !== 'en')
+            @loadJsOnce('packages/select2/dist/js/i18n/' . app()->getLocale() . '.js')
+        @endif
 
-
-<!-- include field specific select2 js-->
-@push('crud_fields_scripts')
-<script>
-    // if nullable, make sure the Clear button uses the translated string
-    document.styleSheets[0].addRule('.select2-selection__clear::after','content:  "{{ trans('backpack::crud.clear') }}";');
+        @loadOnce('bpFieldInitFetchElement')
+        <script>
+            // if nullable, make sure the Clear button uses the translated string
+            document.styleSheets[0].addRule('.select2-selection__clear::after','content:  "{{ trans('backpack::crud.clear') }}";');
 
     // if this function is not already on page, for example in fetch_create we add it.
     // this function is responsible for query the ajax endpoint and fetch a default entry
@@ -361,8 +354,10 @@
                     }
     }
 }
-</script>
-@endpush
-@endif
+
+        </script>
+        @endLoadOnce
+    @endpush
+
 {{-- End of Extra CSS and JS --}}
 {{-- ########################################## --}}

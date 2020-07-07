@@ -46,6 +46,7 @@
 
 
     $field['data_source'] = $field['data_source'] ?? url($crud->route.'/fetch/'.$routeEntity);
+    $field['include_all_form_fields'] = $field['include_all_form_fields'] ?? true;
 
 
 
@@ -91,7 +92,7 @@ if($activeInlineCreate) {
         data-init-function="bpFieldInitFetchOrCreateElement"
         data-is-inline="{{ $inlineCreate ?? 'false' }}"
         data-allows-null="{{var_export($field['allows_null'])}}"
-        data-dependencies="{{ isset($field['dependencies'])?json_encode(array_wrap($field['dependencies'])): json_encode([]) }}"
+        data-dependencies="{{ isset($field['dependencies'])?json_encode(Arr::wrap($field['dependencies'])): json_encode([]) }}"
         data-model-local-key="{{$crud->model->getKeyName()}}"
         data-placeholder="{{ $field['placeholder'] }}"
         data-data-source="{{ $field['data_source'] }}"
@@ -99,7 +100,7 @@ if($activeInlineCreate) {
         data-minimum-input-length="{{ $field['minimum_input_length'] }}"
         data-field-attribute="{{ $field['attribute'] }}"
         data-connected-entity-key-name="{{ $connected_entity_key_name }}"
-        data-include-all-form-fields="{{ $field['include_all_form_fields'] ?? 'true' }}"
+        data-include-all-form-fields="{{ var_export($field['include_all_form_fields']) }}"
         data-current-value="{{ $field['value'] }}"
         data-field-ajax="{{var_export($field['ajax'])}}"
         data-inline-modal-class="{{ $field['inline_create']['modal_class'] }}"
@@ -124,32 +125,31 @@ if($activeInlineCreate) {
 
 @include('crud::fields.inc.wrapper_end')
 
-        @if ($crud->fieldTypeNotLoaded($field))
-        @php
-            $crud->markFieldTypeAsLoaded($field);
-        @endphp
+{{-- ########################################## --}}
+{{-- Extra CSS and JS for this particular field --}}
 
-        {{-- FIELD CSS - will be loaded in the after_styles section --}}
-        @push('crud_fields_styles')
+    {{-- FIELD CSS - will be loaded in the after_styles section --}}
+    @push('crud_fields_styles')
+        <!-- fetch_or_create field type css -->
+        @loadCssOnce('packages/select2/dist/css/select2.min.css')
+        @loadCssOnce('packages/select2-bootstrap-theme/dist/select2-bootstrap.min.css')
+    @endpush
 
-            <!-- include select2 css-->
-            <link href="{{ asset('packages/select2/dist/css/select2.min.css') }}" rel="stylesheet" type="text/css" />
-            <link href="{{ asset('packages/select2-bootstrap-theme/dist/select2-bootstrap.min.css') }}" rel="stylesheet" type="text/css" />
-        @endpush
+    {{-- FIELD JS - will be loaded in the after_scripts section --}}
+    @push('crud_fields_scripts')
 
-        {{-- FIELD JS - will be loaded in the after_scripts section --}}
-        @push('crud_fields_scripts')
+        <!-- fetch_or_create field type js -->
+        @loadJsOnce('packages/select2/dist/js/select2.full.min.js')
+        @if (app()->getLocale() !== 'en')
+            @loadJsOnce('packages/select2/dist/js/i18n/' . app()->getLocale() . '.js')
+        @endif
 
-            <!-- include select2 js-->
-            <script src="{{ asset('packages/select2/dist/js/select2.full.min.js') }}"></script>
-            @if (app()->getLocale() !== 'en')
-            <script src="{{ asset('packages/select2/dist/js/i18n/' . app()->getLocale() . '.js') }}"></script>
-            @endif
-            <script>
+        @loadOnce('bpFieldInitRelationshipElement')
+        <script>
 
-document.styleSheets[0].addRule('.select2-selection__clear::after','content:  "{{ trans('backpack::crud.clear') }}";');
+        document.styleSheets[0].addRule('.select2-selection__clear::after','content:  "{{ trans('backpack::crud.clear') }}";');
 
-// this is the function responsible for querying the ajax endpoint with our query string, emulating the select2
+        // this is the function responsible for querying the ajax endpoint with our query string, emulating the select2
 // ajax search mechanism.
 var performAjaxSearch = function (element, $searchString) {
     var $includeAllFormFields = element.attr('data-include-all-form-fields')=='false' ? false : true;
@@ -234,7 +234,7 @@ function setupInlineCreateButtons(element) {
     var $inlineCreateButtonElement = $(element).parent().find('.inline-create-button');
     var $inlineModalRoute = element.attr('data-inline-modal-route');
     var $inlineModalClass = element.attr('data-inline-modal-class');
-    var $parentLoadedFields = element.attr('data-parent-loaded-fields');
+    var $parentLoadedAssets = $('#parentLoadedAssets').html();
     $inlineCreateButtonElement.on('click', function () {
 
         //we change button state so users know something is happening.
@@ -250,7 +250,7 @@ function setupInlineCreateButtons(element) {
             data: {
                 'entity': $fieldEntity,
                 'modal_class' : $inlineModalClass,
-                'parent_loaded_fields' : $parentLoadedFields,
+                'parent_loaded_assets' : $parentLoadedAssets,
             },
             type: 'POST',
             success: function (result) {
@@ -306,8 +306,9 @@ function ajaxSearch(element, created) {
 
 function triggerModal(element) {
     var $fieldName = element.attr('data-field-related-name');
-    var $modal = $('#'+$fieldName+'-inline-create-dialog');
+    var $modal = $('#inline-create-dialog');
     var $modalSaveButton = $modal.find('#saveButton');
+    var $modalCancelButton = $modal.find('#cancelButton');
     var $form = $(document.getElementById($fieldName+"-inline-create-form"));
     var $inlineCreateRoute = element.attr('data-inline-create-route');
     var $ajax = element.attr('data-field-ajax') == 'true' ? true : false;
@@ -316,8 +317,11 @@ function triggerModal(element) {
 
     $modal.modal();
 
-
     initializeFieldsWithJavascript($form);
+
+    $modalCancelButton.on('click', function () {
+        $($modal).modal('hide');
+    });
 
     //when you hit save on modal save button.
     $modalSaveButton.on('click', function () {
@@ -398,7 +402,16 @@ function triggerModal(element) {
 
 
     $modal.on('shown.bs.modal', function (e) {
-
+        $modal.on('keyup',  function (e) {
+        if($modal.is(':visible')) {
+            var key = e.which;
+                if (key == 13) { //This is an ENTER
+                e.preventDefault();
+                $modalSaveButton.click();
+            }
+        }
+        return false;
+    });
     });
 }
 
@@ -625,8 +638,5 @@ if (typeof processItemText !== 'function') {
 }
 }
             </script>
+            @endLoadOnce
         @endpush
-
-    @endif
-    {{-- End of Extra CSS and JS --}}
-    {{-- ########################################## --}}

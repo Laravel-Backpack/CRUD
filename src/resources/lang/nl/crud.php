@@ -17,6 +17,7 @@ return [
     'save_action_save_and_new'         => 'Opslaan en nieuw item toevoegen',
     'save_action_save_and_edit'        => 'Opslaan en item bewerken',
     'save_action_save_and_back'        => 'Opslaan en terug',
+    'save_action_save_and_preview'     => 'Opslaan en voorbeeld weergeven',
     'save_action_changed_notification' => 'Standaard gedrag na opslaan is aangepast.',
 
     // Create form
@@ -30,19 +31,23 @@ return [
     'save'                 => 'Opslaan',
 
     // Translatable models
-    'edit_translations' => 'VERTALING WIJZIGEN',
+    'edit_translations' => 'Vertaling wijzigen',
     'language'          => 'Taal',
 
     // CRUD table view
     'all'                       => 'Alles ',
     'in_the_database'           => 'in de database',
     'list'                      => 'Lijst',
+    'reset'                     => 'Reset',
     'actions'                   => 'Acties',
     'preview'                   => 'Voorbeeld',
-    'delete'                    => 'Verwijderen ',
+    'delete'                    => 'Verwijderen',
     'admin'                     => 'Admin',
     'details_row'               => 'Dit is de detail rij. Bewerk als gewenst.',
     'details_row_loading_error' => 'Er is een fout opgetreden bij het laden van de details. Probeer het opnieuw.',
+    'clone'                     => 'Klonen',
+    'clone_success'             => '<strong>Item gekloond</strong><br>Een nieuw item is aangemaakt, met dezelfde eigenschappen als dit item.',
+    'clone_failure'             => '<strong>Klonen mislukt</strong><br>Er kon geen nieuw item worden aangemaakt. Probeer het opnieuw.',
 
     // Confirmation messages and bubbles
     'delete_confirm'                              => 'Weet je zeker dat je dit item wilt verwijderen?',
@@ -52,6 +57,21 @@ return [
     'delete_confirmation_not_message'             => 'Er is een fout opgetreden. Het item is misschien niet verwijderd.',
     'delete_confirmation_not_deleted_title'       => 'Niet verwijderd',
     'delete_confirmation_not_deleted_message'     => 'Er is niks gebeurd. Je item is veilig.',
+
+    // Bulk actions
+    'bulk_no_entries_selected_title'   => 'Geen items geselecteerd.',
+    'bulk_no_entries_selected_message' => 'Selecteer tenminste een item om een bulkactie uit te voeren.',
+
+    // Bulk confirmation
+    'bulk_delete_are_you_sure'   => 'Weet je zeker dat je deze :number items wilt verwijderen?',
+    'bulk_delete_sucess_title'   => 'Items verwijderd',
+    'bulk_delete_sucess_message' => ' items zijn verwijderd',
+    'bulk_delete_error_title'    => 'Verwijderen mislukt',
+    'bulk_delete_error_message'  => 'Een of meerdere items konden niet worden verwijderd',
+
+    // Ajax errors
+    'ajax_error_title' => 'Fout',
+    'ajax_error_text'  => 'Fout bij het laden. Vernieuw de pagina.',
 
     // DataTables translation
     'emptyTable'     => 'Geen data beschikbaar in de tabel',
@@ -63,7 +83,7 @@ return [
     'lengthMenu'     => '_MENU_ items per pagina',
     'loadingRecords' => 'Laden...',
     'processing'     => 'Verwerken...',
-    'search'         => 'Zoeken: ',
+    'search'         => 'Zoeken',
     'zeroRecords'    => 'Geen overeenkomend item gevonden',
     'paginate'       => [
         'first'    => 'Eerste',
@@ -74,6 +94,15 @@ return [
     'aria' => [
         'sortAscending'  => ': activeer om kolom oplopend te sorteren',
         'sortDescending' => ': activeer om kolom aflopend te sorteren',
+    ],
+    'export' => [
+        'export'            => 'Exporteer',
+        'copy'              => 'Kopieer',
+        'excel'             => 'Excel',
+        'csv'               => 'CSV',
+        'pdf'               => 'PDF',
+        'print'             => 'Print',
+        'column_visibility' => 'Kolom zichtbaarheid',
     ],
 
     // global crud - errors
@@ -96,8 +125,14 @@ return [
     'yes' => 'Ja',
     'no'  => 'Nee',
 
+    // CRUD filters navbar view
+    'filters'        => 'Filters',
+    'toggle_filters' => 'Schakel filters',
+    'remove_filters' => 'Verwijder filters',
+
     // Fields
     'browse_uploads'            => 'Blader uploads',
+    'select_all'                => 'Selecteer alles',
     'select_files'              => 'Selecteer bestanden',
     'select_file'               => 'Selecteer bestand',
     'clear'                     => 'Wissen',
@@ -114,4 +149,8 @@ return [
 
     // File manager
     'file_manager' => 'Bestandsbeheer',
+
+    // InlineCreateOperation
+    'related_entry_created_success' => 'Gerelateerd item is aangemaakt en geselecteerd.',
+    'related_entry_created_error' => 'Gerelateerd item kon niet worden aangemaakt.',
 ];

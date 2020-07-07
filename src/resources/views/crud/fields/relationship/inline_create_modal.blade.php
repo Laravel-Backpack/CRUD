@@ -1,14 +1,13 @@
 @php
 
-    $loadedFields = json_decode($parentLoadedFields);
+    $loadedAssets = json_decode($parentLoadedAssets, true);
 
-    //mark parent crud fields as loaded.
-    foreach($loadedFields as $loadedField) {
-        $crud->markFieldTypeAsLoaded($loadedField);
+    //mark parent crud assets as loaded.
+    foreach($loadedAssets as $asset) {
+        Assets::markAssetAsLoaded($asset);
     }
-
 @endphp
-<div class="modal fade" id="{{$entity}}-inline-create-dialog" tabindex="-1" role="dialog" aria-labelledby="{{$entity}}-inline-create-dialog-label" aria-hidden="true">
+<div class="modal fade" id="inline-create-dialog" tabindex="0" role="dialog" aria-labelledby="{{$entity}}-inline-create-dialog-label" aria-hidden="true">
 <div class="{{ $modalClass }}" role="document">
       <div class="modal-content">
         <div class="modal-header">
@@ -23,6 +22,7 @@
             <form method="post"
             id="{{$entity}}-inline-create-form"
             action="#"
+            onsubmit="return false"
           @if ($crud->hasUploadFields('create'))
           enctype="multipart/form-data"
           @endif
@@ -40,7 +40,7 @@
     </form>
         </div>
         <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" id="cancelButton" data-dismiss="modal">{{trans('backpack::crud.cancel')}}</button>
+        <button type="button" class="btn btn-secondary" id="cancelButton">{{trans('backpack::crud.cancel')}}</button>
           <button type="button" class="btn btn-primary" id="saveButton">{{trans('backpack::crud.save')}}</button>
         </div>
       </div>

@@ -16,7 +16,7 @@ supportComment: >
 
   Here are all the Backpack communication mediums:
    - Long questions (_I have done X and Y and it won't do Z wtf_) - [Stackoverflow](https://stackoverflow.com/questions/tagged/backpack-for-laravel), using the ```backpack-for-laravel``` tag; this is recommended for most questions, since other developers can then find the answer on a simple Google search; also, people get points for answering - and who doesn't like StackOverflow points?!
-   - Quick help (_How do I do X_) - [Gitter Chatroom](gitter.im/BackpackForLaravel/Lobby);
+   - Quick help (_How do I do X_) - [Gitter Chatroom](https://gitter.im/BackpackForLaravel/Lobby);
    - Bug Reports, Feature Requests - Github Issues (here);
 
   Please keep in mind Backpack offers no official / paid support. Whatever help you receive here, on Gitter, Slack or StackOverflow is thanks to our awesome _awesome_ community members, who give up some of their time to help their peers. If you want to join our community, just start pitching in. We take pride in being a welcoming bunch.

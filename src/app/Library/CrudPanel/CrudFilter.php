@@ -2,6 +2,7 @@
 
 namespace Backpack\CRUD\app\Library\CrudPanel;
 
+use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\ParameterBag;
 
 class CrudFilter
@@ -21,6 +22,9 @@ class CrudFilter
 
     public function __construct($options, $values, $logic, $fallbackLogic)
     {
+        //make sure we use the camel cased version of name.
+        $options['name'] = Str::camel($options['name']);
+
         // if filter exists
         if ($this->crud()->hasFilterWhere('name', $options['name'])) {
             $properties = get_object_vars($this->crud()->firstFilterWhere('name', $options['name']));
@@ -493,6 +497,37 @@ class CrudFilter
                 abort(500, 'Unknown filter operator.');
                 break;
         }
+    }
+
+    // -----------------
+    // DEBUGGING METHODS
+    // -----------------
+
+    /**
+     * Dump the current object to the screen,
+     * so that the developer can see its contents.
+     *
+     * @return CrudFilter
+     */
+    public function dump()
+    {
+        dump($this);
+
+        return $this;
+    }
+
+    /**
+     * Dump and die. Duumps the current object to the screen,
+     * so that the developer can see its contents, then stops
+     * the execution.
+     *
+     * @return CrudFilter
+     */
+    public function dd()
+    {
+        dd($this);
+
+        return $this;
     }
 
     // -------------

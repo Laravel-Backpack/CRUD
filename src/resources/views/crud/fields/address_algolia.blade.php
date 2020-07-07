@@ -50,29 +50,29 @@
     @endif
 @include('crud::fields.inc.wrapper_end')
 
-{{-- Note: you can use  to only load some CSS/JS once, even though there are multiple instances of it --}}
+
 
 {{-- ########################################## --}}
 {{-- Extra CSS and JS for this particular field --}}
 {{-- If a field type is shown multiple times on a form, the CSS and JS will only be loaded once --}}
-@if ($crud->fieldTypeNotLoaded($field))
-    @php
-        $crud->markFieldTypeAsLoaded($field);
-    @endphp
 
+@push('crud_fields_styles')
     {{-- FIELD CSS - will be loaded in the after_styles section --}}
-    @push('crud_fields_styles')
+    @loadOnce('bpFieldInitAddressAlgoliaStyle')
         <style>
             .ap-input-icon.ap-icon-pin {
                 right: 5px !important; }
             .ap-input-icon.ap-icon-clear {
                 right: 10px !important; }
         </style>
-    @endpush
+    @endLoadOnce
+@endpush
 
+
+@push('crud_fields_scripts')
     {{-- FIELD JS - will be loaded in the after_scripts section --}}
-    @push('crud_fields_scripts')
-    <script src="{{ asset('packages/places.js/dist/cdn/places.min.js') }}"></script>
+    @loadJsOnce('packages/places.js/dist/cdn/places.min.js')
+    @loadOnce('bpFieldInitAddressAlgoliaScripts')
     <script>
             window.AlgoliaPlaces = window.AlgoliaPlaces || {};
 
@@ -112,8 +112,7 @@
                 window.AlgoliaPlaces[ element.attr('id') ] = $place;
             }
     </script>
-    @endpush
-
-@endif
+    @endLoadOnce
+@endpush
 {{-- End of Extra CSS and JS --}}
 {{-- ########################################## --}}

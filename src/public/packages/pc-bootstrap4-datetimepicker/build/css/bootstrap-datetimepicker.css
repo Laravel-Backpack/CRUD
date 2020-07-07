@@ -275,7 +275,7 @@
   width: 54px;
 }
 .bootstrap-datetimepicker-widget table td.cw {
-  font-size: .8em;
+  font-size: 0.8em;
   height: 20px;
   line-height: 20px;
   color: #dee2e6;
@@ -368,6 +368,9 @@
   line-height: 1.8em !important;
 }
 .input-group.date .input-group-addon {
+  cursor: pointer;
+}
+.input-group.date .input-group-text {
   cursor: pointer;
 }
 .sr-only {

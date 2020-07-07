@@ -4,7 +4,7 @@
     // each wrapper attribute can be a callback or a string
     // for those that are callbacks, run the callbacks to get the final string to use
     foreach($field['wrapper'] as $attributeKey => $value) {
-        $field['wrapper'][$attributeKey] = is_callable($value) ? $value($crud, $field, $entry ?? null) : $value ?? '';
+        $field['wrapper'][$attributeKey] = !is_string($value) && is_callable($value) ? $value($crud, $field, $entry ?? null) : $value ?? '';
     }
 	// if the field is required in the FormRequest, it should have an asterisk
 	$required = (isset($action) && $crud->isRequired($field['name'], $action)) ? ' required' : '';

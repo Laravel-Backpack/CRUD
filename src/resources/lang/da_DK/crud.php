@@ -62,7 +62,7 @@ return [
     'lengthMenu'     => '_MENU_ felter pr side',
     'loadingRecords' => 'Indlæser...',
     'processing'     => 'Arbejder...',
-    'search'         => 'Søg: ',
+    'search'         => 'Søg',
     'zeroRecords'    => 'Ingen emner blev fundet',
     'paginate'       => [
         'first'    => 'Første',

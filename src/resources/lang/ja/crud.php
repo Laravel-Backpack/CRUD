@@ -78,7 +78,7 @@ return [
     'lengthMenu'                              => '_MENU_ 件表示',
     'loadingRecords'                          => '読み込み中...',
     'processing'                              => '実行中...',
-    'search'                                  => '検索: ',
+    'search'                                  => '検索',
     'zeroRecords'                             => '一致するレコードが見つかりませんでした',
     'paginate'                                => [
         'first'    => '先頭',

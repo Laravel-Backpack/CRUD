@@ -38,7 +38,7 @@
 										placeholder = "max value"
 									@endif
 				        		>
-				        <div class="input-group-append range-filter-{{ Str::slug($filter->name) }}-clear-button">
+				        <div class="input-group-append range-filter-{{ $filter->name }}-clear-button">
 				          <a class="input-group-text" href=""><i class="la la-times"></i></a>
 				        </div>
 				    </div>
@@ -116,10 +116,10 @@ END OF FILTER JAVSCRIPT CHECKLIST --}}
 			});
 
 			// range clear button
-			$(".range-filter-{{ Str::slug($filter->name) }}-clear-button").click(function(e) {
+			$(".range-filter-{{ $filter->name }}-clear-button").click(function(e) {
 				e.preventDefault();
 
-				$('li[filter-name={{ Str::slug($filter->name) }}]').trigger('filter:clear');
+				$('li[filter-name={{ $filter->name }}]').trigger('filter:clear');
 			})
 
 		});

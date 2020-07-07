@@ -65,7 +65,7 @@ return [
     'lengthMenu'     => '_MENU_ records per page',
     'loadingRecords' => 'Зареждам...',
     'processing'     => 'Обработка на резултатите...',
-    'search'         => 'Търсене: ',
+    'search'         => 'Търсене',
     'zeroRecords'    => 'Няма намерени резултати',
     'paginate'       => [
         'first'    => 'Първа',

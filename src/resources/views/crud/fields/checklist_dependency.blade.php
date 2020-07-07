@@ -189,14 +189,10 @@
     </script>
 @endpush
 
-@if ($crud->checkIfFieldIsFirstOfItsType($field))
-    @php
-        $crud->markFieldTypeAsLoaded($field);
-    @endphp
-
-    {{-- FIELD JS - will be loaded in the after_scripts section --}}
-    @push('crud_fields_scripts')
-    <!-- include checklist_dependency js-->
+{{-- FIELD JS - will be loaded in the after_scripts section --}}
+@push('crud_fields_scripts')
+  <!-- include checklist_dependency js-->
+  @loadOnce('bpFieldInitChecklistDependencyElement')
     <script>
       function bpFieldInitChecklistDependencyElement(element) {
 
@@ -275,8 +271,7 @@
 
       }
     </script>
-    @endpush
-
-@endif
+  @endLoadOnce
+@endpush
 {{-- End of Extra CSS and JS --}}
 {{-- ########################################## --}}

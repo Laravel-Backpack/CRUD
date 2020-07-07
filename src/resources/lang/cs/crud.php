@@ -78,7 +78,7 @@ return [
     'lengthMenu'     => '_MENU_ záznamů na stránku',
     'loadingRecords' => 'Načítání...',
     'processing'     => 'Zpracování...',
-    'search'         => 'Hledat: ',
+    'search'         => 'Hledat',
     'zeroRecords'    => 'Nebyly nalezeny žádné odpovídající záznamy',
     'paginate'       => [
         'first'    => 'První',

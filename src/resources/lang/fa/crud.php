@@ -78,7 +78,7 @@ return [
     'lengthMenu'     => '_MENU_ رکورد در صفحه',
     'loadingRecords' => 'درحال بارگذاری...',
     'processing'     => 'درحال پردازش...',
-    'search'         => 'جستجو: ',
+    'search'         => 'جستجو',
     'zeroRecords'    => 'مورد مطابقت داده شده یافت نشد',
     'paginate'       => [
         'first'    => 'اولین',

@@ -13,6 +13,18 @@ namespace Backpack\CRUD\app\Library\CrudPanel;
  *
  * And if the developer uses CrudField as Field in their CrudController:
  * - Field::name('price')->type('number');
+ *
+ * @method self type(string $value)
+ * @method self label(string $value)
+ * @method self tab(string $value)
+ * @method self prefix(string $value)
+ * @method self suffix(string $value)
+ * @method self default(mixed $value)
+ * @method self hint(string $value)
+ * @method self attributes(array $value)
+ * @method self wrapper(array $value)
+ * @method self fake(bool $value)
+ * @method self store_in(string $value)
  */
 class CrudField
 {
@@ -32,7 +44,7 @@ class CrudField
             $this->setAttributeValue('name', $name);
         }
 
-        return $this->save();
+        $this->save();
     }
 
     public function crud()
@@ -44,7 +56,7 @@ class CrudField
      * Create a CrudField object with the parameter as its name.
      *
      * @param  string $name Name of the column in the db, or model attribute.
-     * @return CrudPanel
+     * @return CrudField
      */
     public static function name($name)
     {
@@ -105,7 +117,7 @@ class CrudField
     /**
      * Make the current field the first one in the fields list.
      *
-     * @return CrudPanel
+     * @return CrudField
      */
     public function makeFirst()
     {
@@ -118,7 +130,7 @@ class CrudField
     /**
      * Make the current field the last one in the fields list.
      *
-     * @return CrudPanel
+     * @return CrudField
      */
     public function makeLast()
     {
@@ -158,7 +170,7 @@ class CrudField
      * Set the value for a certain attribute on the CrudField object.
      *
      * @param string $attribute Name of the attribute.
-     * @param string $value     Value of that attribute.
+     * @param mixed $value     Value of that attribute.
      */
     private function setAttributeValue($attribute, $value)
     {
@@ -190,6 +202,37 @@ class CrudField
         } else {
             $this->crud()->addField($this->attributes);
         }
+
+        return $this;
+    }
+
+    // -----------------
+    // DEBUGGING METHODS
+    // -----------------
+
+    /**
+     * Dump the current object to the screen,
+     * so that the developer can see its contents.
+     *
+     * @return CrudField
+     */
+    public function dump()
+    {
+        dump($this);
+
+        return $this;
+    }
+
+    /**
+     * Dump and die. Duumps the current object to the screen,
+     * so that the developer can see its contents, then stops
+     * the execution.
+     *
+     * @return CrudField
+     */
+    public function dd()
+    {
+        dd($this);
 
         return $this;
     }

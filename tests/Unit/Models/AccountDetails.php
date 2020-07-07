@@ -24,4 +24,9 @@ class AccountDetails extends Model
     {
         return $this->hasMany('Backpack\CRUD\Tests\Unit\Models\Address');
     }
+
+    public function getNicknameComposedAttribute()
+    {
+        return $this->nickname.'++';
+    }
 }

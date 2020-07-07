@@ -77,7 +77,7 @@ class CrudPanelUpdateTest extends BaseDBCrudPanelTest
             'password' => bcrypt($faker->password()),
         ];
 
-        $unknownId = DB::getPdo()->lastInsertId() + 1;
+        $unknownId = DB::getPdo()->lastInsertId() + 2;
         $this->crudPanel->update($unknownId, $inputData);
     }
 
@@ -106,7 +106,7 @@ class CrudPanelUpdateTest extends BaseDBCrudPanelTest
         $this->crudPanel->setModel(User::class);
         $this->crudPanel->addFields($this->userInputFields);
 
-        $unknownId = DB::getPdo()->lastInsertId() + 1;
+        $unknownId = DB::getPdo()->lastInsertId() + 2;
         $this->crudPanel->getUpdateFields($unknownId);
     }
 

@@ -65,7 +65,7 @@ return [
     'lengthMenu'                              => '_MENU_ εγγραφές ανά σελίδα',
     'loadingRecords'                          => 'Loading...',
     'processing'                              => 'Processing...',
-    'search'                                  => 'Αναζήτηση: ',
+    'search'                                  => 'Αναζήτηση',
     'zeroRecords'                             => 'Δεν βρέθηκε καμία σχετική εγγραφή',
     'paginate'                                => [
         'first'    => 'Πρώτη',

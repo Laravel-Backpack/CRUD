@@ -32,4 +32,15 @@ return [
     'handcrafted_by'       => 'Handgemaakt door',
     'powered_by'           => 'Mede mogelijk gemaakt door',
     'my_account'           => 'Mijn account',
+    'save'                 => 'Opslaan',
+    'cancel'               => 'Annuleren',
+    'error'                => 'Fout',
+    'success'              => 'Success',
+    'warning'              => 'Waarschuwing',
+    'notice'               => 'Kennisgeving',
+    'unknown_error'        => 'Onbekende fout opgetreden. Probeer het opnieuw.',
+    'error_saving'         => 'Fout bij het opslaan opgetreden. Probeer het opnieuw.',
+    'welcome'              => 'Welkom!',
+    'use_sidebar'          => 'Gebruik de menubalk links om inhoud te maken, bewerken of verwijderen.',
+
 ];

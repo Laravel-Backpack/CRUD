@@ -12,7 +12,7 @@
   $path = $controller->getLibraryFilePath();
 
   // defaults
-  $widget['wrapper']['class'] = $widget['wrapperClass'] ?? 'col-sm-6 col-md-4';
+  $widget['wrapper']['class'] = $widget['wrapper']['class'] ?? $widget['wrapperClass'] ?? 'col-sm-6 col-md-4';
 @endphp
 
 @includeWhen(!empty($widget['wrapper']), 'backpack::widgets.inc.wrapper_start')

@@ -52,7 +52,7 @@
 				// mark this filter as active in the navbar-filters
 				if (URI(new_url).hasQuery('{{ $filter->name }}', true)) {
 					$("li[filter-name={{ $filter->name }}]").removeClass('active').addClass('active');
-                    $('#remove_filters_button').removeClass('hidden');
+                    $('#remove_filters_button').removeClass('invisible');
 				}
 				else
 				{
