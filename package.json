@@ -59,6 +59,7 @@
         "source-sans-pro": "^3.6",
         "summernote": "^0.8.18",
         "sweetalert": "^2.1.2",
-        "tinymce": "^5.4.0"
+        "tinymce": "^5.4.0",
+        "urijs": "1.19.2"
     }
 }
