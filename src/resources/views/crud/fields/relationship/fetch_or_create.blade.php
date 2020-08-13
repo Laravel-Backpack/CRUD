@@ -2,9 +2,9 @@
 
 @php
 
-    //in case entity is superNews we want the url friendly super-news
-    $entityWithoutAttribute = $crud->getOnlyRelationEntity($field);
-    $routeEntity = Str::kebab($entityWithoutAttribute);
+    //in case entity is someRelation.attribute we want only the someRelation part.
+    $routeEntity = $crud->getOnlyRelationEntity($field);
+
     $connected_entity = new $field['model'];
     $connected_entity_key_name = $connected_entity->getKeyName();
 
@@ -44,8 +44,8 @@
     }
     $field['value'] = json_encode($current_value);
 
+    $field['data_source'] = $field['data_source'] ?? url($crud->route.'/fetch/'. Str::snake($routeEntity));
 
-    $field['data_source'] = $field['data_source'] ?? url($crud->route.'/fetch/'.$routeEntity);
     $field['include_all_form_fields'] = $field['include_all_form_fields'] ?? true;
 
 
@@ -63,7 +63,7 @@ if($activeInlineCreate) {
 
         $field['inline_create']['modal_class'] = $field['inline_create']['modal_class'] ?? 'modal-dialog';
 
-        //if user don't specify a different entity in inline_create we assume it's the same from $field['entity'] kebabed
+        //if user don't specify a different entity in inline_create we assume it's the same from $field['entity']
         $field['inline_create']['entity'] = $field['inline_create']['entity'] ?? $routeEntity;
 
         //route to create a new entity

@@ -1,8 +1,6 @@
 @php
-
-    //in case entity is superNews we want the url friendly super-news
-    $entityWithoutAttribute = $crud->getOnlyRelationEntity($field);
-    $routeEntity = Str::kebab($entityWithoutAttribute);
+    //in case entity is someRelation.attribute we want only the someRelation part.
+    $routeEntity = $crud->getOnlyRelationEntity($field);
 
     $connected_entity = new $field['model'];
     $connected_entity_key_name = $connected_entity->getKeyName();
@@ -10,9 +8,8 @@
     // we need to re-ensure field type here because relationship is a `switchboard` and not actually
     // a crud field like this one.
     $field['type'] = 'fetch';
-
     $field['multiple'] = $field['multiple'] ?? $crud->guessIfFieldHasMultipleFromRelationType($field['relation_type']);
-    $field['data_source'] = $field['data_source'] ?? url($crud->route.'/fetch/'.$routeEntity);
+    $field['data_source'] = $field['data_source'] ?? url($crud->route.'/fetch/'.Str::snake($routeEntity));
     $field['attribute'] = $field['attribute'] ?? $connected_entity->identifiableAttribute();
     $field['placeholder'] = $field['placeholder'] ?? ($field['multiple'] ? trans('backpack::crud.select_entries') : trans('backpack::crud.select_entry'));
     $field['include_all_form_fields'] = $field['include_all_form_fields'] ?? true;
