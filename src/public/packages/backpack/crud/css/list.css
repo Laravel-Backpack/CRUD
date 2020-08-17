@@ -241,3 +241,23 @@
 	.fixed .wrapper {
 		overflow: visible;
 	}
+
+	/* Fixed Column Styles */
+	.DTFC_LeftWrapper {
+		width: auto !important;
+	}
+	.DTFC_LeftBodyLiner {
+		overflow-y: hidden !important;
+		width: auto !important;
+	}
+
+	.DTFC_RightWrapper {
+		width: auto !important;
+	}
+	.DTFC_RightBodyLiner {
+		overflow-y: hidden !important;
+		width: auto !important;
+	}
+
+
+

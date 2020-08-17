@@ -5,6 +5,7 @@
   <script type="text/javascript" src="{{ asset('packages/datatables.net-responsive-bs4/js/responsive.bootstrap4.min.js') }}"></script>
   <script type="text/javascript" src="{{ asset('packages/datatables.net-fixedheader/js/dataTables.fixedHeader.min.js') }}"></script>
   <script type="text/javascript" src="{{ asset('packages/datatables.net-fixedheader-bs4/js/fixedHeader.bootstrap4.min.js') }}"></script>
+  <script type="text/javascript" src="{{ asset('packages/datatables.net-fixedcolumns/js/dataTables.fixedColumns.min.js') }}"></script>
 
   <script>
     @if ($crud->getPersistentTable())
@@ -166,48 +167,52 @@
         /* Disable initial sort */
         aaSorting: [],
         language: {
-              "emptyTable":     "{{ trans('backpack::crud.emptyTable') }}",
-              "info":           "{{ trans('backpack::crud.info') }}",
-              "infoEmpty":      "{{ trans('backpack::crud.infoEmpty') }}",
-              "infoFiltered":   "{{ trans('backpack::crud.infoFiltered') }}",
-              "infoPostFix":    "{{ trans('backpack::crud.infoPostFix') }}",
-              "thousands":      "{{ trans('backpack::crud.thousands') }}",
-              "lengthMenu":     "{{ trans('backpack::crud.lengthMenu') }}",
-              "loadingRecords": "{{ trans('backpack::crud.loadingRecords') }}",
-              "processing":     "<img src='{{ asset('packages/backpack/crud/img/ajax-loader.gif') }}' alt='{{ trans('backpack::crud.processing') }}'>",
-              "search": "_INPUT_",
-              "searchPlaceholder": "{{ trans('backpack::crud.search') }}...",
-              "zeroRecords":    "{{ trans('backpack::crud.zeroRecords') }}",
-              "paginate": {
-                  "first":      "{{ trans('backpack::crud.paginate.first') }}",
-                  "last":       "{{ trans('backpack::crud.paginate.last') }}",
-                  "next":       ">",
-                  "previous":   "<"
-              },
-              "aria": {
-                  "sortAscending":  "{{ trans('backpack::crud.aria.sortAscending') }}",
-                  "sortDescending": "{{ trans('backpack::crud.aria.sortDescending') }}"
-              },
-              "buttons": {
-                  "copy":   "{{ trans('backpack::crud.export.copy') }}",
-                  "excel":  "{{ trans('backpack::crud.export.excel') }}",
-                  "csv":    "{{ trans('backpack::crud.export.csv') }}",
-                  "pdf":    "{{ trans('backpack::crud.export.pdf') }}",
-                  "print":  "{{ trans('backpack::crud.export.print') }}",
-                  "colvis": "{{ trans('backpack::crud.export.column_visibility') }}"
-              },
-          },
-          processing: true,
-          serverSide: true,
-          searching: @json($crud->getOperationSetting('searchableTable') ?? true),
-          ajax: {
-              "url": "{!! url($crud->route.'/search').'?'.Request::getQueryString() !!}",
-              "type": "POST"
-          },
-          dom:
-            "<'row hidden'<'col-sm-6 hidden-xs'i><'col-sm-6 hidden-print'f>>" +
-            "<'row'<'col-sm-12'tr>>" +
-            "<'row mt-2 '<'col-sm-6 col-md-4'l><'col-sm-2 col-md-4 text-center'B><'col-sm-6 col-md-4 hidden-print'p>>",
+            "emptyTable":     "{{ trans('backpack::crud.emptyTable') }}",
+            "info":           "{{ trans('backpack::crud.info') }}",
+            "infoEmpty":      "{{ trans('backpack::crud.infoEmpty') }}",
+            "infoFiltered":   "{{ trans('backpack::crud.infoFiltered') }}",
+            "infoPostFix":    "{{ trans('backpack::crud.infoPostFix') }}",
+            "thousands":      "{{ trans('backpack::crud.thousands') }}",
+            "lengthMenu":     "{{ trans('backpack::crud.lengthMenu') }}",
+            "loadingRecords": "{{ trans('backpack::crud.loadingRecords') }}",
+            "processing":     "<img src='{{ asset('packages/backpack/crud/img/ajax-loader.gif') }}' alt='{{ trans('backpack::crud.processing') }}'>",
+            "search": "_INPUT_",
+            "searchPlaceholder": "{{ trans('backpack::crud.search') }}...",
+            "zeroRecords":    "{{ trans('backpack::crud.zeroRecords') }}",
+            "paginate": {
+                "first":      "{{ trans('backpack::crud.paginate.first') }}",
+                "last":       "{{ trans('backpack::crud.paginate.last') }}",
+                "next":       ">",
+                "previous":   "<"
+            },
+            "aria": {
+                "sortAscending":  "{{ trans('backpack::crud.aria.sortAscending') }}",
+                "sortDescending": "{{ trans('backpack::crud.aria.sortDescending') }}"
+            },
+            "buttons": {
+                "copy":   "{{ trans('backpack::crud.export.copy') }}",
+                "excel":  "{{ trans('backpack::crud.export.excel') }}",
+                "csv":    "{{ trans('backpack::crud.export.csv') }}",
+                "pdf":    "{{ trans('backpack::crud.export.pdf') }}",
+                "print":  "{{ trans('backpack::crud.export.print') }}",
+                "colvis": "{{ trans('backpack::crud.export.column_visibility') }}"
+            },
+        },
+        processing: true,
+        serverSide: true,
+        searching: @json($crud->getOperationSetting('searchableTable') ?? true),
+        ajax: {
+            "url": "{!! url($crud->route.'/search').'?'.Request::getQueryString() !!}",
+            "type": "POST"
+        },
+        dom:
+          "<'row hidden'<'col-sm-6 hidden-xs'i><'col-sm-6 hidden-print'f>>" +
+          "<'row'<'col-sm-12'tr>>" +
+          "<'row mt-2 '<'col-sm-6 col-md-4'l><'col-sm-2 col-md-4 text-center'B><'col-sm-6 col-md-4 hidden-print'p>>",
+        fixedColumns: {
+            leftColumns: {{ $crud->getFixedColumn()[0] }},
+            rightColumns: {{ $crud->getFixedColumn()[1] }}
+        }
       }
   }
   </script>

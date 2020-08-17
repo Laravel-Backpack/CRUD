@@ -4,7 +4,7 @@
  * For LGPL see License.txt in the project root for license information.
  * For commercial licenses see https://www.tiny.cloud/
  *
- * Version: 5.2.2 (2020-04-23)
+ * Version: 5.4.0 (2020-06-30)
  */
 (function () {
     'use strict';
@@ -40,86 +40,25 @@
     var getFileFilter = function (editor) {
       return editor.getParam('importcss_file_filter');
     };
-    var Settings = {
-      shouldMergeClasses: shouldMergeClasses,
-      shouldImportExclusive: shouldImportExclusive,
-      getSelectorConverter: getSelectorConverter,
-      getSelectorFilter: getSelectorFilter,
-      getCssGroups: getCssGroups,
-      shouldAppend: shouldAppend,
-      getFileFilter: getFileFilter
+    var getSkin = function (editor) {
+      var skin = editor.getParam('skin');
+      return skin !== false ? skin || 'oxide' : false;
     };
-
-    var noop = function () {
+    var getSkinUrl = function (editor) {
+      return editor.getParam('skin_url');
     };
-    var constant = function (value) {
-      return function () {
-        return value;
-      };
-    };
-    var never = constant(false);
-    var always = constant(true);
-
-    var none = function () {
-      return NONE;
-    };
-    var NONE = function () {
-      var eq = function (o) {
-        return o.isNone();
-      };
-      var call = function (thunk) {
-        return thunk();
-      };
-      var id = function (n) {
-        return n;
-      };
-      var me = {
-        fold: function (n, s) {
-          return n();
-        },
-        is: never,
-        isSome: never,
-        isNone: always,
-        getOr: id,
-        getOrThunk: call,
-        getOrDie: function (msg) {
-          throw new Error(msg || 'error: getOrDie called on none.');
-        },
-        getOrNull: constant(null),
-        getOrUndefined: constant(undefined),
-        or: id,
-        orThunk: call,
-        map: none,
-        each: noop,
-        bind: none,
-        exists: never,
-        forall: always,
-        filter: none,
-        equals: eq,
-        equals_: eq,
-        toArray: function () {
-          return [];
-        },
-        toString: constant('none()')
-      };
-      if (Object.freeze) {
-        Object.freeze(me);
-      }
-      return me;
-    }();
 
     var typeOf = function (x) {
+      var t = typeof x;
       if (x === null) {
         return 'null';
-      }
-      var t = typeof x;
-      if (t === 'object' && (Array.prototype.isPrototypeOf(x) || x.constructor && x.constructor.name === 'Array')) {
+      } else if (t === 'object' && (Array.prototype.isPrototypeOf(x) || x.constructor && x.constructor.name === 'Array')) {
         return 'array';
-      }
-      if (t === 'object' && (String.prototype.isPrototypeOf(x) || x.constructor && x.constructor.name === 'String')) {
+      } else if (t === 'object' && (String.prototype.isPrototypeOf(x) || x.constructor && x.constructor.name === 'String')) {
         return 'string';
+      } else {
+        return t;
       }
-      return t;
     };
     var isType = function (type) {
       return function (value) {
@@ -127,9 +66,7 @@
       };
     };
     var isArray = isType('array');
-    var isFunction = isType('function');
 
-    var nativeSlice = Array.prototype.slice;
     var nativePush = Array.prototype.push;
     var map = function (xs, f) {
       var len = xs.length;
@@ -152,9 +89,6 @@
     };
     var bind = function (xs, f) {
       return flatten(map(xs, f));
-    };
-    var from = isFunction(Array.from) ? Array.from : function (x) {
-      return nativeSlice.call(x);
     };
 
     var generate = function () {
@@ -197,9 +131,10 @@
       return url;
     };
     var isSkinContentCss = function (editor, href) {
-      var settings = editor.settings, skin = settings.skin !== false ? settings.skin || 'oxide' : false;
+      var skin = getSkin(editor);
       if (skin) {
-        var skinUrl = settings.skin_url ? editor.documentBaseURI.toAbsolute(settings.skin_url) : global$2.baseURL + '/skins/ui/' + skin;
+        var skinUrlBase = getSkinUrl(editor);
+        var skinUrl = skinUrlBase ? editor.documentBaseURI.toAbsolute(skinUrlBase) : global$2.baseURL + '/skins/ui/' + skin;
         var contentSkinUrlPart = global$2.baseURL + '/skins/content/';
         return href === skinUrl + '/content' + (editor.inline ? '.inline' : '') + '.min.css' || href.indexOf(contentSkinUrlPart) !== -1;
       }
@@ -283,7 +218,7 @@
           classes: classes
         };
       }
-      if (Settings.shouldMergeClasses(editor) !== false) {
+      if (shouldMergeClasses(editor) !== false) {
         format.classes = classes;
       } else {
         format.attributes = { class: classes };
@@ -309,7 +244,7 @@
       });
     };
     var isExclusiveMode = function (editor, group) {
-      return group === null || Settings.shouldImportExclusive(editor) !== false;
+      return group === null || shouldImportExclusive(editor) !== false;
     };
     var isUniqueSelector = function (editor, selector, group, globallyUniqueSelectors) {
       return !(isExclusiveMode(editor, group) ? selector in globallyUniqueSelectors : selector in group.selectors);
@@ -325,8 +260,8 @@
       var selectorConverter;
       if (group && group.selector_converter) {
         selectorConverter = group.selector_converter;
-      } else if (Settings.getSelectorConverter(editor)) {
-        selectorConverter = Settings.getSelectorConverter(editor);
+      } else if (getSelectorConverter(editor)) {
+        selectorConverter = getSelectorConverter(editor);
       } else {
         selectorConverter = function () {
           return defaultConvertSelectorToFormat(editor, selector);
@@ -335,11 +270,11 @@
       return selectorConverter.call(plugin, selector, group);
     };
     var setup = function (editor) {
-      editor.on('init', function (e) {
+      editor.on('init', function (_e) {
         var model = generate();
         var globallyUniqueSelectors = {};
-        var selectorFilter = compileFilter(Settings.getSelectorFilter(editor));
-        var groups = compileUserDefinedGroups(Settings.getCssGroups(editor));
+        var selectorFilter = compileFilter(getSelectorFilter(editor));
+        var groups = compileUserDefinedGroups(getCssGroups(editor));
         var processSelector = function (selector, group) {
           if (isUniqueSelector(editor, selector, group, globallyUniqueSelectors)) {
             markUniqueSelector(editor, selector, group, globallyUniqueSelectors);
@@ -355,7 +290,7 @@
           }
           return null;
         };
-        global$4.each(getSelectors(editor, editor.getDoc(), compileFilter(Settings.getFileFilter(editor))), function (selector) {
+        global$4.each(getSelectors(editor, editor.getDoc(), compileFilter(getFileFilter(editor))), function (selector) {
           if (selector.indexOf('.mce-') === -1) {
             if (!selectorFilter || selectorFilter(selector)) {
               var selectorGroups = getGroupsBySelector(groups, selector);
@@ -378,27 +313,22 @@
         var items = model.toFormats();
         editor.fire('addStyleModifications', {
           items: items,
-          replace: !Settings.shouldAppend(editor)
+          replace: !shouldAppend(editor)
         });
       });
-    };
-    var ImportCss = {
-      defaultConvertSelectorToFormat: defaultConvertSelectorToFormat,
-      setup: setup
     };
 
     var get = function (editor) {
       var convertSelectorToFormat = function (selectorText) {
-        return ImportCss.defaultConvertSelectorToFormat(editor, selectorText);
+        return defaultConvertSelectorToFormat(editor, selectorText);
       };
       return { convertSelectorToFormat: convertSelectorToFormat };
     };
-    var Api = { get: get };
 
     function Plugin () {
       global.add('importcss', function (editor) {
-        ImportCss.setup(editor);
-        return Api.get(editor);
+        setup(editor);
+        return get(editor);
       });
     }
 

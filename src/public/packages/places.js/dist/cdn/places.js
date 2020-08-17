@@ -1,4 +1,4 @@
-/*!  1.18.2 | © Algolia | github.com/algolia/places */
+/*!  1.19.0 | © Algolia | github.com/algolia/places */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
 		module.exports = factory();
@@ -283,7 +283,7 @@ var extractParams = function extractParams(_ref) {
     extracted.restrictSearchableAttributes = 'postcode';
   }
 
-  return _objectSpread({}, extracted, {
+  return _objectSpread(_objectSpread({}, extracted), {}, {
     aroundRadius: aroundRadius,
     insideBoundingBox: insideBoundingBox,
     insidePolygon: insidePolygon,
@@ -322,8 +322,8 @@ var params = {};
 var controls = {};
 
 var configure = function configure(configuration) {
-  params = extractParams(_objectSpread({}, params, {}, configuration));
-  controls = extractControls(_objectSpread({}, controls, {}, configuration));
+  params = extractParams(_objectSpread(_objectSpread({}, params), configuration));
+  controls = extractControls(_objectSpread(_objectSpread({}, controls), configuration));
   return {
     params: params,
     controls: controls
@@ -413,7 +413,7 @@ module.exports = g;
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony default export */ __webpack_exports__["default"] = ('1.18.2');
+/* harmony default export */ __webpack_exports__["default"] = ('1.19.0');
 
 /***/ }),
 /* 7 */
@@ -671,7 +671,7 @@ function formatHit(_ref) {
     }; // this is the value to put inside the <input value=
 
     var value = formatInputValue(suggestion);
-    return _objectSpread({}, suggestion, {
+    return _objectSpread(_objectSpread({}, suggestion), {}, {
       highlight: highlight,
       hit: hit,
       hitIndex: hitIndex,
@@ -1573,7 +1573,7 @@ function createAutocompleteSource(_ref) {
   }
 
   function searcher(query, cb) {
-    var searchParams = _objectSpread({}, params, {
+    var searchParams = _objectSpread(_objectSpread({}, params), {}, {
       query: query
     });
 
@@ -1611,7 +1611,7 @@ function createAutocompleteSource(_ref) {
   }
 
   searcher.configure = function (partial) {
-    var updated = Object(configure["a" /* default */])(_objectSpread({}, params, {}, controls, {}, partial));
+    var updated = Object(configure["a" /* default */])(_objectSpread(_objectSpread(_objectSpread({}, params), controls), partial));
     params = updated.params;
     controls = updated.controls;
 
@@ -1642,9 +1642,9 @@ function createAutocompleteDataset_defineProperty(obj, key, value) { if (key in 
 
 
 function createAutocompleteDataset(options) {
-  var templates = createAutocompleteDataset_objectSpread({}, defaultTemplates["a" /* default */], {}, options.templates);
+  var templates = createAutocompleteDataset_objectSpread(createAutocompleteDataset_objectSpread({}, defaultTemplates["a" /* default */]), options.templates);
 
-  var source = createAutocompleteSource(createAutocompleteDataset_objectSpread({}, options, {
+  var source = createAutocompleteSource(createAutocompleteDataset_objectSpread(createAutocompleteDataset_objectSpread({}, options), {}, {
     formatInputValue: templates.value,
     templates: undefined
   }));
@@ -2624,7 +2624,7 @@ var createReverseGeocodingSource_createReverseGeocodingSource = function createR
       return Promise.reject(error);
     }
 
-    return placesClient.reverse(_objectSpread({}, params, {
+    return placesClient.reverse(_objectSpread(_objectSpread({}, params), {}, {
       aroundLatLng: finalAroundLatLng
     })).then(function (content) {
       var hits = content.hits.map(function (hit, hitIndex) {
@@ -2656,7 +2656,7 @@ var createReverseGeocodingSource_createReverseGeocodingSource = function createR
   };
 
   searcher.configure = function (partial) {
-    var updated = Object(configure["a" /* default */])(_objectSpread({}, params, {}, controls, {}, partial));
+    var updated = Object(configure["a" /* default */])(_objectSpread(_objectSpread(_objectSpread({}, params), controls), partial));
     params = filterApplicableParams(updated.params);
     controls = updated.controls;
     return searcher;
@@ -2677,7 +2677,7 @@ function _slicedToArray(arr, i) { return _arrayWithHoles(arr) || _iterableToArra
 
 function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
 
-function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(n); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
+function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
 
 function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
 
@@ -2724,7 +2724,7 @@ function places_places(options) {
     } // if single node NodeList received, resolve to the first one
 
 
-    return places_places(places_objectSpread({}, options, {
+    return places_places(places_objectSpread(places_objectSpread({}, options), {}, {
       container: container[0]
     }));
   } // container sent as a string, resolve it for multiple DOM elements issue
@@ -2732,7 +2732,7 @@ function places_places(options) {
 
   if (typeof container === 'string') {
     var resolvedContainer = document.querySelectorAll(container);
-    return places_places(places_objectSpread({}, options, {
+    return places_places(places_objectSpread(places_objectSpread({}, options), {}, {
       container: resolvedContainer
     }));
   } // if not an <input>, error
@@ -2755,7 +2755,7 @@ function places_places(options) {
     debug: "production" === 'development'
   }, userAutocompleteOptions);
 
-  var autocompleteDataset = Object(createAutocompleteDataset["default"])(places_objectSpread({}, options, {
+  var autocompleteDataset = Object(createAutocompleteDataset["default"])(places_objectSpread(places_objectSpread({}, options), {}, {
     algoliasearch: algoliasearchLite_default.a,
     onHits: function onHits(_ref3) {
       var hits = _ref3.hits,
@@ -2843,6 +2843,7 @@ function places_places(options) {
       useDeviceLocation: true
     });
     autocompleteInstance.focus();
+    placesInstance.emit('locate');
   });
   clear.addEventListener('click', function () {
     autocompleteInstance.autocomplete.setVal('');
@@ -2930,7 +2931,7 @@ function places_places(options) {
     return placesInstance;
   };
 
-  placesInstance.reverse = src_createReverseGeocodingSource(places_objectSpread({}, options, {
+  placesInstance.reverse = src_createReverseGeocodingSource(places_objectSpread(places_objectSpread({}, options), {}, {
     algoliasearch: algoliasearchLite_default.a,
     formatInputValue: (options.templates || {}).value,
     onHits: function onHits(_ref4) {

@@ -139,6 +139,7 @@
   <link rel="stylesheet" type="text/css" href="{{ asset('packages/datatables.net-bs4/css/dataTables.bootstrap4.min.css') }}">
   <link rel="stylesheet" type="text/css" href="{{ asset('packages/datatables.net-fixedheader-bs4/css/fixedHeader.bootstrap4.min.css') }}">
   <link rel="stylesheet" type="text/css" href="{{ asset('packages/datatables.net-responsive-bs4/css/responsive.bootstrap4.min.css') }}">
+  <link rel="stylesheet" type="text/css" href="{{ asset('packages/datatables.net-fixedcolumns-bs4/css/fixedColumns.bootstrap4.min.css') }}">
 
   <link rel="stylesheet" href="{{ asset('packages/backpack/crud/css/crud.css') }}">
   <link rel="stylesheet" href="{{ asset('packages/backpack/crud/css/form.css') }}">

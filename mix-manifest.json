@@ -9,5 +9,7 @@
     "/src/public/packages/datatables.net-fixedheader": "/src/public/packages/datatables.net-fixedheader",
     "/src/public/packages/datatables.net-fixedheader-bs4": "/src/public/packages/datatables.net-fixedheader-bs4",
     "/src/public/packages/datatables.net-responsive": "/src/public/packages/datatables.net-responsive",
-    "/src/public/packages/datatables.net-responsive-bs4": "/src/public/packages/datatables.net-responsive-bs4"
+    "/src/public/packages/datatables.net-responsive-bs4": "/src/public/packages/datatables.net-responsive-bs4",
+    "/src/public/packages/datatables.net-fixedcolumns": "/src/public/packages/datatables.net-fixedcolumns",
+    "/src/public/packages/datatables.net-fixedcolumns-bs4": "/src/public/packages/datatables.net-fixedcolumns-bs4"
 }

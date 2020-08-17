@@ -4,7 +4,7 @@
  * For LGPL see License.txt in the project root for license information.
  * For commercial licenses see https://www.tiny.cloud/
  *
- * Version: 5.2.2 (2020-04-23)
+ * Version: 5.4.0 (2020-06-30)
  */
 (function () {
     'use strict';
@@ -31,13 +31,6 @@
     };
     var shouldInsertTimeElement = function (editor) {
       return editor.getParam('insertdatetime_element', false);
-    };
-    var Settings = {
-      getDateFormat: getDateFormat,
-      getTimeFormat: getTimeFormat,
-      getFormats: getFormats,
-      getDefaultDateTime: getDefaultDateTime,
-      shouldInsertTimeElement: shouldInsertTimeElement
     };
 
     var daysShort = 'Sun Mon Tue Wed Thu Fri Sat Sun'.split(' ');
@@ -81,7 +74,7 @@
       editor.selection.collapse(false);
     };
     var insertDateTime = function (editor, format) {
-      if (Settings.shouldInsertTimeElement(editor)) {
+      if (shouldInsertTimeElement(editor)) {
         var userTime = getDateTime(editor, format);
         var computerTime = void 0;
         if (/%[HMSIp]/.test(format)) {
@@ -99,22 +92,15 @@
         editor.insertContent(getDateTime(editor, format));
       }
     };
-    var Actions = {
-      insertDateTime: insertDateTime,
-      getDateTime: getDateTime
-    };
 
     var register = function (editor) {
       editor.addCommand('mceInsertDate', function () {
-        Actions.insertDateTime(editor, Settings.getDateFormat(editor));
+        insertDateTime(editor, getDateFormat(editor));
       });
       editor.addCommand('mceInsertTime', function () {
-        Actions.insertDateTime(editor, Settings.getTimeFormat(editor));
+        insertDateTime(editor, getTimeFormat(editor));
       });
     };
-    var Commands = { register: register };
-
-    var global$1 = tinymce.util.Tools.resolve('tinymce.util.Tools');
 
     var Cell = function (initial) {
       var value = initial;
@@ -124,19 +110,17 @@
       var set = function (v) {
         value = v;
       };
-      var clone = function () {
-        return Cell(get());
-      };
       return {
         get: get,
-        set: set,
-        clone: clone
+        set: set
       };
     };
 
+    var global$1 = tinymce.util.Tools.resolve('tinymce.util.Tools');
+
     var register$1 = function (editor) {
-      var formats = Settings.getFormats(editor);
-      var defaultFormat = Cell(Settings.getDefaultDateTime(editor));
+      var formats = getFormats(editor);
+      var defaultFormat = Cell(getDefaultDateTime(editor));
       editor.ui.registry.addSplitButton('insertdatetime', {
         icon: 'insert-time',
         tooltip: 'Insert date/time',
@@ -147,27 +131,23 @@
           done(global$1.map(formats, function (format) {
             return {
               type: 'choiceitem',
-              text: Actions.getDateTime(editor, format),
+              text: getDateTime(editor, format),
               value: format
             };
           }));
         },
-        onAction: function () {
-          var args = [];
-          for (var _i = 0; _i < arguments.length; _i++) {
-            args[_i] = arguments[_i];
-          }
-          Actions.insertDateTime(editor, defaultFormat.get());
+        onAction: function (_api) {
+          insertDateTime(editor, defaultFormat.get());
         },
-        onItemAction: function (_, value) {
+        onItemAction: function (_api, value) {
           defaultFormat.set(value);
-          Actions.insertDateTime(editor, value);
+          insertDateTime(editor, value);
         }
       });
       var makeMenuItemHandler = function (format) {
         return function () {
           defaultFormat.set(format);
-          Actions.insertDateTime(editor, format);
+          insertDateTime(editor, format);
         };
       };
       editor.ui.registry.addNestedMenuItem('insertdatetime', {
@@ -177,19 +157,18 @@
           return global$1.map(formats, function (format) {
             return {
               type: 'menuitem',
-              text: Actions.getDateTime(editor, format),
+              text: getDateTime(editor, format),
               onAction: makeMenuItemHandler(format)
             };
           });
         }
       });
     };
-    var Buttons = { register: register$1 };
 
     function Plugin () {
       global.add('insertdatetime', function (editor) {
-        Commands.register(editor);
-        Buttons.register(editor);
+        register(editor);
+        register$1(editor);
       });
     }
 

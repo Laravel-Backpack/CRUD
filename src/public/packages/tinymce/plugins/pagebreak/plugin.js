@@ -4,7 +4,7 @@
  * For LGPL see License.txt in the project root for license information.
  * For commercial licenses see https://www.tiny.cloud/
  *
- * Version: 5.2.2 (2020-04-23)
+ * Version: 5.4.0 (2020-06-30)
  */
 (function () {
     'use strict';
@@ -19,10 +19,6 @@
     var shouldSplitBlock = function (editor) {
       return editor.getParam('pagebreak_split_block', false);
     };
-    var Settings = {
-      getSeparatorHtml: getSeparatorHtml,
-      shouldSplitBlock: shouldSplitBlock
-    };
 
     var getPageBreakClass = function () {
       return 'mce-pagebreak';
@@ -31,7 +27,7 @@
       return '<img src="' + global$1.transparentSrc + '" class="' + getPageBreakClass() + '" data-mce-resize="false" data-mce-placeholder />';
     };
     var setup = function (editor) {
-      var separatorHtml = Settings.getSeparatorHtml(editor);
+      var separatorHtml = getSeparatorHtml(editor);
       var pageBreakSeparatorRegExp = new RegExp(separatorHtml.replace(/[\?\.\*\[\]\(\)\{\}\+\^\$\:]/g, function (a) {
         return '\\' + a;
       }), 'gi');
@@ -46,7 +42,7 @@
             className = node.attr('class');
             if (className && className.indexOf('mce-pagebreak') !== -1) {
               var parentNode = node.parent;
-              if (editor.schema.getBlockElements()[parentNode.name] && Settings.shouldSplitBlock(editor)) {
+              if (editor.schema.getBlockElements()[parentNode.name] && shouldSplitBlock(editor)) {
                 parentNode.type = 3;
                 parentNode.value = separatorHtml;
                 parentNode.raw = true;
@@ -61,31 +57,24 @@
         });
       });
     };
-    var FilterContent = {
-      setup: setup,
-      getPlaceholderHtml: getPlaceholderHtml,
-      getPageBreakClass: getPageBreakClass
-    };
 
     var register = function (editor) {
       editor.addCommand('mcePageBreak', function () {
-        if (editor.settings.pagebreak_split_block) {
-          editor.insertContent('<p>' + FilterContent.getPlaceholderHtml() + '</p>');
+        if (shouldSplitBlock(editor)) {
+          editor.insertContent('<p>' + getPlaceholderHtml() + '</p>');
         } else {
-          editor.insertContent(FilterContent.getPlaceholderHtml());
+          editor.insertContent(getPlaceholderHtml());
         }
       });
     };
-    var Commands = { register: register };
 
     var setup$1 = function (editor) {
       editor.on('ResolveName', function (e) {
-        if (e.target.nodeName === 'IMG' && editor.dom.hasClass(e.target, FilterContent.getPageBreakClass())) {
+        if (e.target.nodeName === 'IMG' && editor.dom.hasClass(e.target, getPageBreakClass())) {
           e.name = 'pagebreak';
         }
       });
     };
-    var ResolveName = { setup: setup$1 };
 
     var register$1 = function (editor) {
       editor.ui.registry.addButton('pagebreak', {
@@ -103,14 +92,13 @@
         }
       });
     };
-    var Buttons = { register: register$1 };
 
     function Plugin () {
       global.add('pagebreak', function (editor) {
-        Commands.register(editor);
-        Buttons.register(editor);
-        FilterContent.setup(editor);
-        ResolveName.setup(editor);
+        register(editor);
+        register$1(editor);
+        setup(editor);
+        setup$1(editor);
       });
     }
 

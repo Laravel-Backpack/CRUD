@@ -4,7 +4,7 @@
  * For LGPL see License.txt in the project root for license information.
  * For commercial licenses see https://www.tiny.cloud/
  *
- * Version: 5.2.2 (2020-04-23)
+ * Version: 5.4.0 (2020-06-30)
  */
 (function () {
     'use strict';
@@ -77,22 +77,18 @@
       rep(/\[quote.*?\](.*?)\[\/quote\]/gi, '<span class="quoteStyle">$1</span>&nbsp;');
       return s;
     };
-    var Convert = {
-      html2bbcode: html2bbcode,
-      bbcode2html: bbcode2html
-    };
 
     function Plugin () {
       global.add('bbcode', function (editor) {
         editor.on('BeforeSetContent', function (e) {
-          e.content = Convert.bbcode2html(e.content);
+          e.content = bbcode2html(e.content);
         });
         editor.on('PostProcess', function (e) {
           if (e.set) {
-            e.content = Convert.bbcode2html(e.content);
+            e.content = bbcode2html(e.content);
           }
           if (e.get) {
-            e.content = Convert.html2bbcode(e.content);
+            e.content = html2bbcode(e.content);
           }
         });
       });

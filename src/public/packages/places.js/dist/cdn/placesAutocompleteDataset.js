@@ -1,4 +1,4 @@
-/*!  1.18.2 | © Algolia | github.com/algolia/places */
+/*!  1.19.0 | © Algolia | github.com/algolia/places */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
 		module.exports = factory();
@@ -146,7 +146,7 @@ var extractParams = function extractParams(_ref) {
     extracted.restrictSearchableAttributes = 'postcode';
   }
 
-  return _objectSpread({}, extracted, {
+  return _objectSpread(_objectSpread({}, extracted), {}, {
     aroundRadius: aroundRadius,
     insideBoundingBox: insideBoundingBox,
     insidePolygon: insidePolygon,
@@ -185,8 +185,8 @@ var params = {};
 var controls = {};
 
 var configure = function configure(configuration) {
-  params = extractParams(_objectSpread({}, params, {}, configuration));
-  controls = extractControls(_objectSpread({}, controls, {}, configuration));
+  params = extractParams(_objectSpread(_objectSpread({}, params), configuration));
+  controls = extractControls(_objectSpread(_objectSpread({}, controls), configuration));
   return {
     params: params,
     controls: controls
@@ -366,7 +366,7 @@ function createAutocompleteSource(_ref) {
   }
 
   function searcher(query, cb) {
-    var searchParams = _objectSpread({}, params, {
+    var searchParams = _objectSpread(_objectSpread({}, params), {}, {
       query: query
     });
 
@@ -404,7 +404,7 @@ function createAutocompleteSource(_ref) {
   }
 
   searcher.configure = function (partial) {
-    var updated = Object(configure["a" /* default */])(_objectSpread({}, params, {}, controls, {}, partial));
+    var updated = Object(configure["a" /* default */])(_objectSpread(_objectSpread(_objectSpread({}, params), controls), partial));
     params = updated.params;
     controls = updated.controls;
 
@@ -435,9 +435,9 @@ function createAutocompleteDataset_defineProperty(obj, key, value) { if (key in 
 
 
 function createAutocompleteDataset(options) {
-  var templates = createAutocompleteDataset_objectSpread({}, defaultTemplates["a" /* default */], {}, options.templates);
+  var templates = createAutocompleteDataset_objectSpread(createAutocompleteDataset_objectSpread({}, defaultTemplates["a" /* default */]), options.templates);
 
-  var source = createAutocompleteSource(createAutocompleteDataset_objectSpread({}, options, {
+  var source = createAutocompleteSource(createAutocompleteDataset_objectSpread(createAutocompleteDataset_objectSpread({}, options), {}, {
     formatInputValue: templates.value,
     templates: undefined
   }));
@@ -477,7 +477,7 @@ if (!('language' in navigator)) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony default export */ __webpack_exports__["default"] = ('1.18.2');
+/* harmony default export */ __webpack_exports__["default"] = ('1.19.0');
 
 /***/ }),
 
@@ -775,7 +775,7 @@ function formatHit(_ref) {
     }; // this is the value to put inside the <input value=
 
     var value = formatInputValue(suggestion);
-    return _objectSpread({}, suggestion, {
+    return _objectSpread(_objectSpread({}, suggestion), {}, {
       highlight: highlight,
       hit: hit,
       hitIndex: hitIndex,

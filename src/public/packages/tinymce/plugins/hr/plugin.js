@@ -4,7 +4,7 @@
  * For LGPL see License.txt in the project root for license information.
  * For commercial licenses see https://www.tiny.cloud/
  *
- * Version: 5.2.2 (2020-04-23)
+ * Version: 5.4.0 (2020-06-30)
  */
 (function () {
     'use strict';
@@ -16,7 +16,6 @@
         editor.execCommand('mceInsertContent', false, '<hr />');
       });
     };
-    var Commands = { register: register };
 
     var register$1 = function (editor) {
       editor.ui.registry.addButton('hr', {
@@ -34,12 +33,11 @@
         }
       });
     };
-    var Buttons = { register: register$1 };
 
     function Plugin () {
       global.add('hr', function (editor) {
-        Commands.register(editor);
-        Buttons.register(editor);
+        register(editor);
+        register$1(editor);
       });
     }
 

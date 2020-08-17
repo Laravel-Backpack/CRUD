@@ -4,7 +4,7 @@
  * For LGPL see License.txt in the project root for license information.
  * For commercial licenses see https://www.tiny.cloud/
  *
- * Version: 5.2.2 (2020-04-23)
+ * Version: 5.4.0 (2020-06-30)
  */
 (function (domGlobals) {
     'use strict';
@@ -17,13 +17,9 @@
       var set = function (v) {
         value = v;
       };
-      var clone = function () {
-        return Cell(get());
-      };
       return {
         get: get,
-        set: set,
-        clone: clone
+        set: set
       };
     };
 
@@ -74,15 +70,8 @@
     var getDefaultDocType = function (editor) {
       return editor.getParam('fullpage_default_doctype', '<!DOCTYPE html>');
     };
-    var Settings = {
-      shouldHideInSourceView: shouldHideInSourceView,
-      getDefaultXmlPi: getDefaultXmlPi,
-      getDefaultEncoding: getDefaultEncoding,
-      getDefaultFontFamily: getDefaultFontFamily,
-      getDefaultFontSize: getDefaultFontSize,
-      getDefaultTextColor: getDefaultTextColor,
-      getDefaultTitle: getDefaultTitle,
-      getDefaultDocType: getDefaultDocType
+    var getProtect = function (editor) {
+      return editor.getParam('protect');
     };
 
     var parseHeader = function (head) {
@@ -99,8 +88,8 @@
         var value = elm.attr(name);
         return value || '';
       }
-      data.fontface = Settings.getDefaultFontFamily(editor);
-      data.fontsize = Settings.getDefaultFontSize(editor);
+      data.fontface = getDefaultFontFamily(editor);
+      data.fontsize = getDefaultFontSize(editor);
       elm = headerFragment.firstChild;
       if (elm.type === 7) {
         data.xml_pi = true;
@@ -151,7 +140,7 @@
       return data;
     };
     var dataToHtml = function (editor, data, head) {
-      var headerFragment, headElement, html, elm, value;
+      var headElement, elm, value;
       var dom = editor.dom;
       function setAttr(elm, name, value) {
         elm.attr(name, value ? value : undefined);
@@ -163,7 +152,7 @@
           headElement.append(node);
         }
       }
-      headerFragment = parseHeader(head);
+      var headerFragment = parseHeader(head);
       headElement = headerFragment.getAll('head')[0];
       if (!headElement) {
         elm = headerFragment.getAll('html')[0];
@@ -299,7 +288,7 @@
       if (!headElement.firstChild) {
         headElement.remove();
       }
-      html = global$4({
+      var html = global$4({
         validate: false,
         indent: true,
         indent_before: 'head,html,body,meta,title,script,link,style',
@@ -307,14 +296,9 @@
       }).serialize(headerFragment);
       return html.substring(0, html.indexOf('</body>'));
     };
-    var Parser = {
-      parseHeader: parseHeader,
-      htmlToData: htmlToData,
-      dataToHtml: dataToHtml
-    };
 
     var open = function (editor, headState) {
-      var data = Parser.htmlToData(editor, headState.get());
+      var data = htmlToData(editor, headState.get());
       var defaultData = {
         title: '',
         keywords: '',
@@ -378,20 +362,18 @@
         initialData: initialData,
         onSubmit: function (api) {
           var nuData = api.getData();
-          var headHtml = Parser.dataToHtml(editor, global$1.extend(data, nuData), headState.get());
+          var headHtml = dataToHtml(editor, global$1.extend(data, nuData), headState.get());
           headState.set(headHtml);
           api.close();
         }
       });
     };
-    var Dialog = { open: open };
 
     var register = function (editor, headState) {
       editor.addCommand('mceFullPageProperties', function () {
-        Dialog.open(editor, headState);
+        open(editor, headState);
       });
     };
-    var Commands = { register: register };
 
     var protectHtml = function (protect, html) {
       global$1.each(protect, function (pattern) {
@@ -406,10 +388,6 @@
         return unescape(m);
       });
     };
-    var Protect = {
-      protectHtml: protectHtml,
-      unprotectHtml: unprotectHtml
-    };
 
     var each = global$1.each;
     var low = function (s) {
@@ -418,16 +396,16 @@
       });
     };
     var handleSetContent = function (editor, headState, footState, evt) {
-      var startPos, endPos, content, headerFragment, styles = '';
+      var startPos, endPos, content, styles = '';
       var dom = editor.dom;
       if (evt.selection) {
         return;
       }
-      content = Protect.protectHtml(editor.settings.protect, evt.content);
+      content = protectHtml(getProtect(editor), evt.content);
       if (evt.format === 'raw' && headState.get()) {
         return;
       }
-      if (evt.source_view && Settings.shouldHideInSourceView(editor)) {
+      if (evt.source_view && shouldHideInSourceView(editor)) {
         return;
       }
       if (content.length === 0 && !evt.source_view) {
@@ -448,7 +426,7 @@
         headState.set(getDefaultHeader(editor));
         footState.set('\n</body>\n</html>');
       }
-      headerFragment = Parser.parseHeader(headState.get());
+      var headerFragment = parseHeader(headState.get());
       each(headerFragment.getAll('style'), function (node) {
         if (node.firstChild) {
           styles += node.firstChild.value;
@@ -485,7 +463,7 @@
           dom.add(headElm, 'link', {
             'rel': 'stylesheet',
             'text': 'text/css',
-            'href': href,
+            href: href,
             'data-mce-fullpage': '1'
           });
         }
@@ -497,33 +475,33 @@
     };
     var getDefaultHeader = function (editor) {
       var header = '', value, styles = '';
-      if (Settings.getDefaultXmlPi(editor)) {
-        var piEncoding = Settings.getDefaultEncoding(editor);
+      if (getDefaultXmlPi(editor)) {
+        var piEncoding = getDefaultEncoding(editor);
         header += '<?xml version="1.0" encoding="' + (piEncoding ? piEncoding : 'ISO-8859-1') + '" ?>\n';
       }
-      header += Settings.getDefaultDocType(editor);
+      header += getDefaultDocType(editor);
       header += '\n<html>\n<head>\n';
-      if (value = Settings.getDefaultTitle(editor)) {
+      if (value = getDefaultTitle(editor)) {
         header += '<title>' + value + '</title>\n';
       }
-      if (value = Settings.getDefaultEncoding(editor)) {
+      if (value = getDefaultEncoding(editor)) {
         header += '<meta http-equiv="Content-Type" content="text/html; charset=' + value + '" />\n';
       }
-      if (value = Settings.getDefaultFontFamily(editor)) {
+      if (value = getDefaultFontFamily(editor)) {
         styles += 'font-family: ' + value + ';';
       }
-      if (value = Settings.getDefaultFontSize(editor)) {
+      if (value = getDefaultFontSize(editor)) {
         styles += 'font-size: ' + value + ';';
       }
-      if (value = Settings.getDefaultTextColor(editor)) {
+      if (value = getDefaultTextColor(editor)) {
         styles += 'color: ' + value + ';';
       }
       header += '</head>\n<body' + (styles ? ' style="' + styles + '"' : '') + '>\n';
       return header;
     };
     var handleGetContent = function (editor, head, foot, evt) {
-      if (!evt.selection && (!evt.source_view || !Settings.shouldHideInSourceView(editor))) {
-        evt.content = Protect.unprotectHtml(global$1.trim(head) + '\n' + global$1.trim(evt.content) + '\n' + global$1.trim(foot));
+      if (!evt.selection && (!evt.source_view || !shouldHideInSourceView(editor))) {
+        evt.content = unprotectHtml(global$1.trim(head) + '\n' + global$1.trim(evt.content) + '\n' + global$1.trim(foot));
       }
     };
     var setup = function (editor, headState, footState) {
@@ -534,7 +512,6 @@
         handleGetContent(editor, headState.get(), footState.get(), evt);
       });
     };
-    var FilterContent = { setup: setup };
 
     var register$1 = function (editor) {
       editor.ui.registry.addButton('fullpage', {
@@ -552,14 +529,13 @@
         }
       });
     };
-    var Buttons = { register: register$1 };
 
     function Plugin () {
       global.add('fullpage', function (editor) {
         var headState = Cell(''), footState = Cell('');
-        Commands.register(editor, headState);
-        Buttons.register(editor);
-        FilterContent.setup(editor, headState, footState);
+        register(editor, headState);
+        register$1(editor);
+        setup(editor, headState, footState);
       });
     }
 

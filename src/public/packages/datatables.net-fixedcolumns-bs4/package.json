@@ -1,0 +1,58 @@
+{
+  "_from": "datatables.net-fixedcolumns-bs4",
+  "_id": "datatables.net-fixedcolumns-bs4@3.3.1",
+  "_inBundle": false,
+  "_integrity": "sha512-6k4IGPmo44gBFNvelOan7JWLISNjGUzwOa2l0UqNFS7Ms2SfgipykHBAvrMOm86Fuw2YRlk2HF5X815PXDYmLw==",
+  "_location": "/datatables.net-fixedcolumns-bs4",
+  "_phantomChildren": {},
+  "_requested": {
+    "type": "tag",
+    "registry": true,
+    "raw": "datatables.net-fixedcolumns-bs4",
+    "name": "datatables.net-fixedcolumns-bs4",
+    "escapedName": "datatables.net-fixedcolumns-bs4",
+    "rawSpec": "",
+    "saveSpec": null,
+    "fetchSpec": "latest"
+  },
+  "_requiredBy": [
+    "#USER",
+    "/"
+  ],
+  "_resolved": "https://registry.npmjs.org/datatables.net-fixedcolumns-bs4/-/datatables.net-fixedcolumns-bs4-3.3.1.tgz",
+  "_shasum": "b525ec7c3832248ca50e2ce8ff643fe49f1ac0bc",
+  "_spec": "datatables.net-fixedcolumns-bs4",
+  "_where": "C:\\laragon\\www\\laravel-backpack-fork",
+  "author": {
+    "name": "SpryMedia Ltd",
+    "url": "http://datatables.net"
+  },
+  "bugs": {
+    "url": "https://datatables.net/forums"
+  },
+  "bundleDependencies": false,
+  "dependencies": {
+    "datatables.net-bs4": "^1.10.15",
+    "datatables.net-fixedcolumns": "3.3.1",
+    "jquery": ">=1.7"
+  },
+  "deprecated": false,
+  "description": "FixedColumns for DataTables with styling for [Bootstrap 4](http://getbootstrap.com/)",
+  "files": [
+    "css/**/*.css",
+    "js/**/*.js"
+  ],
+  "homepage": "https://datatables.net",
+  "keywords": [
+    "fixed columns",
+    "DataTables",
+    "jQuery",
+    "table",
+    "Bootstrap 4"
+  ],
+  "license": "MIT",
+  "main": "js/fixedColumns.bootstrap4.js",
+  "name": "datatables.net-fixedcolumns-bs4",
+  "style": "css/fixedColumns.bootstrap4.css",
+  "version": "3.3.1"
+}

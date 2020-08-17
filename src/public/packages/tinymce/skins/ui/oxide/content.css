@@ -179,7 +179,7 @@ pre[class*="language-"] {
 }
 .mce-content-body .mce-visual-caret {
   background-color: black;
-  background-color: currentcolor;
+  background-color: currentColor;
   position: absolute;
 }
 .mce-content-body .mce-visual-caret-hidden {
@@ -364,11 +364,88 @@ pre[class*="language-"] {
   white-space: nowrap;
   z-index: 10001;
 }
+.tox-rtc-user-selection {
+  position: relative;
+}
+.tox-rtc-user-cursor {
+  bottom: 0;
+  cursor: default;
+  position: absolute;
+  top: 0;
+  width: 2px;
+}
+.tox-rtc-user-cursor::before {
+  background-color: inherit;
+  border-radius: 50%;
+  content: '';
+  display: block;
+  height: 8px;
+  position: absolute;
+  right: -3px;
+  top: -3px;
+  width: 8px;
+}
+.tox-rtc-user-cursor:hover::after {
+  background-color: inherit;
+  border-radius: 100px;
+  box-sizing: border-box;
+  color: #fff;
+  content: attr(data-user);
+  display: block;
+  font-size: 12px;
+  font-weight: bold;
+  left: -5px;
+  min-height: 8px;
+  min-width: 8px;
+  padding: 0 12px;
+  position: absolute;
+  top: -11px;
+  white-space: nowrap;
+  z-index: 1000;
+}
+.tox-rtc-user-selection--1 .tox-rtc-user-cursor {
+  background-color: #2dc26b;
+}
+.tox-rtc-user-selection--2 .tox-rtc-user-cursor {
+  background-color: #e03e2d;
+}
+.tox-rtc-user-selection--3 .tox-rtc-user-cursor {
+  background-color: #f1c40f;
+}
+.tox-rtc-user-selection--4 .tox-rtc-user-cursor {
+  background-color: #3598db;
+}
+.tox-rtc-user-selection--5 .tox-rtc-user-cursor {
+  background-color: #b96ad9;
+}
+.tox-rtc-user-selection--6 .tox-rtc-user-cursor {
+  background-color: #e67e23;
+}
+.tox-rtc-user-selection--7 .tox-rtc-user-cursor {
+  background-color: #aaa69d;
+}
+.tox-rtc-user-selection--8 .tox-rtc-user-cursor {
+  background-color: #f368e0;
+}
+.tox-rtc-remote-image {
+  background: #eaeaea url("data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2236%22%20height%3D%2212%22%20viewBox%3D%220%200%2036%2012%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%0A%20%20%3Ccircle%20cx%3D%226%22%20cy%3D%226%22%20r%3D%223%22%20fill%3D%22rgba(0%2C%200%2C%200%2C%20.2)%22%3E%0A%20%20%20%20%3Canimate%20attributeName%3D%22r%22%20values%3D%223%3B5%3B3%22%20calcMode%3D%22linear%22%20dur%3D%221s%22%20repeatCount%3D%22indefinite%22%20%2F%3E%0A%20%20%3C%2Fcircle%3E%0A%20%20%3Ccircle%20cx%3D%2218%22%20cy%3D%226%22%20r%3D%223%22%20fill%3D%22rgba(0%2C%200%2C%200%2C%20.2)%22%3E%0A%20%20%20%20%3Canimate%20attributeName%3D%22r%22%20values%3D%223%3B5%3B3%22%20calcMode%3D%22linear%22%20begin%3D%22.33s%22%20dur%3D%221s%22%20repeatCount%3D%22indefinite%22%20%2F%3E%0A%20%20%3C%2Fcircle%3E%0A%20%20%3Ccircle%20cx%3D%2230%22%20cy%3D%226%22%20r%3D%223%22%20fill%3D%22rgba(0%2C%200%2C%200%2C%20.2)%22%3E%0A%20%20%20%20%3Canimate%20attributeName%3D%22r%22%20values%3D%223%3B5%3B3%22%20calcMode%3D%22linear%22%20begin%3D%22.66s%22%20dur%3D%221s%22%20repeatCount%3D%22indefinite%22%20%2F%3E%0A%20%20%3C%2Fcircle%3E%0A%3C%2Fsvg%3E%0A") no-repeat center center;
+  border: 1px solid #ccc;
+  min-height: 240px;
+  min-width: 320px;
+}
 .mce-match-marker {
   background: #aaa;
   color: #fff;
 }
 .mce-match-marker-selected {
+  background: #39f;
+  color: #fff;
+}
+.mce-match-marker-selected::-moz-selection {
+  background: #39f;
+  color: #fff;
+}
+.mce-match-marker-selected::selection {
   background: #39f;
   color: #fff;
 }

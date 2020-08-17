@@ -33,6 +33,7 @@
         "cropperjs": "^1.5.7",
         "datatables.net": "^1.10.20",
         "datatables.net-bs4": "^1.10.20",
+        "datatables.net-fixedcolumns-bs4": "^3.3.1",
         "datatables.net-fixedheader": "^3.1.6",
         "datatables.net-fixedheader-bs4": "^3.1.6",
         "datatables.net-responsive": "^2.2.5",

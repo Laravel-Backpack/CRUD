@@ -4,7 +4,7 @@
  * For LGPL see License.txt in the project root for license information.
  * For commercial licenses see https://www.tiny.cloud/
  *
- * Version: 5.2.2 (2020-04-23)
+ * Version: 5.4.0 (2020-06-30)
  */
 (function () {
     'use strict';
@@ -22,13 +22,9 @@
     var getContent = function (editor) {
       return editor.getContent({ source_view: true });
     };
-    var Content = {
-      setContent: setContent,
-      getContent: getContent
-    };
 
     var open = function (editor) {
-      var editorContent = Content.getContent(editor);
+      var editorContent = getContent(editor);
       editor.windowManager.open({
         title: 'Source Code',
         size: 'large',
@@ -54,42 +50,39 @@
         ],
         initialData: { code: editorContent },
         onSubmit: function (api) {
-          Content.setContent(editor, api.getData().code);
+          setContent(editor, api.getData().code);
           api.close();
         }
       });
     };
-    var Dialog = { open: open };
 
     var register = function (editor) {
       editor.addCommand('mceCodeEditor', function () {
-        Dialog.open(editor);
+        open(editor);
       });
     };
-    var Commands = { register: register };
 
     var register$1 = function (editor) {
       editor.ui.registry.addButton('code', {
         icon: 'sourcecode',
         tooltip: 'Source code',
         onAction: function () {
-          return Dialog.open(editor);
+          return open(editor);
         }
       });
       editor.ui.registry.addMenuItem('code', {
         icon: 'sourcecode',
         text: 'Source code',
         onAction: function () {
-          return Dialog.open(editor);
+          return open(editor);
         }
       });
     };
-    var Buttons = { register: register$1 };
 
     function Plugin () {
       global.add('code', function (editor) {
-        Commands.register(editor);
-        Buttons.register(editor);
+        register(editor);
+        register$1(editor);
         return {};
       });
     }

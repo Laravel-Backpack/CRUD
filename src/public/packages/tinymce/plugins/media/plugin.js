@@ -4,7 +4,7 @@
  * For LGPL see License.txt in the project root for license information.
  * For commercial licenses see https://www.tiny.cloud/
  *
- * Version: 5.2.2 (2020-04-23)
+ * Version: 5.4.0 (2020-06-30)
  */
 (function () {
     'use strict';
@@ -48,7 +48,7 @@
         return n;
       };
       var me = {
-        fold: function (n, s) {
+        fold: function (n, _s) {
           return n();
         },
         is: never,
@@ -76,9 +76,6 @@
         },
         toString: constant('none()')
       };
-      if (Object.freeze) {
-        Object.freeze(me);
-      }
       return me;
     }();
     var some = function (a) {
@@ -144,17 +141,16 @@
     };
 
     var typeOf = function (x) {
+      var t = typeof x;
       if (x === null) {
         return 'null';
-      }
-      var t = typeof x;
-      if (t === 'object' && (Array.prototype.isPrototypeOf(x) || x.constructor && x.constructor.name === 'Array')) {
+      } else if (t === 'object' && (Array.prototype.isPrototypeOf(x) || x.constructor && x.constructor.name === 'Array')) {
         return 'array';
-      }
-      if (t === 'object' && (String.prototype.isPrototypeOf(x) || x.constructor && x.constructor.name === 'String')) {
+      } else if (t === 'object' && (String.prototype.isPrototypeOf(x) || x.constructor && x.constructor.name === 'String')) {
         return 'string';
+      } else {
+        return t;
       }
-      return t;
     };
     var isType = function (type) {
       return function (value) {
@@ -164,9 +160,7 @@
     var isString = isType('string');
     var isObject = isType('object');
     var isArray = isType('array');
-    var isFunction = isType('function');
 
-    var nativeSlice = Array.prototype.slice;
     var nativePush = Array.prototype.push;
     var each = function (xs, f) {
       for (var i = 0, len = xs.length; i < len; i++) {
@@ -184,9 +178,6 @@
       }
       return r;
     };
-    var from$1 = isFunction(Array.from) ? Array.from : function (x) {
-      return nativeSlice.call(x);
-    };
 
     var Cell = function (initial) {
       var value = initial;
@@ -196,17 +187,22 @@
       var set = function (v) {
         value = v;
       };
-      var clone = function () {
-        return Cell(get());
-      };
       return {
         get: get,
-        set: set,
-        clone: clone
+        set: set
       };
     };
 
+    var keys = Object.keys;
     var hasOwnProperty = Object.hasOwnProperty;
+    var each$1 = function (obj, f) {
+      var props = keys(obj);
+      for (var k = 0, len = props.length; k < len; k++) {
+        var i = props[k];
+        var x = obj[i];
+        f(x, i);
+      }
+    };
     var get = function (obj, key) {
       return has(obj, key) ? Option.from(obj[key]) : Option.none();
     };
@@ -240,17 +236,6 @@
     };
     var hasDimensions = function (editor) {
       return editor.getParam('media_dimensions', true);
-    };
-    var Settings = {
-      getScripts: getScripts,
-      getAudioTemplateCallback: getAudioTemplateCallback,
-      getVideoTemplateCallback: getVideoTemplateCallback,
-      hasLiveEmbeds: hasLiveEmbeds,
-      shouldFilterHtml: shouldFilterHtml,
-      getUrlResolver: getUrlResolver,
-      hasAltSource: hasAltSource,
-      hasPoster: hasPoster,
-      hasDimensions: hasDimensions
     };
 
     var global$1 = tinymce.util.Tools.resolve('tinymce.util.Tools');
@@ -350,7 +335,6 @@
       var mime = mimes[fileEnd];
       return mime ? mime : '';
     };
-    var Mime = { guess: guess };
 
     var global$4 = tinymce.util.Tools.resolve('tinymce.html.Schema');
 
@@ -361,30 +345,30 @@
       return /^[0-9.]+$/.test(value) ? value + 'px' : value;
     };
     var setAttributes = function (attrs, updatedAttrs) {
-      for (var name_1 in updatedAttrs) {
-        var value = '' + updatedAttrs[name_1];
-        if (attrs.map[name_1]) {
+      each$1(updatedAttrs, function (val, name) {
+        var value = '' + val;
+        if (attrs.map[name]) {
           var i = attrs.length;
           while (i--) {
             var attr = attrs[i];
-            if (attr.name === name_1) {
+            if (attr.name === name) {
               if (value) {
-                attrs.map[name_1] = value;
+                attrs.map[name] = value;
                 attr.value = value;
               } else {
-                delete attrs.map[name_1];
+                delete attrs.map[name];
                 attrs.splice(i, 1);
               }
             }
           }
         } else if (value) {
           attrs.push({
-            name: name_1,
+            name: name,
             value: value
           });
-          attrs.map[name_1] = value;
+          attrs.map[name] = value;
         }
-      }
+      });
     };
     var updateEphoxEmbed = function (data, attrs) {
       var style = attrs.map.style;
@@ -503,7 +487,6 @@
       }, global$4({})).parse(html);
       return writer.getContent();
     };
-    var UpdateHtml = { updateHtml: updateHtml };
 
     var urlPatterns = [
       {
@@ -636,7 +619,7 @@
     var dataToHtml = function (editor, dataIn) {
       var data = global$1.extend({}, dataIn);
       if (!data.source) {
-        global$1.extend(data, htmlToData(Settings.getScripts(editor), data.embed));
+        global$1.extend(data, htmlToData(getScripts(editor), data.embed));
         if (!data.source) {
           return '';
         }
@@ -649,8 +632,8 @@
       }
       data.source = editor.convertURL(data.source, 'source');
       data.altsource = editor.convertURL(data.altsource, 'source');
-      data.sourcemime = Mime.guess(data.source);
-      data.altsourcemime = Mime.guess(data.altsource);
+      data.sourcemime = guess(data.source);
+      data.altsourcemime = guess(data.altsource);
       data.poster = editor.convertURL(data.poster, 'poster');
       var pattern = matchPattern(data.source);
       if (pattern) {
@@ -661,16 +644,16 @@
         data.height = data.height || String(pattern.h);
       }
       if (data.embed) {
-        return UpdateHtml.updateHtml(data.embed, data, true);
+        return updateHtml(data.embed, data, true);
       } else {
-        var videoScript = getVideoScriptMatch(Settings.getScripts(editor), data.source);
+        var videoScript = getVideoScriptMatch(getScripts(editor), data.source);
         if (videoScript) {
           data.type = 'script';
           data.width = String(videoScript.width);
           data.height = String(videoScript.height);
         }
-        var audioTemplateCallback = Settings.getAudioTemplateCallback(editor);
-        var videoTemplateCallback = Settings.getVideoTemplateCallback(editor);
+        var audioTemplateCallback = getAudioTemplateCallback(editor);
+        var videoTemplateCallback = getVideoTemplateCallback(editor);
         data.width = data.width || '300';
         data.height = data.height || '150';
         global$1.each(data, function (value, key) {
@@ -725,15 +708,11 @@
       };
     };
     var getEmbedHtml = function (editor, data) {
-      var embedHandler = Settings.getUrlResolver(editor);
+      var embedHandler = getUrlResolver(editor);
       return embedHandler ? embedPromise(data, loadedData(editor), embedHandler) : defaultPromise(data, loadedData(editor));
     };
     var isCached = function (url) {
       return cache.hasOwnProperty(url);
-    };
-    var Service = {
-      getEmbedHtml: getEmbedHtml,
-      isCached: isCached
     };
 
     var extractMeta = function (sourceInput, data) {
@@ -821,7 +800,7 @@
       };
     };
     var snippetToData = function (editor, embedSnippet) {
-      return htmlToData(Settings.getScripts(editor), embedSnippet);
+      return htmlToData(getScripts(editor), embedSnippet);
     };
     var isMediaElement = function (element) {
       return element.getAttribute('data-mce-object') || element.getAttribute('data-ephox-embed-iri');
@@ -829,7 +808,7 @@
     var getEditorData = function (editor) {
       var element = editor.selection.getNode();
       var snippet = isMediaElement(element) ? editor.serializer.serialize(element, { selection: true }) : '';
-      return __assign({ embed: snippet }, htmlToData(Settings.getScripts(editor), snippet));
+      return __assign({ embed: snippet }, htmlToData(getScripts(editor), snippet));
     };
     var addEmbedHtml = function (api, editor) {
       return function (response) {
@@ -862,11 +841,11 @@
       editor.nodeChanged();
     };
     var submitForm = function (prevData, newData, editor) {
-      newData.embed = UpdateHtml.updateHtml(newData.embed, newData);
-      if (newData.embed && (prevData.source === newData.source || Service.isCached(newData.source))) {
+      newData.embed = updateHtml(newData.embed, newData);
+      if (newData.embed && (prevData.source === newData.source || isCached(newData.source))) {
         handleInsert(editor, newData.embed);
       } else {
-        Service.getEmbedHtml(editor, newData).then(function (response) {
+        getEmbedHtml(editor, newData).then(function (response) {
           handleInsert(editor, response.html);
         }).catch(handleError(editor));
       }
@@ -882,7 +861,7 @@
             url: serviceData.source,
             html: ''
           });
-          Service.getEmbedHtml(editor, serviceData).then(addEmbedHtml(win, editor)).catch(handleError(editor));
+          getEmbedHtml(editor, serviceData).then(addEmbedHtml(win, editor)).catch(handleError(editor));
         }
       };
       var handleEmbed = function (api) {
@@ -901,7 +880,7 @@
           filetype: 'media',
           label: 'Source'
         }];
-      var sizeInput = !Settings.hasDimensions(editor) ? [] : [{
+      var sizeInput = !hasDimensions(editor) ? [] : [{
           type: 'sizeinput',
           name: 'dimensions',
           label: 'Constrain proportions',
@@ -925,7 +904,7 @@
         items: [embedTextarea]
       };
       var advancedFormItems = [];
-      if (Settings.hasAltSource(editor)) {
+      if (hasAltSource(editor)) {
         advancedFormItems.push({
           name: 'altsource',
           type: 'urlinput',
@@ -933,7 +912,7 @@
           label: 'Alternative source URL'
         });
       }
-      if (Settings.hasPoster(editor)) {
+      if (hasPoster(editor)) {
         advancedFormItems.push({
           name: 'poster',
           type: 'urlinput',
@@ -998,33 +977,27 @@
         initialData: initialData
       });
     };
-    var Dialog = {
-      showDialog: showDialog,
-      unwrap: unwrap
-    };
 
     var get$1 = function (editor) {
-      var showDialog = function () {
-        Dialog.showDialog(editor);
+      var showDialog$1 = function () {
+        showDialog(editor);
       };
-      return { showDialog: showDialog };
+      return { showDialog: showDialog$1 };
     };
-    var Api = { get: get$1 };
 
     var register = function (editor) {
-      var showDialog = function () {
-        Dialog.showDialog(editor);
+      var showDialog$1 = function () {
+        showDialog(editor);
       };
-      editor.addCommand('mceMedia', showDialog);
+      editor.addCommand('mceMedia', showDialog$1);
     };
-    var Commands = { register: register };
 
     var global$7 = tinymce.util.Tools.resolve('tinymce.html.Node');
 
     var global$8 = tinymce.util.Tools.resolve('tinymce.Env');
 
     var sanitize = function (editor, html) {
-      if (Settings.shouldFilterHtml(editor) === false) {
+      if (shouldFilterHtml(editor) === false) {
         return html;
       }
       var writer = global$5();
@@ -1068,12 +1041,10 @@
       }, global$4({})).parse(html);
       return writer.getContent();
     };
-    var Sanitize = { sanitize: sanitize };
 
     var createPlaceholderNode = function (editor, node) {
-      var placeHolder;
       var name = node.name;
-      placeHolder = new global$7('img', 1);
+      var placeHolder = new global$7('img', 1);
       placeHolder.shortEnded = true;
       retainAttributesAndInnerHtml(editor, node, placeHolder);
       placeHolder.attr({
@@ -1087,11 +1058,8 @@
       return placeHolder;
     };
     var createPreviewIframeNode = function (editor, node) {
-      var previewWrapper;
-      var previewNode;
-      var shimNode;
       var name = node.name;
-      previewWrapper = new global$7('span', 1);
+      var previewWrapper = new global$7('span', 1);
       previewWrapper.attr({
         'contentEditable': 'false',
         'style': node.attr('style'),
@@ -1099,7 +1067,7 @@
         'class': 'mce-preview-object mce-object-' + name
       });
       retainAttributesAndInnerHtml(editor, node, previewWrapper);
-      previewNode = new global$7(name, 1);
+      var previewNode = new global$7(name, 1);
       previewNode.attr({
         src: node.attr('src'),
         allowfullscreen: node.attr('allowfullscreen'),
@@ -1109,7 +1077,7 @@
         height: node.attr('height'),
         frameborder: '0'
       });
-      shimNode = new global$7('span', 1);
+      var shimNode = new global$7('span', 1);
       shimNode.attr('class', 'mce-shim');
       previewWrapper.append(previewNode);
       previewWrapper.append(shimNode);
@@ -1118,10 +1086,8 @@
     var retainAttributesAndInnerHtml = function (editor, sourceNode, targetNode) {
       var attrName;
       var attrValue;
-      var attribs;
       var ai;
-      var innerHtml;
-      attribs = sourceNode.attributes;
+      var attribs = sourceNode.attributes;
       ai = attribs.length;
       while (ai--) {
         attrName = attribs[ai].name;
@@ -1133,9 +1099,9 @@
           targetNode.attr('data-mce-p-' + attrName, attrValue);
         }
       }
-      innerHtml = sourceNode.firstChild && sourceNode.firstChild.value;
+      var innerHtml = sourceNode.firstChild && sourceNode.firstChild.value;
       if (innerHtml) {
-        targetNode.attr('data-mce-html', escape(Sanitize.sanitize(editor, innerHtml)));
+        targetNode.attr('data-mce-html', escape(sanitize(editor, innerHtml)));
         targetNode.firstChild = null;
       }
     };
@@ -1165,7 +1131,7 @@
             continue;
           }
           if (node.name === 'script') {
-            videoScript = getVideoScriptMatch(Settings.getScripts(editor), node.attr('src'));
+            videoScript = getVideoScriptMatch(getScripts(editor), node.attr('src'));
             if (!videoScript) {
               continue;
             }
@@ -1178,7 +1144,7 @@
               node.attr('height', videoScript.height.toString());
             }
           }
-          if (node.name === 'iframe' && Settings.hasLiveEmbeds(editor) && global$8.ceFalse) {
+          if (node.name === 'iframe' && hasLiveEmbeds(editor) && global$8.ceFalse) {
             if (!isWithinEmbedWrapper(node)) {
               node.replace(createPreviewIframeNode(editor, node));
             }
@@ -1189,11 +1155,6 @@
           }
         }
       };
-    };
-    var Nodes = {
-      createPreviewIframeNode: createPreviewIframeNode,
-      createPlaceholderNode: createPlaceholderNode,
-      placeHolderConverter: placeHolderConverter
     };
 
     var setup = function (editor) {
@@ -1206,7 +1167,7 @@
         global$1.each('webkitallowfullscreen mozallowfullscreen allowfullscreen'.split(' '), function (name) {
           boolAttrs[name] = {};
         });
-        editor.parser.addNodeFilter('iframe,video,audio,object,embed,script', Nodes.placeHolderConverter(editor));
+        editor.parser.addNodeFilter('iframe,video,audio,object,embed,script', placeHolderConverter(editor));
         editor.serializer.addAttributeFilter('data-mce-object', function (nodes, name) {
           var i = nodes.length;
           var node;
@@ -1254,7 +1215,7 @@
             if (innerHtml) {
               innerNode = new global$7('#text', 3);
               innerNode.raw = true;
-              innerNode.value = Sanitize.sanitize(editor, unescape(innerHtml));
+              innerNode.value = sanitize(editor, unescape(innerHtml));
               realElm.append(innerNode);
             }
             node.replace(realElm);
@@ -1270,7 +1231,6 @@
         });
       });
     };
-    var FilterContent = { setup: setup };
 
     var setup$1 = function (editor) {
       editor.on('ResolveName', function (e) {
@@ -1280,7 +1240,6 @@
         }
       });
     };
-    var ResolveName = { setup: setup$1 };
 
     var setup$2 = function (editor) {
       editor.on('click keyup touchend', function () {
@@ -1304,7 +1263,7 @@
           html = target.getAttribute('data-mce-html');
           if (html) {
             html = unescape(html);
-            target.setAttribute('data-mce-html', escape(UpdateHtml.updateHtml(html, {
+            target.setAttribute('data-mce-html', escape(updateHtml(html, {
               width: String(e.width),
               height: String(e.height)
             })));
@@ -1312,7 +1271,6 @@
         }
       });
     };
-    var Selection = { setup: setup$2 };
 
     var stateSelectorAdapter = function (editor, selector) {
       return function (buttonApi) {
@@ -1340,16 +1298,15 @@
         }
       });
     };
-    var Buttons = { register: register$1 };
 
     function Plugin () {
       global.add('media', function (editor) {
-        Commands.register(editor);
-        Buttons.register(editor);
-        ResolveName.setup(editor);
-        FilterContent.setup(editor);
-        Selection.setup(editor);
-        return Api.get(editor);
+        register(editor);
+        register$1(editor);
+        setup$1(editor);
+        setup(editor);
+        setup$2(editor);
+        return get$1(editor);
       });
     }
 

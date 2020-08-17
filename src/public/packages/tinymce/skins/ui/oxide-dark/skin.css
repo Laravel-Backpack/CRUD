@@ -118,101 +118,101 @@ button::-moz-focus-inner {
 .tox .accessibility-issue__repair {
   margin-top: 16px;
 }
-.tox .accessibility-issue--info .accessibility-issue__description {
+.tox .tox-dialog__body-content .accessibility-issue--info .accessibility-issue__description {
   background-color: rgba(32, 122, 183, 0.5);
   border-color: #207ab7;
   color: #fff;
 }
-.tox .accessibility-issue--info .accessibility-issue__description > *:last-child {
+.tox .tox-dialog__body-content .accessibility-issue--info .accessibility-issue__description > *:last-child {
   border-color: #207ab7;
 }
-.tox .accessibility-issue--info h2 {
+.tox .tox-dialog__body-content .accessibility-issue--info .tox-form__group h2 {
   color: #fff;
 }
-.tox .accessibility-issue--info .tox-icon svg {
+.tox .tox-dialog__body-content .accessibility-issue--info .tox-icon svg {
   fill: #fff;
 }
-.tox .accessibility-issue--info a .tox-icon {
+.tox .tox-dialog__body-content .accessibility-issue--info a .tox-icon {
   color: #fff;
 }
-.tox .accessibility-issue--warn .accessibility-issue__description {
+.tox .tox-dialog__body-content .accessibility-issue--warn .accessibility-issue__description {
   background-color: rgba(255, 165, 0, 0.5);
   border-color: rgba(255, 165, 0, 0.8);
   color: #fff;
 }
-.tox .accessibility-issue--warn .accessibility-issue__description > *:last-child {
+.tox .tox-dialog__body-content .accessibility-issue--warn .accessibility-issue__description > *:last-child {
   border-color: rgba(255, 165, 0, 0.8);
 }
-.tox .accessibility-issue--warn h2 {
+.tox .tox-dialog__body-content .accessibility-issue--warn .tox-form__group h2 {
   color: #fff;
 }
-.tox .accessibility-issue--warn .tox-icon svg {
+.tox .tox-dialog__body-content .accessibility-issue--warn .tox-icon svg {
   fill: #fff;
 }
-.tox .accessibility-issue--warn a .tox-icon {
+.tox .tox-dialog__body-content .accessibility-issue--warn a .tox-icon {
   color: #fff;
 }
-.tox .accessibility-issue--error .accessibility-issue__description {
+.tox .tox-dialog__body-content .accessibility-issue--error .accessibility-issue__description {
   background-color: rgba(204, 0, 0, 0.5);
   border-color: rgba(204, 0, 0, 0.8);
   color: #fff;
 }
-.tox .accessibility-issue--error .accessibility-issue__description > *:last-child {
+.tox .tox-dialog__body-content .accessibility-issue--error .accessibility-issue__description > *:last-child {
   border-color: rgba(204, 0, 0, 0.8);
 }
-.tox .accessibility-issue--error h2 {
+.tox .tox-dialog__body-content .accessibility-issue--error .tox-form__group h2 {
   color: #fff;
 }
-.tox .accessibility-issue--error .tox-icon svg {
+.tox .tox-dialog__body-content .accessibility-issue--error .tox-icon svg {
   fill: #fff;
 }
-.tox .accessibility-issue--error a .tox-icon {
+.tox .tox-dialog__body-content .accessibility-issue--error a .tox-icon {
   color: #fff;
 }
-.tox .accessibility-issue--success .accessibility-issue__description {
+.tox .tox-dialog__body-content .accessibility-issue--success .accessibility-issue__description {
   background-color: rgba(120, 171, 70, 0.5);
   border-color: rgba(120, 171, 70, 0.8);
   color: #fff;
 }
-.tox .accessibility-issue--success .accessibility-issue__description > *:last-child {
+.tox .tox-dialog__body-content .accessibility-issue--success .accessibility-issue__description > *:last-child {
   border-color: rgba(120, 171, 70, 0.8);
 }
-.tox .accessibility-issue--success h2 {
+.tox .tox-dialog__body-content .accessibility-issue--success .tox-form__group h2 {
   color: #fff;
 }
-.tox .accessibility-issue--success .tox-icon svg {
+.tox .tox-dialog__body-content .accessibility-issue--success .tox-icon svg {
   fill: #fff;
 }
-.tox .accessibility-issue--success a .tox-icon {
+.tox .tox-dialog__body-content .accessibility-issue--success a .tox-icon {
   color: #fff;
 }
 .tox .tox-dialog__body-content .accessibility-issue__header h1,
 .tox .tox-dialog__body-content .tox-form__group .accessibility-issue__description h2 {
   margin-top: 0;
 }
-.tox:not([dir=rtl]) .accessibility-issue__header .tox-button {
+.tox:not([dir=rtl]) .tox-dialog__body-content .accessibility-issue__header .tox-button {
   margin-left: 4px;
 }
-.tox:not([dir=rtl]) .accessibility-issue__header > *:nth-last-child(2) {
+.tox:not([dir=rtl]) .tox-dialog__body-content .accessibility-issue__header > *:nth-last-child(2) {
   margin-left: auto;
 }
-.tox:not([dir=rtl]) .accessibility-issue__description {
+.tox:not([dir=rtl]) .tox-dialog__body-content .accessibility-issue__description {
   padding: 4px 4px 4px 8px;
 }
-.tox:not([dir=rtl]) .accessibility-issue__description > *:last-child {
+.tox:not([dir=rtl]) .tox-dialog__body-content .accessibility-issue__description > *:last-child {
   border-left-width: 1px;
   padding-left: 4px;
 }
-.tox[dir=rtl] .accessibility-issue__header .tox-button {
+.tox[dir=rtl] .tox-dialog__body-content .accessibility-issue__header .tox-button {
   margin-right: 4px;
 }
-.tox[dir=rtl] .accessibility-issue__header > *:nth-last-child(2) {
+.tox[dir=rtl] .tox-dialog__body-content .accessibility-issue__header > *:nth-last-child(2) {
   margin-right: auto;
 }
-.tox[dir=rtl] .accessibility-issue__description {
+.tox[dir=rtl] .tox-dialog__body-content .accessibility-issue__description {
   padding: 4px 8px 4px 4px;
 }
-.tox[dir=rtl] .accessibility-issue__description > *:last-child {
+.tox[dir=rtl] .tox-dialog__body-content .accessibility-issue__description > *:last-child {
   border-right-width: 1px;
   padding-right: 4px;
 }
@@ -240,6 +240,7 @@ button::-moz-focus-inner {
   display: inline-block;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
   font-size: 14px;
+  font-style: normal;
   font-weight: bold;
   letter-spacing: normal;
   line-height: 24px;
@@ -291,6 +292,10 @@ button::-moz-focus-inner {
   border-width: 1px;
   box-shadow: none;
   color: #fff;
+  font-size: 14px;
+  font-style: normal;
+  font-weight: bold;
+  letter-spacing: normal;
   outline: none;
   padding: 4px 16px;
   text-decoration: none;
@@ -559,8 +564,9 @@ button::-moz-focus-inner {
   background-color: #757d87;
   color: #fff;
 }
-.tox .tox-collection--grid .tox-collection__item--active {
+.tox .tox-collection--grid .tox-collection__item--active:not(.tox-collection__item--state-disabled) {
   background-color: #4a5562;
+  color: #fff;
 }
 .tox .tox-collection--list .tox-collection__item--active:not(.tox-collection__item--state-disabled) {
   color: #fff;
@@ -568,22 +574,21 @@ button::-moz-focus-inner {
 .tox .tox-collection--toolbar .tox-collection__item--active:not(.tox-collection__item--state-disabled) {
   color: #fff;
 }
-.tox .tox-collection--grid .tox-collection__item--active:not(.tox-collection__item--state-disabled) {
-  color: #fff;
-}
 .tox .tox-collection__item--state-disabled {
   background-color: transparent;
   color: rgba(255, 255, 255, 0.5);
   cursor: not-allowed;
 }
-.tox .tox-collection__item-icon {
+.tox .tox-collection__item-icon,
+.tox .tox-collection__item-checkmark {
   align-items: center;
   display: flex;
   height: 24px;
   justify-content: center;
   width: 24px;
 }
-.tox .tox-collection__item-icon svg {
+.tox .tox-collection__item-icon svg,
+.tox .tox-collection__item-checkmark svg {
   fill: currentColor;
 }
 .tox .tox-collection--toolbar-lg .tox-collection__item-icon {
@@ -623,7 +628,10 @@ button::-moz-focus-inner {
 .tox .tox-collection__item-caret svg {
   fill: #fff;
 }
-.tox .tox-collection__item[role="menuitemcheckbox"]:not(.tox-collection__item--enabled) .tox-collection__item-checkmark svg {
+.tox .tox-collection--list .tox-collection__item:not(.tox-collection__item--enabled) .tox-collection__item-checkmark svg {
+  display: none;
+}
+.tox .tox-collection--list .tox-collection__item:not(.tox-collection__item--enabled) .tox-collection__item-accessory + .tox-collection__item-checkmark {
   display: none;
 }
 .tox .tox-collection--horizontal {
@@ -1247,16 +1255,24 @@ button::-moz-focus-inner {
           padding-inline-start: 2.5rem;
 }
 .tox .tox-dialog__body-content .tox-form__group h1 {
+  color: #fff;
   font-size: 20px;
+  font-style: normal;
   font-weight: bold;
+  letter-spacing: normal;
   margin-bottom: 16px;
   margin-top: 2rem;
+  text-transform: none;
 }
 .tox .tox-dialog__body-content .tox-form__group h2 {
+  color: #fff;
   font-size: 16px;
+  font-style: normal;
   font-weight: bold;
+  letter-spacing: normal;
   margin-bottom: 16px;
   margin-top: 2rem;
+  text-transform: none;
 }
 .tox .tox-dialog__body-content .tox-form__group p {
   margin-bottom: 16px;
@@ -1548,14 +1564,15 @@ body.tox-dialog__disable-scroll {
   border-width: 1px;
   box-shadow: none;
   box-sizing: border-box;
-  cursor: pointer;
   height: 24px;
   position: absolute;
   top: 6px;
   width: 24px;
 }
-.tox .tox-color-input span:focus {
+.tox .tox-color-input span:hover:not([aria-disabled=true]),
+.tox .tox-color-input span:focus:not([aria-disabled=true]) {
   border-color: #207ab7;
+  cursor: pointer;
 }
 .tox .tox-color-input span::before {
   background-image: linear-gradient(45deg, rgba(255, 255, 255, 0.25) 25%, transparent 25%), linear-gradient(-45deg, rgba(255, 255, 255, 0.25) 25%, transparent 25%), linear-gradient(45deg, transparent 75%, rgba(255, 255, 255, 0.25) 75%), linear-gradient(-45deg, transparent 75%, rgba(255, 255, 255, 0.25) 75%);
@@ -1572,11 +1589,20 @@ body.tox-dialog__disable-scroll {
   width: 24px;
   z-index: -1;
 }
+.tox .tox-color-input span[aria-disabled=true] {
+  cursor: not-allowed;
+}
+.tox:not([dir=rtl]) .tox-color-input {
+  /* stylelint-disable-next-line no-descending-specificity */
+}
 .tox:not([dir=rtl]) .tox-color-input .tox-textfield {
   padding-left: 36px;
 }
 .tox:not([dir=rtl]) .tox-color-input span {
   left: 6px;
+}
+.tox[dir="rtl"] .tox-color-input {
+  /* stylelint-disable-next-line no-descending-specificity */
 }
 .tox[dir="rtl"] .tox-color-input .tox-textfield {
   padding-right: 36px;
@@ -1676,7 +1702,6 @@ body.tox-dialog__disable-scroll {
 }
 .tox .tox-textfield,
 .tox .tox-toolbar-textfield,
-.tox .tox-selectfield select,
 .tox .tox-textarea {
   -webkit-appearance: none;
      -moz-appearance: none;
@@ -1706,8 +1731,8 @@ body.tox-dialog__disable-scroll {
   cursor: not-allowed;
 }
 .tox .tox-textfield:focus,
-.tox .tox-selectfield select:focus,
 .tox .tox-textarea:focus {
+  background-color: #2b3b4e;
   border-color: #207ab7;
   box-shadow: none;
   outline: none;
@@ -1743,6 +1768,28 @@ body.tox-dialog__disable-scroll {
   cursor: pointer;
   position: relative;
 }
+.tox .tox-selectfield select {
+  -webkit-appearance: none;
+     -moz-appearance: none;
+          appearance: none;
+  background-color: #2b3b4e;
+  border-color: #000000;
+  border-radius: 3px;
+  border-style: solid;
+  border-width: 1px;
+  box-shadow: none;
+  box-sizing: border-box;
+  color: #fff;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+  font-size: 16px;
+  line-height: 24px;
+  margin: 0;
+  min-height: 34px;
+  outline: none;
+  padding: 5px 4.75px;
+  resize: none;
+  width: 100%;
+}
 .tox .tox-selectfield select[disabled] {
   background-color: #19232e;
   color: rgba(255, 255, 255, 0.85);
@@ -1750,6 +1797,12 @@ body.tox-dialog__disable-scroll {
 }
 .tox .tox-selectfield select::-ms-expand {
   display: none;
+}
+.tox .tox-selectfield select:focus {
+  background-color: #2b3b4e;
+  border-color: #207ab7;
+  box-shadow: none;
+  outline: none;
 }
 .tox .tox-selectfield svg {
   pointer-events: none;
@@ -1899,15 +1952,15 @@ body.tox-dialog__disable-scroll {
 .tox .tox-insert-table-picker {
   display: flex;
   flex-wrap: wrap;
-  width: 169px;
+  width: 170px;
 }
 .tox .tox-insert-table-picker > div {
   border-color: #000000;
   border-style: solid;
   border-width: 0 1px 1px 0;
-  box-sizing: content-box;
-  height: 16px;
-  width: 16px;
+  box-sizing: border-box;
+  height: 17px;
+  width: 17px;
 }
 .tox .tox-collection--list .tox-collection__group .tox-insert-table-picker {
   margin: -4px 0;
@@ -2460,12 +2513,12 @@ body.tox-dialog__disable-scroll {
   color: #fff;
   text-decoration: none;
 }
-.tox .tox-statusbar a:hover,
-.tox .tox-statusbar__path-item:hover,
-.tox .tox-statusbar__wordcount:hover,
-.tox .tox-statusbar a:focus,
-.tox .tox-statusbar__path-item:focus,
-.tox .tox-statusbar__wordcount:focus {
+.tox .tox-statusbar a:hover:not(:disabled):not([aria-disabled=true]),
+.tox .tox-statusbar__path-item:hover:not(:disabled):not([aria-disabled=true]),
+.tox .tox-statusbar__wordcount:hover:not(:disabled):not([aria-disabled=true]),
+.tox .tox-statusbar a:focus:not(:disabled):not([aria-disabled=true]),
+.tox .tox-statusbar__path-item:focus:not(:disabled):not([aria-disabled=true]),
+.tox .tox-statusbar__wordcount:focus:not(:disabled):not([aria-disabled=true]) {
   cursor: pointer;
   text-decoration: underline;
 }

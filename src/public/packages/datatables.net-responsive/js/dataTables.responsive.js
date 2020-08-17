@@ -1,11 +1,11 @@
-/*! Responsive 2.2.4
+/*! Responsive 2.2.5
  * 2014-2020 SpryMedia Ltd - datatables.net/license
  */
 
 /**
  * @summary     Responsive
  * @description Responsive tables plug-in for DataTables
- * @version     2.2.4
+ * @version     2.2.5
  * @file        dataTables.responsive.js
  * @author      SpryMedia Ltd (www.sprymedia.co.uk)
  * @contact     www.sprymedia.co.uk/contact
@@ -268,20 +268,24 @@ $.extend( Responsive.prototype, {
 			} );
 		});
 
-		dt.on( 'init.dtr', function (e, settings, details) {
-			if ( e.namespace !== 'dt' ) {
-				return;
-			}
+		dt
+			.on( 'draw.dtr', function () {
+				that._controlClass();
+			})
+			.on( 'init.dtr', function (e, settings, details) {
+				if ( e.namespace !== 'dt' ) {
+					return;
+				}
 
-			that._resizeAuto();
-			that._resize();
+				that._resizeAuto();
+				that._resize();
 
-			// If columns were hidden, then DataTables needs to adjust the
-			// column sizing
-			if ( $.inArray( false, that.s.current ) ) {
-				dt.columns.adjust();
-			}
-		} );
+				// If columns were hidden, then DataTables needs to adjust the
+				// column sizing
+				if ( $.inArray( false, that.s.current ) ) {
+					dt.columns.adjust();
+				}
+			} );
 
 		// First pass - draw the table for the current viewport size
 		this._resize();
@@ -571,6 +575,36 @@ $.extend( Responsive.prototype, {
 		this.s.columns = columns;
 	},
 
+	/**
+	 * Update the cells to show the correct control class / button
+	 * @private
+	 */
+	_controlClass: function ()
+	{
+		if ( this.c.details.type === 'inline' ) {
+			var dt = this.s.dt;
+			var columnsVis = this.s.current;
+			var firstVisible = $.inArray(true, columnsVis);
+
+			// Remove from any cells which shouldn't have it
+			dt.cells(
+				null,
+				function(idx) {
+					return idx !== firstVisible;
+				},
+				{page: 'current'}
+			)
+				.nodes()
+				.to$()
+				.filter('.dtr-control')
+				.removeClass('dtr-control');
+
+			dt.cells(null, firstVisible, {page: 'current'})
+				.nodes()
+				.to$()
+				.addClass('dtr-control');
+		}
+	},
 
 	/**
 	 * Show the details for the child row
@@ -705,7 +739,9 @@ $.extend( Responsive.prototype, {
 				data:        dt.cell( rowIdx, i ).render( that.c.orthogonal ),
 				hidden:      dt.column( i ).visible() && !that.s.current[ i ],
 				rowIndex:    rowIdx,
-				title:       dtCol.sTitle
+				title:       dtCol.sTitle !== null ?
+					dtCol.sTitle :
+					$(dt.column(i).header()).text()
 			};
 		} );
 	},
@@ -818,29 +854,6 @@ $.extend( Responsive.prototype, {
 			if ( dt.page.info().recordsDisplay === 0 ) {
 				$('td', dt.table().body()).eq(0).attr('colspan', visible);
 			}
-		}
-
-		// Add a control class to the element which should show the control element
-		if ( this.c.details.type === 'inline' ) {
-			var firstVisible = $.inArray(true, columnsVis);
-
-			// Remove from any cells which shouldn't have it
-			dt.cells(
-				null,
-				function(idx) {
-					return idx !== firstVisible;
-				},
-				{page: 'current'}
-			)
-				.nodes()
-				.to$()
-				.filter('.dtr-control')
-				.removeClass('dtr-control');
-			
-			dt.cells(null, firstVisible, {page: 'current'})
-				.nodes()
-				.to$()
-				.addClass('dtr-control');
 		}
 	},
 
@@ -1428,7 +1441,7 @@ Api.registerPlural( 'columns().responsiveHidden()', 'column().responsiveHidden()
  * @name Responsive.version
  * @static
  */
-Responsive.version = '2.2.4';
+Responsive.version = '2.2.5';
 
 
 $.fn.dataTable.Responsive = Responsive;

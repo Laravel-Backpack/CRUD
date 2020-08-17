@@ -4,7 +4,7 @@
  * For LGPL see License.txt in the project root for license information.
  * For commercial licenses see https://www.tiny.cloud/
  *
- * Version: 5.2.2 (2020-04-23)
+ * Version: 5.4.0 (2020-06-30)
  */
 (function () {
     'use strict';
@@ -17,13 +17,9 @@
       var set = function (v) {
         value = v;
       };
-      var clone = function () {
-        return Cell(get());
-      };
       return {
         get: get,
-        set: set,
-        clone: clone
+        set: set
       };
     };
 
@@ -41,7 +37,6 @@
     var register = function (editor, dialogOpener) {
       editor.addCommand('mceHelp', dialogOpener);
     };
-    var Commands = { register: register };
 
     var register$1 = function (editor, dialogOpener) {
       editor.ui.registry.addButton('help', {
@@ -56,7 +51,6 @@
         onAction: dialogOpener
       });
     };
-    var Buttons = { register: register$1 };
 
     var __assign = function () {
       __assign = Object.assign || function __assign(t) {
@@ -78,29 +72,6 @@
         return value;
       };
     };
-    function curry(fn) {
-      var initialArgs = [];
-      for (var _i = 1; _i < arguments.length; _i++) {
-        initialArgs[_i - 1] = arguments[_i];
-      }
-      return function () {
-        var restArgs = [];
-        for (var _i = 0; _i < arguments.length; _i++) {
-          restArgs[_i] = arguments[_i];
-        }
-        var all = initialArgs.concat(restArgs);
-        return fn.apply(null, all);
-      };
-    }
-    var not = function (f) {
-      return function () {
-        var args = [];
-        for (var _i = 0; _i < arguments.length; _i++) {
-          args[_i] = arguments[_i];
-        }
-        return !f.apply(null, args);
-      };
-    };
     var never = constant(false);
     var always = constant(true);
 
@@ -118,7 +89,7 @@
         return n;
       };
       var me = {
-        fold: function (n, s) {
+        fold: function (n, _s) {
           return n();
         },
         is: never,
@@ -146,9 +117,6 @@
         },
         toString: constant('none()')
       };
-      if (Object.freeze) {
-        Object.freeze(me);
-      }
       return me;
     }();
     var some = function (a) {
@@ -213,34 +181,9 @@
       from: from
     };
 
-    var typeOf = function (x) {
-      if (x === null) {
-        return 'null';
-      }
-      var t = typeof x;
-      if (t === 'object' && (Array.prototype.isPrototypeOf(x) || x.constructor && x.constructor.name === 'Array')) {
-        return 'array';
-      }
-      if (t === 'object' && (String.prototype.isPrototypeOf(x) || x.constructor && x.constructor.name === 'String')) {
-        return 'string';
-      }
-      return t;
-    };
-    var isType = function (type) {
-      return function (value) {
-        return typeOf(value) === type;
-      };
-    };
-    var isFunction = isType('function');
-
-    var nativeSlice = Array.prototype.slice;
     var nativeIndexOf = Array.prototype.indexOf;
     var rawIndexOf = function (ts, t) {
       return nativeIndexOf.call(ts, t);
-    };
-    var indexOf = function (xs, x) {
-      var r = rawIndexOf(xs, x);
-      return r === -1 ? Option.none() : Option.some(r);
     };
     var contains = function (xs, x) {
       return rawIndexOf(xs, x) > -1;
@@ -264,17 +207,19 @@
       }
       return r;
     };
-    var find = function (xs, pred) {
+    var findUntil = function (xs, pred, until) {
       for (var i = 0, len = xs.length; i < len; i++) {
         var x = xs[i];
         if (pred(x, i)) {
           return Option.some(x);
+        } else if (until(x, i)) {
+          break;
         }
       }
       return Option.none();
     };
-    var from$1 = isFunction(Array.from) ? Array.from : function (x) {
-      return nativeSlice.call(x);
+    var find = function (xs, pred) {
+      return findUntil(xs, pred, never);
     };
 
     var keys = Object.keys;
@@ -299,6 +244,9 @@
 
     var getHelpTabs = function (editor) {
       return Option.from(editor.getParam('help_tabs'));
+    };
+    var getForcedPlugins = function (editor) {
+      return editor.getParam('forced_plugins');
     };
 
     var shortcuts = [
@@ -406,7 +354,6 @@
         action: 'Switch to or from fullscreen mode'
       }
     ];
-    var KeyboardShortcuts = { shortcuts: shortcuts };
 
     var global$1 = tinymce.util.Tools.resolve('tinymce.Env');
 
@@ -430,11 +377,10 @@
       });
       return global$1.mac ? updated.join('').replace(/\s/, '') : updated.join('+');
     };
-    var ConvertShortcut = { convertText: convertText };
 
     var tab = function () {
-      var shortcutList = map(KeyboardShortcuts.shortcuts, function (shortcut) {
-        var shortcutText = map(shortcut.shortcuts, ConvertShortcut.convertText).join(' or ');
+      var shortcutList = map(shortcuts, function (shortcut) {
+        var shortcutText = map(shortcut.shortcuts, convertText).join(' or ');
         return [
           shortcut.action,
           shortcutText
@@ -453,18 +399,6 @@
         title: 'Handy Shortcuts',
         items: [tablePanel]
       };
-    };
-    var KeyboardShortcutsTab = { tab: tab };
-
-    var supplant = function (str, obj) {
-      var isStringOrNumber = function (a) {
-        var t = typeof a;
-        return t === 'string' || t === 'number';
-      };
-      return str.replace(/\$\{([^{}]*)\}/g, function (fullMatch, key) {
-        var value = obj[key];
-        return isStringOrNumber(value) ? value.toString() : fullMatch;
-      });
     };
 
     var global$2 = tinymce.util.Tools.resolve('tinymce.util.I18n');
@@ -651,7 +585,7 @@
         name: 'PowerPaste*'
       },
       {
-        key: 'tinydrive',
+        key: 'drive',
         name: 'Tiny Drive*'
       },
       {
@@ -691,7 +625,7 @@
         name: 'Page Embed*'
       },
       {
-        key: 'tinycomments',
+        key: 'comments',
         name: 'Tiny Comments*'
       },
       {
@@ -703,7 +637,6 @@
         name: 'Autocorrect*'
       }
     ];
-    var PluginUrls = { urls: urls };
 
     var tab$1 = function (editor) {
       var availablePlugins = function () {
@@ -730,9 +663,11 @@
         }).join('');
         return '<div data-mce-tabstop="1" tabindex="-1">' + '<p><b>' + global$2.translate('Premium plugins:') + '</b></p>' + '<ul>' + premiumPluginList + '<li class="tox-help__more-link" "><a href="https://www.tiny.cloud/pricing/?utm_campaign=editor_referral&utm_medium=help_dialog&utm_source=tinymce" target="_blank">' + global$2.translate('Learn more...') + '</a></li>' + '</ul>' + '</div>';
       };
-      var makeLink = curry(supplant, '<a href="${url}" target="_blank" rel="noopener">${name}</a>');
+      var makeLink = function (p) {
+        return '<a href="' + p.url + '" target="_blank" rel="noopener">' + p.name + '</a>';
+      };
       var maybeUrlize = function (editor, key) {
-        return find(PluginUrls.urls, function (x) {
+        return find(urls, function (x) {
           return x.key === key;
         }).fold(function () {
           var getMetadata = editor.plugins[key].getMetadata;
@@ -746,7 +681,10 @@
       };
       var getPluginKeys = function (editor) {
         var keys$1 = keys(editor.plugins);
-        return editor.settings.forced_plugins === undefined ? keys$1 : filter(keys$1, not(curry(contains, editor.settings.forced_plugins)));
+        var forced_plugins = getForcedPlugins(editor);
+        return forced_plugins === undefined ? keys$1 : filter(keys$1, function (k) {
+          return !contains(forced_plugins, k);
+        });
       };
       var pluginLister = function (editor) {
         var pluginKeys = getPluginKeys(editor);
@@ -781,7 +719,6 @@
         items: [htmlPanel]
       };
     };
-    var PluginsTab = { tab: tab$1 };
 
     var global$3 = tinymce.util.Tools.resolve('tinymce.EditorManager');
 
@@ -805,7 +742,6 @@
         items: [htmlPanel]
       };
     };
-    var VersionTab = { tab: tab$2 };
 
     var description = '<h1>Editor UI keyboard navigation</h1>\n\n<h2>Activating keyboard navigation</h2>\n\n<p>The sections of the outer UI of the editor - the menubar, toolbar, sidebar and footer - are all keyboard navigable. As such, there are multiple ways to activate keyboard navigation:</p>\n<ul>\n  <li>Focus the menubar: Alt + F9 (Windows) or &#x2325;F9 (MacOS)</li>\n  <li>Focus the toolbar: Alt + F10 (Windows) or &#x2325;F10 (MacOS)</li>\n  <li>Focus the footer: Alt + F11 (Windows) or &#x2325;F11 (MacOS)</li>\n</ul>\n\n<p>Focusing the menubar or toolbar will start keyboard navigation at the first item in the menubar or toolbar, which will be highlighted with a gray background. Focusing the footer will start keyboard navigation at the first item in the element path, which will be highlighted with an underline. </p>\n\n<h2>Moving between UI sections</h2>\n\n<p>When keyboard navigation is active, pressing tab will move the focus to the next major section of the UI, where applicable. These sections are:</p>\n<ul>\n  <li>the menubar</li>\n  <li>each group of the toolbar </li>\n  <li>the sidebar</li>\n  <li>the element path in the footer </li>\n  <li>the wordcount toggle button in the footer </li>\n  <li>the branding link in the footer </li>\n</ul>\n\n<p>Pressing shift + tab will move backwards through the same sections, except when moving from the footer to the toolbar. Focusing the element path then pressing shift + tab will move focus to the first toolbar group, not the last.</p>\n\n<h2>Moving within UI sections</h2>\n\n<p>Keyboard navigation within UI sections can usually be achieved using the left and right arrow keys. This includes:</p>\n<ul>\n  <li>moving between menus in the menubar</li>\n  <li>moving between buttons in a toolbar group</li>\n  <li>moving between items in the element path</li>\n</ul>\n\n<p>In all these UI sections, keyboard navigation will cycle within the section. For example, focusing the last button in a toolbar group then pressing right arrow will move focus to the first item in the same toolbar group. </p>\n\n<h1>Executing buttons</h1>\n\n<p>To execute a button, navigate the selection to the desired button and hit space or enter.</p>\n\n<h1>Opening, navigating and closing menus</h1>\n\n<p>When focusing a menubar button or a toolbar button with a menu, pressing space, enter or down arrow will open the menu. When the menu opens the first item will be selected. To move up or down the menu, press the up or down arrow key respectively. This is the same for submenus, which can also be opened and closed using the left and right arrow keys.</p>\n\n<p>To close any active menu, hit the escape key. When a menu is closed the selection will be restored to its previous selection. This also works for closing submenus.</p>\n\n<h1>Context toolbars and menus</h1>\n\n<p>To focus an open context toolbar such as the table context toolbar, press Ctrl + F9 (Windows) or &#x2303;F9 (MacOS).</p>\n\n<p>Context toolbar navigation is the same as toolbar navigation, and context menu navigation is the same as standard menu navigation.</p>\n\n<h1>Dialog navigation</h1>\n\n<p>There are two types of dialog UIs in TinyMCE: tabbed dialogs and non-tabbed dialogs.</p>\n\n<p>When a non-tabbed dialog is opened, the first interactive component in the dialog will be focused. Users can navigate between interactive components by pressing tab. This includes any footer buttons. Navigation will cycle back to the first dialog component if tab is pressed while focusing the last component in the dialog. Pressing shift + tab will navigate backwards.</p>\n\n<p>When a tabbed dialog is opened, the first button in the tab menu is focused. Pressing tab will navigate to the first interactive component in that tab, and will cycle through the tab\u2019s components, the footer buttons, then back to the tab button. To switch to another tab, focus the tab button for the current tab, then use the arrow keys to cycle through the tab buttons.</p>';
     var tab$3 = function () {
@@ -820,7 +756,6 @@
         items: [body]
       };
     };
-    var KeyboardNavTab = { tab: tab$3 };
 
     var parseHelpTabsSetting = function (tabsFromSettings, tabs) {
       var newTabs = {};
@@ -842,11 +777,11 @@
     };
     var getNamesFromTabs = function (tabs) {
       var names = keys(tabs);
-      var versionsIdx = indexOf(names, 'versions');
-      versionsIdx.each(function (idx) {
+      var idx = names.indexOf('versions');
+      if (idx !== -1) {
         names.splice(idx, 1);
         names.push('versions');
-      });
+      }
       return {
         tabs: tabs,
         names: names
@@ -854,10 +789,10 @@
     };
     var parseCustomTabs = function (editor, customTabs) {
       var _a;
-      var shortcuts = KeyboardShortcutsTab.tab();
-      var nav = KeyboardNavTab.tab();
-      var plugins = PluginsTab.tab(editor);
-      var versions = VersionTab.tab();
+      var shortcuts = tab();
+      var nav = tab$3();
+      var plugins = tab$1(editor);
+      var versions = tab$2();
       var tabs = __assign((_a = {}, _a[shortcuts.name] = shortcuts, _a[nav.name] = nav, _a[plugins.name] = plugins, _a[versions.name] = versions, _a), customTabs.get());
       return getHelpTabs(editor).fold(function () {
         return getNamesFromTabs(tabs);
@@ -896,8 +831,8 @@
         var customTabs = Cell({});
         var api = get(customTabs);
         var dialogOpener = init(editor, customTabs);
-        Buttons.register(editor, dialogOpener);
-        Commands.register(editor, dialogOpener);
+        register$1(editor, dialogOpener);
+        register(editor, dialogOpener);
         editor.shortcuts.add('Alt+0', 'Open help dialog', 'mceHelp');
         return api;
       });
