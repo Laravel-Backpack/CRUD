@@ -76,7 +76,7 @@ trait ShowOperation
         // get the info for that entry
         $this->data['entry'] = $this->crud->getEntry($id);
         $this->data['crud'] = $this->crud;
-        $this->data['title'] = $this->crud->getTitle() ?? trans('backpack::crud.preview').' '.$this->crud->entity_name;
+        $this->data['title'] = $this->crud->getTitle() ?? trans('backpack::crud.preview').' '.$this->crud->entity_pronoun_singular_indefinite.$this->crud->entity_name;
 
         // set columns from db
         if ($setFromDb) {

@@ -63,7 +63,7 @@ trait ReorderOperation
         // get all results for that entity
         $this->data['entries'] = $this->crud->getEntries();
         $this->data['crud'] = $this->crud;
-        $this->data['title'] = $this->crud->getTitle() ?? trans('backpack::crud.reorder').' '.$this->crud->entity_name;
+        $this->data['title'] = $this->crud->getTitle() ?? trans('backpack::crud.reorder').' '.$this->crud->entity_pronoun_plural_definite.$this->crud->entity_name_plural;
 
         // load the view from /resources/views/vendor/backpack/crud/ if it exists, otherwise load the one in the package
         return view($this->crud->getReorderView(), $this->data);

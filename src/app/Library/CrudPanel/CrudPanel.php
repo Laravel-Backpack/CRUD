@@ -52,6 +52,10 @@ class CrudPanel
     public $route; // what route have you defined for your entity? used for links.
     public $entity_name = 'entry'; // what name will show up on the buttons, in singural (ex: Add entity)
     public $entity_name_plural = 'entries'; // what name will show up on the buttons, in plural (ex: Delete 5 entities)
+    public $entity_pronoun_singular_indefinite = '';
+    public $entity_pronoun_singular_definite = '';
+    public $entity_pronoun_plural_indefinite = '';
+    public $entity_pronoun_plural_definite = '';
 
     public $entry;
 
@@ -202,6 +206,27 @@ class CrudPanel
     {
         $this->entity_name = $singular;
         $this->entity_name_plural = $plural;
+    }
+
+    /**
+     * Set the entity pronouns in singular and plural.
+     * Used all over the CRUD interface (header, add button, reorder button, breadcrumbs).
+     *
+     * @param string $singular_indefinite Entity name, in singular. Ex: un
+     * @param string $singular_definite   Entity name, in plural. Ex: le
+     * @param string $plural_indefinite   Entity name, in plural. Ex: des
+     * @param string $plural_definite   Entity name, in plural. Ex: les
+     */
+    public function setEntityPronounStrings($singular_indefinite, $singular_definite, $plural_indefinite = '', $plural_definite = '')
+    {
+        foreach (['singular_indefinite', 'singular_definite', 'plural_indefinite', 'plural_definite'] as $var) {
+            // add a space after the pronoun when need
+            if ($$var && ! in_array(substr($$var, -1), ["'", '‘'])) {
+                $$var .= ' ';
+            }
+            // set the variable
+            $this->{'entity_pronoun_'.$var} = $$var;
+        }
     }
 
     // -----------------------------------------------

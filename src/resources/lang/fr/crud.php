@@ -38,7 +38,7 @@ return [
     'all'                       => 'Tous les ',
     'in_the_database'           => 'dans la base de données',
     'list'                      => 'Liste',
-    'reset'                     => 'Reset',
+    'reset'                     => 'Réinitialiser',
     'actions'                   => 'Actions',
     'preview'                   => 'Aperçu',
     'delete'                    => 'Supprimer',
@@ -50,7 +50,7 @@ return [
     'clone_failure' => '<strong>Clonage échoué</strong><br>Le nouvel élément n\'a pu être créé. Merci de réessayer.',
 
     // Confirmation messages and bubbles
-    'delete_confirm'                              => 'Souhaitez-vous réellement supprimer cet élément?',
+    'delete_confirm'                              => 'Souhaitez-vous réellement supprimer cet élément ?',
     'delete_confirmation_title'                   => 'Élément supprimé',
     'delete_confirmation_message'                 => 'L’élément a été supprimé avec succès.',
     'delete_confirmation_not_title'               => 'NON supprimé',
@@ -63,7 +63,7 @@ return [
     'bulk_no_entries_selected_message' => 'Veuillez sélectionner un ou plusieurs éléments pour faire une action groupée',
 
     // Bulk confirmation
-    'bulk_delete_are_you_sure'   => 'Souhaitez-vous vraiment supprimer ces :number éléments?',
+    'bulk_delete_are_you_sure'   => 'Souhaitez-vous vraiment supprimer ces :number éléments ?',
     'bulk_delete_sucess_title'   => 'Éléments supprimés',
     'bulk_delete_sucess_message' => ' éléments ont été supprimés',
     'bulk_delete_error_title'    => 'Échec de la suppression',
