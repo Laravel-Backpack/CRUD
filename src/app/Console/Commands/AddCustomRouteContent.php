@@ -89,27 +89,45 @@ class AddCustomRouteContent extends Command
         }
     }
 
+    /**
+     * Get the line before which routes should be inserted.
+     *
+     * @param  array $file_lines The file on which search is being performed.
+     * @return int               The line before which the routes should be inserted.
+     */
     private function customRoutesFileEndLine($file_lines)
     {
+        // in case there's a beginning and end comment
+        $lineWithEndComment = $this->getLastLineNumberThatContains('// end of generated Backpack routes; DO NOT delete or modify this comment;', $file_lines);
         // in case the last line has not been modified at all
-        $end_line_number = array_search('}); // this should be the absolute last line of this file', $file_lines);
+        $lineWithNormalEnding = $this->getLastLineNumberThatContains('}); // this should be the absolute last line of this file', $file_lines);
+        // the last line that has a closure ending in it
+        $lineWithClosureEnding = $this->getLastLineNumberThatContains('});', $file_lines);
 
-        if ($end_line_number) {
-            return $end_line_number;
-        }
+        return  $lineWithEndComment ??
+                $lineWithNormalEnding ??
+                $lineWithClosureEnding ??
+                count($file_lines) - 1 ?? 0; // if the ending is still not clear, assume it's ok to use the last line as the ending
+    }
 
-        // otherwise, in case the last line HAS been modified
-        // return the last line that has an ending in it
-        $possible_end_lines = array_filter($file_lines, function ($k) {
-            return strpos($k, '});') === 0;
+    /**
+     * Parse the given file stream and return the line number where a string is found.
+     *
+     * @param  string $needle   The string that's being searched for.
+     * @param  array $haystack  The file where the search is being performed.
+     * @return bool|int         The last line number where the string was found. Or false.
+     */
+    private function getLastLineNumberThatContains($needle, $haystack)
+    {
+        $matchingLines = array_filter($haystack, function ($k) use ($needle) {
+            return strpos($k, $needle) !== false;
         });
 
-        if ($possible_end_lines) {
-            end($possible_end_lines);
-            $end_line_number = key($possible_end_lines);
-
-            return $end_line_number;
+        if ($matchingLines) {
+            return array_key_last($matchingLines);
         }
+
+        return false;
     }
 
     /**
