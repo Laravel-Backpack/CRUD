@@ -196,4 +196,20 @@ trait ColumnsProtectedMethods
 
         return in_array($name, $columns);
     }
+
+    /**
+     * Enable the tabs functionality, if a column has a tab defined.
+     *
+     * @param  array $column Field definition array.
+     * @return void
+     */
+    protected function enableTabsIfColumnUsesThem($column)
+    {
+        // if a tab was mentioned, we should enable it
+        if (isset($column['tab'])) {
+            if (! $this->tabsEnabled()) {
+                $this->enableTabs();
+            }
+        }
+    }
 }

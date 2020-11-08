@@ -68,6 +68,7 @@ trait Columns
     public function addColumn($column)
     {
         $column = $this->makeSureColumnHasNeededAttributes($column);
+        $this->enableTabsIfColumnUsesThem($column);
         $this->addColumnToOperationSettings($column);
 
         return $this;
