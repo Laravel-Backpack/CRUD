@@ -20,13 +20,6 @@
 	padding-bottom: 20px;
 }
 
-.help-block {
-	margin-top: .25rem;
-	margin-bottom: .25rem;
-    color: #73818f;
-    font-size: 0.9em;
-}
-
 .nav-tabs .nav-link:hover {
 	border-bottom: none;
 }

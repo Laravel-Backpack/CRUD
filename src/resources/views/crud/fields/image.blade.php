@@ -80,7 +80,7 @@
 
     {{-- HINT --}}
     @if (isset($field['hint']))
-        <p class="help-block">{!! $field['hint'] !!}</p>
+        <small class="text-muted d-block">{!! $field['hint'] !!}</small>
     @endif
 @include('crud::fields.inc.wrapper_end')
 

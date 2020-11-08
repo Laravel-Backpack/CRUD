@@ -49,7 +49,7 @@ if($sortable){
     </div>
 
     @if (isset($field['hint']))
-        <p class="help-block">{!! $field['hint'] !!}</p>
+        <small class="text-muted d-block">{!! $field['hint'] !!}</small>
     @endif
 
     <script type="text/html" data-marker="browse_multiple_template">

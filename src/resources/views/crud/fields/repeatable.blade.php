@@ -19,7 +19,7 @@
 
   {{-- HINT --}}
   @if (isset($field['hint']))
-      <p class="help-block text-muted text-sm">{!! $field['hint'] !!}</p>
+    <small class="text-muted d-block">{!! $field['hint'] !!}</small>
   @endif
 
 
