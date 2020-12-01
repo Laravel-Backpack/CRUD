@@ -47,7 +47,7 @@
           @include('crud::inc.filters_navbar')
         @endif
 
-        <table id="crudTable" class="bg-white table table-striped table-hover nowrap rounded shadow-xs border-xs mt-2" cellspacing="0">
+        <table id="crudTable" class="bg-white table table-striped table-hover nowrap rounded shadow-xs border-xs mt-2 {{ $crud->getOperationSetting('detailsRow') ? 'has-details-row' : ''}}" cellspacing="0">
             <thead>
               <tr>
                 {{-- Table columns --}}
@@ -93,6 +93,11 @@
                        @endif
                     @endif
                   >
+                    {{-- Bulk checkbox --}}
+                    @if($loop->first && $crud->getOperationSetting('bulkActions'))
+                      {!! View::make('crud::columns.inc.bulk_actions_checkbox_main')->render() !!}
+                    @endif
+
                     {!! $column['label'] !!}
                   </th>
                 @endforeach
@@ -111,7 +116,14 @@
               <tr>
                 {{-- Table columns --}}
                 @foreach ($crud->columns() as $column)
-                  <th>{!! $column['label'] !!}</th>
+                  <th>
+                    {{-- Bulk checkbox --}}
+                    @if($loop->first && $crud->getOperationSetting('bulkActions'))
+                      {!! View::make('crud::columns.inc.bulk_actions_checkbox_main')->render() !!}
+                    @endif
+
+                    {!! $column['label'] !!}
+                  </th>
                 @endforeach
 
                 @if ( $crud->buttons()->where('stack', 'line')->count() )

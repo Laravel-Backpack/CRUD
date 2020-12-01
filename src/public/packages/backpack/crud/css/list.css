@@ -68,6 +68,7 @@
 		box-shadow: none;
 		/*margin-top: 8px;*/
 		border: none;
+		top: calc(50% + 2px);
 	}
 
 	.dt-buttons {
@@ -220,6 +221,60 @@
 
 	#crudTable thead>tr>th, table.dataTable thead>tr>th {
 		padding-right: 30px;
+	}
+
+	table.has-hidden-columns thead tr th:first-child,
+	table.has-hidden-columns tfoot tr th:first-child {
+		padding-left: 1.875rem;
+	}
+
+	table .details-control,
+	table .crud_bulk_actions_checkbox {
+		display: flex;
+		margin-right: 0.625rem;
+	}
+
+	table .crud_bulk_actions_checkbox input {
+		width: 1rem;
+		height: 1rem;
+	}
+
+	table tr th:first-child,
+	table tr td:first-child {
+		display: flex;
+		align-items: center;
+	}
+	table.has-details-row thead tr th:first-child,
+	table.has-details-row tfoot tr th:first-child {
+		padding-left: 3.5rem;
+	}
+
+	.dataTables_scrollHead table.has-details-row thead tr th:first-child,
+	.dataTables_scrollFoot table.has-details-row tfoot tr th:first-child {
+		padding-left: 2.375rem;
+	}
+
+	.dataTables_scrollHead table {
+		border-radius: 0.125rem 0.125rem 0 0 !important;
+	}
+	.dataTables_scrollFoot table {
+		border-radius: 0 0 0.125rem 0.125rem !important;
+	}
+	.dataTables_scrollBody table {
+		border-radius: 0 !important;
+	}
+
+	.dataTables_scrollFoot .table th {
+		border-top: 0;
+	}
+
+	.dataTables_scrollBody .table th,
+	.dataTables_scrollBody .table th {
+		visibility: hidden;
+	}
+
+	.dtr-bs-modal .crud_bulk_actions_checkbox {
+		display: none;
 	}
 
 	.navbar-filters li>a:active,
