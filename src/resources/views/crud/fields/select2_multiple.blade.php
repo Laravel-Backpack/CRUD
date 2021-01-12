@@ -18,16 +18,12 @@
     @include('crud::fields.inc.translatable_icon')
     <select
         name="{{ $field['name'] }}[]"
-        style="width: 100%"
+        style="width: 100%; min-height: 38px!important;"
         data-init-function="bpFieldInitSelect2MultipleElement"
         data-select-all="{{ var_export($field['select_all'] ?? false)}}"
         data-options-for-js="{{json_encode(array_values($options_ids_array))}}"
         @include('crud::fields.inc.attributes', ['default_class' =>  'form-control select2_multiple'])
         {{ $field['multiple'] ? 'multiple' : '' }}>
-
-        @if (isset($field['allows_null']) && $field['allows_null']==true)
-            <option value="">-</option>
-        @endif
 
         @if (isset($field['model']))
             @foreach ($field['options'] as $option)
