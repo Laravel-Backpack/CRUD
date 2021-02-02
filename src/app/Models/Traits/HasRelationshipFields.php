@@ -22,10 +22,13 @@ trait HasRelationshipFields
     {
         $conn = DB::connection($this->getConnectionName());
 
-        // register the enum, json and jsonb column type, because Doctrine doesn't support it
-        $conn->getDoctrineSchemaManager()->getDatabasePlatform()->registerDoctrineTypeMapping('enum', 'string');
-        $conn->getDoctrineSchemaManager()->getDatabasePlatform()->registerDoctrineTypeMapping('json', 'json_array');
-        $conn->getDoctrineSchemaManager()->getDatabasePlatform()->registerDoctrineTypeMapping('jsonb', 'json_array');
+        // only register the extra types in sql databases
+        if (in_array($conn->getConfig()['driver'], CRUD::getSqlDriverList())) {
+            // register the enum, json and jsonb column type, because Doctrine doesn't support it
+            $conn->getDoctrineSchemaManager()->getDatabasePlatform()->registerDoctrineTypeMapping('enum', 'string');
+            $conn->getDoctrineSchemaManager()->getDatabasePlatform()->registerDoctrineTypeMapping('json', 'json_array');
+            $conn->getDoctrineSchemaManager()->getDatabasePlatform()->registerDoctrineTypeMapping('jsonb', 'json_array');
+        }
 
         return $conn;
     }
@@ -53,8 +56,11 @@ trait HasRelationshipFields
     {
         $conn = $this->getConnectionWithExtraTypeMappings();
         $table = $this->getTableWithPrefix();
-
-        return $conn->getSchemaBuilder()->getColumnType($table, $columnName);
+        if (in_array($conn->getConfig()['driver'], CRUD::getSqlDriverList())) {
+            return $conn->getSchemaBuilder()->getColumnType($table, $columnName);
+        } else {
+            return 'text';
+        }
     }
 
     /**

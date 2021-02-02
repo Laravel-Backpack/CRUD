@@ -2,6 +2,7 @@
 
 namespace Backpack\CRUD\app\Models\Traits;
 
+use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 use Illuminate\Support\Arr;
 
 trait HasIdentifiableAttribute
@@ -33,18 +34,23 @@ trait HasIdentifiableAttribute
     private static function guessIdentifiableColumnName()
     {
         $instance = new static();
+
         $conn = $instance->getConnectionWithExtraTypeMappings();
+
+        // column listing is not available in non-sql databases. In this scenario we infer
+        // the identifiable attribute from the model `fillable` attributes
+        if (! in_array($conn->getConfig()['driver'], CRUD::getSqlDriverList())) {
+            return $instance->inferIdentifiableAttributeFromModelFillable();
+        }
+
         $table = $instance->getTableWithPrefix();
         $columns = $conn->getDoctrineSchemaManager()->listTableColumns($table);
         $indexes = $conn->getDoctrineSchemaManager()->listTableIndexes($table);
         $columnsNames = array_keys($columns);
 
-        // these column names are sensible defaults for lots of use cases
-        $sensibleDefaultNames = ['name', 'title', 'description', 'label'];
-
         // if any of the sensibleDefaultNames column exists
         // that's probably a good choice
-        foreach ($sensibleDefaultNames as $defaultName) {
+        foreach ($instance->getSensibleDefaultNames() as $defaultName) {
             if (in_array($defaultName, $columnsNames)) {
                 return $defaultName;
             }
@@ -76,5 +82,35 @@ trait HasIdentifiableAttribute
 
         // in case everything fails we just return the first column in database
         return Arr::first($columnsNames);
+    }
+
+    /**
+     * Infer the identifiable attribute from model fillable when getting the columns listing is not available.
+     *
+     * @return void
+     */
+    public function inferIdentifiableAttributeFromModelFillable()
+    {
+        $fillableFields = $this->getFillable();
+        if (! empty($fillableFields)) {
+            $matchedAttributeNames = array_intersect($this->getSensibleDefaultNames(), $fillableFields);
+            if (! empty($matchedAttributeNames)) {
+                return reset($matchedAttributeNames);
+            }
+
+            return reset($fillableFields);
+        }
+
+        abort(500, 'Impossible to determine the identifiable attribute. Add it manually to your model or in your field definition.');
+    }
+
+    /**
+     * Returns a list of sensible default names to be shown to endusers.
+     *
+     * @return array
+     */
+    public function getSensibleDefaultNames()
+    {
+        return ['name', 'title', 'description', 'label'];
     }
 }
