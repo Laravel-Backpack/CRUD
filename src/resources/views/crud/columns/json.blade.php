@@ -1,16 +1,13 @@
-@php
-    $value = is_string($entry->{$column['name']}) ? 
-                json_decode($entry->{$column['name']}, true) : 
-                $entry->{$column['name']};
-    $column['text'] = json_encode($value, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
-    $column['escaped'] = $column['escaped'] ?? true;
-    $column['wrapper']['element'] = $column['wrapper']['element'] ?? 'pre';
-@endphp
+{{-- @if ($crud->columnTypeNotLoaded($column)) --}}
+<link rel="stylesheet" href="{{ asset('packages/json-viewer/json-viewer.css') }}">
+{{-- @endif--}}
 
-@includeWhen(!empty($column['wrapper']), 'crud::columns.inc.wrapper_start')
-    @if($column['escaped'])
-        {{ $column['text'] }}
-    @else
-        {!! $column['text'] !!}
-    @endif
-@includeWhen(!empty($column['wrapper']), 'crud::columns.inc.wrapper_end')
+<div id="json-viewer-{{ $column['name'] }}"></div>
+<!-- json viewer by Roman Makudera (LorDOniX) https://github.com/LorDOniX/json-viewer 
+https://www.cssscript.com/minimal-json-data-formatter-jsonviewer/ -->
+<script src="{{ asset('packages/json-viewer/json-viewer.js') }}"></script>
+<script>
+    var jsonViewer = new JSONViewer();
+    document.querySelector("#json-viewer-{{ $column['name'] }}").appendChild(jsonViewer.getContainer());
+    jsonViewer.showJSON(@json($entry->{$column['name']}), -1, -1);
+</script>

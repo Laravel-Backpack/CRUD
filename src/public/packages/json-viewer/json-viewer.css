@@ -1,0 +1,69 @@
+.json-viewer {
+	color: #000;
+	padding-left: 20px;
+}
+
+.json-viewer ul {
+	list-style-type: none;
+	margin: 0;
+	margin: 0 0 0 1px;
+	border-left: 1px dotted #ccc;
+	padding-left: 2em;
+}
+
+.json-viewer .hide {
+	display: none;
+}
+
+.json-viewer .type-string {
+	color: #0B7500;
+}
+
+.json-viewer .type-date {
+	color: #CB7500;
+}
+
+.json-viewer .type-boolean {
+	color: #1A01CC;
+	font-weight: bold;
+}
+
+.json-viewer .type-number {
+	color: #1A01CC;
+}
+
+.json-viewer .type-null, .json-viewer .type-undefined {
+	color: #90a;
+}
+
+.json-viewer a.list-link {
+	color: #000;
+	text-decoration: none;
+	position: relative;
+}
+
+.json-viewer a.list-link:before {
+	color: #aaa;
+	content: "\25BC";
+	position: absolute;
+	display: inline-block;
+	width: 1em;
+	left: -1em;
+}
+
+.json-viewer a.list-link.collapsed:before {
+	content: "\25B6";
+}
+
+.json-viewer a.list-link.empty:before {
+	content: "";
+}
+
+.json-viewer .items-ph {
+	color: #aaa;
+	padding: 0 1em;
+}
+
+.json-viewer .items-ph:hover {
+	text-decoration: underline;
+}
