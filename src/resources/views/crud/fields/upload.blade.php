@@ -1,11 +1,13 @@
 @php
-   if (!isset($field['wrapper']) || !isset($field['wrapper']['data-init-function'])){
+    if (!isset($field['wrapper']) || !isset($field['wrapper']['data-init-function'])){
         $field['wrapper']['data-init-function'] = 'bpFieldInitUploadElement';
     }
 
     if (!isset($field['wrapper']) || !isset($field['wrapper']['data-field-name'])) {
         $field['wrapper']['data-field-name'] = $field['name'];
     }
+
+    $populated = isset($field['value']) && $field['value'] !== null;
 @endphp
 
 <!-- text input -->
@@ -32,13 +34,13 @@
     </div>
     @endif
 
-	{{-- Show the file picker on CREATE form. --}}
-    <div class="backstrap-file {{ isset($field['value']) && $field['value']!=null?'d-none':'' }}">
+    {{-- Show the file picker on CREATE form. --}}
+    <div class="backstrap-file {{ $populated ? 'd-none' : '' }}">
         <input
-            type="file"
+            type="{{ $populated ? 'text' : 'file' }}"
             name="{{ $field['name'] }}"
             value="{{ old(square_brackets_to_dots($field['name'])) ?? $field['value'] ?? $field['default'] ?? '' }}"
-            @include('crud::fields.inc.attributes', ['default_class' =>  isset($field['value']) && $field['value']!=null?'file_input backstrap-file-input':'file_input backstrap-file-input'])
+            @include('crud::fields.inc.attributes', ['default_class' => $populated ? 'file_input backstrap-file-input' : 'file_input backstrap-file-input'])
         >
         <label class="backstrap-file-label" for="customFile"></label>
     </div>
@@ -164,6 +166,9 @@
 
                     // add a hidden input with the same name, so that the setXAttribute method is triggered
                     $("<input type='hidden' name='"+fieldName+"' value=''>").insertAfter(fileInput);
+
+                    // get input type back to file
+                    fileInput.attr('type', 'file');
                 });
 
                 fileInput.change(function() {
