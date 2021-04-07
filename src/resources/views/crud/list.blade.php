@@ -50,6 +50,15 @@
         <table id="crudTable" class="bg-white table table-striped table-hover nowrap rounded shadow-xs border-xs mt-2" cellspacing="0">
             <thead>
               <tr>
+              <th 
+                data-orderable="false"
+                data-priority="1"
+                data-visible-in-table="false"
+                data-visible="true"
+                data-can-be-visible-in-table="true"
+                data-visible-in-modal="false"
+                data-visible-in-export="false"></th>
+
                 {{-- Table columns --}}
                 @foreach ($crud->columns() as $column)
                   <th
@@ -109,6 +118,8 @@
             </tbody>
             <tfoot>
               <tr>
+                <th></th>
+
                 {{-- Table columns --}}
                 @foreach ($crud->columns() as $column)
                   <th>{!! $column['label'] !!}</th>

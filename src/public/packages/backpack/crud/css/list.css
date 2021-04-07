@@ -63,8 +63,12 @@
 		content: "\f142";
 		font-size: 21px;
 		box-shadow: none;
-		/*margin-top: 8px;*/
 		border: none;
+		display: inline;
+		position: relative;
+		left: 0;
+		top: 2px;
+		margin-left: 8px;
 	}
 
 	.dt-buttons {
@@ -80,8 +84,23 @@
 		vertical-align: middle;
 	}
 
-	#crudTable.has-hidden-columns .details-control {
+	#crudTable .details-control,
+	#crudTable .dtr-control {
+		margin-left: 8px;
+		padding-left: 0px;
+	}
+
+	#crudTable.has-hidden-columns .details-control,
+	#crudTable.has-hidden-columns .dtr-control {
 		/*display: none;*/
+		margin-left: 0px;
+		padding-left: 0px;
+	}
+
+	#crudTable tbody > tr > td:first-of-type:empty,
+	#crudTable thead > tr > th:first-of-type:empty,
+	#crudTable tfoot > tr > th:first-of-type:empty {
+		padding: 0;
 	}
 
 	div.dataTables_wrapper div.dataTables_length select {
@@ -201,6 +220,18 @@
 		min-height: calc(100% - 98px);
 	}
 
+	.dataTables_empty {
+		padding: 10px!important;
+	}
+
+	#datatable_search_stack {
+		min-height: 35px;
+	}
+
+	#crudTable thead>tr>th:not(.sorting_disabled), table.dataTable thead>tr>td {		
+		padding-right: 30px;
+	}
+
 	@media(max-width: 576px) {
 		#datatable_search_stack {
 			margin-top: .5rem;
@@ -215,9 +246,6 @@
 		}
 	}
 
-	#crudTable thead>tr>th, table.dataTable thead>tr>th {
-		padding-right: 30px;
-	}
 
 	#crudTable_wrapper .dt-buttons .dt-button-collection,
 	#crudTable_wrapper tr td .btn-group .dropdown-menu {

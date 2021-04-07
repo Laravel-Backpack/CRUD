@@ -158,25 +158,11 @@ trait Read
         $this->addColumn([
             'type'            => 'checkbox',
             'name'            => 'bulk_actions',
-            'label'           => ' <input type="checkbox" class="crud_bulk_actions_main_checkbox" style="width: 16px; height: 16px;" />',
+            'label'           => ' <span style="display:flex"><input type="checkbox" class="crud_bulk_actions_main_checkbox" style="width: 16px; height: 16px; margin: 2px 0;" /></span>',
             'priority'        => 0,
             'searchLogic'     => false,
             'orderable'       => false,
             'visibleInTable'  => true,
-            'visibleInModal'  => false,
-            'visibleInExport' => false,
-            'visibleInShow'   => false,
-            'hasActions'      => true,
-        ])->makeFirstColumn();
-
-        $this->addColumn([
-            'type'            => 'custom_html',
-            'name'            => 'blank_first_column',
-            'label'           => ' ',
-            'priority'        => 0,
-            'searchLogic'     => false,
-            'orderable'       => false,
-            'visibleInTabel'  => true,
             'visibleInModal'  => false,
             'visibleInExport' => false,
             'visibleInShow'   => false,
@@ -192,7 +178,6 @@ trait Read
         $this->setOperationSetting('bulkActions', false);
 
         $this->removeColumn('bulk_actions');
-        $this->removeColumn('blank_first_column');
     }
 
     /**
