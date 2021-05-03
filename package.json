@@ -23,7 +23,7 @@
     "dependencies": {
         "@coreui/coreui": "^2.1.16",
         "@digitallyhappy/backstrap": "^0.3.4",
-        "animate.css": "^3.7.2",
+        "animate.css": "^4.1.1",
         "bootstrap": "^4.6.0",
         "bootstrap-colorpicker": "^3.3.0",
         "bootstrap-datepicker": "^1.9.0",
