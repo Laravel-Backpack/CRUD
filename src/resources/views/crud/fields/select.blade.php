@@ -12,7 +12,7 @@
     if (!isset($field['options'])) {
         $options = $field['model']::all();
     } else {
-        $options = call_user_func($field['options'], $field['model']::query());
+        $options = call_user_func($field['options'], $field['model']::query(), $entry ?? null);
     }
 @endphp
 
