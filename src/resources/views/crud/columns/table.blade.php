@@ -1,5 +1,5 @@
 @php
-	$value = data_get($entry, $column['name']);
+    $value = data_get($entry, $column['name']);
 
     // make sure columns are defined
     if (!isset($column['columns'])) {
@@ -10,7 +10,12 @@
 
 	// if this attribute isn't using attribute casting, decode it
 	if (is_string($value)) {
-	    $value = json_decode($value);
+	    $value = json_decode($value, true);
+    }
+
+    // check if it is a multidimensional array, if not we turn $value into one
+    if (is_array($value) && count($value) == count($value, COUNT_RECURSIVE)) {
+        $value = array($value);
     }
 @endphp
 
