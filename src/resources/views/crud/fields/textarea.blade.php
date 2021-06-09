@@ -6,7 +6,7 @@
     	name="{{ $field['name'] }}"
         @include('crud::fields.inc.attributes')
 
-    	>{{ old(square_brackets_to_dots($field['name'])) ?? $field['value'] ?? $field['default'] ?? '' }}</textarea>
+    	>{{ oldValueDefaultOrFallback($field, '') }}</textarea>
 
     {{-- HINT --}}
     @if (isset($field['hint']))

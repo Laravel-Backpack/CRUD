@@ -45,7 +45,7 @@
             name="{{ $field['name'] }}"
             data-iconset="{{ $field['iconset'] }}"
             data-init-function="bpFieldInitIconPickerElement"
-            value="{{ old(square_brackets_to_dots($field['name'])) ?? $field['value'] ?? $field['default'] ?? '' }}"
+            value="{{ oldValueDefaultOrFallback($field, '') }}"
             @include('crud::fields.inc.attributes')
         >
     </div>

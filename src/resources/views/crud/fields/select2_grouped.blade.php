@@ -1,6 +1,6 @@
 <!-- select2 -->
 @php
-    $current_value = old($field['name']) ? old($field['name']) : (isset($field['value']) ? $field['value'] : (isset($field['default']) ? $field['default'] : '' ));
+    $current_value = oldValueDefaultOrFallback($field, '');
     $field['allows_null'] = $field['allows_null'] ?? $crud->model::isColumnNullable($field['name']);
 @endphp
 

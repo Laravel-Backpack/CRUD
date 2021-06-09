@@ -43,8 +43,8 @@
 ?>
 
 @include('crud::fields.inc.wrapper_start')
-    <input class="datepicker-range-start" type="hidden" name="{{ $field['name'][0] }}" value="{{ old(square_brackets_to_dots($field['name'][0])) ?? $start_value ?? $start_default ?? '' }}">
-    <input class="datepicker-range-end" type="hidden" name="{{ $field['name'][1] }}" value="{{ old(square_brackets_to_dots($field['name'][1])) ?? $end_value ?? $end_default ?? '' }}">
+    <input class="datepicker-range-start" type="hidden" name="{{ $field['name'][0] }}" value="{{ oldValueDefaultOrFallback($field, '', $field['name'][0], $start_default, $start_value ?? null) }}">
+    <input class="datepicker-range-end" type="hidden" name="{{ $field['name'][1] }}" value="{{ oldValueDefaultOrFallback($field, '', $field['name'][1], $end_default, $end_value ?? null) }}">
     <label>{!! $field['label'] !!}</label>
     <div class="input-group date">
         <input

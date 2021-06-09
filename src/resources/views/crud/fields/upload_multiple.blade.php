@@ -40,7 +40,7 @@
 		<input
 	        type="file"
 	        name="{{ $field['name'] }}[]"
-	        value="@if (old(square_brackets_to_dots($field['name']))) old(square_brackets_to_dots($field['name'])) @elseif (isset($field['default'])) $field['default'] @endif"
+	        value="@if (old(square_brackets_to_dots($field['name']))) {{ old(square_brackets_to_dots($field['name'])) }} @elseif (isset($field['default'])) {{ $field['default'] }} @endif"
 	        @include('crud::fields.inc.attributes', ['default_class' =>  isset($field['value']) && $field['value']!=null?'file_input backstrap-file-input':'file_input backstrap-file-input'])
 	        multiple
 	    >

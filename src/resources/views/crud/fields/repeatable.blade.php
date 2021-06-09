@@ -1,7 +1,7 @@
 {{-- REPEATABLE FIELD TYPE --}}
 
 @php
-  $field['value'] = old($field['name']) ? old($field['name']) : (isset($field['value']) ? $field['value'] : (isset($field['default']) ? $field['default'] : '' ));
+  $field['value'] = oldValueDefaultOrFallback($field, '');
   // make sure the value is a JSON string (not array, if it's cast in the model)
   $field['value'] = is_array($field['value']) ? json_encode($field['value']) : $field['value'];
 

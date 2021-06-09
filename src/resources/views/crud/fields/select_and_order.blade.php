@@ -1,6 +1,6 @@
 <!-- select_and_order -->
 @php
-    $values = old($field['name']) ?? $field['value'] ?? $field['default'] ?? [];
+    $values = oldValueDefaultOrFallback($field, []);
     $values = (array)$values;
 @endphp
 
@@ -17,8 +17,8 @@
 
             {{-- The results will be stored here --}}
             <div data-identifier="results">
-                <select class="d-none" 
-                    name="{{ $field['name'] }}[]" 
+                <select class="d-none"
+                    name="{{ $field['name'] }}[]"
                     data-selected-options='@json($values)'
                     multiple>
                 </select>

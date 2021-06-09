@@ -13,7 +13,7 @@
     } elseif(isset($field['src']) && isset($entry)) {
         $value = $entry->find($entry->id)->{$field['src']}();
     } else {
-        $value = $field['value'] ?? $field['default'] ?? '';
+        $value = oldValueDefaultOrFallback($field, '');
     }
 @endphp
 

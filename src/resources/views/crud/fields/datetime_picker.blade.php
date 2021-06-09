@@ -11,7 +11,7 @@ if (isset($field['value']) && ($field['value'] instanceof \Carbon\CarbonInterfac
 ?>
 
 @include('crud::fields.inc.wrapper_start')
-    <input type="hidden" class="form-control" name="{{ $field['name'] }}" value="{{ old(square_brackets_to_dots($field['name'])) ?? $field['value'] ?? $field['default'] ?? '' }}">
+    <input type="hidden" class="form-control" name="{{ $field['name'] }}" value="{{ oldValueDefaultOrFallback($field, '') }}">
     <label>{!! $field['label'] !!}</label>
     @include('crud::fields.inc.translatable_icon')
     <div class="input-group date">

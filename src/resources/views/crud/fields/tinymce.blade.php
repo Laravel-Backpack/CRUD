@@ -20,7 +20,7 @@ $field['options'] = array_merge($defaultOptions, $field['options'] ?? []);
         data-init-function="bpFieldInitTinyMceElement"
         data-options='{!! trim(json_encode($field['options'])) !!}'
         @include('crud::fields.inc.attributes', ['default_class' =>  'form-control tinymce'])
-        >{{ old(square_brackets_to_dots($field['name'])) ?? $field['value'] ?? $field['default'] ?? '' }}</textarea>
+        >{{ oldValueDefaultOrFallback($field, '') }}</textarea>
 
     {{-- HINT --}}
     @if (isset($field['hint']))

@@ -25,7 +25,7 @@
 
     // make sure the $field['value'] takes the proper value
     // and format it to JSON, so that select2 can parse it
-    $current_value = old(square_brackets_to_dots($field['name'])) ?? $field['value'] ?? $field['default'] ?? '';
+    $current_value = oldValueDefaultOrFallback($field, '');
     if ($current_value != false) {
         switch (gettype($current_value)) {
             case 'array':
