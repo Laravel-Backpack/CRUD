@@ -58,6 +58,21 @@ class MyAccountController extends Controller
             Alert::error(trans('backpack::base.error_saving'))->flash();
         }
 
+        // If the AuthenticateSessions middleware is being used
+        // the password hash should be updated, in order to
+        // invalidate all authenticated browser sessions
+        // except for the current one.
+        $this->guard()->logoutOtherDevices($request->new_password);
+
+        // If the AuthenticateSession middleware was used until now,
+        // also update the password hash in the session so that the
+        // admin does not get logged out in the next request.
+        if ($request->session()->has('password_hash_'.backpack_guard_name())) {
+            $request->session()->put([
+                'password_hash_'.backpack_guard_name() => $user->getAuthPassword(),
+            ]);
+        }
+
         return redirect()->back();
     }
 
