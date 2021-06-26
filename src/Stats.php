@@ -63,7 +63,7 @@ trait Stats
             'SERVER_SOFTWARE'       => $_SERVER['SERVER_SOFTWARE'] ?? false,
             'DB_CONNECTION'         => $_SERVER['DB_CONNECTION'] ?? false,
             'LARAVEL_VERSION'       => $this->app->version() ?? false,
-            'BACKPACK_CRUD_VERSION' => \PackageVersions\Versions::getVersion('backpack/crud') ?? false,
+            'BACKPACK_CRUD_VERSION' => \Composer\InstalledVersions::getVersion('backpack/crud') ?? false,
             'BACKPACK_LICENSE'      => config('backpack.base.license_code') ?? false,
             'BACKPACK_URL'          => backpack_url('') ?? false,
         ];
