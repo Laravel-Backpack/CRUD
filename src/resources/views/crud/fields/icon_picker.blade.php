@@ -1,7 +1,7 @@
 <!-- icon picker input -->
 @php
-    // if no iconset was provided, set the default iconset to Font-Awesome
-    $field['iconset'] = $field['iconset'] ?? 'fontawesome';
+    // if no iconset was provided, set the default iconset to Line-Awesome
+    $field['iconset'] = $field['iconset'] ?? 'lineawesome';
 
     switch ($field['iconset']) {
         case 'ionicon':
@@ -23,7 +23,7 @@
             $fontIconFilePath = asset('packages/bootstrap-iconpicker/icon-fonts/elusive-icons-2.0.0/css/elusive-icons.min.css');
             break;
         case 'meterialdesign':
-            $fontIconFilePath = asset('packages/bootstrap-iconpicker/icon-fonts/material-design-1.1.1/css)/material-design-iconic-font.min.css');
+            $fontIconFilePath = asset('packages/bootstrap-iconpicker/icon-fonts/material-design-1.1.1/css/material-design-iconic-font.min.css');
             break;
         default:
             $fontIconFilePath = asset('packages/bootstrap-iconpicker/icon-fonts/font-awesome-5.12.0-1/css/all.min.css');
@@ -61,7 +61,7 @@
     because if parent crud has a different icon file than inline, the inline one would not be loaded
     --}}
 @push('crud_fields_styles')
-<link rel="stylesheet" type="text/css" href="{{ $field['font_icon_file_path'] }}">
+        <link rel="stylesheet" type="text/css" href="{{ $field['font_icon_file_path'] }}">
 @endpush
 
 @if ($crud->fieldTypeNotLoaded($field))
@@ -72,7 +72,7 @@
     {{-- FIELD EXTRA CSS  --}}
     @push('crud_fields_styles')
         {{-- The chosen font --}}
-        <link rel="stylesheet" type="text/css" href="{{ $field['font_icon_file_path'] }}">
+            <link rel="stylesheet" type="text/css" href="{{ $field['font_icon_file_path'] }}">
         <!-- Bootstrap-Iconpicker -->
         <link rel="stylesheet" href="{{ asset('packages/bootstrap-iconpicker/bootstrap-iconpicker/css/bootstrap-iconpicker.min.css') }}"/>
     @endpush
@@ -80,25 +80,47 @@
     {{-- FIELD EXTRA JS --}}
     @push('crud_fields_scripts')
         <!-- Bootstrap-Iconpicker -->
-        <script type="text/javascript" src="{{ asset('packages/bootstrap-iconpicker/bootstrap-iconpicker/js/bootstrap-iconpicker.bundle.min.js') }}"></script>
 
+        <script type="text/javascript" src="{{ asset('packages/bootstrap-iconpicker/bootstrap-iconpicker/js/bootstrap-iconpicker.bundle.min.js') }}"></script>
+        @if($field['iconset'] == 'lineawesome')
+            <script type="text/javascript" src="{{ asset('packages/backpack/crud/js/fields/iconpicker/line-icons.js') }}"></script>
+        @endif
         {{-- Bootstrap-Iconpicker - set hidden input value --}}
         <script>
             function bpFieldInitIconPickerElement(element) {
                 var $iconset = element.attr('data-iconset');
                 var $iconButton = element.siblings('button[role=icon-selector]');
                 var $icon = element.attr('value');
+                var $customIconSet = null;
+
+                // if the iconset is lineawesome we create our own iconset for the iconpicker.
+                if($iconset == 'lineawesome') {
+                    // we store it in global window object to avoid fetching the same information again
+                    // in case we have two or more iconpickers with lineawesome
+                    if(typeof window.icon_pickerLineIcons !== "undefined") {
+                        $customIconSet = {
+                            iconClass: '',
+                            iconClassFix: '',
+                            icons: window.icon_pickerLineIcons
+                        }
+                    }else{
+                        alert('to use lineawesome with iconpicker you need to republish crud assets.')
+                    }
+                }
+
+                // in case we have a custom set we use it instead of the default iconset.
+                $iconset = $customIconSet !== null ? $customIconSet : $iconset;
 
                 // we explicit init the iconpicker on the button element.
                 // this way we can init the iconpicker in InlineCreate as in future provide aditional configurations.
-                    $($iconButton).iconpicker({
-                        iconset: $iconset,
-                        icon: $icon
-                    });
+                $($iconButton).iconpicker({
+                    iconset: $iconset,
+                    icon: $icon
+                });
 
-                    element.siblings('button[role=icon-selector]').on('change', function(e) {
-                        $(this).siblings('input[type=hidden]').val(e.icon);
-                    });
+                element.siblings('button[role=icon-selector]').on('change', function(e) {
+                    $(this).siblings('input[type=hidden]').val(e.icon);
+                });
             }
         </script>
     @endpush
