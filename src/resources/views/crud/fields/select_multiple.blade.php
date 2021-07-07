@@ -5,7 +5,7 @@
     } else {
         $options = call_user_func($field['options'], $field['model']::query());
     }
-    $field['allows_null'] = $field['allows_null'] ?? true;
+    $field['allows_null'] = $field['allows_null'] ?? $crud->model::isColumnNullable($field['name']);
 @endphp
 
 @include('crud::fields.inc.wrapper_start')
