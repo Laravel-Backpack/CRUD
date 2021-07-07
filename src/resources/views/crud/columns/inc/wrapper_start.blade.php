@@ -10,7 +10,11 @@
 @endphp
 
 <{{ $column['wrapper']['element'] ?? 'a' }}
-@foreach(Arr::except($column['wrapper'], 'element') as $element => $value)
+@foreach(Arr::except($column['wrapper'], ['element', 'prefix', 'suffix']) as $element => $value)
     {{$element}}="{{$value}}"
 @endforeach
 >
+<span class="d-inline-flex">
+@if($column['wrapper']['prefix'] ?? false)
+<span>{{ $column['wrapper']['prefix'] }}</span>
+@endif
