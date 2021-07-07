@@ -4,7 +4,7 @@
 
     $column['escaped'] = $column['escaped'] ?? false;
     $column['prefix'] = $column['prefix'] ?? '';
-    $column['suffix'] = $column['suffix'] ?? 'items';
+    $column['suffix'] = $column['suffix'] ?? ' items';
     $column['text'] = '-';
 
     // the value should be an array wether or not attribute casting is used
@@ -13,7 +13,7 @@
     }
 
     if($array && count($array)) {
-        $column['text'] = $column['prefix'].count($array).' '.$column['suffix'];
+        $column['text'] = $column['prefix'].count($array).$column['suffix'];
     }
 @endphp
 
