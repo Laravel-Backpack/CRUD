@@ -30,10 +30,14 @@ trait Update
 
         // omit the n-n relationships when updating the eloquent item
         $nn_relationships = Arr::pluck($this->getRelationFieldsWithPivot(), 'name');
+        $repeatable_relationships = Arr::pluck($this->getRelationFieldsWithRepeatable(), 'name');
+        $excluded_relationships = array_merge($nn_relationships, $repeatable_relationships);
 
-        $data = Arr::except($data, $nn_relationships);
+        $data = Arr::except($data, $excluded_relationships);
 
         $updated = $item->update($data);
+        // if there are any relationships available, also sync those
+        $this->createRelations($item, $data);
 
         return $item;
     }

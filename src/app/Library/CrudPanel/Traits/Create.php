@@ -3,7 +3,9 @@
 namespace Backpack\CRUD\app\Library\CrudPanel\Traits;
 
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Support\Arr;
 
 trait Create
@@ -28,7 +30,9 @@ trait Create
 
         // omit the n-n relationships when updating the eloquent item
         $nn_relationships = Arr::pluck($this->getRelationFieldsWithPivot(), 'name');
-        $item = $this->model->create(Arr::except($data, $nn_relationships));
+        $repeatable_relationships = Arr::pluck($this->getRelationFieldsWithRepeatable(), 'name');
+        $excluded_relationships = array_merge($nn_relationships, $repeatable_relationships);
+        $item = $this->model->create(Arr::except($data, $excluded_relationships));
 
         // if there are any relationships available, also sync those
         $this->createRelations($item, $data);
@@ -84,6 +88,20 @@ trait Create
 
         return Arr::where($all_relation_fields, function ($value, $key) {
             return isset($value['pivot']) && $value['pivot'];
+        });
+    }
+
+    /**
+     * Get all fields with 1-n relation set (repeatable is true).
+     *
+     * @return array The fields with 1-n relationships.
+     */
+    public function getRelationFieldsWithRepeatable()
+    {
+        $all_relation_fields = $this->getRelationFields();
+
+        return Arr::where($all_relation_fields, function ($value, $key) {
+            return isset($value['type']) && $value['type'] && $value['type'] == 'repeatable';
         });
     }
 
@@ -185,6 +203,23 @@ trait Create
                 } else {
                     $modelInstance = new $model($relationData['values']);
                     $relation->save($modelInstance);
+                }
+            } elseif ($relation instanceof HasMany || $relation instanceof MorphMany) {
+                $keys = Arr::pluck($item->{$relationMethod}, $relation->getRelated()->getKeyName());
+                foreach (json_decode($relationData['values'][$relationMethod], true) as $relationItems) {
+                    if ($relationItems[$relation->getForeignKeyName()] != '' && $relationItems[$relation->getRelated()->getKeyName()] != '') {
+                        $modelInstance = $model::find($relationItems[$relation->getRelated()->getKeyName()]);
+                        $modelInstance->update($relationItems);
+                        if (($key = array_search($relationItems[$relation->getRelated()->getKeyName()], $keys)) !== false) {
+                            unset($keys[$key]);
+                        }
+                    } else {
+                        $modelInstance = new $model($relationItems);
+                        $relation->save($modelInstance);
+                    }
+                }
+                foreach ($keys as $id) {
+                    $item->{$relationMethod}->find($id)->delete();
                 }
             }
 
