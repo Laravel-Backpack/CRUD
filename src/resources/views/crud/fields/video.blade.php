@@ -98,109 +98,73 @@ $field['wrapper']['data-video'] = '';
         <script>
 
         var tryYouTube = function( link ){
-
-            var id = null;
-
-            // RegExps for YouTube link forms
-            var youtubeStandardExpr = /^https?:\/\/(www\.)?youtube.com\/watch\?v=([^?&]+)/i; // Group 2 is video ID
-            var youtubeAlternateExpr = /^https?:\/\/(www\.)?youtube.com\/v\/([^\/\?]+)/i; // Group 2 is video ID
-            var youtubeShortExpr = /^https?:\/\/youtu.be\/([^\/]+)/i; // Group 1 is video ID
-            var youtubeEmbedExpr = /^https?:\/\/(www\.)?youtube.com\/embed\/([^\/]+)/i; // Group 2 is video ID
-
-            var match = link.match(youtubeStandardExpr);
-
-            if (match != null){
-                id = match[2];
-            }
-            else {
-                match = link.match(youtubeAlternateExpr);
-
-                if (match != null) {
-                    id = match[2];
-                }
-                else {
-                    match = link.match(youtubeShortExpr);
-
-                    if (match != null){
-                        id = match[1];
-                    }
-                    else {
-                        match = link.match(youtubeEmbedExpr);
-
-                        if (match != null){
-                            id = match[2];
-                        }
-                    }
-                }
-            }
-
+            let [, id] = link.match(/^(?:https?:)?(?:\/\/)?(?:www\.)?(?:youtu\.be\/|youtube(?:\-nocookie)?\.(?:[A-Za-z]{2,4}|[A-Za-z]{2,3}\.[A-Za-z]{2})\/)(?:watch|embed\/|vi?\/)*(?:\?[\w=&]*vi?=)?([^#&\?\/]{11}).*$/) || [];
             return id;
         };
 
         var tryVimeo = function( link ){
-
-            var id = null;
-            var regExp = /(http|https):\/\/(www\.)?vimeo.com\/(\d+)($|\/)/;
-
-            var match = link.match(regExp);
-
-            if (match){
-                id = match[3];
-            }
-
+            let [, id] = link.match(/(?:http|https):\/\/(?:www\.)?vimeo.com\/(\d+)($|\/)/) || [];
             return id;
         };
 
         var fetchYouTube = function( videoId, callback, apiKey ){
 
-            var api = 'https://www.googleapis.com/youtube/v3/videos?id='+videoId+'&key='+apiKey+'&part=snippet';
+            var api = `https://www.googleapis.com/youtube/v3/videos?id=${videoId}&key=${apiKey}&part=snippet,contentDetails`;
 
             var video = {
                 provider: 'youtube',
                 id: null,
                 title: null,
                 image: null,
+                duration: null,
                 url: null
             };
 
-            $.ajax({
-                dataType: "jsonp",
-                url: api,
-                crossDomain: true,
-                success: function (data) {
-                    if (typeof(data.items[0]) != "undefined") {
-                        var v = data.items[0].snippet;
+            fetch(api).then(response => {
+                if(response.ok) {
+                    response.json().then(data => {
+                        var s = data.items[0].snippet;
+                        var c = data.items[0].contentDetails;
 
                         video.id = videoId;
-                        video.title = v.title;
-                        video.image = v.thumbnails.maxres ? v.thumbnails.maxres.url : v.thumbnails.default.url;
-                        video.url = 'https://www.youtube.com/watch?v=' + video.id;
+                        video.title = s.title;
+                        video.image = s.thumbnails.maxres ? s.thumbnails.maxres.url : s.thumbnails.default.url;
+                        video.url = `https://www.youtube.com/watch?v=${video.id}`;
+
+                        video.duration = c.duration
+                            .match(/PT(\d+H)?(\d+M)?(\d+S)?/)
+                            .reverse()
+                            .map((e, i) => parseInt(e) * 60 ** i || 0)
+                            .reduce((a, b) => a + b);
 
                         callback(video);
-                    }
+                    });
                 }
             });
         };
 
         var fetchVimeo = function( videoId, callback ){
 
-            var api = `https://vimeo.com/api/v2/video/${videoId}.json`;
+            var videoUrl = `https://vimeo.com/${videoId}`;
+            var api = `https://vimeo.com/api/oembed.json?url=${videoUrl}`;
 
             var video = {
                 provider: 'vimeo',
                 id: null,
                 title: null,
                 image: null,
+                duration: null,
                 url: null
             };
 
             fetch(api).then(response => {
                 if(response.ok) {
-                    response.json().then(([v]) => {
-                        video.id = v.id;
+                    response.json().then(v => {
+                        video.id = v.video_id;
                         video.title = v.title;
-                        video.image = v.thumbnail_large || v.thumbnail_small;
-                        video.url = v.url;
+                        video.image = v.thumbnail_url;
+                        video.url = v.provider_url + v.video_id;
+                        video.duration = v.duration;
 
                         callback(video);
                     });
