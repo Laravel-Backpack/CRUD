@@ -143,6 +143,67 @@ return [
     ],
 
     // -------------
+    // Skins
+    // -------------
+    
+    /**
+     * Allow ability to easily apply a skin. Sample skins are in available_skins. This should fit most needs. If you would like to apply the skin at a time of your choosing in your application set 'skin' to null and call the helper function backpack_apply_skin('skin_name') where ever you would like. If 'skin' is null or the key skin settings do not exist the default skin will be used.
+     *
+     * */
+    'skin'=>'default',
+
+    'available_skins'=>[
+        'default'=>[
+            'header_class' => 'app-header bg-light border-0 navbar',
+            'body_class' => 'app aside-menu-fixed sidebar-lg-show',
+            'sidebar_class' => 'sidebar sidebar-pills bg-light',
+            'footer_class' => 'app-footer',
+        ],
+        'core'=>[
+            'header_class' => 'app-header navbar',
+            'body_class' => 'app aside-menu-fixed sidebar-lg-show',
+            'sidebar_class' => 'sidebar',
+            'footer_class' => 'app-footer d-none',
+        ],
+        'github'=>[
+            'header_class' => 'app-header bg-dark navbar',
+            'body_class' => 'app aside-menu-fixed sidebar-lg-show',
+            'sidebar_class' => 'sidebar bg-white sidebar-pills',
+            'footer_class' => 'app-footer d-none',
+        ],
+        'blue'=>[
+            'header_class' => 'app-header navbar navbar-color bg-primary border-0',
+            'body_class' => 'app aside-menu-fixed sidebar-lg-show',
+            'sidebar_class' => 'sidebar', // add "bg-white sidebar-pills" for light sidebar
+            'footer_class' => 'app-footer d-none',
+        ],
+        'yellow'=>[
+            'header_class' => 'app-header navbar navbar-light bg-warning',
+            'body_class' => 'app aside-menu-fixed sidebar-lg-show',
+            'sidebar_class' => 'sidebar', // add "bg-white sidebar-pills" for light sidebar
+            'footer_class' => 'app-footer d-none',
+        ],
+        'red'=>[
+            'header_class' => 'app-header navbar navbar-color bg-error border-0',
+            'body_class' => 'app aside-menu-fixed sidebar-lg-show',
+            'sidebar_class' => 'sidebar', // add "bg-white sidebar-pills" for light sidebar
+            'footer_class' => 'app-footer d-none',
+        ],
+        'pink'=>[
+            'header_class' => 'app-header navbar navbar-color bg-error border-0',
+            'body_class' => 'app aside-menu-fixed sidebar-lg-show',
+            'sidebar_class' => 'sidebar sidebar-pills bg-light',
+            'footer_class' => 'app-footer d-none',
+        ],
+        'green'=>[
+            'header_class' => 'app-header navbar navbar-color bg-green border-0',
+            'body_class' => 'app aside-menu-fixed sidebar-lg-show',
+            'sidebar_class' => 'sidebar sidebar-pills bg-white',
+            'footer_class' => 'app-footer d-none',
+        ],
+    ],
+
+    // -------------
     // CACHE-BUSTING
     // -------------
 

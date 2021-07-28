@@ -46,6 +46,7 @@ class BackpackServiceProvider extends ServiceProvider
         $this->publishFiles();
         $this->checkLicenseCodeExists();
         $this->sendUsageStats();
+        $this->maybeApplySkin();
     }
 
     /**
@@ -289,6 +290,16 @@ class BackpackServiceProvider extends ServiceProvider
     public function loadHelpers()
     {
         require_once __DIR__.'/helpers.php';
+    }
+    /**
+     * Listens to Illuminate\Routing\Events\RouteMatched event and loads any skin into the config.
+     * @return void
+     */
+    public function maybeApplySkin()
+    {
+        if($skin = config('backpack.base.skin')){
+            backpack_apply_skin($skin);
+        }
     }
 
     /**

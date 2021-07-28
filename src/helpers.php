@@ -253,3 +253,22 @@ if (! function_exists('is_countable')) {
         return is_array($obj) || $obj instanceof Countable;
     }
 }
+
+if (! function_exists('backpack_apply_skin')) {
+    /**
+     * Apply skin to configuration
+     * @param  string $skin name
+     * @return void
+     */
+    function backpack_apply_skin($skin)
+    {       
+        if(array_key_exists($skin,config('backpack.base.available_skins'))){
+            $config = config('backpack.base.available_skins.'.$skin);
+            config(['backpack.base.header_class'=>$config['header_class']]);
+            config(['backpack.base.body_class'=>$config['body_class']]);
+            config(['backpack.base.sidebar_class'=>$config['sidebar_class']]);
+            config(['backpack.base.footer_class'=>$config['footer_class']]);
+           
+        }
+    }
+}
