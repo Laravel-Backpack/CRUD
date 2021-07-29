@@ -1,5 +1,8 @@
 @if ($crud->hasAccess('clone'))
-	<a href="javascript:void(0)" onclick="cloneEntry(this)" data-route="{{ url($crud->route.'/'.$entry->getKey().'/clone') }}" class="btn btn-sm btn-link" data-button-type="clone"><i class="la la-copy"></i> {{ trans('backpack::crud.clone') }}</a>
+  <a href="javascript:void(0)" onclick="cloneEntry(this)" data-route="{{ url($crud->route.'/'.$entry->getKey().'/clone') }}" class="btn btn-sm btn-link" data-button-type="clone">
+    <i class="la la-copy"></i>
+    <span class="{{ config('backpack.crud.operations.list.defaultButtonTextClass.line', '') }}">{{ trans('backpack::crud.clone') }}</span>
+  </a>
 @endif
 
 {{-- Button Javascript --}}

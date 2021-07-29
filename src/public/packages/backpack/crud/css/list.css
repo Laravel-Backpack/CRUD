@@ -254,3 +254,8 @@
 	.fixed .wrapper {
 		overflow: visible;
 	}
+
+	/* Reset button text display state inside modals */
+	.modal-dialog .btn span {
+		display: initial !important;
+	}

@@ -11,7 +11,7 @@
     crud.dataTableConfiguration.buttons = [
         {
             extend: 'collection',
-            text: '<i class="la la-download"></i> {{ trans('backpack::crud.export.export') }}',
+            text: '<i class="la la-download"></i> <span class="{{ config('backpack.crud.operations.list.defaultButtonTextClass.bottom', '') }}">{{ trans('backpack::crud.export.export') }}</span>',
             dropup: true,
             buttons: [
                 {
@@ -94,7 +94,7 @@
         },
         {
             extend: 'colvis',
-            text: '<i class="la la-eye-slash"></i> {{ trans('backpack::crud.export.column_visibility') }}',
+            text: '<i class="la la-eye-slash"></i> <span class="{{ config('backpack.crud.operations.list.defaultButtonTextClass.bottom', '') }}">{{ trans('backpack::crud.export.column_visibility') }}</span>',
             columns: function ( idx, data, node ) {
                 return $(node).attr('data-visible-in-table') == 'false' && $(node).attr('data-can-be-visible-in-table') == 'true';
             },

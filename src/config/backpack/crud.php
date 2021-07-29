@@ -62,6 +62,14 @@ return [
             // thus clearing any searching, filtering or pagination that has been
             // remembered and persisted using persistentTable
             'resetButton' => true,
+
+            // Default button text class, this may be used to hide the text on buttons
+            // d-{value}-none, (value being xs, sm, md, lg, and xl)
+            'defaultButtonTextClass' => [
+                'top' => '',
+                'line' => '', // alternative, d-none d-md-inline
+                'bottom' => '',
+            ],
         ],
 
         /*
