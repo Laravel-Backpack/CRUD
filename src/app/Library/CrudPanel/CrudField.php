@@ -2,6 +2,8 @@
 
 namespace Backpack\CRUD\app\Library\CrudPanel;
 
+use Illuminate\Support\Str;
+
 /**
  * Adds fluent syntax to Backpack CRUD Fields.
  *
@@ -255,7 +257,7 @@ class CrudField
      */
     public function __call($method, $parameters)
     {
-        $this->setAttributeValue($method, $parameters[0]);
+        $this->setAttributeValue(Str::snake($method), $parameters[0]);
 
         return $this->save();
     }
