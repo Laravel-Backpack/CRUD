@@ -1,5 +1,6 @@
 @php
     $value = data_get($entry, $column['name']);
+
     $column['prefix'] = $column['prefix'] ?? '';
     $column['disk'] = $column['disk'] ?? null;
     $column['escaped'] = $column['escaped'] ?? true;

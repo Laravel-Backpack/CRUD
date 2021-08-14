@@ -6,7 +6,7 @@
     $column['prefix'] = $column['prefix'] ?? '';
     $column['suffix'] = $column['suffix'] ?? '';
     $column['format'] = $column['format'] ?? config('backpack.base.default_date_format');
-    $column['text'] = '';
+    $column['text'] = '-';
 
     if(!empty($value)) {
         $column['text'] = \Carbon\Carbon::parse($value)

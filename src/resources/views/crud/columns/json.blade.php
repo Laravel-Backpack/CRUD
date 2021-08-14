@@ -3,14 +3,14 @@
         json_decode($entry->{$column['name']}, true) : 
         $entry->{$column['name']};
 
-    $column['text'] = json_encode($value, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
     $column['escaped'] = $column['escaped'] ?? true;
     $column['prefix'] = $column['prefix'] ?? '';
     $column['suffix'] = $column['suffix'] ?? '';
     $column['wrapper']['element'] = $column['wrapper']['element'] ?? 'pre';
+    $column['text'] = '-';
 
-    if(!empty($column['text'])) {
-        $column['text'] = $column['prefix'].$column['text'].$column['suffix'];
+    if(!empty($value)) {
+        $column['text'] = $column['prefix'].json_encode($value, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES).$column['suffix'];
     }
 @endphp
 

@@ -4,12 +4,14 @@
     $value = $model_function ? $model_function->{$column['attribute']} : '';
 
     $column['escaped'] = $column['escaped'] ?? false;
-    $column['limit']   = $column['limit'] ?? 40;
-    $column['prefix']  = $column['prefix'] ?? '';
-    $column['suffix']  = $column['suffix'] ?? '';
-    $column['text']    = $column['prefix'].
-                         Str::limit($value, $column['limit'], "[...]").
-                         $column['suffix'];
+    $column['limit'] = $column['limit'] ?? 40;
+    $column['prefix'] = $column['prefix'] ?? '';
+    $column['suffix'] = $column['suffix'] ?? '';
+    $column['text'] = '-';
+
+    if(!empty($value)) {
+        $column['text'] = $column['prefix'].Str::limit($value, $column['limit'], "[...]").$column['suffix'];
+    }
 @endphp
 
 <span>

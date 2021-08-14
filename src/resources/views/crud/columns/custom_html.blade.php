@@ -1,11 +1,13 @@
 @php
-    $column['text'] = $column['value'] ?? '';
+    $value = $column['value'] ?? '';
+
     $column['escaped'] = $column['escaped'] ?? false;
     $column['prefix'] = $column['prefix'] ?? '';
     $column['suffix'] = $column['suffix'] ?? '';
+    $column['text'] = '-';
 
-    if(!empty($column['text'])) {
-        $column['text'] = $column['prefix'].$column['text'].$column['suffix'];
+    if(!empty($value)) {
+        $column['text'] = $column['prefix'].$value.$column['suffix'];
     }
 @endphp
 

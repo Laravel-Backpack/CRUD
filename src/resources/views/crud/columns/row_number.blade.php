@@ -4,9 +4,7 @@
     $column['limit'] = $column['limit'] ?? 40;
     $column['prefix'] = $column['prefix'] ?? '';
     $column['suffix'] = $column['suffix'] ?? '';
-	$column['text'] = 	$column['prefix'].
-						Str::limit(strip_tags($rowNumber), $column['limit'], "[...]").
-						$column['suffix'];
+    $column['text'] = $column['prefix'].$rowNumber.$column['suffix'];
 @endphp
 
 <span>
