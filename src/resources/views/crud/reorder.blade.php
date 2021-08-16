@@ -1,5 +1,7 @@
 @extends(backpack_view('blank'))
 
+@section('view_classes', 'crud-reorder crud-' . $crud->model->getTable())
+
 @php
   $defaultBreadcrumbs = [
     trans('backpack::crud.admin') => url(config('backpack.base.route_prefix'), 'dashboard'),
