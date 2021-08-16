@@ -24,7 +24,7 @@ trait Update
     {
         $data = $this->decodeJsonCastedAttributes($data);
         $data = $this->compactFakeFields($data);
-        $item = $this->model->findOrFail($id);
+        $item = $this->model->where($this->model->getRouteKeyName(),$id)->firstOrFail();
 
         $data = $this->changeBelongsToNamesFromRelationshipToForeignKey($data);
 

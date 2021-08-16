@@ -10,6 +10,8 @@ trait CrudTrait
     use HasUploadFields;
     use HasFakeFields;
     use HasTranslatableFields;
+    use CanGenerateUuid;
+    use CanChangeRouteKey;
 
     public static function hasCrudTrait()
     {

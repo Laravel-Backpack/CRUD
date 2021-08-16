@@ -57,7 +57,7 @@ trait Read
     public function getEntry($id)
     {
         if (! $this->entry) {
-            $this->entry = $this->model->findOrFail($id);
+            $this->entry = $this->model->where($this->model->getRouteKeyName(),$id)->firstOrFail();
             $this->entry = $this->entry->withFakes();
         }
 

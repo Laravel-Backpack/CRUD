@@ -23,7 +23,7 @@ trait Delete
      */
     public function delete($id)
     {
-        return (string) $this->model->findOrFail($id)->delete();
+        return (string) $this->model->where($this->model->getRouteKeyName(),$id)->firstOrFail()->delete();
     }
 
     /**
