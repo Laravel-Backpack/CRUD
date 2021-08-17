@@ -71,18 +71,43 @@ trait ShowOperation
 
         // get entry ID from Request (makes sure its the last ID for nested resources)
         $id = $this->crud->getCurrentEntryId() ?? $id;
-        $setFromDb = $this->crud->get('show.setFromDb');
 
         // get the info for that entry
         $this->data['entry'] = $this->crud->getEntry($id);
         $this->data['crud'] = $this->crud;
         $this->data['title'] = $this->crud->getTitle() ?? trans('backpack::crud.preview').' '.$this->crud->entity_name;
 
-        // set columns from db
-        if ($setFromDb) {
+        // load the view from /resources/views/vendor/backpack/crud/ if it exists, otherwise load the one in the package
+        return view($this->crud->getShowView(), $this->data);
+    }
+
+    /**
+     * Default behaviour for setupShowOperation, in case none has been
+     * provided by including a setupShowOperation() method in the CrudController.
+     */
+    protected function setupShowOperation()
+    {
+        // guess which columns to show, from the database table
+        if ($this->crud->get('show.setFromDb')) {
             $this->crud->setFromDb();
         }
 
+        // if the developer has chosen to include a modifyShowOperation() method
+        // in his/her CrudController, make sure to call it because they probably want to
+        // add a new column or remove an autoset column
+        if (method_exists($this, 'modifyShowOperation')) {
+            $this->modifyShowOperation();
+        }
+
+        // remove the columns that usually don't make sense inside the Show operation
+        $this->removeColumnsThatDontBelongInsideShowOperation();
+
+        // remove preview button from stack:line
+        $this->crud->removeButton('show');
+    }
+
+    protected function removeColumnsThatDontBelongInsideShowOperation()
+    {
         // cycle through columns
         foreach ($this->crud->columns() as $key => $column) {
 
@@ -112,13 +137,7 @@ trait ShowOperation
             }
         }
 
-        // remove preview button from stack:line
-        $this->crud->removeButton('show');
-
         // remove bulk actions colums
         $this->crud->removeColumns(['blank_first_column', 'bulk_actions']);
-
-        // load the view from /resources/views/vendor/backpack/crud/ if it exists, otherwise load the one in the package
-        return view($this->crud->getShowView(), $this->data);
     }
 }
