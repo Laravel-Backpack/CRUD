@@ -222,16 +222,22 @@
                         // this is different than using prefix in fields like text, number etc. In those cases the prefix is used
                         // only for displaying purposes, when is set as `data-value-prefix` is when it is part of the value
                         // like image field.
-                        let valuePrefix = $(this).data('value-prefix') ?? '';
+                        let prefix = $(this).data('value-prefix') ?? '';
+                        let value = values[$(this).data('repeatable-input-name')];
 
-                        $(this).val(valuePrefix+values[$(this).data('repeatable-input-name')]);
+                        // only apply the prefix when the value is string and not empty.
+                        if(typeof value === 'string' && value.length) {
+                            value = prefix + value;
+                        }
+
+                        $(this).val(value);
 
                         // if it's a Select input with no options, also attach the values as a data attribute;
                         // this is done because the above val() call will do nothing if the options aren't there
                         // so the fields themselves have to treat this use case, and look at data-selected-options
                         // and create the options based on those values
                         if ($(this).is('select') && $(this).children('option').length == 0) {
-                          $(this).attr('data-selected-options', JSON.stringify(values[$(this).data('repeatable-input-name')]));
+                          $(this).attr('data-selected-options', JSON.stringify(value));
                         }
                     }
                 });
