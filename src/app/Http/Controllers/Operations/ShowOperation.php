@@ -102,8 +102,10 @@ trait ShowOperation
             }
 
             // remove columns that have visibleInShow set as false
-            if (isset($column['visibleInShow']) && $column['visibleInShow'] == false) {
-                $this->crud->removeColumn($column['key']);
+            if (isset($column['visibleInShow'])) {
+                if ((is_callable($column['visibleInShow']) && $column['visibleInShow']($this->data['entry']) === false) || $column['visibleInShow'] === false) {
+                    $this->crud->removeColumn($column['key']);
+                }
             }
 
             // remove the character limit on columns that take it into account
