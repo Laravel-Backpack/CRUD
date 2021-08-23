@@ -421,7 +421,7 @@ function triggerModal(element) {
 
                 new Noty({
                     type: "info",
-                    text: '{{ trans('backpack::crud.related_entry_created_success') }}',
+                    text: $createdEntity.message ? $createdEntity.message : '{{ trans('backpack::crud.related_entry_created_success') }}',
                 }).show();
             },
             error: function (result) {
@@ -433,9 +433,14 @@ function triggerModal(element) {
                     message += $errors[i] + ' \n';
                 }
 
+                var defaultMessage= '{{ trans('backpack::crud.related_entry_created_error') }}</strong><br> '+message;
+
+                defaultMessage = $errors ? defaultMessage : (
+                    result.responseJSON.message ? result.responseJSON.message : defaultMessage);
+                
                 new Noty({
                     type: "error",
-                    text: '<strong>{{ trans('backpack::crud.related_entry_created_error') }}</strong><br> '+message,
+                    text: defaultMessage,
                 }).show();
 
                 //revert save button back to normal
