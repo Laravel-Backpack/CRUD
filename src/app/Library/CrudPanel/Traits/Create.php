@@ -114,6 +114,15 @@ trait Create
             if (isset($field['pivot']) && $field['pivot']) {
                 $values = isset($data[$field['name']]) ? $data[$field['name']] : [];
 
+                // if pivot is true and there is `fields` array in this field we are trying to sync a pivot with
+                // extra attributes on it. It's a Repeatable Field so its values are sent as json.
+                if (isset($field['fields']) && is_array($field['fields'])) {
+                    $decoded_values = json_decode($values, true);
+                    $values = [];
+                    foreach ($decoded_values as $value) {
+                        $values[] = $value[$field['name']];
+                    }
+                }
                 // if a JSON was passed instead of an array, turn it into an array
                 if (is_string($values)) {
                     $values = json_decode($values);
@@ -122,12 +131,24 @@ trait Create
                 $relation_data = [];
                 foreach ($values as $pivot_id) {
                     $pivot_data = [];
-
                     if (isset($field['pivotFields'])) {
                         foreach ($field['pivotFields'] as $pivot_field_name) {
                             $pivot_data[$pivot_field_name] = $data[$pivot_field_name][$pivot_id];
                         }
+                    } else {
+                        if (isset($field['fields']) && is_array($field['fields'])) {
+                            $field_data = json_decode($data[$field['name']], true);
+
+                            //we grab from the request the specific data for this pivot
+                            $pivot_data = Arr::first(Arr::where($field_data, function ($item) use ($pivot_id, $field) {
+                                return $item[$field['name']] === $pivot_id;
+                            }));
+
+                            //we remove the relation field from extra pivot data as we already have the relation.
+                            unset($pivot_data[$field['name']]);
+                        }
                     }
+
                     $relation_data[$pivot_id] = $pivot_data;
                 }
 

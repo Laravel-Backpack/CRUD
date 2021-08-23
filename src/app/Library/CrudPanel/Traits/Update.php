@@ -102,6 +102,31 @@ trait Update
             if (method_exists($relatedModel, $relationMethod) && $relatedModel->{$relationMethod}() instanceof HasOne) {
                 return $relatedModel->{$relationMethod}->{Arr::last(explode('.', $relational_entity))};
             } else {
+                // if pivot is true and there is `fields` array in this field we are trying to sync a pivot with
+                // extra attributes on it. It's a Repeatable Field so its values are sent as json.
+                if (isset($field['pivot']) && $field['pivot'] && isset($field['fields']) && is_array($field['fields'])) {
+                    //we remove the first field from repeatable because it is our relation.
+                    $pivot_fields = Arr::where($field['fields'], function ($item) use ($field) {
+                        return $field['name'] != $item['name'];
+                    });
+
+                    //we grab the related models
+                    $related_models = $relatedModel->{$relationMethod};
+                    $return = [];
+
+                    //for any given model, we grab the attributes that belong to our pivot table.
+                    foreach ($related_models as $related_model) {
+                        $item[$field['name']] = $related_model->getKey();
+                        //for any given related model, we attach the pivot fields.
+                        foreach ($pivot_fields as $pivot_field) {
+                            $item[$pivot_field['name']] = $related_model->pivot->{$pivot_field['name']};
+                        }
+                        $return[] = $item;
+                    }
+                    //we return the json encoded result as expected by repeatable field.
+                    return json_encode($return);
+                }
+
                 return $relatedModel->{$relationMethod};
             }
         }
