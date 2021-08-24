@@ -87,7 +87,7 @@
                     }
                   });
 
-                  hidden_input.val(JSON.stringify(newValue));
+                  hidden_input.val(JSON.stringify(newValue)).trigger('change');
 
                 });
             }

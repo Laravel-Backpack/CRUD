@@ -72,7 +72,7 @@
             // when one radio input is selected
             element.find('input[type=radio]').change(function(event) {
                 // the value gets updated in the hidden input
-                hiddenInput.val($(this).val());
+                hiddenInput.val($(this).val()).trigger('change');
                 // all other radios get unchecked
                 element.find('input[type=radio]').not(this).prop('checked', false);
             });

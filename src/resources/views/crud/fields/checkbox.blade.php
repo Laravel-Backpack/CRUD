@@ -59,9 +59,9 @@
                 // set the correct value on the hidden input
                 element.change(function() {
                   if (element.is(":checked")) {
-                    hidden_element.val(1);
+                    hidden_element.val(1).trigger('change')
                   } else {
-                    hidden_element.val(0);
+                    hidden_element.val(0).trigger('change')
                   }
                 })
             }
