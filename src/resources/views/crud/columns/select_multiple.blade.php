@@ -6,10 +6,11 @@
     $column['limit'] = $column['limit'] ?? 40;
     $column['attribute'] = $column['attribute'] ?? (new $column['model'])->identifiableAttribute();
 
+
     $results = data_get($entry, $column['name']);
     $results_array = [];
 
-    if(!$results->isEmpty()) {
+    if($results !== null && !$results->isEmpty()) {
         $related_key = $results->first()->getKeyName();
         $results_array = $results->pluck($column['attribute'], $related_key)->toArray();
     }
