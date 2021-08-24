@@ -1,5 +1,5 @@
 @php
-    $column['text'] = Illuminate\Mail\Markdown::parse($entry->{$column['name']} ?? '');
+    $column['text'] = Illuminate\Support\Str::markdown($entry->{$column['name']} ?? '');
     $column['escaped'] = $column['escaped'] ?? false;
     $column['prefix'] = $column['prefix'] ?? '';
     $column['suffix'] = $column['suffix'] ?? '';
