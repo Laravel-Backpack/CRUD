@@ -222,7 +222,7 @@
                         // this is different than using prefix in fields like text, number etc. In those cases the prefix is used
                         // only for displaying purposes, when is set as `data-value-prefix` is when it is part of the value
                         // like image field.
-                        let valuePrefix = $(this).data('value-prefix') ?? '';
+                        let valuePrefix = $(this).data('value-prefix') ? $(this).data('value-prefix') : '';
 
                         $(this).val(valuePrefix+values[$(this).data('repeatable-input-name')]);
 

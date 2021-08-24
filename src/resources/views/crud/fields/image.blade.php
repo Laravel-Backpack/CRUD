@@ -238,7 +238,7 @@
                         const maxImageSize = {{ $max_image_size_in_bytes }};
                         if(maxImageSize > 0 && file.size > maxImageSize) {
 
-                            alert(`Please pick an image smaller than ${maxImageSize} bytes.`);
+                            alert('Please pick an image smaller than '+maxImageSize+'  bytes.');
                         } else if (/^image\/\w+$/.test(file.type)) {
 
                             fileReader.readAsDataURL(file);

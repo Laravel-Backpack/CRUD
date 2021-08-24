@@ -31,13 +31,16 @@
     // persistent table, and this way we guarantee non-duplicate alerts.
     $oldAlerts = JSON.parse(localStorage.getItem('backpack_alerts'))
         ? JSON.parse(localStorage.getItem('backpack_alerts')) : {};
+
     $newAlerts = @json($backpack_alerts);
 
-    Object.entries($newAlerts).forEach(([type, messages]) => {
-        if(typeof $oldAlerts[type] !== 'undefined') {
-            $oldAlerts[type].push(...messages);
+    Object.entries($newAlerts).forEach(function(type) {
+        if(typeof $oldAlerts[type[0]] !== 'undefined') {
+            type[1].map(function(msg) {
+                $oldAlerts[type[0]].push(msg);
+            });
         } else {
-            $oldAlerts[type] = messages;
+            $oldAlerts[type[0]] = type[1];
         }
     });
 
@@ -91,7 +94,7 @@
         }
     @endif
 
-    var crud = {
+    window.crud = {
       exportButtons: JSON.parse('{!! json_encode($crud->get('list.export_buttons')) !!}'),
       functionsToRunOnDataTablesDrawEvent: [],
       addFunctionToDataTablesDrawEventQueue: function (functionName) {
@@ -258,7 +261,7 @@
   <script type="text/javascript">
     jQuery(document).ready(function($) {
 
-      crud.table = $("#crudTable").DataTable(crud.dataTableConfiguration);
+      window.crud.table = $("#crudTable").DataTable(window.crud.dataTableConfiguration);
 
       // move search bar
       $("#crudTable_filter").appendTo($('#datatable_search_stack' ));

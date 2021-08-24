@@ -25,7 +25,9 @@
   <script type="text/javascript">
     // Save default sidebar class
     let sidebarClass = (document.body.className.match(/sidebar-(sm|md|lg|xl)-show/) || ['sidebar-lg-show'])[0];
-    let sidebarTransition = value => document.querySelector('.app-body > .sidebar').style.transition = value || '';
+    let sidebarTransition = function() {
+        document.querySelector('.app-body > .sidebar').style.transition = value || '';
+    };
 
     // Recover sidebar state
     let sessionState = sessionStorage.getItem('sidebar-collapsed');
@@ -44,11 +46,11 @@
 @push('after_scripts')
   <script>
       // Store sidebar state
-      document.querySelectorAll('.sidebar-toggler').forEach(toggler => 
-        toggler.addEventListener('click', () => 
+      document.querySelectorAll('.sidebar-toggler').forEach(function(toggler) {
+        toggler.addEventListener('click', function() {
           sessionStorage.setItem('sidebar-collapsed', Number(!document.body.classList.contains(sidebarClass)))
-        )
-      );
+        })
+      });
       // Set active state on menu element
       var full_url = "{{ Request::fullUrl() }}";
       var $navLinks = $(".sidebar-nav li a, .app-header li a");
@@ -73,7 +75,7 @@
           });
       }
 
-      // for the found links that can be considered current, make sure 
+      // for the found links that can be considered current, make sure
       // - the parent item is open
       $curentPageLink.parents('li').addClass('open');
       // - the actual element is active

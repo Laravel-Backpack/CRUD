@@ -164,7 +164,7 @@
         // we have stored from the field and append those options in the select.
         if (typeof $selectedOptions !== typeof undefined && $selectedOptions !== false && $selectedOptions != '') {
             var optionsForSelect = [];
-            select2AjaxMultipleFetchSelectedEntries(element).then(result => {
+            select2AjaxMultipleFetchSelectedEntries(element).then(function(result) {
                 result.forEach(function(item) {
                     $itemText = item[$fieldAttribute];
                     $itemValue = item[$connectedEntityKeyName];
@@ -187,7 +187,7 @@
             var $dependency = $dependencies[i];
             //if element does not have a custom-selector attribute we use the name attribute
             if(typeof element.attr('data-custom-selector') == 'undefined') {
-                form.find(`[name="${$dependency}"], [name="${$dependency}[]"]`).change(function(el) {
+                form.find('[name="'+$dependency+'"], [name="'+$dependency+'[]"]').change(function(el) {
                         $(element.find('option:not([value=""])')).remove();
                         element.val(null).trigger("change");
                 });

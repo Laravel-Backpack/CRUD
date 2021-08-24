@@ -155,12 +155,14 @@
             $item = true;
         }
         var selectedOptions = [];
-        var $currentValue = $item ? $value : '';
+        var $currentValue = $item ? $value : {};
 
-        for (const [key, value] of Object.entries($currentValue)) {
-            selectedOptions.push(key);
-            $(element).val(selectedOptions);
-        }
+        //we reselect the previously selected options if any.
+        Object.entries($currentValue).forEach(function(option) {
+            selectedOptions.push(option[0]);
+            var $option = new Option(option[1], option[0]);
+            $(element).append($option);
+        });
 
         if (!$allows_null && $item === false) {
             element.find('option:eq(0)').prop('selected', true);
