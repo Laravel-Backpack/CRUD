@@ -33,6 +33,10 @@
             <div class="form-check {{ isset($field['inline']) && $field['inline'] ? 'form-check-inline' : '' }}">
                 <input  type="radio"
                         class="form-check-input"
+                        @if ($field['toggle'] ?? false)
+                        data-field-name="{{$field['name']}}"
+                        data-field-toggle="{{ json_encode($field['hide_when'][$value] ?? []) }}"
+                        @endif
                         value="{{$value}}"
                         @include('crud::fields.inc.attributes')
                         >
@@ -79,6 +83,43 @@
 
             // select the right radios
             element.find('input[type=radio][value="'+value+'"]').prop('checked', true);
+
+            // If this is a toggleable radio element, then we want to hide/show whatever should be hidden/shown
+            window.hiddenFields = window.hiddenFields || {};
+            var toggle = function( $radio ){
+                let hideWhen = $radio.data('field-toggle'),
+                fieldName = $radio.data('field-name');
+                hiddenFields[ fieldName ] = hiddenFields[ fieldName ] || [];
+                if( Object.keys(hiddenFields[ fieldName ]).length ){
+                    $.each(hiddenFields[ fieldName ], function(idx, field){
+                        field.data('hide_count', field.data('hide_count') - 1);
+                        if (field.data('hide_count') == 0) {
+                            field.show();
+                        }
+                    });
+                    hiddenFields[ fieldName ] = [];
+                }
+                if( hideWhen.length ){
+                    $.each(hideWhen, function(idx, name){
+                        var f = $('[name="'+name+'"]').parents('.form-group');
+                        if( f.length ){
+                            if (f.data('hide_count')) {
+                                f.data('hide_count', f.data('hide_count') + 1);
+                            } else {
+                                f.data('hide_count', 1);
+                            }
+                            hiddenFields[ fieldName ].push(f);
+                            f.hide();
+                        }
+                    });
+                }
+            };
+            $('input[data-field-toggle]').on('change', function(){
+                return toggle( $(this) );
+            });
+            $('input[data-field-toggle]:checked').each(function(){
+                return toggle( $(this) );
+            });
         }
     </script>
     @endpush
