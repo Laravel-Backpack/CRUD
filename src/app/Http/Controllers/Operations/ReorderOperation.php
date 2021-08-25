@@ -80,7 +80,7 @@ trait ReorderOperation
     {
         $this->crud->hasAccessOrFail('reorder');
 
-        $all_entries = \Request::input('tree');
+        $all_entries = json_decode(\Request::input('tree'), true);
 
         if (count($all_entries)) {
             $count = $this->crud->updateTreeOrder($all_entries);

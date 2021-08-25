@@ -265,7 +265,7 @@ function tree_element($entry, $key, $all_entries, $crud)
         $.ajax({
             url: '{{ url(Request::path()) }}',
             type: 'POST',
-            data: { tree: arraied },
+            data: { tree: JSON.stringify(arraied) },
         })
         .done(function() {
             new Noty({
