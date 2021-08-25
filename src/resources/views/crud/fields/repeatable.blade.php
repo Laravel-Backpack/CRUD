@@ -45,7 +45,6 @@
               $subfield = $crud->makeSureFieldHasNecessaryAttributes($subfield);
               $fieldViewNamespace = $subfield['view_namespace'] ?? 'crud::fields';
               $fieldViewPath = $fieldViewNamespace.'.'.$subfield['type'];
-              $subfield['showAsterisk'] = false;
           @endphp
 
           @include($fieldViewPath, ['field' => $subfield])
