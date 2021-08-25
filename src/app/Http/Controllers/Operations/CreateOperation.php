@@ -76,7 +76,11 @@ trait CreateOperation
         $request = $this->crud->validateRequest();
 
         // insert item in the db
-        $item = $this->crud->create($this->crud->getStrippedSaveRequest());
+        if ($request instanceof \Illuminate\Foundation\Http\FormRequest && $this->crud->isEnableApproachFormRequest()) {
+            $item = $this->crud->create($request->validated());
+        } else {
+            $item = $this->crud->create($this->crud->getStrippedSaveRequest());
+        }
         $this->data['entry'] = $this->crud->entry = $item;
 
         // show a success message

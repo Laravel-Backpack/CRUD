@@ -57,6 +57,7 @@ class CrudPanel
 
     protected $request;
 
+    private $enableApproachFormRequest;
     // The following methods are used in CrudController or your EntityCrudController to manipulate the variables above.
 
     public function __construct()
@@ -491,5 +492,21 @@ class CrudPanel
         }
 
         return $results;
+    }
+
+    /**
+     *  Enables use of the FormRequest Laravel class, completely.
+     */
+    public function enableApproachFormRequest()
+    {
+        $this->enableApproachFormRequest = true;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isEnableApproachFormRequest()
+    {
+        return $this->enableApproachFormRequest;
     }
 }
