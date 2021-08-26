@@ -4,7 +4,7 @@
     @include('crud::fields.inc.translatable_icon')
     @php
         $entity_model = $crud->model;
-        $possible_values = $entity_model::getPossibleEnumValues($field['name']);
+        $possible_values = $entity_model::getPossibleEnumValues($field['name']) ?? $field['options'];
     @endphp
     <select
         name="{{ $field['name'] }}"

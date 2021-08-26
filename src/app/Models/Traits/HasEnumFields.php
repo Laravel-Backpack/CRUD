@@ -19,8 +19,14 @@ trait HasEnumFields
         $table_prefix = Config::get('database.connections.'.$default_connection.'.prefix');
 
         $instance = new static(); // create an instance of the model to be able to get the table name
-        $connectionName = $instance->getConnectionName();
-        $type = DB::connection($connectionName)->select(DB::raw('SHOW COLUMNS FROM `'.$table_prefix.$instance->getTable().'` WHERE Field = "'.$field_name.'"'))[0]->Type;
+        $connection = $instance->getConnection();
+
+        // SQLite doesn't support enum
+        if ($connection->getConfig('driver') === 'sqlite') {
+            return null;
+        }
+
+        $type = $connection->select(DB::raw('SHOW COLUMNS FROM `'.$table_prefix.$instance->getTable().'` WHERE Field = "'.$field_name.'"'))[0]->Type;
         preg_match('/^enum\((.*)\)$/', $type, $matches);
         $enum = [];
         foreach (explode(',', $matches[1]) as $value) {
