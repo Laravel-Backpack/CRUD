@@ -1,5 +1,19 @@
 <input type="hidden" name="http_referrer" value={{ session('referrer_url_override') ?? old('http_referrer') ?? \URL::previous() ?? url($crud->route) }}>
 
+
+@php
+        $currentLocale = app()->getLocale();
+
+        //if developer wants to switch to update language while adding the fields html to the page
+        if(config('backpack.crud.operations.update.replace_locale_when_editing')) {
+            if(request()->has('locale') && in_array(request('locale'), array_keys(config('backpack.crud.locales')))) {
+
+                app()->setLocale(request('locale'));
+
+            }
+        }
+@endphp
+
 {{-- See if we're using tabs --}}
 @if ($crud->tabsEnabled() && count($crud->getTabs()))
     @include('crud::inc.show_tabbed_fields')
@@ -11,6 +25,10 @@
     </div>
   </div>
 @endif
+
+@php
+    app()->getLocale() === $currentLocale ?: app()->setLocale($currentLocale);
+@endphp
 
 
 {{-- Define blade stacks so css and js can be pushed from the fields to these sections. --}}

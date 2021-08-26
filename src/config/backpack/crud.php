@@ -129,6 +129,11 @@ return [
             // Should we show a cancel button to the user?
             'showCancelButton' => true,
 
+            // If set to true, when editing an entry backpack will use the editing locale while inserting the fields html in the crud
+            // Eg: if you have a select/relationship field and are requesting a translatable attribute (name, description wtv), that attribute will be shown in the editing language
+            // instead of the default app language.
+            'replace_locale_when_editing' => false,
+
             // Before saving the entry, how would you like the request to be stripped?
             // - false - Save ONLY inputs that have a field (safest, default);
             // - [x, y, z] - Save ALL inputs, EXCEPT the ones given in this array;
