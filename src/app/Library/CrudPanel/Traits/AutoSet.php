@@ -121,42 +121,42 @@ trait AutoSet
             case 'mediumint':
             case 'longint':
                 return 'number';
-
             case 'string':
             case 'varchar':
             case 'set':
                 return 'text';
-
+            break;
             // case 'enum':
             //     return 'enum';
             // break;
 
             case 'boolean':
                 return 'boolean';
-
+            break;
             case 'tinyint':
                 return 'active';
-
+            break;
             case 'text':
             case 'mediumtext':
             case 'longtext':
                 return 'textarea';
-
+            break;
             case 'date':
                 return 'date';
-
+            break;
             case 'datetime':
             case 'timestamp':
                 return 'datetime';
-
+            break;
             case 'time':
                 return 'time';
-
+            break;
             case 'json':
                 return 'table';
-
+            break;
             default:
                 return 'text';
+            break;
         }
 
         return 'text';

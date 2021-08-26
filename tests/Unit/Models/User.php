@@ -10,7 +10,7 @@ class User extends Model
     use CrudTrait;
 
     protected $table = 'users';
-    protected $fillable = ['name', 'email', 'password'];
+    protected $fillable = ['name', 'email', 'password', 'article_id'];
 
     /**
      * Get the account details associated with the user.
@@ -18,6 +18,11 @@ class User extends Model
     public function accountDetails()
     {
         return $this->hasOne('Backpack\CRUD\Tests\Unit\Models\AccountDetails');
+    }
+
+    public function article()
+    {
+        return $this->belongsTo('Backpack\CRUD\Tests\Unit\Models\Article');
     }
 
     /**

@@ -2,6 +2,8 @@
 
 namespace Backpack\CRUD\Tests\Unit\CrudPanel;
 
+use Backpack\CRUD\Tests\Unit\Models\AccountDetails;
+use Backpack\CRUD\Tests\Unit\Models\Address;
 use Backpack\CRUD\Tests\Unit\Models\Article;
 use Backpack\CRUD\Tests\Unit\Models\User;
 use Faker\Factory;
@@ -12,6 +14,50 @@ use Illuminate\Support\Arr;
  */
 class CrudPanelCreateTest extends BaseDBCrudPanelTest
 {
+    private $userInputHasOneWithBelongsToRelation = [
+        [
+            'name' => 'accountDetails.nickname',
+        ],
+        [
+            'name' => 'accountDetails.profile_picture',
+        ],
+        [
+            'name' => 'accountDetails.article',
+            'type' => 'relationship',
+        ],
+
+    ];
+
+    private $articleBelongsToWithRelationName = [
+        [
+            'name' => 'user',
+            'type' => 'relationship',
+        ],
+        [
+            'name' => 'address',
+            'type' => 'relationship',
+        ],
+        [
+            'name' => 'content',
+        ],
+
+    ];
+
+    private $articleBelongsToWithRelatedKey = [
+        [
+            'name' => 'user_id',
+            'type' => 'relationship',
+        ],
+        [
+            'name' => 'address_id',
+            'type' => 'relationship',
+        ],
+        [
+            'name' => 'content',
+        ],
+
+    ];
+
     private $nonRelationshipField = [
         'name'  => 'field1',
         'label' => 'Field1',
@@ -130,6 +176,43 @@ class CrudPanelCreateTest extends BaseDBCrudPanelTest
         $this->assertEmpty($entry->articles);
     }
 
+    public function testCreateBelongsToWithRelationName()
+    {
+        $this->crudPanel->setModel(Article::class);
+        $this->crudPanel->addFields($this->articleBelongsToWithRelationName);
+        $faker = Factory::create();
+        $inputData = [
+            'user'     => 1,
+            'content'    => $faker->text,
+            'address' => 1,
+        ];
+
+        $entry = $this->crudPanel->create($inputData);
+
+        $this->assertInstanceOf(Address::class, $entry->address);
+        $this->assertInstanceOf(User::class, $entry->user);
+    }
+
+    public function testCreateBelongsToWithRelationKey()
+    {
+        $this->crudPanel->setModel(Article::class);
+        $this->crudPanel->addFields($this->articleBelongsToWithRelatedKey);
+        $faker = Factory::create();
+        $inputData = [
+            'user_id'     => 1,
+            'content'    => $faker->text,
+            'address_id' => 1,
+        ];
+
+        $entry = $this->crudPanel->create($inputData);
+
+        $this->assertInstanceOf(Address::class, $entry->address);
+        $this->assertInstanceOf(User::class, $entry->user);
+    }
+
+    /**
+     * Undocumented function.
+     */
     public function testCreateWithOneToOneRelationship()
     {
         $this->crudPanel->setModel(User::class);
@@ -147,33 +230,40 @@ class CrudPanelCreateTest extends BaseDBCrudPanelTest
             ],
         ];
         $entry = $this->crudPanel->create($inputData);
-        $account_details = $entry->accountDetails()->first();
 
-        $this->assertEquals($account_details->nickname, $account_details_nickname);
+        $entry->load('accountDetails');
+
+        $this->assertInstanceOf(AccountDetails::class, $entry->accountDetails);
+        $this->assertEquals('test.jpg', $entry->accountDetails->profile_picture);
     }
 
-    public function testCreateBelongsToWithRelationName()
+    /**
+     * Undocumented function.
+     */
+    public function testCreateBelongsToRelationInOneToOneRelationship()
     {
-        $this->crudPanel->setModel(Article::class);
-        $this->crudPanel->addFields($this->articleInputFieldsOneToMany);
-        $this->crudPanel->removeField('user_id');
-        $this->crudPanel->addFields($this->articleInputBelongsToRelationName);
+        $this->crudPanel->setModel(User::class);
+        $this->crudPanel->addFields($this->userInputFieldsNoRelationships);
+        $this->crudPanel->addFields($this->userInputHasOneWithBelongsToRelation);
+        $article = Article::first();
         $faker = Factory::create();
         $inputData = [
-            'content'     => $faker->text(),
-            'tags'        => $faker->words(3, true),
-            'user'     => 1,
-            'metas'       => null,
-            'extras'      => null,
-            'cast_metas'  => null,
-            'cast_tags'   => null,
-            'cast_extras' => null,
+            'name'     => $faker->name,
+            'email'    => $faker->safeEmail,
+            'password' => bcrypt($faker->password()),
+            'accountDetails' => [
+                'nickname' => $faker->name,
+                'profile_picture' => 'test.jpg',
+                'article' => $article->id,
+            ],
         ];
+
         $entry = $this->crudPanel->create($inputData);
-        $userEntry = User::find(1);
-        $article = Article::where('user_id', 1)->with('user')->get()->last();
-        $this->assertEquals($article->user_id, $entry->user_id);
-        $this->assertEquals($article->id, $entry->id);
+
+        $entry->load('accountDetails');
+
+        $this->assertInstanceOf(AccountDetails::class, $entry->accountDetails);
+        $this->assertInstanceOf(Article::class, $entry->accountDetails->article);
     }
 
     public function testCreateWithOneToManyRelationship()
@@ -278,7 +368,6 @@ class CrudPanelCreateTest extends BaseDBCrudPanelTest
 
         //get all fields with a relation
         $relationFields = $this->crudPanel->getRelationFields();
-        //var_dump($this->crudPanel->get('create.fields')['street']);
 
         $this->assertEquals($this->crudPanel->get('create.fields')['street'], Arr::last($relationFields));
     }
@@ -289,6 +378,31 @@ class CrudPanelCreateTest extends BaseDBCrudPanelTest
         $this->crudPanel->setOperation('create');
 
         $this->crudPanel->addFields($this->userInputHasOneRelation);
+        $faker = Factory::create();
+
+        $inputData = [
+            'name'           => $faker->name,
+            'email'          => $faker->safeEmail,
+            'password'       => bcrypt($faker->password()),
+            'remember_token' => null,
+            'roles'          => [1, 2],
+            'accountDetails' => [
+                'nickname' => 'i_have_has_one',
+                'profile_picture' => 'simple_picture.jpg',
+            ],
+        ];
+        $entry = $this->crudPanel->create($inputData);
+        $account_details = $entry->accountDetails()->first();
+
+        $this->assertEquals($account_details->nickname, 'i_have_has_one');
+    }
+
+    public function testCreateBelongsToInHasOneRelations()
+    {
+        $this->crudPanel->setModel(User::class);
+        $this->crudPanel->setOperation('create');
+
+        $this->crudPanel->addFields($this->userInputHasOneWithBelongsToRelation);
         $faker = Factory::create();
 
         $inputData = [
@@ -345,10 +459,6 @@ class CrudPanelCreateTest extends BaseDBCrudPanelTest
         $this->assertEmpty($relationFields);
     }
 
-    public function testCreateOneToOneRelationships()
-    {
-    }
-
     public function testSyncPivot()
     {
         $this->crudPanel->setModel(User::class);
@@ -365,7 +475,32 @@ class CrudPanelCreateTest extends BaseDBCrudPanelTest
         $entry = User::find(1);
         $this->crudPanel->syncPivot($entry, $inputData);
 
-        $this->assertEquals($inputData['roles'], $entry->roles->pluck('id')->toArray());
+        $this->assertEquals($inputData['roles'], $entry->roles()->pluck('id')->toArray());
+    }
+
+    public function testSyncPivotUpdate()
+    {
+        $this->crudPanel->setModel(User::class);
+        $this->crudPanel->addFields($this->userInputFieldsManyToMany);
+        $faker = Factory::create();
+        $inputData = [
+            'name'           => $faker->name,
+            'email'          => $faker->safeEmail,
+            'password'       => bcrypt($faker->password()),
+            'remember_token' => null,
+            'roles'          => [1, 2],
+        ];
+
+        $entry = User::find(1);
+        $this->crudPanel->syncPivot($entry, $inputData);
+
+        $this->assertEquals($inputData['roles'], $entry->roles()->pluck('id')->toArray());
+
+        // Remove one role
+        $inputData['roles'] = [1];
+        $this->crudPanel->syncPivot($entry, $inputData);
+
+        $this->assertEquals($inputData['roles'], $entry->roles()->pluck('id')->toArray());
     }
 
     public function testSyncPivotUnknownData()
@@ -384,7 +519,7 @@ class CrudPanelCreateTest extends BaseDBCrudPanelTest
         $entry = User::find(1);
         $this->crudPanel->syncPivot($entry, $inputData);
 
-        $this->assertEquals(1, $entry->roles->count());
+        $this->assertEquals(1, $entry->roles()->count());
     }
 
     public function testSyncPivotUnknownModel()

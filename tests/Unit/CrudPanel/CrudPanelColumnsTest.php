@@ -292,8 +292,6 @@ class CrudPanelColumnsTest extends BaseDBCrudPanelTest
 
     /**
      * Undocumented function.
-     *
-     * @group failing
      */
     public function testAddNestedRelationColumn()
     {

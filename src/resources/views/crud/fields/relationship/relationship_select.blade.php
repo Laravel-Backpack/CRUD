@@ -45,9 +45,6 @@
                 break;
         }
     }
-
-
-
     $field['value'] = json_encode($current_value);
 
 @endphp
@@ -179,6 +176,24 @@
         {
             $(element).select2($select2Settings);
         }
+
+        $(element).on("select2:unselect", function(e){
+            if($(this).val() == "") {
+                $(this).val(null).trigger('change');
+            }
+        });
+
+        // remove the nasty "-" from selected options upon selection.
+        $(element).on("select2:select", function(e){
+            if(typeof element.attr('multiple') !== "undefined") {
+                let selected_element = $(e.currentTarget);
+                let select_val = selected_element.val();
+
+                let valuesWithoutEmpty = select_val.filter(v => v !== "");
+
+                $(this).val(valuesWithoutEmpty).trigger('change');
+            }
+        });
     }
 </script>
 @endpush

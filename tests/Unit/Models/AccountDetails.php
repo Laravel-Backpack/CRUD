@@ -25,13 +25,13 @@ class AccountDetails extends Model
         return $this->hasMany('Backpack\CRUD\Tests\Unit\Models\Address');
     }
 
-    public function getNicknameComposedAttribute()
-    {
-        return $this->nickname.'++';
-    }
-
     public function article()
     {
         return $this->belongsTo('Backpack\CRUD\Tests\Unit\Models\Article');
+    }
+
+    public function getNicknameComposedAttribute()
+    {
+        return $this->nickname.'++';
     }
 }

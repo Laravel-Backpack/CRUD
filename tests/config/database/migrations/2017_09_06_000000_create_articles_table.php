@@ -16,6 +16,7 @@ class CreateArticlesTable extends Migration
             $table->increments('id');
             $table->integer('user_id')->length(10)->unsigned();
             $table->string('content');
+            $table->integer('address_id')->nullable();
             $table->string('metas')->nullable();
             $table->string('tags')->nullable();
             $table->string('extras')->nullable();

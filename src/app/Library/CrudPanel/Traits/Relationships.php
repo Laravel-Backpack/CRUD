@@ -2,6 +2,7 @@
 
 namespace Backpack\CRUD\app\Library\CrudPanel\Traits;
 
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 
@@ -32,6 +33,29 @@ trait Relationships
     }
 
     /**
+     * Get the fields for relationships, according to the relation type. It looks only for direct
+     * relations - it will NOT look through relationships of relationships.
+     *
+     * @param string|array $relation_types Eloquent relation class or array of Eloquent relation classes. Eg: BelongsTo
+     *
+     * @return array The fields with corresponding relation types.
+     */
+    public function getFieldsWithRelationType($relation_types): array
+    {
+        $relation_types = (array) $relation_types;
+
+        return collect($this->fields())
+            ->where('model')
+            ->whereIn('relation_type', $relation_types)
+            ->filter(function ($item) {
+                $related_model = get_class($this->model->{Str::before($item['entity'], '.')}()->getRelated());
+
+                return Str::contains($item['entity'], '.') && $item['model'] !== $related_model ? false : true;
+            })
+            ->toArray();
+    }
+
+    /**
      * Grabs an relation instance and returns the class name of the related model.
      *
      * @param array $field
@@ -57,41 +81,6 @@ trait Relationships
         return Arr::last(explode('\\', get_class($relation)));
     }
 
-    public function getOnlyRelationEntity($relation_field)
-    {
-        $relation_model = $this->getRelationModel($relation_field['entity'], -1);
-        $related_method = Str::afterLast($relation_field['entity'], '.');
-
-        if (! method_exists($relation_model, $related_method)) {
-            return Str::beforeLast($relation_field['entity'], '.');
-        }
-
-        return $relation_field['entity'];
-    }
-
-    /**
-     * Get the fields for relationships, according to the relation type. It looks only for direct
-     * relations - it will NOT look through relationships of relationships.
-     *
-     * @param string|array $relation_types Eloquent relation class or array of Eloquent relation classes. Eg: BelongsTo
-     *
-     * @return array The fields with corresponding relation types.
-     */
-    public function getFieldsWithRelationType($relation_types): array
-    {
-        $relation_types = (array) $relation_types;
-
-        return collect($this->fields())
-            ->where('model')
-            ->whereIn('relation_type', $relation_types)
-            ->filter(function ($item) {
-                $related_model = get_class($this->model->{Str::before($item['entity'], '.')}()->getRelated());
-
-                return Str::contains($item['entity'], '.') && $item['model'] !== $related_model ? false : true;
-            })
-            ->toArray();
-    }
-
     /**
      * Parse the field name back to the related entity after the form is submited.
      * Its called in getAllFieldNames().
@@ -102,7 +91,7 @@ trait Relationships
     public function parseRelationFieldNamesFromHtml($fields)
     {
         foreach ($fields as &$field) {
-            //we only want to parse fields that has a relation type and their name contains [ ] used in html.
+            // we only want to parse fields that has a relation type and their name contains [ ] used in html.
             if (isset($field['relation_type']) && preg_match('/[\[\]]/', $field['name']) !== 0) {
                 $chunks = explode('[', $field['name']);
 
@@ -137,7 +126,7 @@ trait Relationships
      * Based on relation type returns the default field type.
      *
      * @param string $relation_type
-     * @return bool
+     * @return string
      */
     public function inferFieldTypeFromFieldRelation($field)
     {
@@ -149,7 +138,6 @@ trait Relationships
             case 'MorphToMany':
             case 'BelongsTo':
                 return 'relationship';
-
             default:
                 return 'text';
         }
@@ -172,7 +160,6 @@ trait Relationships
             case 'MorphOneOrMany':
             case 'MorphToMany':
                 return true;
-
             default:
                 return false;
         }
@@ -188,13 +175,42 @@ trait Relationships
     {
         switch ($relation_type) {
             case 'BelongsToMany':
-            case 'HasManyThrough':
-            case 'MorphMany':
-            case 'MorphOneOrMany':
             case 'MorphToMany':
                 return true;
+                break;
             default:
                 return false;
+                break;
         }
+    }
+
+    /**
+     * Check if field name contains a dot, if so, meaning it's a nested relation.
+     *
+     * @param array $field
+     * @return bool
+     */
+    protected function isNestedRelation($field): bool
+    {
+        return Str::contains($field['entity'], '.');
+    }
+
+    /**
+     * Return the relation without any model attributes there.
+     * Eg. user.entity_id would return user, as entity_id is not a relation in user.
+     *
+     * @param array $relation_field
+     * @return string
+     */
+    public function getOnlyRelationEntity($relation_field)
+    {
+        $relation_model = $this->getRelationModel($relation_field['entity'], -1);
+        $related_method = Str::afterLast($relation_field['entity'], '.');
+
+        if (! method_exists($relation_model, $related_method) && $this->isNestedRelation($relation_field)) {
+            return Str::beforeLast($relation_field['entity'], '.');
+        }
+
+        return $relation_field['entity'];
     }
 }

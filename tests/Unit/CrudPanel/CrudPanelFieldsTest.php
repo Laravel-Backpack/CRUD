@@ -548,7 +548,7 @@ class CrudPanelFieldsTest extends BaseDBCrudPanelTest
         $this->assertEquals($field['relation_type'], 'HasOne');
     }
 
-    public function testFieldNameIsRelationInCrudModel()
+    public function testCanInferRelationTypeFromRelationName()
     {
         $this->crudPanel->setModel(User::class);
         $this->crudPanel->addField('roles');
@@ -556,11 +556,32 @@ class CrudPanelFieldsTest extends BaseDBCrudPanelTest
         $this->assertEquals($field['relation_type'], 'BelongsToMany');
     }
 
-    public function testFieldNameIsPartialRelationInCrudModel()
+    public function testFieldNamePartiallyMatchesRelationName()
     {
         $this->crudPanel->setModel(User::class);
         $this->crudPanel->addField('articles_id');
         $field = $this->crudPanel->fields()['articles_id'];
         $this->assertEquals($field['relation_type'], 'HasMany');
+    }
+
+    public function testCanGetRelationFieldsBySingleRelation()
+    {
+        $this->crudPanel->setModel(User::class);
+        $this->crudPanel->addField('roles');
+        $this->crudPanel->addField('accountDetails.nickname');
+        $relationField = $this->crudPanel->getFieldsWithRelationType('BelongsToMany');
+        $this->assertCount(1, $relationField);
+    }
+
+    public function testCanGetRelationFieldsByArrayOfRelations()
+    {
+        $this->crudPanel->setModel(User::class);
+        $this->crudPanel->addField('roles');
+        $this->crudPanel->addField('accountDetails.nickname');
+        // this next field should not be returned because is not a direct relation
+        $this->crudPanel->addField('accountDetails.article');
+        $relationField = $this->crudPanel->getFieldsWithRelationType(['BelongsToMany', 'HasOne']);
+
+        $this->assertCount(2, $relationField);
     }
 }

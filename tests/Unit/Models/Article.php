@@ -10,7 +10,7 @@ class Article extends Model
     use CrudTrait;
 
     protected $table = 'articles';
-    protected $fillable = ['user_id', 'content', 'metas', 'tags', 'extras', 'cast_metas', 'cast_tags', 'cast_extras'];
+    protected $fillable = ['user_id', 'content', 'address_id', 'metas', 'tags', 'extras', 'cast_metas', 'cast_tags', 'cast_extras'];
     protected $casts = [
         'cast_metas'  => 'object',
         'cast_tags'   => 'object',
@@ -23,6 +23,11 @@ class Article extends Model
     public function user()
     {
         return $this->belongsTo('Backpack\CRUD\Tests\Unit\Models\User');
+    }
+
+    public function address()
+    {
+        return $this->belongsTo('Backpack\CRUD\Tests\Unit\Models\Address');
     }
 
     public function getContentComposedAttribute()

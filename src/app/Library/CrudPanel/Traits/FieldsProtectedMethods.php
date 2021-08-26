@@ -108,8 +108,8 @@ trait FieldsProtectedMethods
      * try to determine the method on the model that defines the relationship, and pass it to
      * the field as 'entity'.
      *
-     * @param  [type] $field [description]
-     * @return [type]        [description]
+     * @param  array $field
+     * @return array
      */
     protected function makeSureFieldHasEntity($field)
     {
@@ -122,7 +122,7 @@ trait FieldsProtectedMethods
             return $field;
         }
 
-        //if the name is dot notation we are sure it's a relationship
+        // if the name is dot notation we are sure it's a relationship
         if (strpos($field['name'], '.') !== false) {
             $field['entity'] = $field['name'];
 
@@ -159,7 +159,7 @@ trait FieldsProtectedMethods
         }
 
         // only 1-1 relationships are supported, if it's anything else, abort
-        if ($field['relation_type'] != 'HasOne') {
+        if ($field['relation_type'] != 'HasOne' || $field['relation_type'] != 'MorphOne') {
             return $field;
         }
 
