@@ -429,18 +429,15 @@ trait Fields
      * Returns the request without anything that might have been maliciously inserted.
      * Only specific field names that have been introduced with addField() are kept in the request.
      */
-    public function getStrippedSaveRequest()
+    public function getStrippedSaveRequest($request)
     {
-        $setting = $this->getOperationSetting('saveAllInputsExcept');
-        if ($setting == false || $setting == null) {
-            return $this->getRequest()->only($this->getAllFieldNames());
+        $saveAllInputsExcept = $this->getOperationSetting('saveAllInputsExcept');
+
+        if (is_array($saveAllInputsExcept)) {
+            return $request->except($saveAllInputsExcept);
         }
 
-        if (is_array($setting)) {
-            return $this->getRequest()->except($this->getOperationSetting('saveAllInputsExcept'));
-        }
-
-        return $this->getRequest()->only($this->getAllFieldNames());
+        return $request->only(array_merge($this->getAllFieldNames(), $this->model->getFillable()));
     }
 
     /**
