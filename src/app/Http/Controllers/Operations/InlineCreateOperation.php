@@ -19,20 +19,31 @@ trait InlineCreateOperation
         Route::post($segment.'/inline/create/modal', [
             'as'        => $segment.'-inline-create',
             'uses'      => $controller.'@getInlineCreateModal',
-            'operation' => 'InlineCreate',
+            'operation' => 'DefaultInlineCreate',
         ]);
         Route::post($segment.'/inline/create', [
             'as'        => $segment.'-inline-create-save',
             'uses'      => $controller.'@storeInlineCreate',
-            'operation' => 'InlineCreate',
+            'operation' => 'DefaultInlineCreate',
         ]);
     }
 
     /**
-     * Setup operation default settings. We run setup() and setupCreateOperation() because those are run in middleware
-     * and to get the fields we need them earlier in application lifecycle.
+     *  This operation have some known quirks that can only be addressed using this setup instead of `setupInlineCreateDefaults`
+     *  1 - InlineCreateOperation must be added AFTER CreateOperation trait.
+     *  2 - setup() in controllers that have the InlineCreateOperations need to be called twice (technically we are re-creating a new crud).
+     *
+     *  We use this setup to make this operation behaviour similar to other operations, so developer could still override
+     *  the defaults with `setupInlineCreateOperation` as with any other operation.
+     *
+     *  `setupInlineCreateDefaults` is not used because of the time it is called in the stack. The "defaults" are applied in backpack
+     *  to all operations, before applying operation specific setups. As this operation directly need to call other
+     *  methods in the CrudController, it should only be "initialized" when it's requested.
+     *
+     *  To solve the mentioned problems we initialize the operation defaults at the same time we apply developer setup. Developer settings
+     *  are applied after the defaults to prevail.
      */
-    protected function setupInlineCreateDefaults()
+    protected function setupDefaultInlineCreateOperation()
     {
         if (method_exists($this, 'setup')) {
             $this->setup();
@@ -42,6 +53,10 @@ trait InlineCreateOperation
         }
 
         $this->crud->applyConfigurationFromSettings('create');
+
+        if (method_exists($this, 'setupInlineCreateOperation')) {
+            $this->setupInlineCreateOperation();
+        }
     }
 
     /**
