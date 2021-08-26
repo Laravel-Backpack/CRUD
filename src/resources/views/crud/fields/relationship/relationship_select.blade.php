@@ -58,6 +58,7 @@
     <select
         style="width:100%"
         name="{{ $field['name'].($field['multiple']?'[]':'') }}"
+        data-single-name="{{$field['name']}}"
         data-init-function="bpFieldInitRelationshipSelectElement"
         data-column-nullable="{{ var_export($field['allows_null']) }}"
         data-dependencies="{{ isset($field['dependencies'])?json_encode(Arr::wrap($field['dependencies'])): json_encode([]) }}"
@@ -76,10 +77,7 @@
         multiple
         @endif
         >
-        @if ($field['allows_null'])
-            <option value="">-</option>
-        @endif
-
+        <option value=""></option>
         @if (count($field['options']))
             @foreach ($field['options'] as $key => $option)
                     <option value="{{ $key }}">{{ $option }}</option>
@@ -145,7 +143,11 @@
         var $multiple = element.attr('data-field-multiple')  == 'false' ? false : true;
         var $selectedOptions = typeof element.attr('data-selected-options') === 'string' ? JSON.parse(element.attr('data-selected-options')) : JSON.parse(null);
         var $allows_null = (element.attr('data-column-nullable') == 'true') ? true : false;
-        var $allowClear = $allows_null;
+
+
+        var $single_name = element.attr('data-single-name');
+        var $multiple_name = $single_name+'[]';
+
 
         var $item = false;
 
@@ -154,6 +156,7 @@
         if(Object.keys($value).length > 0) {
             $item = true;
         }
+
         var selectedOptions = [];
         var $currentValue = $item ? $value : '';
 
@@ -162,22 +165,122 @@
             $(element).val(selectedOptions);
         }
 
-        if (!$allows_null && $item === false) {
-            element.find('option:eq(0)').prop('selected', true);
-        }
+        //this variable checks if there are any options selected in the multi-select field
+        //if there is no options the field will initialize as a single select.
+        var $multiple_init = (Array.isArray(element.val()) && element.val().length > 0 && $multiple) ? true : false;
 
         $(element).attr('data-current-value',$(element).val());
+
         $(element).trigger('change');
 
         var $select2Settings = {
                 theme: 'bootstrap',
-                multiple: $multiple,
+                multiple: $multiple_init,
                 placeholder: $placeholder,
-                allowClear: $allowClear,
-            };
+                allowClear: $multiple_init ? true : false,
+        };
+
         if (!$(element).hasClass("select2-hidden-accessible"))
         {
-            $(element).select2($select2Settings);
+            $(element).select2($select2Settings).on('select2:unselect', function (e) {
+                if ($multiple && Array.isArray(element.val()) && element.val().length == 0) {
+                    //if there are no options selected we make sure the field name is reverted to single selection
+                    //this way browser will send the empty value, otherwise it will omit the multiple input when empty
+                    if(typeof element.attr('name') !== typeof undefined) {
+                        element.attr('name', $single_name);
+                    }else{
+                        element.attr('data-repeatable-input-name', $single_name)
+                    }
+                    //we also change the multiple attribute from field
+                    element.attr('multiple',false);
+                    //we destroy the current select
+                    setTimeout(function() {
+                        element.select2('destroy');
+                    });
+
+                    //we reinitialize the select as a single select
+                    setTimeout(function() {
+                        element.select2({
+                            theme: "bootstrap",
+                            placeholder: $placeholder,
+                            allowClear: false,
+                            multiple: false
+                        })
+                    });
+                    element.append('<option value=""></option>');
+                    element.val(null).trigger('change');
+                }
+            }).on('select2:unselecting', function(e) {
+                //we set a variable in the field that indicates that an unselecting operation is running
+                //we will read this variable in the opening event to determine if we should open the options
+                element.data('unselecting',true);
+                return true;
+            }).on('select2:selecting', function(e) {
+                //when we select an option, if the element does not have the multiple attribute
+                //but is indeed a multiple field, we know that this happened because we setup a single select while there is no selection
+                //and now that user selected atleast one option we will make it multiple again.
+                //the reason for this is because multiple selects are not sent by browser in request when empty
+                //making it a single select when empty, will, send the value empty in request.
+                if(typeof element.attr('multiple') === typeof undefined && $multiple) {
+                    //set the element attribute multiple back to true
+                    element.attr('multiple',true);
+                    //revert the name to array
+                    if(typeof element.attr('name') !== typeof undefined) {
+                        element.attr('name', $multiple_name);
+                    }else{
+                        element.attr('data-repeatable-input-name', $multiple_name)
+                    }
+                    setTimeout(function() {
+                        element.select2('destroy');
+                    });
+
+                    //we remove the placeholder option
+                    $(element.find('option[value=""]')).remove();
+
+                    setTimeout(function() {
+                        element.select2({
+                            theme: "bootstrap",
+                            placeholder: $placeholder,
+                            allowClear: true,
+                            multiple: true
+                        });
+                    });
+                }
+            }).on('select2:clear', function(e) {
+                //when clearing the selection we revert the field back to a "select single" state if it's multiple.
+                if($multiple) {
+                    if(typeof element.attr('name') !== typeof undefined) {
+                        element.attr('name', $single_name);
+                    }else{
+                        element.attr('data-repeatable-input-name', $single_name)
+                    }
+                    element.attr('multiple',false);
+
+                    setTimeout(function() {
+                        element.select2('destroy');
+                    });
+
+                    setTimeout(function() {
+                        element.select2({
+                            theme: "bootstrap",
+                            placeholder: $placeholder,
+                            allowClear: false,
+                            multiple: false
+                        });
+
+                    });
+
+                    element.append('<option value=""></option>');
+                    element.val(null).trigger('change');
+                }
+            }).on('select2:opening', function() {
+                //this prevents the selection from opening upon clearing the field
+                if (element.data('unselecting') === true) {
+                    element.data('unselecting', false);
+                    return false;
+                }
+                return true;
+            });
         }
     }
 </script>

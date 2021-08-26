@@ -3,6 +3,7 @@
 namespace Backpack\CRUD\app\Library\CrudPanel\Traits;
 
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Arr;
 
@@ -188,10 +189,70 @@ trait Create
                     $modelInstance = new $model($relationData['values']);
                     $relation->save($modelInstance);
                 }
+            } elseif ($relation instanceof HasMany) {
+                $relation_values = $relationData['values'][$relationMethod];
+                $this->attachManyRelation($item, $relation, $relationMethod, $relationData, $relation_values);
             }
 
             if (isset($relationData['relations'])) {
                 $this->createRelationsForItem($modelInstance, ['relations' => $relationData['relations']]);
+            }
+        }
+    }
+
+    /**
+     * When using the HasMany/MorphMany relations as selectable elements we use this function to sync those relations.
+     * Here we allow for different functionality than when creating. Developer could use this relation as a
+     * selectable list of items that can belong to one/none entity at any given time.
+     *
+     * @return void
+     */
+    public function attachManyRelation($item, $relation, $relationMethod, $relationData, $relation_values)
+    {
+        $model_instance = $relation->getRelated();
+        $force_delete = $relationData['force_delete'] ?? false;
+        $relation_foreign_key = $relation->getForeignKeyName();
+        $relation_local_key = $relation->getLocalKeyName();
+
+        $relation_column_is_nullable = $model_instance->isColumnNullable($relation_foreign_key);
+
+        if ($relation_values !== null && $relationData['values'][$relationMethod][0] !== null) {
+            // we add the new values into the relation
+            $model_instance->whereIn($model_instance->getKeyName(), $relation_values)
+                ->update([$relation_foreign_key => $item->{$relation_local_key}]);
+
+            // we clear up any values that were removed from model relation.
+            // if developer provided a fallback id, we use it
+            // if column is nullable we set it to null if developer didn't specify `force_delete => true`
+            // if none of the above we delete the model from database
+            if (isset($relationData['fallback_id'])) {
+                $model_instance->whereNotIn($model_instance->getKeyName(), $relation_values)
+                    ->where($relation_foreign_key, $item->{$relation_local_key})
+                    ->update([$relation_foreign_key => $relationData['fallback_id']]);
+            } else {
+                if (! $relation_column_is_nullable || $force_delete) {
+                    $model_instance->whereNotIn($model_instance->getKeyName(), $relation_values)
+                        ->where($relation_foreign_key, $item->{$relation_local_key})
+                        ->delete();
+                } else {
+                    $model_instance->whereNotIn($model_instance->getKeyName(), $relation_values)
+                        ->where($relation_foreign_key, $item->{$relation_local_key})
+                        ->update([$relation_foreign_key => null]);
+                }
+            }
+        } else {
+            // the developer cleared the selection
+            // we gonna clear all related values by setting up the value to the fallback id, to null or delete.
+            if (isset($relationData['fallback_id'])) {
+                $model_instance->where($relation_foreign_key, $item->{$relation_local_key})
+                    ->update([$relation_foreign_key => $relationData['fallback_id']]);
+            } else {
+                if (! $relation_column_is_nullable || $force_delete) {
+                    $model_instance->where($relation_foreign_key, $item->{$relation_local_key})->delete();
+                } else {
+                    $model_instance->where($relation_foreign_key, $item->{$relation_local_key})
+                        ->update([$relation_foreign_key => null]);
+                }
             }
         }
     }
@@ -217,9 +278,17 @@ trait Create
     private function getRelationDataFromFormData($data)
     {
         $relation_fields = $this->getRelationFields();
+
+        $relation_fields = $this->parseRelationFieldNamesFromHtml($relation_fields);
+
+        //remove fields that are not in the submitted form.
+        $relation_fields = array_filter($relation_fields, function ($item) use ($data) {
+            return Arr::has($data, $item['name']);
+        });
+
         $relationData = [];
         foreach ($relation_fields as $relation_field) {
-            $attributeKey = $this->parseRelationFieldNamesFromHtml([$relation_field])[0]['name'];
+            $attributeKey = $relation_field['name'];
 
             if (! is_null(Arr::get($data, $attributeKey)) && isset($relation_field['pivot']) && $relation_field['pivot'] !== true) {
                 $key = implode('.relations.', explode('.', $this->getOnlyRelationEntity($relation_field)));
