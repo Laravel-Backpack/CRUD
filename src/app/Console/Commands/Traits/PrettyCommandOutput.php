@@ -96,4 +96,29 @@ trait PrettyCommandOutput
             $this->{$type}($content);
         }
     }
+
+    /**
+     * Write a title inside a box.
+     *
+     * @param string $content
+     */
+    public function box($content)
+    {
+        for ($i = 0, $line = ''; $i < strlen($content); ++$i, $line .= '─');
+
+        $this->line('');
+        $this->info("┌───{$line}───┐");
+        $this->info("│   $content   │");
+        $this->info("└───{$line}───┘");
+    }
+
+    /**
+     * Write a title inside a box.
+     *
+     * @param string $content
+     */
+    public function note($content)
+    {
+        $this->line("│ $content");
+    }
 }

@@ -57,5 +57,14 @@ class Install extends Command
 
         $this->progressBar->finish();
         $this->info(' Backpack installation finished.');
+
+        // DevTools
+        $this->box('Backpack DevTools');
+        $this->note('DevTools adds a dead-simple web interface to easily generate Models, Migrations, Seeders, Factories, CRUDs, etc.');
+        $this->note('More info and payment on https://backpackforlaravel.com/products/devtools');
+
+        if ($this->confirm('Would you like to also install Backpack DevTools?', true)) {
+            $this->call('backpack:require:devtools');
+        }
     }
 }
