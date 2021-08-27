@@ -93,6 +93,9 @@ return [
             // Should we show a cancel button to the user?
             'showCancelButton' => true,
 
+            // Should we warn a user before leaving the page with unsaved changes?
+            'warnBeforeLeaving' => false,
+
             // Before saving the entry, how would you like the request to be stripped?
             // - false - ONLY save inputs that have fields (safest)
             // - [x, y, z] - save ALL inputs, EXCEPT the ones given in this array
@@ -128,6 +131,9 @@ return [
 
             // Should we show a cancel button to the user?
             'showCancelButton' => true,
+
+            // Should we warn a user before leaving the page with unsaved changes?
+            'warnBeforeLeaving' => false,
 
             // Before saving the entry, how would you like the request to be stripped?
             // - false - Save ONLY inputs that have a field (safest, default);
