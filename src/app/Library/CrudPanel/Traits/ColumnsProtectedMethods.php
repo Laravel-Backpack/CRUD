@@ -80,14 +80,55 @@ trait ColumnsProtectedMethods
      */
     protected function makeSureColumnHasType($column)
     {
-        $could_be_relation = isset($column['entity']) && $column['entity'] !== false;
+        // Do not alter type if it has been set by developer
+        if (isset($column['type'])) {
+            return $column;
+        }
 
-        if (! isset($column['type']) && $could_be_relation) {
+        // Set text as default column type
+        $column['type'] = 'text';
+
+        $could_be_relation = Arr::get($column, 'entity', false) !== false;
+
+        if ($could_be_relation) {
             $column['type'] = 'relationship';
         }
 
-        if (! isset($column['type'])) {
-            $column['type'] = 'text';
+        if (in_array($column['name'], $this->model->getDates())) {
+            $column['type'] = 'datetime';
+        }
+
+        if ($this->model->hasCast($column['name'])) {
+            $attributeType = $this->model->getCasts()[$column['name']];
+
+            switch ($attributeType) {
+                case 'array':
+                case 'encrypted:array':
+                case 'collection':
+                case 'encrypted:collection':
+                case 'json':
+                case 'object':
+                    $column['type'] = 'array';
+                    break;
+                case 'bool':
+                case 'boolean':
+                    $column['type'] = 'check';
+                    break;
+                case 'date':
+                    $column['type'] = 'date';
+                    break;
+                case 'datetime':
+                    $column['type'] = 'datetime';
+                    break;
+                case 'double':
+                case 'float':
+                case 'int':
+                case 'integer':
+                case 'real':
+                case 'timestamp':
+                    $column['type'] = 'number';
+                    break;
+            }
         }
 
         return $column;
