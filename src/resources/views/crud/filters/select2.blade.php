@@ -84,7 +84,7 @@
             // trigger select2 for each untriggered select2 box
             $('select[data-filter-type=select2]').not('[data-filter-enabled]').each(function () {
             	var filterName = $(this).attr('data-filter-name');
-                var filter_key = $(this).attr('data-filter-key');
+                var filterKey = $(this).attr('data-filter-key');
             	var element = $(this);
 
             	$(this).attr('data-filter-enabled', 'true');
@@ -95,45 +95,42 @@
 					theme: "bootstrap",
 					dropdownParent: $(this).parent('.form-group'),
 	        	    placeholder: $(this).attr('placeholder'),
-	            });
-
-				$(this).change(function() {
+	            }).on('change', function(c) {
 					var value = $(this).val();
 					var parameter = $(this).attr('data-filter-name');
 
-			    	// behaviour for ajax table
-					var ajax_table = $("#crudTable").DataTable();
-					var current_url = ajax_table.ajax.url();
-					var new_url = addOrUpdateUriParameter(current_url, parameter, value);
+                    if(!value) {
+                       return;
+                    }
 
-					// replace the datatables ajax url with new_url and reload it
-					new_url = normalizeAmpersand(new_url.toString());
-					ajax_table.ajax.url(new_url).load();
+                    var new_url = updateDatatablesOnFilterChange(filterName, value, true);
 
-					// add filter to URL
-					crud.updateUrl(new_url);
+                    // mark this filter as active in the navbar-filters
+                    if (URI(new_url).hasQuery(filterName, true)) {
+                        $("li[filter-key="+filterKey+"]").addClass('active');
+                    }
+				}).on('select2:unselecting', function (e) {
 
-					// mark this filter as active in the navbar-filters
-					if (URI(new_url).hasQuery(parameter, true)) {
-						$("li[filter-key="+filter_key+"]").addClass('active');
-					}
-					else
-					{
-						$("li[filter-key="+filter_key+"]").removeClass("active");
-						$("li[filter-key="+filter_key+"]").find('.dropdown-menu').removeClass("show");
-					}
-				});
+                    updateDatatablesOnFilterChange(filterName, null, true);
+
+                    $('#filter_'+filterKey).val(null)
+                    $("li[filter-key="+filterKey+"]").removeClass("active");
+                    $("li[filter-key="+filterKey+"]").find('.dropdown-menu').removeClass("show");
+
+                    e.stopPropagation();
+                    return false;
+                });
+
 
 				// when the dropdown is opened, autofocus on the select2
-				$("li[filter-key="+filter_key+"]").on('shown.bs.dropdown', function () {
-					$('select[data-filter-key='+filter_key+']').select2('open');
+				$("li[filter-key="+filterKey+"]").on('shown.bs.dropdown', function () {
+					$('select[data-filter-key='+filterKey+']').select2('open');
 				});
 
 				// clear filter event (used here and by the Remove all filters button)
-				$("li[filter-key="+filter_key+"]").on('filter:clear', function(e) {
-					// console.log('select2 filter cleared');
-					$("li[filter-key="+filter_key+"]").removeClass('active');
-	                $('#filter_'+filter_key).val(null).trigger('change');
+				$("li[filter-key="+filterKey+"]").on('filter:clear', function(e) {
+					$("li[filter-key="+filterKey+"]").removeClass('active');
+	                $('#filter_'+filterKey).val(null).trigger('change');
 				});
             });
 		});

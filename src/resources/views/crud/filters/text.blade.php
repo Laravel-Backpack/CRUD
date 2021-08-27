@@ -34,22 +34,14 @@
 	<!-- include select2 js-->
   <script>
 		jQuery(document).ready(function($) {
+            var shouldUpdateUrl = false;
 			$('#text-filter-{{ $filter->key }}').on('change', function(e) {
 
 				var parameter = '{{ $filter->name }}';
 				var value = $(this).val();
 
-		    	// behaviour for ajax table
-				var ajax_table = $('#crudTable').DataTable();
-				var current_url = ajax_table.ajax.url();
-				var new_url = addOrUpdateUriParameter(current_url, parameter, value);
-
-				// replace the datatables ajax url with new_url and reload it
-				new_url = normalizeAmpersand(new_url.toString());
-				ajax_table.ajax.url(new_url).load();
-
-				// add filter to URL
-				crud.updateUrl(new_url);
+				var new_url = updateDatatablesOnFilterChange(parameter, value, value || shouldUpdateUrl);
+				shouldUpdateUrl = false;
 
 				// mark this filter as active in the navbar-filters
 				if (URI(new_url).hasQuery('{{ $filter->name }}', true)) {
@@ -64,10 +56,11 @@
 				$('#text-filter-{{ $filter->key }}').val('');
 			});
 
-			// datepicker clear button
+			// clear button for text filter
 			$(".text-filter-{{ $filter->key }}-clear-button").click(function(e) {
 				e.preventDefault();
-
+                // when clicking this button this is the only removed filter, so we should update the url in this specific scenario.
+                shouldUpdateUrl = true;
 				$('li[filter-key={{ $filter->key }}]').trigger('filter:clear');
 				$('#text-filter-{{ $filter->key }}').val('');
 				$('#text-filter-{{ $filter->key }}').trigger('change');

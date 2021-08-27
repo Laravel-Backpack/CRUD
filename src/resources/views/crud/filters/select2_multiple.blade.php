@@ -84,7 +84,7 @@
             // trigger select2 for each untriggered select2 box
             $('select[name=filter_{{ $filter->key }}]').not('[data-filter-enabled]').each(function () {
             	var filterName = $(this).attr('data-filter-name');
-                var filter_key = $(this).attr('data-filter-key');
+                var filterKey = $(this).attr('data-filter-key');
 
                 $(this).select2({
                 	allowClear: true,
@@ -92,52 +92,62 @@
 					theme: "bootstrap",
 					dropdownParent: $(this).parent('.form-group'),
 	        	    placeholder: $(this).attr('placeholder'),
+                }).on('change', function() {
+                    var value = '';
+                    if (Array.isArray($(this).val())) {
+                        // clean array from undefined, null, "".
+                        var values = $(this).val().filter(function(e){ return e === 0 || e });
+                        // stringify only if values is not empty. otherwise it will be '[]'.
+                        value = values.length ? JSON.stringify(values) : '';
+                    }
+
+                    if (!value) {
+                        return;
+                    }
+
+                    var new_url = updateDatatablesOnFilterChange(filterName, value, true);
+
+                    // mark this filter as active in the navbar-filters
+                    if (URI(new_url).hasQuery(filterName, true)) {
+                        $("li[filter-key="+filterKey+"]").addClass('active');
+                    }
+
+				}).on('select2:unselecting', function(e) {
+
+                    var unselectingValue = e.params.args.data.id;
+                    let currentElementValue = $(this).val();
+
+                    if(currentElementValue.length) {
+
+                        currentElementValue = currentElementValue.filter(function(v) {
+                            return v !== unselectingValue
+                        });
+
+                        if (!currentElementValue.length) {
+                            updateDatatablesOnFilterChange(filterName, null, true);
+
+                            $("li[filter-key="+filterKey+"]").removeClass("active");
+                            $("li[filter-key="+filterKey+"]").find('.dropdown-menu').removeClass("show");
+                        }
+                    }
+
+                }).on('select2:clear', function(e) {
+                    // when the "x" clear all button is pressed, we update the table
+                    updateDatatablesOnFilterChange(filterName, null, true);
+
+                    $("li[filter-key="+filterKey+"]").removeClass("active");
+					$("li[filter-key="+filterKey+"]").find('.dropdown-menu').removeClass("show");
                 });
 
-                $(this).change(function() {
-	                var value = '';
-	                if (Array.isArray($(this).val())) {
-	                    // clean array from undefined, null, "".
-	                    var values = $(this).val().filter(function(e){ return e === 0 || e });
-	                    // stringify only if values is not empty. otherwise it will be '[]'.
-	                    value = values.length ? JSON.stringify(values) : '';
-	                }
-
-					var parameter = '{{ $filter->name }}';
-
-			    	// behaviour for ajax table
-					var ajax_table = $("#crudTable").DataTable();
-					var current_url = ajax_table.ajax.url();
-					var new_url = addOrUpdateUriParameter(current_url, parameter, value);
-
-					// replace the datatables ajax url with new_url and reload it
-					new_url = normalizeAmpersand(new_url.toString());
-					ajax_table.ajax.url(new_url).load();
-
-					// add filter to URL
-					crud.updateUrl(new_url);
-
-					// mark this filter as active in the navbar-filters
-					if (URI(new_url).hasQuery(filterName, true)) {
-						$("li[filter-key="+filter_key+"]").addClass('active');
-					}
-					else
-					{
-						$("li[filter-key="+filter_key+"]").removeClass("active");
-						$("li[filter-key="+filter_key+"]").find('.dropdown-menu').removeClass("show");
-					}
-				});
-
 				// when the dropdown is opened, autofocus on the select2
-				$("li[filter-key="+filter_key+"]").on('shown.bs.dropdown', function () {
-					$('#filter_'+filter_key+'').select2('open');
+				$("li[filter-key="+filterKey+"]").on('shown.bs.dropdown', function () {
+					$('#filter_'+filterKey+'').select2('open');
 				});
 
 				// clear filter event (used here and by the Remove all filters button)
-				$("li[filter-key="+filter_key+"]").on('filter:clear', function(e) {
-					// console.log('select2 filter cleared');
-					$("li[filter-key="+filter_key+"]").removeClass('active');
-	                $('#filter_'+filter_key).val(null).trigger('change.select2');
+				$("li[filter-key="+filterKey+"]").on('filter:clear', function(e) {
+					$("li[filter-key="+filterKey+"]").removeClass('active');
+	                $('#filter_'+filterKey).val(null).trigger('change');
 				});
             });
 		});

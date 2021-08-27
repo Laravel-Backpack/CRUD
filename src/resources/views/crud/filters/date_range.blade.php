@@ -103,15 +103,9 @@
   			}
 
             var parameter = '{{ $filter->name }}';
-	    	// behaviour for ajax table
-			var ajax_table = $('#crudTable').DataTable();
-			var current_url = ajax_table.ajax.url();
-			var new_url = addOrUpdateUriParameter(current_url, parameter, value);
-			// replace the datatables ajax url with new_url and reload it
-			new_url = normalizeAmpersand(new_url.toString());
-			ajax_table.ajax.url(new_url).load();
-			// add filter to URL
-			crud.updateUrl(new_url);
+
+			var new_url = updateDatatablesOnFilterChange(parameter, value, true);
+
 			// mark this filter as active in the navbar-filters
 			if (URI(new_url).hasQuery('{{ $filter->name }}', true)) {
 				$('li[filter-key={{ $filter->key }}]').removeClass('active').addClass('active');
@@ -121,6 +115,8 @@
   		}
 
 		jQuery(document).ready(function($) {
+
+            var dateRangeShouldUpdateFilterUrl = false;
 
             moment.locale('{{app()->getLocale()}}');
 

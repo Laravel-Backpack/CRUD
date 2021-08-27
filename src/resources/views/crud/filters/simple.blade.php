@@ -62,7 +62,7 @@
 
 			// clear filter event (used here and by the Remove all filters button)
 			$("li[filter-key={{ $filter->key }}]").on('filter:clear', function(e) {
-				// console.log('dropdown filter cleared');
+
 				$("li[filter-key={{ $filter->key }}]").removeClass('active');
 			});
 		});
