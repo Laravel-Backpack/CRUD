@@ -17,7 +17,7 @@
 
         @if (count($field['options']))
             @foreach ($field['options'] as $key => $value)
-                @if((old(square_brackets_to_dots($field['name'])) && (
+                @if((old(square_brackets_to_dots($field['name'])) !== null && (
                         $key == old(square_brackets_to_dots($field['name'])) ||
                         (is_array(old(square_brackets_to_dots($field['name']))) &&
                         in_array($key, old(square_brackets_to_dots($field['name'])))))) ||
