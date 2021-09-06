@@ -178,17 +178,6 @@ class CrudField
     }
 
     /**
-     * Replace all field attributes on the CrudField object
-     * with the given array of attribute-value pairs.
-     *
-     * @param array $array Array of attributes and their values.
-     */
-    private function setAllAttributeValues($array)
-    {
-        $this->attributes = $array;
-    }
-
-    /**
      * Update the global CrudPanel object with the current field attributes.
      *
      * @return CrudField
@@ -204,6 +193,17 @@ class CrudField
         }
 
         return $this;
+    }
+
+    /**
+     * Replace all field attributes on the CrudField object
+     * with the given array of attribute-value pairs.
+     *
+     * @param array $array Array of attributes and their values.
+     */
+    private function setAllAttributeValues($array)
+    {
+        $this->attributes = $array;
     }
 
     // -----------------

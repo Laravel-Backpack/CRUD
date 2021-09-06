@@ -492,4 +492,19 @@ class CrudPanel
 
         return $results;
     }
+
+    /**
+     * Allow to add an attribute to multiple fields/columns/filters/buttons at same time.
+     *
+     * Using the fluent syntax allow the developer to add attributes to multiple fields at the same time. Eg:
+     *
+     * - CRUD::group(CRUD::field('price')->type('number'), CRUD::field('title')->type('text'))->tab('both_on_same_tab');
+     *
+     * @param  mixed fluent syntax objects.
+     * @return CrudObjectGroup
+     */
+    public function group(...$objects)
+    {
+        return new CrudObjectGroup(...$objects);
+    }
 }
