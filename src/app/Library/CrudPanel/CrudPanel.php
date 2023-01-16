@@ -36,6 +36,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Str;
 
 class CrudPanel
 {
@@ -375,129 +376,50 @@ class CrudPanel
     }
 
     /**
-     * Get the given attribute from a model or models resulting from the specified relation string (eg: the list of streets from
-     * the many addresses of the company of a given user).
+     * Return the related entries attributes from model.
      *
-     * @param  \Illuminate\Database\Eloquent\Model  $model  Model (eg: user).
-     * @param  string  $relationString  Model relation. Can be a string representing the name of a relation method in the given
-     *                                  Model or one from a different Model through multiple relations. A dot notation can be used to specify
-     *                                  multiple relations (eg: user.company.address).
-     * @param  string  $attribute  The attribute from the relation model (eg: the street attribute from the address model).
-     * @return array An array containing a list of attributes from the resulting model.
+     * @param  Model  $model
+     * @param  string  $relationString
+     * @param  string  $attribute
      */
     public function getRelatedEntriesAttributes($model, $relationString, $attribute)
     {
-        $endModels = $this->getRelatedEntries($model, $relationString);
-        $attributes = [];
-        foreach ($endModels as $model => $entries) {
-            $model_instance = new $model();
-            $modelKey = $model_instance->getKeyName();
-
-            if (is_array($entries)) {
-                //if attribute does not exist in main array we have more than one entry OR the attribute
-                //is an acessor that is not in $appends property of model.
-                if (! isset($entries[$attribute])) {
-                    //we first check if we don't have the attribute because it's an acessor that is not in appends.
-                    if ($model_instance->hasGetMutator($attribute) && isset($entries[$modelKey])) {
-                        $entry_in_database = $model_instance->find($entries[$modelKey]);
-                        $attributes[$entry_in_database->{$modelKey}] = $this->parseTranslatableAttributes($model_instance, $attribute, $entry_in_database->{$attribute});
-                    } else {
-                        //we have multiple entries
-                        //for each entry we check if $attribute exists in array or try to check if it's an acessor.
-                        foreach ($entries as $entry) {
-                            if (isset($entry[$attribute])) {
-                                $attributes[$entry[$modelKey]] = $this->parseTranslatableAttributes($model_instance, $attribute, $entry[$attribute]);
-                            } else {
-                                if ($model_instance->hasGetMutator($attribute)) {
-                                    $entry_in_database = $model_instance->find($entry[$modelKey]);
-                                    $attributes[$entry_in_database->{$modelKey}] = $this->parseTranslatableAttributes($model_instance, $attribute, $entry_in_database->{$attribute});
-                                }
-                            }
-                        }
-                    }
-                } else {
-                    //if we have the attribute we just return it, does not matter if it is direct attribute or an acessor added in $appends.
-                    $attributes[$entries[$modelKey]] = $this->parseTranslatableAttributes($model_instance, $attribute, $entries[$attribute]);
-                }
-            }
+        $relationKey = Str::endsWith($relationString, $attribute) ? Str::beforeLast($relationString, '.') : $relationString;
+        $relationInformation = data_get($model, $relationKey);
+        if (empty($relationInformation)) {
+            return [];
         }
+        if (is_a($relationInformation, Model::class)) {
+            $relatedModel = $this->setLocaleOnModel($relationInformation);
 
-        return $attributes;
+            return [$relatedModel->getKey() => $relatedModel->{$attribute}];
+        }
+        if (is_a($relationInformation, Collection::class)) {
+            return $relationInformation->mapWithKeys(function ($item) use ($attribute) {
+                $item = $this->setLocaleOnModel($item);
+
+                return [$item->getKey() => $item->{$attribute}];
+            })->toArray();
+        }
     }
 
     /**
-     * Parse translatable attributes from a model or models resulting from the specified relation string.
+     * Set the locale on the model.
      *
-     * @param  \Illuminate\Database\Eloquent\Model  $model  Model (eg: user).
-     * @param  string  $attribute  The attribute from the relation model (eg: the street attribute from the address model).
-     * @param  string  $value  Attribute value translatable or not
-     * @return string A string containing the translated attributed based on app()->getLocale()
+     * @param  Model  $model
+     * @param  bool  $useFallbackLocale
+     * @return Model
      */
-    public function parseTranslatableAttributes($model, $attribute, $value)
+    public function setLocaleOnModel($model, $useFallbackLocale = true)
     {
-        if (! method_exists($model, 'isTranslatableAttribute')) {
-            return $value;
-        }
-
-        if (! $model->isTranslatableAttribute($attribute)) {
-            return $value;
-        }
-
-        if (! is_array($value)) {
-            $decodedAttribute = json_decode($value, true);
-        } else {
-            $decodedAttribute = $value;
-        }
-
-        if (is_array($decodedAttribute) && ! empty($decodedAttribute)) {
-            if (isset($decodedAttribute[app()->getLocale()])) {
-                return $decodedAttribute[app()->getLocale()];
-            } else {
-                return Arr::first($decodedAttribute);
+        if (method_exists($model, 'translationEnabled') && $model->translationEnabled()) {
+            $locale = $this->getRequest()->input('_locale', app()->getLocale());
+            if (in_array($locale, array_keys($model->getAvailableLocales()))) {
+                $model->setLocale($locale);
+                $model->useFallbackLocale = $useFallbackLocale;
             }
         }
 
-        return $value;
-    }
-
-    /**
-     * Traverse the tree of relations for the given model, defined by the given relation string, and return the ending
-     * associated model instance or instances.
-     *
-     * @param  \Illuminate\Database\Eloquent\Model  $model  The CRUD model.
-     * @param  string  $relationString  Relation string. A dot notation can be used to chain multiple relations.
-     * @return array An array of the associated model instances defined by the relation string.
-     */
-    private function getRelatedEntries($model, $relationString)
-    {
-        $relationArray = explode('.', $this->getOnlyRelationEntity(['entity' => $relationString]));
-        $firstRelationName = Arr::first($relationArray);
-        $relation = $model->{$firstRelationName};
-
-        $results = [];
-        if (! is_null($relation)) {
-            if ($relation instanceof Collection) {
-                $currentResults = $relation->all();
-            } elseif (is_array($relation)) {
-                $currentResults = $relation;
-            } elseif ($relation instanceof Model) {
-                $currentResults = [$relation];
-            } else {
-                $currentResults = [];
-            }
-
-            array_shift($relationArray);
-
-            if (! empty($relationArray)) {
-                foreach ($currentResults as $currentResult) {
-                    $results = array_merge_recursive($results, $this->getRelatedEntries($currentResult, implode('.', $relationArray)));
-                }
-            } else {
-                $relatedClass = get_class($model->{$firstRelationName}()->getRelated());
-                $results[$relatedClass] = $currentResults;
-            }
-        }
-
-        return $results;
+        return $model;
     }
 }

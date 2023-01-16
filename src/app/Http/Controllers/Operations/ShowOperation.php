@@ -74,12 +74,14 @@ trait ShowOperation
 
         // get entry ID from Request (makes sure its the last ID for nested resources)
         $id = $this->crud->getCurrentEntryId() ?? $id;
-
+        $this->crud->autoEagerLoadRelationshipColumns();
         // get the info for that entry (include softDeleted items if the trait is used)
         if ($this->crud->get('show.softDeletes') && in_array('Illuminate\Database\Eloquent\SoftDeletes', class_uses($this->crud->model))) {
-            $this->data['entry'] = $this->crud->getModel()->withTrashed()->findOrFail($id);
+            $this->data['entry'] = $this->crud->query->withTrashed()->findOrFail($id);
+            $this->data['entry'] = $this->crud->setLocaleOnModel($this->data['entry']);
         } else {
             $this->data['entry'] = $this->crud->getEntryWithLocale($id);
+            $this->data['entry']->useFallbackLocale = true;
         }
 
         $this->data['crud'] = $this->crud;
