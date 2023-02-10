@@ -3,7 +3,7 @@
 <head>
     @include(backpack_view('inc.head'))
 </head>
-<body class="app flex-row align-items-center">
+<body class="app flex-row align-items-center @yield('view_classes')">
 
   @yield('header')
 
