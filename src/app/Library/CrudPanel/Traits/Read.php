@@ -78,9 +78,10 @@ trait Read
         }
 
         if ($this->entry->translationEnabled()) {
-            $locale = request('_locale', \App::getLocale());
+            $locale = $this->getRequest()->input('_locale', app()->getLocale());
             if (in_array($locale, array_keys($this->entry->getAvailableLocales()))) {
                 $this->entry->setLocale($locale);
+                $this->entry->useFallbackLocale = $this->getRequest()->input('_use_fallback') ? true : false;
             }
         }
 

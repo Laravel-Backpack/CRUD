@@ -12,15 +12,18 @@
     }
 
     if($column['value'] !== null && !$column['value']->isEmpty()) {
-        $related_key = $column['value']->first()->getKeyName();
-        $column['value'] = $column['value']->pluck($column['attribute'], $related_key);
+        $column['value'] = $column['value']->lazy()->mapWithKeys(function($relatedModel) use ($column, $crud) {
+            if (method_exists($relatedModel, 'translationEnabled') && $relatedModel->translationEnabled()) {
+                $locale = $crud->getRequest()->input('_locale', app()->getLocale());
+                if (in_array($locale, array_keys($relatedModel->getAvailableLocales()))) {
+                    $relatedModel->setLocale($locale);
+                }
+            }
+            return [$relatedModel->getKey() => Str::limit($relatedModel->{$column['attribute']}, $column['limit'], '…')];
+        });
     }
 
-    $column['value'] = $column['value']
-        ->each(function($value) use ($column) {
-            $value = Str::limit($value, $column['limit'], '…');
-        })
-        ->toArray();
+    $column['value'] = $column['value']->toArray();
 @endphp
 
 <span>

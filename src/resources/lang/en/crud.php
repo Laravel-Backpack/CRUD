@@ -33,6 +33,8 @@ return [
     // Translatable models
     'edit_translations' => 'Translation',
     'language'          => 'Language',
+    'no_attributes_translated' => 'This entry is not translated in ',
+    'no_attributes_translated_href_text' => 'Fill inputs from ',
 
     // CRUD table view
     'all'                       => 'All ',

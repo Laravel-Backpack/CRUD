@@ -195,9 +195,10 @@ trait Update
     private function setupRelatedModelLocale($model)
     {
         if (method_exists($model, 'translationEnabled') && $model->translationEnabled()) {
-            $locale = request('_locale', \App::getLocale());
+            $locale = request('_locale', app()->getLocale());
             if (in_array($locale, array_keys($model->getAvailableLocales()))) {
                 $model->setLocale($locale);
+                $model->useFallbackLocale = false;
             }
         }
 
@@ -265,12 +266,10 @@ trait Update
                 if (! Str::contains($name, '.')) {
                     // when subfields are present, $relatedModel->{$name} returns a model instance
                     // otherwise returns the model attribute.
-                    if ($relatedModel->{$name}) {
-                        if (isset($subfield['subfields'])) {
-                            $result[$name] = [$relatedModel->{$name}->only(array_column($subfield['subfields'], 'name'))];
-                        } else {
-                            $result[$name] = $relatedModel->{$name};
-                        }
+                    if ($relatedModel->{$name} && isset($subfield['subfields'])) {
+                        $result[$name] = [$relatedModel->{$name}->only(array_column($subfield['subfields'], 'name'))];
+                    } else {
+                        $result[$name] = $relatedModel->{$name};
                     }
                 } else {
                     // if the subfield name contains a dot, we are going to iterate through
