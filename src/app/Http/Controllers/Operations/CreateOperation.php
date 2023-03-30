@@ -2,7 +2,8 @@
 
 namespace Backpack\CRUD\app\Http\Controllers\Operations;
 
-use Illuminate\Support\Facades\Route;
+use Backpack\CRUD\app\Library\CrudPanel\CrudOperationRoute;
+use Backpack\CRUD\app\Library\CrudPanel\OperationRoutes;
 
 trait CreateOperation
 {
@@ -15,16 +16,17 @@ trait CreateOperation
      */
     protected function setupCreateRoutes($segment, $routeName, $controller)
     {
-        Route::get($segment.'/create', [
-            'as'        => $routeName.'.create',
-            'uses'      => $controller.'@create',
-            'operation' => 'create',
-        ]);
-
-        Route::post($segment, [
-            'as'        => $routeName.'.store',
-            'uses'      => $controller.'@store',
-            'operation' => 'create',
+        return OperationRoutes::register([
+            new CrudOperationRoute('get', $segment.'/create', [
+                'as'        => $routeName.'.create',
+                'uses'      => $controller.'@create',
+                'operation' => 'create',
+            ]),
+            new CrudOperationRoute('post', $segment, [
+                'as'        => $routeName.'.store',
+                'uses'      => $controller.'@store',
+                'operation' => 'create',
+            ]),
         ]);
     }
 

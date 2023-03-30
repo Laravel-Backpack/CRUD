@@ -2,7 +2,8 @@
 
 namespace Backpack\CRUD\app\Http\Controllers\Operations;
 
-use Illuminate\Support\Facades\Route;
+use Backpack\CRUD\app\Library\CrudPanel\CrudOperationRoute;
+use Backpack\CRUD\app\Library\CrudPanel\OperationRoutes;
 
 trait DeleteOperation
 {
@@ -15,10 +16,13 @@ trait DeleteOperation
      */
     protected function setupDeleteRoutes($segment, $routeName, $controller)
     {
-        Route::delete($segment.'/{id}', [
-            'as'        => $routeName.'.destroy',
-            'uses'      => $controller.'@destroy',
-            'operation' => 'delete',
+        return OperationRoutes::register([
+            new CrudOperationRoute('delete', $segment.'/{id}', [
+                'as'        => $routeName.'.destroy',
+                'uses'      => $controller.'@destroy',
+                'operation' => 'delete',
+            ]),
+            //other routes if needed
         ]);
     }
 

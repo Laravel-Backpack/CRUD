@@ -4,6 +4,7 @@ namespace Backpack\CRUD;
 
 use Backpack\CRUD\app\Http\Middleware\ThrottlePasswordRecovery;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanel;
+use Backpack\CRUD\app\Library\CrudPanel\OperationRepository;
 use Backpack\CRUD\app\Library\Database\DatabaseSchema;
 use Illuminate\Routing\Router;
 use Illuminate\Support\Collection;
@@ -71,6 +72,10 @@ class BackpackServiceProvider extends ServiceProvider
 
         $this->app->scoped('DatabaseSchema', function ($app) {
             return new DatabaseSchema();
+        });
+
+        $this->app->scoped('OperationRepository', function ($app) {
+            return new OperationRepository();
         });
 
         $this->app->singleton('BackpackViewNamespaces', function ($app) {
@@ -291,6 +296,6 @@ class BackpackServiceProvider extends ServiceProvider
      */
     public function provides()
     {
-        return ['crud', 'widgets', 'BackpackViewNamespaces', 'DatabaseSchema'];
+        return ['crud', 'widgets', 'BackpackViewNamespaces', 'DatabaseSchema', 'OperationRepository'];
     }
 }
