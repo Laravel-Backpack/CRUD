@@ -8,11 +8,14 @@ use Illuminate\View\Component;
 
 class MenuSeparator extends Component
 {
+    use Concerns\CanBeHidden;
+
     /**
      * Create a new component instance.
      */
     public function __construct(
-        public ?string $title = null
+        public ?string $title = null,
+        public $hidden = false,
     ) {
     }
 
@@ -21,6 +24,10 @@ class MenuSeparator extends Component
      */
     public function render(): View|Closure|string
     {
+        if ($this->isHidden()) {
+            return '';
+        }
+
         return backpack_view('components.menu-separator');
     }
 }

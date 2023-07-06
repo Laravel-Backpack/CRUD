@@ -8,6 +8,8 @@ use Illuminate\View\Component;
 
 class MenuDropdown extends Component
 {
+    use Concerns\CanBeHidden;
+
     /**
      * Create a new component instance.
      */
@@ -16,6 +18,7 @@ class MenuDropdown extends Component
         public ?string $icon = null,
         public ?string $link = null,
         public array $items = [],
+        public $hidden = false,
     ) {
     }
 
@@ -24,6 +27,10 @@ class MenuDropdown extends Component
      */
     public function render(): View|Closure|string
     {
+        if ($this->isHidden()) {
+            return '';
+        }
+
         return backpack_view('components.menu-dropdown');
     }
 }

@@ -8,6 +8,8 @@ use Illuminate\View\Component;
 
 class MenuItem extends Component
 {
+    use Concerns\CanBeHidden;
+
     /**
      * Create a new component instance.
      */
@@ -15,6 +17,7 @@ class MenuItem extends Component
         public ?string $title = null,
         public ?string $icon = null,
         public ?string $link = null,
+        public $hidden = false,
     ) {
     }
 
@@ -23,6 +26,10 @@ class MenuItem extends Component
      */
     public function render(): View|Closure|string
     {
+        if ($this->isHidden()) {
+            return '';
+        }
+
         return backpack_view('components.menu-item');
     }
 }
