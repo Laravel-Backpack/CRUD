@@ -9,21 +9,21 @@
         $column['value'] = $column['value']($entry);
     }
 
-    if (in_array($column['value'], [true, 1, '1'])) {
-        $related_key = 1;
-        if ( isset( $column['options'][1] ) ) {
-            $column['text'] = $column['options'][1];
-            $column['escaped'] = false;
-        } else {
-            $column['text'] = Lang::has('backpack::crud.yes') ? trans('backpack::crud.yes') : 'Yes';
-        }
-    } else {
+    if (in_array($column['value'], [null, false, 'false', 'FALSE', 0, '0'], true)) {
         $related_key = 0;
         if ( isset( $column['options'][0] ) ) {
             $column['text'] = $column['options'][0];
             $column['escaped'] = false;
         } else {
             $column['text'] = Lang::has('backpack::crud.no') ? trans('backpack::crud.no') : 'No';
+        }
+    } else {
+        $related_key = 1;
+        if ( isset( $column['options'][1] ) ) {
+            $column['text'] = $column['options'][1];
+            $column['escaped'] = false;
+        } else {
+            $column['text'] = Lang::has('backpack::crud.yes') ? trans('backpack::crud.yes') : 'Yes';
         }
     }
 
