@@ -9,6 +9,7 @@
     $column['prefix'] = $column['prefix'] ?? '';
     $column['temporary'] = $column['temporary'] ?? false;
     $column['expiration'] = $column['expiration'] ?? 1;
+    $column['disk'] = $column['disk'] ?? config('filesystems.default');
 
     if($column['value'] instanceof \Closure) {
       $column['value'] = $column['value']($entry);
