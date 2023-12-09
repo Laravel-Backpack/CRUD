@@ -15,25 +15,34 @@ trait Reorder
      */
     public function updateTreeOrder($request)
     {
-        $count = 0;
         $primaryKey = $this->model->getKeyName();
 
-        \DB::beginTransaction();
-        foreach ($request as $key => $entry) {
-            if ($entry['item_id'] != '' && $entry['item_id'] != null) {
-                $item = $this->model->where($primaryKey, $entry['item_id'])->update([
-                    'parent_id' => empty($entry['parent_id']) ? null : $entry['parent_id'],
-                    'depth'     => empty($entry['depth']) ? null : $entry['depth'],
-                    'lft'       => empty($entry['left']) ? null : $entry['left'],
-                    'rgt'       => empty($entry['right']) ? null : $entry['right'],
-                ]);
+        // we use the upsert method that should update the values of the matching ids.
+        // it has the drawback of creating new entries when the id is not found
+        // for that reason we get a list of all the ids and filter the ones
+        // sent in the request that are not in the database
+        $itemKeys = $this->model->all()->pluck('id');
 
-                $count++;
-            }
-        }
-        \DB::commit();
+        $reorderItems = collect($request)->filter(function ($item) use ($itemKeys) {
+            return $item['item_id'] != '' && $item['item_id'] != null && $itemKeys->contains($item['item_id']);
+        })->map(function ($item) use ($primaryKey) {
+            $item[$primaryKey] = $item['item_id'];
+            $item['parent_id'] = empty($item['parent_id']) ? null : $item['parent_id'];
+            $item['depth'] = empty($item['depth']) ? null : $item['depth'];
+            $item['lft'] = empty($item['left']) ? null : $item['left'];
+            $item['rgt'] = empty($item['right']) ? null : $item['right'];
+            unset($item['item_id']);
 
-        return $count;
+            return $item;
+        })->toArray();
+
+        $this->model->upsert(
+            $reorderItems,
+            [$primaryKey],
+            ['parent_id', 'depth', 'lft', 'rgt']
+        );
+
+        return count($reorderItems);
     }
 
     /**
