@@ -3,7 +3,7 @@
 
 	{{-- Single edit button --}}
 	<a href="{{ url($crud->route.'/'.$entry->getKey().'/show') }}" class="btn btn-sm btn-link">
-		<span><i class="la la-eye"></i> {{ trans('backpack::crud.preview') }}</span>
+		<span><i class="la la-eye"></i> <span class="show-button-text-span">{{ trans('backpack::crud.preview') }}</span></span>
 	</a>
 
 	@else

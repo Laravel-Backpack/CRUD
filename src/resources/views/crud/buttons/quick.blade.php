@@ -34,6 +34,6 @@
         @endforeach
         >
         @if ($icon) <i class="{{ $icon }}"></i> @endif
-        {{ $label }}
+        <span class="{{$button->name}}-button-text-span">{{ $label }}</span>
     </{{ $wrapper['element'] }}>
 @endif
