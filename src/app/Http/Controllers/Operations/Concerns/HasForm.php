@@ -19,13 +19,13 @@ trait HasForm
         $postFormMethod = 'post'.$operationName.'Form';
 
         Route::get($segment.$secondSegment.$thirdSegment, [
-            'as'        => $routeName.'.'.$getFormMethod,
-            'uses'      => $controller.'@'.$getFormMethod,
+            'as' => $routeName.'.'.$getFormMethod,
+            'uses' => $controller.'@'.$getFormMethod,
             'operation' => $operationName,
         ]);
         Route::post($segment.$secondSegment.$thirdSegment, [
-            'as'        => $routeName.'.'.$postFormMethod,
-            'uses'      => $controller.'@'.$postFormMethod,
+            'as' => $routeName.'.'.$postFormMethod,
+            'uses' => $controller.'@'.$postFormMethod,
             'operation' => $operationName,
         ]);
     }
@@ -50,7 +50,7 @@ trait HasForm
 
             // add a reasonable "save and back" save action
             $this->crud->addSaveAction([
-                'name'    => 'save_and_back',
+                'name' => 'save_and_back',
                 'visible' => function ($crud) use ($operationName) {
                     return $crud->hasAccess($operationName);
                 },
