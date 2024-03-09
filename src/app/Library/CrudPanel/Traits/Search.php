@@ -128,22 +128,47 @@ trait Search
             }
         }
 
+        $key = $this->model->getKeyName();
+        $hasOrderByPrimaryKey = $this->hasOrderByPrimaryKey($key);
+
         // show newest items first, by default (if no order has been set for the primary column)
         // if there was no order set, this will be the only one
         // if there was an order set, this will be the last one (after all others were applied)
-        // Note to self: `toBase()` returns also the orders contained in global scopes, while `getQuery()` don't.
-        $orderBy = $this->query->toBase()->orders;
-        $table = $this->model->getTable();
-        $key = $this->model->getKeyName();
-
-        $hasOrderByPrimaryKey = collect($orderBy)->some(function ($item) use ($key, $table) {
-            return (isset($item['column']) && $item['column'] === $key)
-                || (isset($item['sql']) && str_contains($item['sql'], "$table.$key"));
-        });
-
         if (! $hasOrderByPrimaryKey) {
             $this->orderByWithPrefix($key, 'DESC');
         }
+    }
+
+    /**
+     * Check if the crud query is ordered by primary key or not.
+     *
+     * @param  string  $key
+     * @return bool
+     */
+    private function hasOrderByPrimaryKey(string $key)
+    {
+        // Note to self: `toBase()` returns also the orders contained in global scopes, while `getQuery()` don't.
+        $orderBy = $this->query->toBase()->orders;
+        $table = $this->model->getTable();
+
+        // developer can use this method to override the way crud checks for primary key order in the query
+        if (method_exists($this->model, 'getOrderByPrimaryKey')) {
+            return $this->model->getOrderByPrimaryKey($orderBy, $table, $key);
+        }
+
+        // no point in using this method if driver is not sql, developer should define their own
+        // `getOrderByPrimaryKey` function in model that should return true/false
+        if ($this->driverIsSql()) {
+            return collect($orderBy)->some(function ($item) use ($key, $table) {
+                return (isset($item['column']) && $item['column'] === $key)
+                        || (isset($item['sql']) && str_contains($item['sql'], "$table.$key"));
+            });
+        }
+
+        // nothing we can do at this point, we don't know what else to do, neither if query is ordered
+        // by primary key. We just return `true`, so that we don't try to apply the default order
+        // as we can't determine if it has the order already or not.
+        return true;
     }
 
     // -------------------------
