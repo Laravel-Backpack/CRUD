@@ -138,7 +138,9 @@
             newUrl = params_arr.length ? tmpUrl + "?" + params_arr.join("&") : tmpUrl;
         }
         window.history.pushState({}, '', newUrl);
-        localStorage.setItem('{{ Str::slug($crud->getRoute()) }}_list_url', newUrl);
+        @if ($crud->getPersistentTable())
+            localStorage.setItem('{{ Str::slug($crud->getRoute()) }}_list_url', newUrl);
+        @endif
       },
       dataTableConfiguration: {
         bInfo: {{ var_export($crud->getOperationSetting('showEntryCount') ?? true) }},
