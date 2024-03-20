@@ -80,7 +80,13 @@ trait HasTranslations
         // do the actual saving
         foreach ($attributes as $attribute => $value) {
             if ($model->isTranslatableAttribute($attribute)) { // the attribute is translatable
-                $model->setTranslation($attribute, $locale, $value);
+                if (config('backpack.crud.fill_missing_locales')) {
+                    foreach ($model->getAvailableLocales() as $key => $lang) {
+                        $model->setTranslation($attribute, $key, $value);
+                    }
+                } else {
+                    $model->setTranslation($attribute, $locale, $value);
+                }
             } else { // the attribute is NOT translatable
                 $non_translatable[$attribute] = $value;
             }
