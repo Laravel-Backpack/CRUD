@@ -277,6 +277,8 @@ trait FieldsProtectedMethods
             $subfield['name'] = Str::replace(' ', '', $subfield['name']);
 
             $subfield['parentFieldName'] = $field['name'];
+            $subfield['baseFieldName'] = is_array($subfield['name']) ? implode(',', $subfield['name']) : $subfield['name'];
+            $subfield['baseFieldName'] = Str::afterLast($subfield['baseFieldName'], '.');
 
             if (! isset($field['model'])) {
                 // we're inside a simple 'repeatable' with no model/relationship, so
@@ -290,8 +292,6 @@ trait FieldsProtectedMethods
                 $currentEntity = $subfield['baseEntity'] ?? $field['entity'];
                 $subfield['baseModel'] = $subfield['baseModel'] ?? $field['model'];
                 $subfield['baseEntity'] = isset($field['baseEntity']) ? $field['baseEntity'].'.'.$currentEntity : $currentEntity;
-                $subfield['baseFieldName'] = is_array($subfield['name']) ? implode(',', $subfield['name']) : $subfield['name'];
-                $subfield['baseFieldName'] = Str::afterLast($subfield['baseFieldName'], '.');
             }
 
             $field['subfields'][$key] = $this->makeSureFieldHasNecessaryAttributes($subfield);

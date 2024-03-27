@@ -3,45 +3,37 @@
 namespace Backpack\CRUD\app\Library\Validation\Rules;
 
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade;
-use Backpack\CRUD\app\Library\Validation\Rules\Support\HasFiles;
-use Closure;
 use Illuminate\Contracts\Validation\Rule;
 use Illuminate\Contracts\Validation\ValidationRule;
-use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Str;
 
 class ValidUpload extends BackpackCustomRule
 {
-    use HasFiles;
-
     /**
-     * Run the validation rule.
-     *
-     * @param  string  $attribute
-     * @param  mixed  $value
-     * @param  Closure(string): \Illuminate\Translation\PotentiallyTranslatedString  $fail
-     * @return void
+     * Run the validation rule and return the array of errors.
      */
-    public function validate(string $attribute, mixed $value, Closure $fail): void
+    public function validateRules(string $attribute, mixed $value): array
     {
         $entry = CrudPanelFacade::getCurrentEntry();
 
-        if (! array_key_exists($attribute, $this->data) && $entry) {
-            return;
+        if (! Arr::has($this->data, $attribute)) {
+            $requestAttribute = Arr::get($this->data, '_order_'.$attribute);
+
+            if ($entry && Arr::get($entry->{Str::before($attribute, '.')}, Str::after($attribute, '.')) === $requestAttribute) {
+                return [];
+            }
+            // set the empty attribute in data
+            Arr::set($this->data, $attribute, null);
         }
 
-        $this->validateFieldRules($attribute, $value, $fail);
+        $fieldErrors = $this->validateFieldRules($attribute, $value);
 
         if (! empty($value) && ! empty($this->getFileRules())) {
-            $validator = Validator::make([$attribute => $value], [
-                $attribute => $this->getFileRules(),
-            ], $this->validator->customMessages, $this->validator->customAttributes);
-
-            if ($validator->fails()) {
-                foreach ($validator->errors()->messages()[$attribute] as $message) {
-                    $fail($message)->translate();
-                }
-            }
+            $fileErrors = $this->validateFileRules($attribute, $value);
         }
+
+        return array_merge($fieldErrors, $fileErrors ?? []);
     }
 
     public static function field(string|array|ValidationRule|Rule $rules = []): self

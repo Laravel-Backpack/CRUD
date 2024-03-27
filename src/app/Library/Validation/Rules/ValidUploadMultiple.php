@@ -3,61 +3,40 @@
 namespace Backpack\CRUD\app\Library\Validation\Rules;
 
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade;
-use Closure;
+use Backpack\CRUD\app\Library\Validation\Rules\Support\ValidateArrayContract;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Str;
 
-class ValidUploadMultiple extends ValidFileArray
+class ValidUploadMultiple extends BackpackCustomRule implements ValidateArrayContract
 {
-    /**
-     * Run the validation rule.
-     *
-     * @param  string  $attribute
-     * @param  mixed  $value
-     * @param  \Closure(string): \Illuminate\Translation\PotentiallyTranslatedString  $fail
-     * @return void
-     */
-    public function validate(string $attribute, mixed $value, Closure $fail): void
+    public function validateRules(string $attribute, mixed $value): array
     {
-        if (! $value = self::ensureValidValue($value)) {
-            $fail('Unable to determine the value type.');
-
-            return;
-        }
-
         $entry = CrudPanelFacade::getCurrentEntry() !== false ? CrudPanelFacade::getCurrentEntry() : null;
-
+        $data = $this->data;
         // `upload_multiple` sends [[0 => null]] when user doesn't upload anything
         // assume that nothing changed on field so nothing is sent on the request.
         if (count($value) === 1 && empty($value[0])) {
-            if ($entry) {
-                unset($this->data[$attribute]);
-            } else {
-                $this->data[$attribute] = [];
-            }
+            Arr::set($data, $attribute, []);
             $value = [];
         }
 
-        $previousValues = $entry?->{$attribute} ?? [];
+        $previousValues = str_contains($attribute, '.') ?
+                            (Arr::get($entry?->{Str::before($attribute, '.')} ?? [], Str::after($attribute, '.')) ?? []) :
+                            ($entry?->{$attribute} ?? []);
+
         if (is_string($previousValues)) {
             $previousValues = json_decode($previousValues, true) ?? [];
         }
 
-        $value = array_merge($previousValues, $value);
+        Arr::set($data, $attribute, array_merge($previousValues, $value));
 
         if ($entry) {
             $filesDeleted = CrudPanelFacade::getRequest()->input('clear_'.$attribute) ?? [];
+            Arr::set($data, $attribute, array_diff(Arr::get($data, $attribute), $filesDeleted));
 
-            $data = $this->data;
-            $data[$attribute] = array_diff($value, $filesDeleted);
-
-            $this->validateArrayData($attribute, $fail, $data);
-
-            $this->validateItems($attribute, $value, $fail);
-
-            return;
+            return $this->validateFieldAndFile($attribute, $data);
         }
 
-        $this->validateArrayData($attribute, $fail);
-
-        $this->validateItems($attribute, $value, $fail);
+        return $this->validateFieldAndFile($attribute, $data);
     }
 }

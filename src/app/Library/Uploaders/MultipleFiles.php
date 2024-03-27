@@ -76,7 +76,7 @@ class MultipleFiles extends Uploader
 
         foreach ($previousRepeatableValues as $previousRow => $previousFiles) {
             foreach ($previousFiles ?? [] as $key => $file) {
-                $key = array_search($file, $fileOrder, true);
+                $key = array_search($file, $fileOrder[$previousRow], true);
                 if ($key === false) {
                     Storage::disk($this->getDisk())->delete($file);
                 }

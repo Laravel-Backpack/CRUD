@@ -785,6 +785,7 @@ class CrudPanelFieldsTest extends \Backpack\CRUD\Tests\config\CrudPanel\BaseDBCr
                     'type' => 'text',
                     'entity' => false,
                     'label' => 'Sub 1',
+                    'baseFieldName' => 'sub_1',
                 ],
             ],
 
