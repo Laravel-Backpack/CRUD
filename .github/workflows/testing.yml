@@ -47,7 +47,7 @@ jobs:
                     extensions: curl, mbstring, zip, pcntl, pdo, sqlite, pdo_sqlite, iconv
                     coverage: none
             -   name: Cache dependencies
-                uses: actions/cache@v3
+                uses: actions/cache@v4
                 with:
                     path: ~/.composer/cache/files
                     key: dependencies-${{ matrix.dependency-version }}-laravel-${{ matrix.laravel }}-php-${{ matrix.php }}-phpunit-${{ matrix.phpunit }}-composer-${{ hashFiles('composer.json') }}
