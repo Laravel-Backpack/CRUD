@@ -13,7 +13,7 @@ trait Read
     /**
      * Find and retrieve the id of the current entry.
      *
-     * @return int|bool The id in the db or false.
+     * @return int|null The id in the db or null.
      */
     public function getCurrentEntryId()
     {
@@ -29,7 +29,7 @@ trait Read
                 // otherwise use the next to last parameter
                 array_values($params)[count($params) - 1] ??
                 // otherwise return false
-                false;
+                null;
     }
 
     /**
