@@ -89,7 +89,9 @@
             });
 
             // select the right radios
-            element.find('input[type=radio][value="'+value+'"]').prop('checked', true);
+            element.find('input[type=radio]').filter(function() {
+                return $(this).val() === value;
+            }).prop('checked', true);
         }
     </script>
     @endBassetBlock
