@@ -4,8 +4,10 @@ namespace Backpack\CRUD\Tests;
 
 use Backpack\Basset\BassetServiceProvider;
 use Backpack\CRUD\BackpackServiceProvider;
+use Backpack\CRUD\Tests\config\TestsServiceProvider;
 use Illuminate\Support\Facades\Route;
 use Orchestra\Testbench\TestCase;
+use Prologue\Alerts\AlertsServiceProvider;
 
 abstract class BaseTestClass extends TestCase
 {
@@ -34,6 +36,8 @@ abstract class BaseTestClass extends TestCase
     protected function getPackageProviders($app)
     {
         return [
+            TestsServiceProvider::class,
+            AlertsServiceProvider::class,
             BassetServiceProvider::class,
             BackpackServiceProvider::class,
         ];

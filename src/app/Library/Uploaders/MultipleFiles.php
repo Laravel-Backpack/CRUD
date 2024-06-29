@@ -57,9 +57,16 @@ class MultipleFiles extends Uploader
             }
         }
 
-        return isset($entry->getCasts()[$this->getName()]) ? $previousFiles : json_encode($previousFiles);
+        $previousFiles = array_values($previousFiles);
+
+        if (empty($previousFiles)) {
+            return null;
+        }
+
+        return isset($entry->getCasts()[$this->getName()]) || $this->isFake() ? $previousFiles : json_encode($previousFiles);
     }
 
+    /** @codeCoverageIgnore */
     public function uploadRepeatableFiles($files, $previousRepeatableValues, $entry = null)
     {
         $fileOrder = $this->getFileOrderFromRequest();
@@ -73,11 +80,26 @@ class MultipleFiles extends Uploader
                 }
             }
         }
+        // create a temporary variable that we can unset keys
+        // everytime one is found. That way we avoid iterating
+        // already handled keys (notice we do a deep array copy)
+        $tempFileOrder = array_map(function ($item) {
+            return $item;
+        }, $fileOrder);
 
         foreach ($previousRepeatableValues as $previousRow => $previousFiles) {
             foreach ($previousFiles ?? [] as $key => $file) {
-                $key = array_search($file, $fileOrder, true);
-                if ($key === false) {
+                $previousFileInArray = array_filter($tempFileOrder, function ($items, $key) use ($file, $tempFileOrder) {
+                    $found = array_search($file, $items ?? [], true);
+                    if ($found !== false) {
+                        Arr::forget($tempFileOrder, $key.'.'.$found);
+
+                        return true;
+                    }
+
+                    return false;
+                }, ARRAY_FILTER_USE_BOTH);
+                if ($file && ! $previousFileInArray) {
                     Storage::disk($this->getDisk())->delete($file);
                 }
             }

@@ -2,16 +2,15 @@
 
 namespace Backpack\CRUD\Tests\Unit\CrudPanel;
 
-use Backpack\CRUD\Tests\config\Models\Article;
 use Illuminate\Support\Arr;
-use Illuminate\Support\Facades\DB;
 
 /**
  * @covers Backpack\CRUD\app\Library\CrudPanel\Traits\Tabs
  */
-class CrudPanelTabsTest extends \Backpack\CRUD\Tests\config\CrudPanel\BaseDBCrudPanel
+class CrudPanelTabsTest extends \Backpack\CRUD\Tests\config\CrudPanel\BaseCrudPanel
 {
     private $horizontalTabsType = 'horizontal';
+
     private $verticalTabsType = 'vertical';
 
     private $threeTextFieldsArray = [
@@ -242,13 +241,6 @@ class CrudPanelTabsTest extends \Backpack\CRUD\Tests\config\CrudPanel\BaseDBCrud
 
     public function testGetTabsEntryExists()
     {
-        $this->crudPanel->setModel(Article::class);
-        $article = DB::table('articles')->where('id', 1)->first();
-
-        // manually call this method to set the crud panel entry attribute used in the getTabs method to get the current
-        // fields from the update form.
-        $this->crudPanel->getEntry($article->id);
-
         $this->crudPanel->addFields($this->threeTextFieldsArray, 'update');
         $tabNames = $this->crudPanel->getTabs();
 

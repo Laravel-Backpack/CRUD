@@ -80,8 +80,12 @@ final class DatabaseSchema
             return new Table($tableName, []);
         }
 
-        if (! is_array($table) || empty($table)) {
+        if (! is_array($table)) {
             return $table;
+        }
+
+        if (empty($table)) {
+            return new Table($tableName, []);
         }
 
         $schemaManager = self::getSchemaManager($connection);

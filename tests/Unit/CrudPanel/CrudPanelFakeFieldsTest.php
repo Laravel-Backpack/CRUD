@@ -3,12 +3,11 @@
 namespace Backpack\CRUD\Tests\Unit\CrudPanel;
 
 use Backpack\CRUD\Tests\config\Models\Article;
-use Illuminate\Support\Facades\DB;
 
 /**
  * @covers Backpack\CRUD\app\Library\CrudPanel\Traits\FakeFields
  */
-class CrudPanelFakeFieldsTest extends \Backpack\CRUD\Tests\config\CrudPanel\BaseDBCrudPanel
+class CrudPanelFakeFieldsTest extends \Backpack\CRUD\Tests\config\CrudPanel\BaseCrudPanel
 {
     private $fakeFieldsArray = [
         [
@@ -127,7 +126,6 @@ class CrudPanelFakeFieldsTest extends \Backpack\CRUD\Tests\config\CrudPanel\Base
 
     public function testCompactFakeFieldsFromUpdateForm()
     {
-        $article = DB::table('articles')->where('id', 1)->first();
         $this->crudPanel->setModel(Article::class);
         $this->crudPanel->addFields($this->fakeFieldsArray);
 
@@ -149,7 +147,6 @@ class CrudPanelFakeFieldsTest extends \Backpack\CRUD\Tests\config\CrudPanel\Base
 
     public function testCompactFakeFieldsFromUpdateFormWithUnknownId()
     {
-        $unknownId = DB::getPdo()->lastInsertId() + 1;
         $this->crudPanel->setModel(Article::class);
         $this->crudPanel->setOperation('update');
         $this->crudPanel->addFields($this->fakeFieldsArray);

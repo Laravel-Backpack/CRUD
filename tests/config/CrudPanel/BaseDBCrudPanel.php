@@ -1,6 +1,6 @@
 <?php
 
-namespace Backpack\CRUD\Tests\Config\CrudPanel;
+namespace Backpack\CRUD\Tests\config\CrudPanel;
 
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanel;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -46,6 +46,17 @@ abstract class BaseDBCrudPanel extends BaseCrudPanel
     protected function getEnvironmentSetUp($app)
     {
         $app['config']->set('database.default', 'testing');
+        $app['config']->set('backpack.base.route_prefix', 'admin');
+
+        $app->bind('App\Http\Middleware\CheckIfAdmin', function () {
+            return new class
+            {
+                public function handle($request, $next)
+                {
+                    return $next($request);
+                }
+            };
+        });
     }
 
     /**

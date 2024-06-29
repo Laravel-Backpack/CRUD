@@ -30,6 +30,8 @@ interface UploaderInterface
 
     public function relationship(bool $isRelation): self;
 
+    public function fake(bool|string $isFake): self;
+
     /**
      * Getters.
      */
@@ -60,4 +62,10 @@ interface UploaderInterface
     public function isRelationship(): bool;
 
     public function getPreviousFiles(Model $entry): mixed;
+
+    public function getValueWithoutPath(?string $value = null): ?string;
+
+    public function isFake(): bool;
+
+    public function getFakeAttribute(): bool|string;
 }
