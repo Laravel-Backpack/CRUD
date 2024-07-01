@@ -1,0 +1,138 @@
+{
+    "$schema": "https://laravel-ide.com/schema/laravel-ide-v2.json",
+    "completions": [
+        {
+            "complete": "staticStrings",
+            "options": {
+                "strings": [
+                    "boolean",
+                    "check",
+                    "checkbox",
+                    "checklist",
+                    "checklist_dependency",
+                    "closure",
+                    "color",
+                    "custom_html",
+                    "date",
+                    "datetime",
+                    "email",
+                    "enum",
+                    "hidden",
+                    "image",
+                    "json",
+                    "model_function",
+                    "model_function_attribute",
+                    "month",
+                    "multidimensional_array",
+                    "number",
+                    "password",
+                    "phone",
+                    "radio",
+                    "range",
+                    "relationship_count",
+                    "row_number",
+                    "select",
+                    "select_from_array",
+                    "select_grouped",
+                    "select_multiple",
+                    "summernote",
+                    "switch",
+                    "text",
+                    "textarea",
+                    "time",
+                    "upload",
+                    "upload_multiple",
+                    "url",
+                    "view",
+                    "week"
+                ]
+            },
+            "condition": [
+                {
+                    "methodNames": [
+                        "type"
+                    ],
+                    "classFqn": [
+                        "\\Backpack\\CRUD\\app\\Library\\CrudPanel\\CrudColumn"
+                    ],
+                    "parameters": [
+                        1
+                    ]
+                },
+                {
+                    "place": "arrayValueWithKey",
+                    "keys": [
+                        "type"
+                    ],
+                    "methodNames": [
+                        "addColumn"
+                    ],
+                    "classFqn": [
+                        "\\Backpack\\CRUD\\app\\Library\\CrudPanel\\CrudPanelFacade"
+                    ]
+                }
+            ]
+        },
+        {
+            "complete": "staticStrings",
+            "options": {
+                "strings": [
+                    "checkbox",
+                    "checklist",
+                    "checklist_dependency",
+                    "color",
+                    "custom_html",
+                    "date",
+                    "datetime",
+                    "email",
+                    "enum",
+                    "hidden",
+                    "month",
+                    "number",
+                    "password",
+                    "radio",
+                    "range",
+                    "select",
+                    "select_grouped",
+                    "select_multiple",
+                    "select_from_array",
+                    "summernote",
+                    "switch",
+                    "text",
+                    "textarea",
+                    "time",
+                    "upload",
+                    "upload_multiple",
+                    "url",
+                    "view",
+                    "week"
+                ]
+            },
+            "condition": [
+                {
+                    "methodNames": [
+                        "type"
+                    ],
+                    "classFqn": [
+                        "\\Backpack\\CRUD\\app\\Library\\CrudPanel\\CrudField"
+                    ],
+                    "parameters": [
+                        1
+                    ]
+                },
+                {
+                    "place": "arrayValueWithKey",
+                    "keys": [
+                        "type"
+                    ],
+                    "methodNames": [
+                        "addField"
+                    ],
+                    "classFqn": [
+                        "\\Backpack\\CRUD\\app\\Library\\CrudPanel\\CrudPanelFacade"
+                    ]
+                }
+            ]
+        }
+    ]
+}
