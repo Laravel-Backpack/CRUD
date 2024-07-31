@@ -407,16 +407,20 @@
         const actionColumnIndex = $('#crudTable').find('th[data-action-column=true]').index();
         if (actionColumnIndex === -1) return;
 
+        const minimumThreshold = $('#crudTable').data('line-buttons-as-dropdown-threshold');
+
         $('#crudTable tbody tr').each(function (i, tr) {
             const actionCell = $(tr).find('td').eq(actionColumnIndex);
+            const actionButtons = actionCell.find('a.btn.btn-link');
             if(actionCell.find('.actions-buttons-column').length) return;
+            if(actionButtons.length < minimumThreshold) return;
 
             // Wrap the cell with the component needed for the dropdown
             actionCell.wrapInner('<div class="nav-item dropdown"></div>');
             actionCell.wrapInner('<div class="dropdown-menu dropdown-menu-left"></div>');
             
             // Prepare buttons as dropdown items
-            actionCell.find('a.btn.btn-link').each((index, action) => {
+            actionButtons.each((index, action) => {
                 $(action).addClass('dropdown-item').removeClass('btn btn-sm btn-link');
                 $(action).find('i').addClass('me-2 text-primary');
             });

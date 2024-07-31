@@ -49,6 +49,9 @@ return [
     // Nest action buttons within a dropdown in actions column
     'lineButtonsAsDropdown' => false,
 
+    // What is the minimum threshold of action buttons for nesting into a dropdown
+    'lineButtonsAsDropdownThreshold' => 1,
+
     // Show a "Reset" button next to the List operation subheading
     // (Showing 1 to 25 of 9999 entries. Reset)
     // that allows the user to erase local storage for that datatable,
