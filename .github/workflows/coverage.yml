@@ -43,7 +43,7 @@ jobs:
           metric: elements
           rounded-precision: 2
       - name: Generate the badge SVG image
-        uses: emibcn/badge-action@v1
+        uses: emibcn/badge-action@v2
         id: badge
         with:
           label: coverage
