@@ -62,9 +62,12 @@
         ]
     },
     "scripts": {
-        "test": "vendor/bin/phpunit --testdox",
+        "test": [
+            "@putenv XDEBUG_MODE=off",
+            "vendor/bin/phpunit"
+        ],
         "test-failing": "vendor/bin/phpunit --order-by=defects --stop-on-failure",
-        "test-coverage": "XDEBUG_MODE=coverage vendor/bin/phpunit --coverage-text"
+        "test-coverage": "XDEBUG_MODE=coverage vendor/bin/phpunit --coverage-html=coverage"
     },
     "extra": {
         "branch-alias": {

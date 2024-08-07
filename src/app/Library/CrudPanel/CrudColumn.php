@@ -312,6 +312,11 @@ class CrudColumn
     public function __call($method, $parameters)
     {
         if (static::hasMacro($method)) {
+            if (in_array($method, app('UploadersRepository')->getUploadersGroupsNames())) {
+                $this->setAttributeValue($method, $parameters[0] ?? true);
+                $this->save();
+            }
+
             return $this->macroCall($method, $parameters);
         }
 

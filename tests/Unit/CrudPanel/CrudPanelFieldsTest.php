@@ -790,6 +790,7 @@ class CrudPanelFieldsTest extends BaseCrudPanel
                     'type' => 'text',
                     'entity' => false,
                     'label' => 'Sub 1',
+                    'baseFieldName' => 'sub_1',
                 ],
             ],
 
