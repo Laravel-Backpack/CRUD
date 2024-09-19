@@ -268,7 +268,8 @@ trait Query
         $subQuery = $crudQuery->cloneWithout(['columns', 'orders', 'limit', 'offset']);
 
         // select minimum possible columns for the count
-        $minimumColumns = ($crudQuery->groups || $crudQuery->havings) ? $modelTable.'.*' : $modelTable.'.'.$this->model->getKeyName();
+        $columns = $crudQuery->groups ? $crudQuery->groups : $modelTable.'.'.$this->model->getKeyName();
+        $minimumColumns = ($crudQuery->groups || $crudQuery->havings) ? $columns : $modelTable.'.'.$this->model->getKeyName();
         $subQuery->select($minimumColumns);
 
         // in case there are raw expressions we need to add them too.
@@ -277,7 +278,6 @@ trait Query
         }
 
         // re-set the previous query bindings
-        //dump($crudQuery->getColumns(), get_class($crudQuery), get_class($subQuery));
         foreach ($crudQuery->getRawBindings() as $type => $binding) {
             $subQuery->setBindings($binding, $type);
         }
