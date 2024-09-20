@@ -101,7 +101,7 @@ trait HasForm
      *
      * @return array|\Illuminate\Http\RedirectResponse
      */
-    public function formAction(?int $id = null, callable $formLogic)
+    public function formAction(callable $formLogic, ?int $id = null)
     {
         if ($id) {
             // Get entry ID from Request (makes sure its the last ID for nested resources)
