@@ -2,6 +2,8 @@
 
 namespace Backpack\CRUD\app\Http\Controllers\Operations;
 
+use Backpack\CRUD\app\Library\CrudPanel\Hooks\Contracts\OperationHook;
+use Backpack\CRUD\app\Library\CrudPanel\Hooks\OperationHooks;
 use Illuminate\Support\Facades\Route;
 
 trait CreateOperation
@@ -35,12 +37,11 @@ trait CreateOperation
     {
         $this->crud->allowAccess('create');
 
-        $this->crud->operation('create', function () {
-            $this->crud->loadDefaultOperationSettingsFromConfig();
+        OperationHook::register(OperationHooks::BEFORE_OPERATION_SETUP, 'create', function () {
             $this->crud->setupDefaultSaveActions();
         });
 
-        $this->crud->operation('list', function () {
+        OperationHook::register(OperationHooks::BEFORE_OPERATION_SETUP, 'list', function () {
             $this->crud->addButton('top', 'create', 'view', 'crud::buttons.create');
         });
     }
