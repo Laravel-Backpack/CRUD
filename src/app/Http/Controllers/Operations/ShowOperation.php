@@ -75,15 +75,28 @@ trait ShowOperation
         // get entry ID from Request (makes sure its the last ID for nested resources)
         $id = $this->crud->getCurrentEntryId() ?? $id;
 
-        // get the info for that entry (include softDeleted items if the trait is used)
-        if ($this->crud->get('show.softDeletes') && in_array('Illuminate\Database\Eloquent\SoftDeletes', class_uses($this->crud->model))) {
-            $this->data['entry'] = $this->crud->getModel()->withTrashed()->findOrFail($id);
-        } else {
-            $this->data['entry'] = $this->crud->getEntryWithLocale($id);
-        }
-
         $this->data['crud'] = $this->crud;
         $this->data['title'] = $this->crud->getTitle() ?? trans('backpack::crud.preview').' '.$this->crud->entity_name;
+
+        // get the info for that entry (include softDeleted items if the trait is used)
+        if (! $this->crud->get('show.softDeletes') || ! in_array('Illuminate\Database\Eloquent\SoftDeletes', class_uses($this->crud->model))) {
+            $this->data['entry'] = $this->crud->getEntryWithLocale($id);
+
+            return view($this->crud->getShowView(), $this->data);
+        }
+
+        // when enabled we will call the findOrFail() directly in the crud panel query, instead of the model query.
+        // this allow developers to setup constrains on the query that can be applied in multiple operations.
+        if ($this->crud->get('show.usePanelQuery')) {
+            $this->data['entry'] = $this->crud->query->withTrashed()->findOrFail($id);
+            // we will miss the "magic __call() to findOrFail" in the model when it's translatable,
+            // so we need to manually set the locale when needed.
+            $this->data['entry'] = $this->crud->setLocaleOnModel($this->data['entry']);
+
+            return view($this->crud->getShowView(), $this->data);
+        }
+
+        $this->data['entry'] = $this->crud->getModel()->withTrashed()->findOrFail($id);
 
         // load the view from /resources/views/vendor/backpack/crud/ if it exists, otherwise load the one in the package
         return view($this->crud->getShowView(), $this->data);
