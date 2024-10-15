@@ -172,7 +172,7 @@ return [
     // Should we use DB transactions when executing multiple queries? For example when creating an entry and it's relationships.
     // By wrapping in a database transaction you ensure that either all queries went ok, or if some failed the whole process
     // is rolled back and considered failed. This is a good setting for data integrity.
-    'useDatabaseTransactions' => false,
+    'useDatabaseTransactions' => true,
 
     /*
     |--------------------------------------------------------------------------
