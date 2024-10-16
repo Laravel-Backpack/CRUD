@@ -2,6 +2,8 @@
 
 namespace Backpack\CRUD\app\Library\CrudPanel;
 
+use Backpack\CRUD\app\Http\Controllers\CrudController;
+use Backpack\CRUD\Backpack;
 use Backpack\CRUD\ViewNamespaces;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Support\Traits\Conditionable;
@@ -297,10 +299,10 @@ class CrudButton implements Arrayable
      * @param  object|null  $entry  The eloquent Model for the current entry or null if no current entry.
      * @return \Illuminate\Contracts\View\View
      */
-    public function getHtml($entry = null)
+    public function getHtml($entry = null, $crud = null)
     {
         $button = $this;
-        $crud = $this->crud();
+        $crud = $crud ?? $this->crud();
 
         if ($this->type == 'model_function') {
             if (is_null($entry)) {
@@ -434,7 +436,7 @@ class CrudButton implements Arrayable
     /**
      * Access the global CrudPanel object.
      *
-     * @return \Backpack\CRUD\app\Library\CrudPanel\CrudPanel
+     * @return CrudPanel
      */
     public function crud()
     {

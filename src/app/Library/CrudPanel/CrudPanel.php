@@ -68,11 +68,6 @@ class CrudPanel
 
     public function __construct()
     {
-        $this->setRequest();
-
-        if ($this->getCurrentOperation()) {
-            $this->setOperation($this->getCurrentOperation());
-        }
     }
 
     /**
@@ -80,9 +75,11 @@ class CrudPanel
      *
      * @param  \Illuminate\Http\Request  $request
      */
-    public function setRequest($request = null)
+    public function setRequest($request = null): self
     {
         $this->request = $request ?? \Request::instance();
+
+        return $this;
     }
 
     /**

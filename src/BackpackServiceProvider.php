@@ -7,6 +7,7 @@ use Backpack\CRUD\app\Http\Middleware\EnsureEmailVerification;
 use Backpack\CRUD\app\Http\Middleware\ThrottlePasswordRecovery;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanel;
 use Backpack\CRUD\app\Library\Database\DatabaseSchema;
+use Backpack\CRUD\app\Library\Datatable\Datatable;
 use Backpack\CRUD\app\Library\Uploaders\Support\UploadersRepository;
 use Illuminate\Contracts\Debug\ExceptionHandler;
 use Illuminate\Routing\Router;
@@ -63,6 +64,7 @@ class BackpackServiceProvider extends ServiceProvider
         $this->sendUsageStats();
 
         Basset::addViewPath(realpath(__DIR__.'/resources/views'));
+        Blade::component('datatable', Datatable::class);
     }
 
     /**
@@ -83,8 +85,25 @@ class BackpackServiceProvider extends ServiceProvider
         $this->registerBackpackErrorViews();
 
         // Bind the CrudPanel object to Laravel's service container
-        $this->app->scoped('crud', function ($app) {
-            return new CrudPanel();
+        $this->app->bind('crud', function ($app) {
+            // loop the stack trace to find the CrudControllerContract that called this method
+            $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS);
+            $controller = null;
+            foreach ($trace as $step) {
+                if (isset($step['class']) && is_a($step['class'], app\Http\Controllers\Contracts\CrudControllerContract::class, true)) {
+                    $controller = $step['class'];
+                    break;
+                }
+            }
+            if (! $controller) {
+                throw new \Exception('Could not identify the crud controller method. You sure you are calling this from a CrudController?');
+            }
+
+            return Backpack::getControllerCrud($controller);
+        });
+
+        $this->app->scoped('backpack-manager', function ($app) {
+            return new BackpackManager();
         });
 
         $this->app->scoped('DatabaseSchema', function ($app) {
@@ -329,7 +348,7 @@ class BackpackServiceProvider extends ServiceProvider
      */
     public function provides()
     {
-        return ['crud', 'widgets', 'BackpackViewNamespaces', 'DatabaseSchema', 'UploadersRepository'];
+        return ['widgets', 'BackpackViewNamespaces', 'DatabaseSchema', 'UploadersRepository'];
     }
 
     private function registerBackpackErrorViews()
