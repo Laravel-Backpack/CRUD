@@ -3,6 +3,10 @@
 namespace Backpack\CRUD\app\Http\Controllers;
 
 use Backpack\CRUD\app\Library\Attributes\DeprecatedIgnoreOnRuntime;
+use Backpack\CRUD\app\Library\CrudPanel\Hooks\Contracts\OperationHook;
+use Backpack\CRUD\app\Library\CrudPanel\Hooks\Contracts\PanelHook;
+use Backpack\CRUD\app\Library\CrudPanel\Hooks\OperationHooks;
+use Backpack\CRUD\app\Library\CrudPanel\Hooks\PanelHooks;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Routing\Controller;
@@ -40,8 +44,14 @@ class CrudController extends Controller
 
             $this->crud->setRequest($request);
 
+            PanelHook::run(PanelHooks::BEFORE_SETUP_DEFAULTS, [$this]);
             $this->setupDefaults();
+            PanelHook::run(PanelHooks::AFTER_SETUP_DEFAULTS, [$this]);
+
+            PanelHook::run(PanelHooks::BEFORE_CONTROLLER_SETUP, [$this]);
             $this->setup();
+            PanelHook::run(PanelHooks::AFTER_CONTROLLER_SETUP, [$this]);
+
             $this->setupConfigurationForCurrentOperation();
 
             return $next($request);
@@ -116,13 +126,22 @@ class CrudController extends Controller
          * you'd like the defaults to be applied before anything you write. That way, anything you
          * write is done after the default, so you can remove default settings, etc;
          */
-        $this->crud->applyConfigurationFromSettings($operationName);
+        if (! OperationHook::has(OperationHooks::SETUP_OPERATION_FROM_CONFIG, $operationName)) {
+            OperationHook::register(OperationHooks::SETUP_OPERATION_FROM_CONFIG, $operationName, function () use ($operationName) {
+                return 'backpack.operations.'.$operationName;
+            });
+        }
 
+        $this->crud->loadDefaultOperationSettingsFromConfig(OperationHook::run(OperationHooks::SETUP_OPERATION_FROM_CONFIG, $operationName, [$this]));
+
+        OperationHook::run(OperationHooks::BEFORE_OPERATION_SETUP, $operationName, [$this]);
         /*
          * THEN, run the corresponding setupXxxOperation if it exists.
          */
         if (method_exists($this, $setupClassName)) {
             $this->{$setupClassName}();
         }
+
+        OperationHook::run(OperationHooks::AFTER_OPERATION_SETUP, $operationName, [$this]);
     }
 }
