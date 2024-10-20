@@ -2,7 +2,9 @@
 
 namespace Backpack\CRUD\app\Http\Controllers;
 
+use Backpack\CRUD\app\Http\Controllers\Contracts\CrudControllerContract;
 use Backpack\CRUD\app\Library\Attributes\DeprecatedIgnoreOnRuntime;
+use Backpack\CRUD\Backpack;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Routing\Controller;
@@ -14,19 +16,16 @@ use Illuminate\Support\Str;
  * @property-read \Backpack\CRUD\app\Library\CrudPanel\CrudPanel $crud
  * @property array $data
  */
-class CrudController extends Controller
+class CrudController extends Controller implements CrudControllerContract
 {
     use DispatchesJobs, ValidatesRequests;
 
-    public $crud;
+    //public $crud;
+
     public $data = [];
 
     public function __construct()
     {
-        if ($this->crud) {
-            return;
-        }
-
         // ---------------------------
         // Create the CrudPanel object
         // ---------------------------
@@ -36,16 +35,20 @@ class CrudController extends Controller
         // It's done inside a middleware closure in order to have
         // the complete request inside the CrudPanel object.
         $this->middleware(function ($request, $next) {
-            $this->crud = app('crud');
-
-            $this->crud->setRequest($request);
-
-            $this->setupDefaults();
-            $this->setup();
-            $this->setupConfigurationForCurrentOperation();
+            if (! Backpack::hasCrudController(get_class($this))) {
+                $this->initializeCrud($request);
+            }
 
             return $next($request);
         });
+    }
+
+    public function initializeCrud($request, $operation = null)
+    {
+        Backpack::crud($this)->setRequest($request);
+        $this->setupDefaults();
+        $this->setup();
+        $this->setupConfigurationForCurrentOperation($operation);
     }
 
     /**
@@ -97,9 +100,9 @@ class CrudController extends Controller
      * Allow developers to insert default settings by creating a method
      * that looks like setupOperationNameOperation (aka setupXxxOperation).
      */
-    protected function setupConfigurationForCurrentOperation()
+    protected function setupConfigurationForCurrentOperation(?string $operation = null)
     {
-        $operationName = $this->crud->getCurrentOperation();
+        $operationName = $operation ?? $this->crud->getCurrentOperation();
         if (! $operationName) {
             return;
         }
@@ -124,5 +127,14 @@ class CrudController extends Controller
         if (method_exists($this, $setupClassName)) {
             $this->{$setupClassName}();
         }
+    }
+
+    public function __get($name)
+    {
+        if ($name == 'crud') {
+            return Backpack::getControllerCrud(get_class($this));
+        }
+
+        return $this->{$name};
     }
 }
