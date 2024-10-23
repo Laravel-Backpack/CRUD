@@ -21,6 +21,8 @@ return [
     'register' => 'Reģistrēties',
     'name' => 'Vārds',
     'email_address' => 'E-pasta Adrese',
+    'email' => 'E-pasts',
+    'username' => 'Lietotājvārds',
     'password' => 'Parole',
     'old_password' => 'Vecā parole',
     'new_password' => 'Jaunā parole',
@@ -67,4 +69,13 @@ return [
     'confirm_email' => 'Apstiprināt e-pastu',
     'choose_new_password' => 'Jaunā Parole',
     'confirm_new_password' => 'Apstiprināt Paroli',
+    'throttled' => 'Jūs jau nesen pieprasījāt paroles atiestatīšanu. Lūdzu, pārbaudiet savu e-pastu. Ja nesaņēmāt mūsu e-pastu, mēģiniet vēlreiz vēlāk.',
+    'throttled_request' => 'Jūs esat pārsniedzis pieprasījumu skaita limitu. Lūdzu, uzgaidiet dažas minūtes un mēģiniet vēlreiz.',
+
+    'verify_email' => [
+        'email_verification' => 'E-pasta Verificēšana',
+        'verification_link_sent' => 'Verifikācijas saite ir nosūtīta uz jūsu e-pasta adresi.',
+        'email_verification_required' => 'Lūdzu, verificējiet savu e-pasta adresi, noklikšķinot uz saites, kuru mēs jums nosūtījām.',
+        'resend_verification_link' => 'Nosūtīt saiti atkārtoti',
+    ],
 ];

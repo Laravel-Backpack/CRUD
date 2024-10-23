@@ -69,6 +69,13 @@ return [
     'bulk_delete_error_title' => 'Dzēšana neizdevās',
     'bulk_delete_error_message' => 'Vienu vai vairākus ierakstus neizdevās izdzēst',
 
+    // Bulk clone
+    'bulk_clone_are_you_sure' => 'Vai tiešām vēlaties klonēt šos :number ierakstus?',
+    'bulk_clone_sucess_title' => 'Ieraksti noklonēti',
+    'bulk_clone_sucess_message' => ' ieraksti ir noklonēti.',
+    'bulk_clone_error_title' => 'Klonēšana neizdevās',
+    'bulk_clone_error_message' => 'Vienu vai vairākus ierakstus neizdevās izveidot. Lūdzu, mēģiniet vēlreiz.',
+
     // Ajax errors
     'ajax_error_title' => 'Kļūda',
     'ajax_error_text' => 'Kļūda ielādējot saturu. Lūdzu pārlādē lapu.',
@@ -104,6 +111,11 @@ return [
         'print' => 'Drukāt',
         'column_visibility' => 'Kolonnu redzamība',
     ],
+    'custom_views' => [
+        'title' => 'pielāgoti skati',
+        'title_short' => 'skati',
+        'default' => 'pēc noklusējuma',
+    ],
 
     // global crud - errors
     'unauthorized_access' => 'Neautorizēta pieeja - jums nav nepieciešamo tiesību lai apskatītu šo lapu.',
@@ -129,10 +141,22 @@ return [
     'filters' => 'Filtri',
     'toggle_filters' => 'Pārslēgt filtrus',
     'remove_filters' => 'Noņemt filtrus',
+    'apply' => 'Pielietot',
+
+    //filters language strings
+    'today' => 'Šodien',
+    'yesterday' => 'Vakar',
+    'last_7_days' => 'Pēdējās 7 dienas',
+    'last_30_days' => 'Pēdējās 30 dienas',
+    'this_month' => 'Šis mēnesis',
+    'last_month' => 'Iepriekšējais mēnesis',
+    'custom_range' => 'Cits periods',
+    'weekLabel' => 'N',
 
     // Fields
     'browse_uploads' => 'Pārlūkot failus',
     'select_all' => 'Atlasīt visu',
+    'unselect_all' => 'Atcelt atlasi',
     'select_files' => 'Izvēlies failus',
     'select_file' => 'Izvēlies failu',
     'clear' => 'Notīrīt',
@@ -145,10 +169,14 @@ return [
     'new_item' => 'Jauns ieraksts',
     'select_entry' => 'Atlasiet ierakstu',
     'select_entries' => 'Atlasiet ierakstus',
+    'upload_multiple_files_selected' => 'Faili izvēlēti. Pēc saglabāšanas tie būs redzami augstāk.',
 
     //Table field
     'table_cant_add' => 'Nevar pievienot jaunu :entity',
     'table_max_reached' => 'Sasniegts maksimālais skaits no :max',
+
+    // google_map
+    'google_map_locate' => 'Noteikt manu atrašanās vietu',
 
     // File manager
     'file_manager' => 'Failu Pārlūks',
@@ -156,4 +184,21 @@ return [
     // InlineCreateOperation
     'related_entry_created_success' => 'Saistītais ieraksts ir izveidots un atlasīts.',
     'related_entry_created_error' => 'Neizdevās izveidot saistīto ierakstu.',
+    'inline_saving' => 'Saglabāšana...',
+
+    // returned when no translations found in select inputs
+    'empty_translations' => '(tukšs)',
+
+    // The pivot selector required validation message
+    'pivot_selector_required_validation_message' => '"Pivot" lauks ir obligāts.',
+
+    // Quick button messages
+    'quick_button_ajax_error_title' => 'Pieprasījums Neizdevās!',
+    'quick_button_ajax_error_message' => 'Radās kļūda, apstrādājot jūsu pieprasījumu.',
+    'quick_button_ajax_success_title' => 'Pieprasījums Pabeigts!',
+    'quick_button_ajax_success_message' => 'Jūsu pieprasījums veiksmīgi pabeigts.',
+
+    // translations
+    'no_attributes_translated' => 'Šis ieraksts nav notulkots :locale valodā.',
+    'no_attributes_translated_href_text' => 'Aizpildiet ievades laukus no :locale',
 ];
