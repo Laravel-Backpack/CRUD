@@ -9,6 +9,7 @@ use Illuminate\View\Component;
 class FiltersNavbar extends Component
 {
     public $crud;
+
     /**
      * Create a new component instance.
      */
