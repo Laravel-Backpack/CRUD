@@ -51,7 +51,7 @@
 
         {{-- Backpack List Filters --}}
         @if ($crud->filtersEnabled())
-          @include('crud::inc.filters_navbar')
+          <x-backpack::filters-navbar :crud="$crud"/>
         @endif
 
         <div class="{{ backpack_theme_config('classes.tableWrapper') }}">

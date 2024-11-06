@@ -281,10 +281,47 @@
             "<'table-footer row mt-2 d-print-none align-items-center '<'col-sm-12 col-md-4'l><'col-sm-0 col-md-4 text-center'B><'col-sm-12 col-md-4 'p>>",
       }
   }
-  </script>
+  </script> 
   @include('crud::inc.export_buttons')
 
   <script type="text/javascript">
+    // listen to `Backpack:filters-cleared` event
+    document.addEventListener('Backpack:filters-cleared', function (event) {
+        // behaviour for ajax table
+        var new_url = '{{ url($crud->getOperationSetting("datatablesUrl").'/search') }}';
+        var ajax_table = $("#crudTable").DataTable();
+
+        // replace the datatables ajax url with new_url and reload it
+        ajax_table.ajax.url(new_url).load();
+
+        // clear all filters
+        $(".navbar-filters li[filter-name]").trigger('filter:clear');
+
+        // remove filters from URL
+        crud.updateUrl(new_url);
+    });
+
+    document.addEventListener('Backpack:filter-changed', function (event) {
+        let filterName = event.detail.filterName;
+        let filterValue = event.detail.filterValue;
+        let shouldUpdateUrl = event.detail.shouldUpdateUrl;
+        let debounce = event.detail.debounce;
+        let afterUpdateCallback = event.detail.afterUpdateCallback;
+
+        let new_url = updateDatatablesOnFilterChange(filterName, filterValue, filterValue || shouldUpdateUrl, debounce);
+
+        let extraOptions = Object.keys(event.detail).reduce((obj, key) => {
+            if (!['filterName', 'filterValue', 'shouldUpdateUrl', 'debounce', 'afterUpdateCallback'].includes(key)) {
+                obj[key] = event.detail[key];
+            }
+            return obj;
+        }, {});
+
+        if (afterUpdateCallback) {
+            afterUpdateCallback(new_url, extraOptions);
+        }
+    });
+
     jQuery(document).ready(function($) {
 
       window.crud.table = $("#crudTable").DataTable(window.crud.dataTableConfiguration);

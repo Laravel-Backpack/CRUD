@@ -49,19 +49,19 @@
 
             $('#remove_filters_button').toggleClass('invisible', !new_url.query());
 
-        return new_url.toString();
+        return normalizeAmpersand(new_url.toString());
+      }
 
+      function updatePageUrl(filterName, filterValue, currentUrl = null) {
+        currentUrl = currentUrl || window.location.href;
+        let newUrl = addOrUpdateUriParameter(window.location.href, filterName, filterValue);
+        crud.updateUrl(newUrl);
+        return newUrl;
       }
 
       function updateDatatablesOnFilterChange(filterName, filterValue, update_url = false, debounce = 500) {
-        // behaviour for ajax table
-        var current_url = crud.table.ajax.url();
-        var new_url = addOrUpdateUriParameter(current_url, filterName, filterValue);
-
-        new_url = normalizeAmpersand(new_url);
-
-        // add filter to URL
-        crud.updateUrl(new_url);
+        // behaviour for ajax tables
+        var new_url = updatePageUrl(filterName, filterValue, crud.table.ajax.url());
         crud.table.ajax.url(new_url);
 
         // when we are clearing ALL filters, we would not update the table url here, because this is done PER filter
@@ -112,18 +112,8 @@
       	$("#remove_filters_button").click(function(e) {
       		e.preventDefault();
 
-		    	// behaviour for ajax table
-		    	var new_url = '{{ url($crud->getOperationSetting("datatablesUrl").'/search') }}';
-		    	var ajax_table = $("#crudTable").DataTable();
-
-  				// replace the datatables ajax url with new_url and reload it
-  				ajax_table.ajax.url(new_url).load();
-
-  				// clear all filters
-  				$(".navbar-filters li[filter-name]").trigger('filter:clear');
-
-          // remove filters from URL
-          crud.updateUrl(new_url);
+		    	// emit a new custom Backpack:filter-removed event
+          document.dispatchEvent(new CustomEvent('Backpack:filters-cleared'));       
       	});
 
         // hide the Remove filters button when no filter is active
