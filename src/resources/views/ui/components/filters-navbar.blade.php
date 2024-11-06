@@ -25,50 +25,50 @@
     </div>{{-- /.navbar-collapse --}}
 </nav>
   
-@push('crud_list_scripts')
+@push('after_scripts')
     @basset('https://unpkg.com/urijs@1.19.11/src/URI.min.js')
     <script>
     function addOrUpdateUriParameter(uri, parameter, value) {
-            var new_url = normalizeAmpersand(uri);
+        var new_url = normalizeAmpersand(uri);
 
-            new_url = URI(new_url).normalizeQuery();
+        new_url = URI(new_url).normalizeQuery();
 
-            // this param is only needed in datatables persistent url redirector
-            // not when applying filters so we remove it.
-            if (new_url.hasQuery('persistent-table')) {
-                new_url.removeQuery('persistent-table');
-            }
+        // this param is only needed in datatables persistent url redirector
+        // not when applying filters so we remove it.
+        if (new_url.hasQuery('persistent-table')) {
+            new_url.removeQuery('persistent-table');
+        }
 
-            if (new_url.hasQuery(parameter)) {
+        if (new_url.hasQuery(parameter)) {
             new_url.removeQuery(parameter);
-            }
+        }
 
-            if (value !== '' && value != null) {
+        if (value !== '' && value != null) {
             new_url = new_url.addQuery(parameter, value);
-            }
+        }
 
-            $('#remove_filters_button').toggleClass('invisible', !new_url.query());
+        $('#remove_filters_button').toggleClass('invisible', !new_url.query());
 
         return normalizeAmpersand(new_url.toString());
     }
 
     function updatePageUrl(filterName, filterValue, currentUrl = null) {
         currentUrl = currentUrl || window.location.href;
-        let newUrl = addOrUpdateUriParameter(window.location.href, filterName, filterValue);
+        let newUrl = addOrUpdateUriParameter(currentUrl, filterName, filterValue);
         crud.updateUrl(newUrl);
         return newUrl;
     }
 
     function updateDatatablesOnFilterChange(filterName, filterValue, update_url = false, debounce = 500) {
         // behaviour for ajax tables
-        var new_url = updatePageUrl(filterName, filterValue, crud.table.ajax.url());
+        let new_url = updatePageUrl(filterName, filterValue, crud.table.ajax.url());
         crud.table.ajax.url(new_url);
 
         // when we are clearing ALL filters, we would not update the table url here, because this is done PER filter
         // and we have a function that will do this update for us after all filters had been cleared.
         if(update_url) {
-        // replace the datatables ajax url with new_url and reload it
-        callFunctionOnce(function() { refreshDatatablesOnFilterChange(new_url) }, debounce, 'refreshDatatablesOnFilterChange');
+            // replace the datatables ajax url with new_url and reload it
+            callFunctionOnce(function() { refreshDatatablesOnFilterChange(new_url) }, debounce, 'refreshDatatablesOnFilterChange');
         }
 
         return new_url;
@@ -110,8 +110,8 @@
         $("#remove_filters_button").click(function(e) {
             e.preventDefault();
 
-                // emit a new custom Backpack:filter-removed event
-        document.dispatchEvent(new CustomEvent('Backpack:filters-cleared'));       
+            // emit a new custom Backpack:filter-removed event
+            document.dispatchEvent(new CustomEvent('Backpack:filters-cleared'));       
         });
 
         // hide the Remove filters button when no filter is active
@@ -119,8 +119,7 @@
         var anyActiveFilters = false;
         $(".navbar-filters li[filter-name]").each(function () {
             if ($(this).hasClass('active')) {
-            anyActiveFilters = true;
-            // console.log('ACTIVE FILTER');
+                anyActiveFilters = true;
             }
         });
 
