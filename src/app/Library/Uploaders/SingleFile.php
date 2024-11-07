@@ -38,6 +38,7 @@ class SingleFile extends Uploader
         return $previousFile;
     }
 
+    /** @codeCoverageIgnore */
     public function uploadRepeatableFiles($values, $previousRepeatableValues, $entry = null)
     {
         $orderedFiles = $this->getFileOrderFromRequest();
@@ -53,9 +54,13 @@ class SingleFile extends Uploader
         }
 
         foreach ($previousRepeatableValues as $row => $file) {
-            if ($file && ! isset($orderedFiles[$row])) {
-                $orderedFiles[$row] = null;
-                Storage::disk($this->getDisk())->delete($file);
+            if ($file) {
+                if (! isset($orderedFiles[$row])) {
+                    $orderedFiles[$row] = null;
+                }
+                if (! in_array($file, $orderedFiles)) {
+                    Storage::disk($this->getDisk())->delete($file);
+                }
             }
         }
 
@@ -65,7 +70,7 @@ class SingleFile extends Uploader
     /**
      * Single file uploaders send no value when they are not dirty.
      */
-    protected function shouldKeepPreviousValueUnchanged(Model $entry, $entryValue): bool
+    public function shouldKeepPreviousValueUnchanged(Model $entry, $entryValue): bool
     {
         return is_string($entryValue);
     }

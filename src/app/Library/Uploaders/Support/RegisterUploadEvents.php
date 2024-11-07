@@ -60,6 +60,7 @@ final class RegisterUploadEvents
         $uploader = $this->getUploader($subfield, $this->uploaderConfiguration);
         $crudObject = $this->crudObject->getAttributes();
         $uploader = $uploader->repeats($crudObject['name']);
+        $uploader = $uploader->fake((isset($crudObject['fake']) && $crudObject['fake']) ? ($crudObject['store_in'] ?? 'extras') : false);
 
         // If this uploader is already registered bail out. We may endup here multiple times when doing modifications to the crud object.
         // Changing `subfields` properties will call the macros again. We prevent duplicate entries by checking
@@ -139,6 +140,14 @@ final class RegisterUploadEvents
             $uploader->deleteUploadedFiles($entry);
         });
 
+        // if the uploader is a relationship and handles repeatable files, we will also register the deleting event on the
+        // parent model. that way we can control the deletion of the files when the parent model is deleted.
+        if ($uploader->isRelationship() && $uploader->handleRepeatableFiles) {
+            app('crud')->model::deleting(function ($entry) use ($uploader) {
+                $uploader->deleteUploadedFiles($entry);
+            });
+        }
+
         app('UploadersRepository')->markAsHandled($uploader->getIdentifier());
     }
 
@@ -154,9 +163,13 @@ final class RegisterUploadEvents
      */
     private function getUploader(array $crudObject, array $uploaderConfiguration): UploaderInterface
     {
-        $customUploader = isset($uploaderConfiguration['uploader']) && class_exists($uploaderConfiguration['uploader']);
+        $hasCustomUploader = isset($uploaderConfiguration['uploader']);
 
-        if ($customUploader) {
+        if ($hasCustomUploader && ! is_a($uploaderConfiguration['uploader'], UploaderInterface::class, true)) {
+            throw new Exception('Invalid uploader class provided for '.$this->crudObjectType.' type: '.$crudObject['type']);
+        }
+
+        if ($hasCustomUploader) {
             return $uploaderConfiguration['uploader']::for($crudObject, $uploaderConfiguration);
         }
 

@@ -21,7 +21,7 @@ abstract class Uploader implements UploaderInterface
 
     private string $path = '';
 
-    private bool $handleMultipleFiles = false;
+    public bool $handleMultipleFiles = false;
 
     private bool $deleteWhenEntryIsDeleted = true;
 
@@ -102,16 +102,14 @@ abstract class Uploader implements UploaderInterface
 
     public function deleteUploadedFiles(Model $entry): void
     {
-        if ($this->deleteWhenEntryIsDeleted) {
-            if (! in_array(SoftDeletes::class, class_uses_recursive($entry), true)) {
-                $this->performFileDeletion($entry);
+        if (! in_array(SoftDeletes::class, class_uses_recursive($entry), true)) {
+            $this->performFileDeletion($entry);
 
-                return;
-            }
+            return;
+        }
 
-            if ($entry->isForceDeleting() === true) {
-                $this->performFileDeletion($entry);
-            }
+        if ($entry->isForceDeleting() === true) {
+            $this->performFileDeletion($entry);
         }
     }
 
@@ -182,11 +180,30 @@ abstract class Uploader implements UploaderInterface
         if (! $this->attachedToFakeField) {
             return $this->getOriginalValue($entry);
         }
-
         $value = $this->getOriginalValue($entry, $this->attachedToFakeField);
         $value = is_string($value) ? json_decode($value, true) : (array) $value;
 
         return $value[$this->getAttributeName()] ?? null;
+    }
+
+    public function getValueWithoutPath(?string $value = null): ?string
+    {
+        return $value ? Str::after($value, $this->path) : null;
+    }
+
+    public function isFake(): bool
+    {
+        return $this->attachedToFakeField !== false;
+    }
+
+    public function getFakeAttribute(): bool|string
+    {
+        return $this->attachedToFakeField;
+    }
+
+    public function shouldKeepPreviousValueUnchanged(Model $entry, $entryValue): bool
+    {
+        return $entry->exists && ($entryValue === null || $entryValue === [null]);
     }
 
     /*******************************
@@ -206,6 +223,13 @@ abstract class Uploader implements UploaderInterface
         return $this;
     }
 
+    public function fake(bool|string $isFake): self
+    {
+        $this->attachedToFakeField = $isFake;
+
+        return $this;
+    }
+
     /*******************************
      * Default implementation functions
      *******************************/
@@ -217,6 +241,18 @@ abstract class Uploader implements UploaderInterface
     {
         $value = $entry->{$this->getAttributeName()};
 
+        if ($this->attachedToFakeField) {
+            $values = $entry->{$this->attachedToFakeField};
+
+            $values = is_string($values) ? json_decode($values, true) : $values;
+            $attributeValue = $values[$this->getAttributeName()] ?? null;
+            $attributeValue = is_array($attributeValue) ? array_map(fn ($value) => $this->getValueWithoutPath($value), $attributeValue) : $this->getValueWithoutPath($attributeValue);
+            $values[$this->getAttributeName()] = $attributeValue;
+            $entry->{$this->attachedToFakeField} = isset($entry->getCasts()[$this->attachedToFakeField]) ? $values : json_encode($values);
+
+            return $entry;
+        }
+
         if ($this->handleMultipleFiles) {
             if (! isset($entry->getCasts()[$this->getName()]) && is_string($value)) {
                 $entry->{$this->getAttributeName()} = json_decode($value, true);
@@ -225,24 +261,24 @@ abstract class Uploader implements UploaderInterface
             return $entry;
         }
 
-        if ($this->attachedToFakeField) {
-            $values = $entry->{$this->attachedToFakeField};
-            $values = is_string($values) ? json_decode($values, true) : (array) $values;
-
-            $values[$this->getAttributeName()] = isset($values[$this->getAttributeName()]) ? Str::after($values[$this->getAttributeName()], $this->path) : null;
-            $entry->{$this->attachedToFakeField} = json_encode($values);
-
-            return $entry;
-        }
-
-        $entry->{$this->getAttributeName()} = Str::after($value, $this->path);
+        $entry->{$this->getAttributeName()} = $this->getValueWithoutPath($value);
 
         return $entry;
     }
 
-    private function deleteFiles(Model $entry)
+    protected function deleteFiles(Model $entry)
     {
-        $values = $entry->{$this->getAttributeName()};
+        if (! $this->shouldDeleteFiles()) {
+            return;
+        }
+
+        if ($this->attachedToFakeField) {
+            $values = $entry->{$this->attachedToFakeField};
+            $values = is_string($values) ? json_decode($values, true) : $values;
+            $values = $values[$this->getAttributeName()] ?? null;
+        }
+
+        $values ??= $entry->{$this->getAttributeName()};
 
         if ($values === null) {
             return;
@@ -250,7 +286,7 @@ abstract class Uploader implements UploaderInterface
 
         if ($this->handleMultipleFiles) {
             // ensure we have an array of values when field is not casted in model.
-            if (! isset($entry->getCasts()[$this->name]) && is_string($values)) {
+            if (is_string($values)) {
                 $values = json_decode($values, true);
             }
             foreach ($values ?? [] as $value) {
@@ -267,7 +303,7 @@ abstract class Uploader implements UploaderInterface
 
     private function performFileDeletion(Model $entry)
     {
-        if (! $this->handleRepeatableFiles) {
+        if (! $this->handleRepeatableFiles && $this->deleteWhenEntryIsDeleted) {
             $this->deleteFiles($entry);
 
             return;
@@ -277,7 +313,7 @@ abstract class Uploader implements UploaderInterface
     }
 
     /*******************************
-     * Private helper methods
+     * helper methods
      *******************************/
     private function getPathFromConfiguration(array $crudObject, array $configuration): string
     {
