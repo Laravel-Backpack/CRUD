@@ -31,7 +31,7 @@
 {{-- FIELD CSS - will be loaded in the after_styles section --}}
 @push('crud_fields_styles')
     {{-- include summernote css --}}
-    @basset('bp-summernote.css')
+    @basset('bp-summernote-css')
     @basset('bp-summernote-woof', false)
     @bassetBlock('backpack/crud/fields/summernote-field.css')
     <style type="text/css">

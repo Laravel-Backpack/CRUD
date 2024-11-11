@@ -64,6 +64,11 @@ class BackpackServiceProvider extends ServiceProvider
 
         Basset::addViewPath(realpath(__DIR__.'/resources/views'));
 
+        Basset::map('bp-jquery', 'https://unpkg.com/jquery@3.6.1/dist/jquery.min.js', [
+            'integrity'   => 'sha384-i61gTtaoovXtAbKjo903+O55Jkn2+RtzHtvNez+yI49HAASvznhe9sZyjaSHTau9',
+            'crossorigin' => 'anonymous',
+        ]);
+
         Basset::map('bp-popper-js', 'https://unpkg.com/@popperjs/core@2.11.6/dist/umd/popper.min.js', [
             'integrity'   => 'sha384-oBqDVmMz9ATKxIep9tiCxS/Z9fNfEXiDAYTujMAeBAsjFuCZSmKbSSUnQlmh/jp3',
             'crossorigin' => 'anonymous',
@@ -83,6 +88,7 @@ class BackpackServiceProvider extends ServiceProvider
             'integrity'   => 'sha384-z7oxDqgQB0ThPzpmEjy9pcQT5oLRWvagLjZypnMIdKqBBLLvKNINZdifoEEPmrn1',
             'crossorigin' => 'anonymous',
         ]);
+
         Basset::map('bp-sweet-alert-js', 'https://unpkg.com/sweetalert@2.1.2/dist/sweetalert.min.js', [
             'integrity'   => 'sha384-RIQuldGV8mnjGdob13cay/K1AJa+LR7VKHqSXrrB5DPGryn4pMUXRLh92Ev8KlGF',
             'crossorigin' => 'anonymous',
