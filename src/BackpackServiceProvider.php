@@ -65,32 +65,32 @@ class BackpackServiceProvider extends ServiceProvider
         Basset::addViewPath(realpath(__DIR__.'/resources/views'));
 
         Basset::map('bp-jquery', 'https://unpkg.com/jquery@3.6.1/dist/jquery.min.js', [
-            'integrity'   => 'sha384-i61gTtaoovXtAbKjo903+O55Jkn2+RtzHtvNez+yI49HAASvznhe9sZyjaSHTau9',
+            'integrity' => 'sha384-i61gTtaoovXtAbKjo903+O55Jkn2+RtzHtvNez+yI49HAASvznhe9sZyjaSHTau9',
             'crossorigin' => 'anonymous',
         ]);
 
         Basset::map('bp-popper-js', 'https://unpkg.com/@popperjs/core@2.11.6/dist/umd/popper.min.js', [
-            'integrity'   => 'sha384-oBqDVmMz9ATKxIep9tiCxS/Z9fNfEXiDAYTujMAeBAsjFuCZSmKbSSUnQlmh/jp3',
+            'integrity' => 'sha384-oBqDVmMz9ATKxIep9tiCxS/Z9fNfEXiDAYTujMAeBAsjFuCZSmKbSSUnQlmh/jp3',
             'crossorigin' => 'anonymous',
         ]);
 
         Basset::map('bp-summernote-css', 'https://unpkg.com/summernote@0.8.20/dist/summernote-lite.min.css', [
-            'integrity'   => 'sha384-vmPR5F5DxvnVZxuw9+hxaSj8MDX3rP49GZu/JvPS1qYD2xeg+0TGJUJ/H6e/HTkV',
+            'integrity' => 'sha384-vmPR5F5DxvnVZxuw9+hxaSj8MDX3rP49GZu/JvPS1qYD2xeg+0TGJUJ/H6e/HTkV',
             'crossorigin' => 'anonymous',
         ]);
 
         Basset::map('bp-summernote-woof', 'https://unpkg.com/summernote@0.8.20/dist/font/summernote.woff2', [
-            'integrity'   => 'sha384-jin6VSG0kKkHctWc/DhVx2PL8YqVcnWvrAcqrTkLdi9evxi77MNjsgSUqbNGWijo',
+            'integrity' => 'sha384-jin6VSG0kKkHctWc/DhVx2PL8YqVcnWvrAcqrTkLdi9evxi77MNjsgSUqbNGWijo',
             'crossorigin' => 'anonymous',
         ]);
 
         Basset::map('bp-noty-js', 'https://unpkg.com/noty@3.2.0-beta-deprecated/lib/noty.min.js', [
-            'integrity'   => 'sha384-z7oxDqgQB0ThPzpmEjy9pcQT5oLRWvagLjZypnMIdKqBBLLvKNINZdifoEEPmrn1',
+            'integrity' => 'sha384-z7oxDqgQB0ThPzpmEjy9pcQT5oLRWvagLjZypnMIdKqBBLLvKNINZdifoEEPmrn1',
             'crossorigin' => 'anonymous',
         ]);
 
         Basset::map('bp-sweet-alert-js', 'https://unpkg.com/sweetalert@2.1.2/dist/sweetalert.min.js', [
-            'integrity'   => 'sha384-RIQuldGV8mnjGdob13cay/K1AJa+LR7VKHqSXrrB5DPGryn4pMUXRLh92Ev8KlGF',
+            'integrity' => 'sha384-RIQuldGV8mnjGdob13cay/K1AJa+LR7VKHqSXrrB5DPGryn4pMUXRLh92Ev8KlGF',
             'crossorigin' => 'anonymous',
         ]);
 
@@ -304,7 +304,7 @@ class BackpackServiceProvider extends ServiceProvider
         // add the root disk to filesystem configuration
         app()->config['filesystems.disks.'.config('backpack.base.root_disk_name')] = [
             'driver' => 'local',
-            'root'   => base_path(),
+            'root' => base_path(),
         ];
 
         /*
@@ -323,7 +323,7 @@ class BackpackServiceProvider extends ServiceProvider
             [
                 'backpack' => [
                     'driver' => 'eloquent',
-                    'model'  => config('backpack.base.user_model_fqn'),
+                    'model' => config('backpack.base.user_model_fqn'),
                 ],
             ];
 
@@ -341,8 +341,8 @@ class BackpackServiceProvider extends ServiceProvider
         [
             'backpack' => [
                 'provider' => 'backpack',
-                'table'    => $backpackPasswordBrokerTable,
-                'expire'   => config('backpack.base.password_recovery_token_expiration', 60),
+                'table' => $backpackPasswordBrokerTable,
+                'expire' => config('backpack.base.password_recovery_token_expiration', 60),
                 'throttle' => config('backpack.base.password_recovery_throttle_notifications'),
             ],
         ];
@@ -351,7 +351,7 @@ class BackpackServiceProvider extends ServiceProvider
         app()->config['auth.guards'] = app()->config['auth.guards'] +
             [
                 'backpack' => [
-                    'driver'   => 'session',
+                    'driver' => 'session',
                     'provider' => 'backpack',
                 ],
             ];
