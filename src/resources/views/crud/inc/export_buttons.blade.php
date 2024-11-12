@@ -1,13 +1,13 @@
 @if ($crud->exportButtons())
-  @basset('https://cdn.datatables.net/buttons/2.3.3/css/buttons.bootstrap5.min.css')
-  @basset('https://cdn.datatables.net/buttons/2.3.3/js/dataTables.buttons.min.js')
-  @basset('https://cdn.datatables.net/buttons/2.3.3/js/buttons.bootstrap5.min.js')
-  @basset('https://cdnjs.cloudflare.com/ajax/libs/jszip/2.5.0/jszip.min.js')
-  @basset('https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.18/pdfmake.min.js')
-  @basset('https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.18/vfs_fonts.js')
-  @basset('https://cdn.datatables.net/buttons/2.3.2/js/buttons.html5.min.js')
-  @basset('https://cdn.datatables.net/buttons/2.3.2/js/buttons.print.min.js')
-  @basset('https://cdn.datatables.net/buttons/2.3.2/js/buttons.colVis.min.js')
+  @basset('bp-datatables-buttons-bs5-css')
+  @basset('bp-datatables-dt-buttons-bs5-js')
+  @basset('bp-datatables-buttons-bs5-js')
+  @basset('bp-datatables-jszip')
+  @basset('bp-datatables-pdfmake')
+  @basset('bp-datatables-pdfmake-fonts')
+  @basset('bp-datatables-html5-button')
+  @basset('bp-datatables-print-button')
+  @basset('bp-datatables-colvis-button')
   <script>
     let dataTablesExportStrip = text => {
         if ( typeof text !== 'string' ) {

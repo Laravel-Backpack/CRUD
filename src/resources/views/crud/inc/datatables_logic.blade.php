@@ -6,12 +6,10 @@
  @endphp
 
   {{-- DATA TABLES SCRIPT --}}
-  @basset('https://cdn.datatables.net/1.13.1/js/jquery.dataTables.min.js')
-  @basset('https://cdn.datatables.net/1.13.1/js/dataTables.bootstrap5.min.js')
-  @basset('https://cdn.datatables.net/responsive/2.4.0/js/dataTables.responsive.min.js')
-  @basset('https://cdn.datatables.net/responsive/2.4.0/css/responsive.dataTables.min.css')
-  @basset('https://cdn.datatables.net/fixedheader/3.3.1/js/dataTables.fixedHeader.min.js')
-  @basset('https://cdn.datatables.net/fixedheader/3.3.1/css/fixedHeader.dataTables.min.css')
+  @basset('bp-datatables-js')
+  @basset('bp-datatables-bootstrap-js')
+  @basset('bp-datatables-responsive-js')
+  @basset('bp-datatables-fixedheader-js')
 
   @basset(base_path('vendor/backpack/crud/src/resources/assets/img/spinner.svg'), false)
 

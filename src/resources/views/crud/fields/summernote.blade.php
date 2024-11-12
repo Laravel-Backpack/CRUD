@@ -45,7 +45,7 @@
 {{-- FIELD JS - will be loaded in the after_scripts section --}}
 @push('crud_fields_scripts')
     {{-- include summernote js --}}
-    @basset('https://unpkg.com/summernote@0.8.20/dist/summernote-lite.min.js')
+    @basset('bp-summernote-js')
     @bassetBlock('backpack/crud/fields/summernote-field.js')
     <script>
         function bpFieldInitSummernoteElement(element) {
