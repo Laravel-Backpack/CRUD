@@ -64,32 +64,32 @@ class BackpackServiceProvider extends ServiceProvider
 
         Basset::addViewPath(realpath(__DIR__.'/resources/views'));
 
-        Basset::map('bp-jquery', 'https://unpkg.com/jquery@3.6.1/dist/jquery.min.js', ['integrity'   => 'sha384-i61gTtaoovXtAbKjo903+O55Jkn2+RtzHtvNez+yI49HAASvznhe9sZyjaSHTau9','crossorigin' => 'anonymous']);
-        Basset::map('bp-popper-js', 'https://unpkg.com/@popperjs/core@2.11.6/dist/umd/popper.min.js', ['integrity'   => 'sha384-oBqDVmMz9ATKxIep9tiCxS/Z9fNfEXiDAYTujMAeBAsjFuCZSmKbSSUnQlmh/jp3','crossorigin' => 'anonymous',]);
-        Basset::map('bp-summernote-css', 'https://unpkg.com/summernote@0.8.20/dist/summernote-lite.min.css', ['integrity'   => 'sha384-vmPR5F5DxvnVZxuw9+hxaSj8MDX3rP49GZu/JvPS1qYD2xeg+0TGJUJ/H6e/HTkV','crossorigin' => 'anonymous',]);
-        Basset::map('bp-summernote-woof', 'https://unpkg.com/summernote@0.8.20/dist/font/summernote.woff2', ['integrity'   => 'sha384-jin6VSG0kKkHctWc/DhVx2PL8YqVcnWvrAcqrTkLdi9evxi77MNjsgSUqbNGWijo','crossorigin' => 'anonymous',]);
-        Basset::map('bp-datatables-js', 'https://cdn.datatables.net/1.13.1/js/jquery.dataTables.min.js', ['integrity' => 'sha384-t11ZTRbO9om+k0pVXmc3c8SsIHonT3oUvoi3FxMm1c9DVQwl9VbTNv3+UjbUrI6Z','crossorigin' => 'anonymous',]);
-        Basset::map('bp-datatables-bootstrap-js', 'https://cdn.datatables.net/1.13.1/js/dataTables.bootstrap5.min.js', ['integrity' => 'sha384-bHpoWS7HfBjbqWmqPFVsEwT0EyCKgMw/hbKswCjYLSLS+TyPUAG51MTMIXgy/4Pl','crossorigin' => 'anonymous',]);
+        Basset::map('bp-jquery', 'https://unpkg.com/jquery@3.6.1/dist/jquery.min.js', ['integrity' => 'sha384-i61gTtaoovXtAbKjo903+O55Jkn2+RtzHtvNez+yI49HAASvznhe9sZyjaSHTau9', 'crossorigin' => 'anonymous']);
+        Basset::map('bp-popper-js', 'https://unpkg.com/@popperjs/core@2.11.6/dist/umd/popper.min.js', ['integrity' => 'sha384-oBqDVmMz9ATKxIep9tiCxS/Z9fNfEXiDAYTujMAeBAsjFuCZSmKbSSUnQlmh/jp3', 'crossorigin' => 'anonymous']);
+        Basset::map('bp-summernote-css', 'https://unpkg.com/summernote@0.8.20/dist/summernote-lite.min.css', ['integrity' => 'sha384-vmPR5F5DxvnVZxuw9+hxaSj8MDX3rP49GZu/JvPS1qYD2xeg+0TGJUJ/H6e/HTkV', 'crossorigin' => 'anonymous']);
+        Basset::map('bp-summernote-woof', 'https://unpkg.com/summernote@0.8.20/dist/font/summernote.woff2', ['integrity' => 'sha384-jin6VSG0kKkHctWc/DhVx2PL8YqVcnWvrAcqrTkLdi9evxi77MNjsgSUqbNGWijo', 'crossorigin' => 'anonymous']);
+        Basset::map('bp-datatables-js', 'https://cdn.datatables.net/1.13.1/js/jquery.dataTables.min.js', ['integrity' => 'sha384-t11ZTRbO9om+k0pVXmc3c8SsIHonT3oUvoi3FxMm1c9DVQwl9VbTNv3+UjbUrI6Z', 'crossorigin' => 'anonymous']);
+        Basset::map('bp-datatables-bootstrap-js', 'https://cdn.datatables.net/1.13.1/js/dataTables.bootstrap5.min.js', ['integrity' => 'sha384-bHpoWS7HfBjbqWmqPFVsEwT0EyCKgMw/hbKswCjYLSLS+TyPUAG51MTMIXgy/4Pl', 'crossorigin' => 'anonymous']);
         Basset::map('bp-datatables-bootstrap-css', 'https://cdn.datatables.net/1.13.1/css/dataTables.bootstrap5.min.css', ['integrity' => 'sha384-GADhaOJCr6lsUqdHJnYcH/QaARzVT92beGzAYxLTSoxUorHjQZci1FW+X9BqbnE3', 'crossorigin' => 'anonymous']);
-        Basset::map('bp-datatables-responsive-js', 'https://cdn.datatables.net/responsive/2.4.0/js/dataTables.responsive.min.js', ['integrity' => 'sha384-yYqZ2Jue83rlzHS23Jp/xwZjRZ9KQCACGR5lhhWFtDIQeBMwAuav+irRqSKrucSP','crossorigin' => 'anonymous',]);
-        Basset::map('bp-datatables-responsive-css', 'https://cdn.datatables.net/responsive/2.4.0/css/responsive.dataTables.min.css', ['integrity' => 'sha384-cWgz6YKDgXz/mTomsnOIXd/1s0iivK+FhwVdmzN0ErdazMmt4RieKmZXMWdwScEm','crossorigin' => 'anonymous',]);
-        Basset::map('bp-datatables-fixedheader-js', 'https://cdn.datatables.net/fixedheader/3.3.1/js/dataTables.fixedHeader.min.js', ['integrity' => 'sha384-PeR7ate8YuUE8EYJp3d9zNrgSm9jFJL1b2Hrb8Za0RtVj6YMU8IZlyBwlRjiXq0i','crossorigin' => 'anonymous',]);
-        Basset::map('bp-datatables-fixedheader-css', 'https://cdn.datatables.net/fixedheader/3.3.1/css/fixedHeader.dataTables.min.css', ['integrity' => 'sha384-g0QDiyi3I9zPzO1O8mvkZd0/MWDKDs8Lk+pHQo3+kkTJEFTdzDCwjqIuoOG+yG0q','crossorigin' => 'anonymous',]);
-        Basset::map('bp-datatables-buttons-bs5-css', 'https://cdn.datatables.net/buttons/2.3.3/css/buttons.bootstrap5.min.css', ['integrity' => 'sha384-vLlNBaHuV6cqBlVjiJITSKkzOaeomPYdKV54KsyxIF88PDfOKqDRzlHSe5FVMe/4','crossorigin' => 'anonymous',]);
-        Basset::map('bp-datatables-dt-buttons-bs5-js', 'https://cdn.datatables.net/buttons/2.3.3/js/dataTables.buttons.min.js', ['integrity' => 'sha384-4UCu2Y40paen66DRD9HqMQTQDFzPOPrHQQ3Hj3il7NOYMVE9+8PKV9YqrNjOvB+G','crossorigin' => 'anonymous',]);     
-        Basset::map('bp-datatables-buttons-bs5-js', 'https://cdn.datatables.net/buttons/2.3.3/js/buttons.bootstrap5.min.js', ['integrity' => 'sha384-ydNsKc6RC3ZCjn9sUZuBlPsIf/bBKmjNuYZZzBTvNag/JKDcIlRstd/eU+ZifNxM','crossorigin' => 'anonymous',]);
-        Basset::map('bp-datatables-jszip', 'https://cdnjs.cloudflare.com/ajax/libs/jszip/2.5.0/jszip.min.js', ['integrity' => 'sha384-yib/J8n+cev8VyEYY+4A3nSvnqCRhEkxUQhVFp8X+YuIXd0qhT3rTYXqel0zWzni','crossorigin' => 'anonymous']);
-        Basset::map('bp-datatables-pdfmake', 'https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.18/pdfmake.min.js', ['integrity' => 'sha384-7B0GkWcyEmGJnsHkE0Z0cCpXaUS9i1tFM1/e0jAKoxA2YkI2XYaZdCOJo0kBBsS5','crossorigin' => 'anonymous']);
-        Basset::map('bp-datatables-pdfmake-fonts', 'https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.18/vfs_fonts.js', ['integrity' => 'sha384-Zu5dDR1DhOW4Qpz55vgv84xMQSt0V2nX/rGj309pIyhOnc2KHssTcYszIjiYUjYL','crossorigin' => 'anonymous']);
-        Basset::map('bp-datatables-html5-button', 'https://cdn.datatables.net/buttons/2.3.2/js/buttons.html5.min.js', ['integrity' => 'sha384-+KP6ruIqPlKDSU+EJ+oMlSh7cUCDWe2rHFaGVL4iHG4plXJaco2DetEl6yOrugqf','crossorigin' => 'anonymous']);
-        Basset::map('bp-datatables-print-button', 'https://cdn.datatables.net/buttons/2.3.2/js/buttons.print.min.js', ['integrity' => 'sha384-5MVvNT5w7ht9uU89ZuYPDHs3Yap4hV/h/cPjiKBHdbS2pDKuY4ADmve/XwXN5oPQ','crossorigin' => 'anonymous']);
-        Basset::map('bp-datatables-colvis-button', 'https://cdn.datatables.net/buttons/2.3.2/js/buttons.colVis.min.js', ['integrity' => 'sha384-iWhT+VbS/XoLnEHwlRhpwgeNPjEFIs88MypVWxe99IVGqXljIX4vdFLr3fAbRGHM','crossorigin' => 'anonymous']);
-        Basset::map('bp-urijs', 'https://unpkg.com/urijs@1.19.11/src/URI.min.js', ['integrity'   => 'sha384-VS1T95+I9NZNIjvlP0D/3HRlU1sKmoBzh71Pt08ckCdxEM2++7QEdbbp/3gi20js','crossorigin' => 'anonymous',]);
-        Basset::map('bp-highlight-js', 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.6.0/highlight.min.js', ['integrity'   => 'sha512-gU7kztaQEl7SHJyraPfZLQCNnrKdaQi5ndOyt4L4UPL/FHDd/uB9Je6KDARIqwnNNE27hnqoWLBq+Kpe4iHfeQ==','crossorigin' => 'anonymous',]);
-        Basset::map('bp-highlight-css', 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.6.0/styles/base16/dracula.min.css', ['integrity'   => 'sha512-GfRggx2Wc+POEPR0asMTNTyNug3rWJ9Jp4wxnHZ5VApMOUJRK4cEaRriXsx5tV1DakKHQWQ2noCbuzFiPJaYqA==','crossorigin' => 'anonymous',]); 
-        Basset::map('bp-animate-css', 'https://unpkg.com/animate.css@4.1.1/animate.compat.css', ['integrity'   => 'sha384-B6emdNLLuHwwngyCsBGzzo6MQPmSygQu5cG4lfUfdSxzj0FJVJZu+7GOmB8/NHpd','crossorigin' => 'anonymous',]);
-        Basset::map('bp-noty-css', 'https://unpkg.com/noty@3.2.0-beta-deprecated/lib/noty.css', ['integrity'   => 'sha384-J/zBMo8aKN23nuimkvPbkLpGS1Uf1eCha++IoQfNVUpYCjvkuzLqO9nc4wizNAsv','crossorigin' => 'anonymous',]);
-        Basset::map('bp-lineawesome-css', 'https://cdnjs.cloudflare.com/ajax/libs/line-awesome/1.3.0/line-awesome/css/line-awesome.min.css', ['integrity'   => 'sha512-vebUliqxrVkBy3gucMhClmyQP9On/HAWQdKDXRaAlb/FKuTbxkjPKUyqVOxAcGwFDka79eTF+YXwfke1h3/wfg==','crossorigin' => 'anonymous',]);
+        Basset::map('bp-datatables-responsive-js', 'https://cdn.datatables.net/responsive/2.4.0/js/dataTables.responsive.min.js', ['integrity' => 'sha384-yYqZ2Jue83rlzHS23Jp/xwZjRZ9KQCACGR5lhhWFtDIQeBMwAuav+irRqSKrucSP', 'crossorigin' => 'anonymous']);
+        Basset::map('bp-datatables-responsive-css', 'https://cdn.datatables.net/responsive/2.4.0/css/responsive.dataTables.min.css', ['integrity' => 'sha384-cWgz6YKDgXz/mTomsnOIXd/1s0iivK+FhwVdmzN0ErdazMmt4RieKmZXMWdwScEm', 'crossorigin' => 'anonymous']);
+        Basset::map('bp-datatables-fixedheader-js', 'https://cdn.datatables.net/fixedheader/3.3.1/js/dataTables.fixedHeader.min.js', ['integrity' => 'sha384-PeR7ate8YuUE8EYJp3d9zNrgSm9jFJL1b2Hrb8Za0RtVj6YMU8IZlyBwlRjiXq0i', 'crossorigin' => 'anonymous']);
+        Basset::map('bp-datatables-fixedheader-css', 'https://cdn.datatables.net/fixedheader/3.3.1/css/fixedHeader.dataTables.min.css', ['integrity' => 'sha384-g0QDiyi3I9zPzO1O8mvkZd0/MWDKDs8Lk+pHQo3+kkTJEFTdzDCwjqIuoOG+yG0q', 'crossorigin' => 'anonymous']);
+        Basset::map('bp-datatables-buttons-bs5-css', 'https://cdn.datatables.net/buttons/2.3.3/css/buttons.bootstrap5.min.css', ['integrity' => 'sha384-vLlNBaHuV6cqBlVjiJITSKkzOaeomPYdKV54KsyxIF88PDfOKqDRzlHSe5FVMe/4', 'crossorigin' => 'anonymous']);
+        Basset::map('bp-datatables-dt-buttons-bs5-js', 'https://cdn.datatables.net/buttons/2.3.3/js/dataTables.buttons.min.js', ['integrity' => 'sha384-4UCu2Y40paen66DRD9HqMQTQDFzPOPrHQQ3Hj3il7NOYMVE9+8PKV9YqrNjOvB+G', 'crossorigin' => 'anonymous']);
+        Basset::map('bp-datatables-buttons-bs5-js', 'https://cdn.datatables.net/buttons/2.3.3/js/buttons.bootstrap5.min.js', ['integrity' => 'sha384-ydNsKc6RC3ZCjn9sUZuBlPsIf/bBKmjNuYZZzBTvNag/JKDcIlRstd/eU+ZifNxM', 'crossorigin' => 'anonymous']);
+        Basset::map('bp-datatables-jszip', 'https://cdnjs.cloudflare.com/ajax/libs/jszip/2.5.0/jszip.min.js', ['integrity' => 'sha384-yib/J8n+cev8VyEYY+4A3nSvnqCRhEkxUQhVFp8X+YuIXd0qhT3rTYXqel0zWzni', 'crossorigin' => 'anonymous']);
+        Basset::map('bp-datatables-pdfmake', 'https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.18/pdfmake.min.js', ['integrity' => 'sha384-7B0GkWcyEmGJnsHkE0Z0cCpXaUS9i1tFM1/e0jAKoxA2YkI2XYaZdCOJo0kBBsS5', 'crossorigin' => 'anonymous']);
+        Basset::map('bp-datatables-pdfmake-fonts', 'https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.18/vfs_fonts.js', ['integrity' => 'sha384-Zu5dDR1DhOW4Qpz55vgv84xMQSt0V2nX/rGj309pIyhOnc2KHssTcYszIjiYUjYL', 'crossorigin' => 'anonymous']);
+        Basset::map('bp-datatables-html5-button', 'https://cdn.datatables.net/buttons/2.3.2/js/buttons.html5.min.js', ['integrity' => 'sha384-+KP6ruIqPlKDSU+EJ+oMlSh7cUCDWe2rHFaGVL4iHG4plXJaco2DetEl6yOrugqf', 'crossorigin' => 'anonymous']);
+        Basset::map('bp-datatables-print-button', 'https://cdn.datatables.net/buttons/2.3.2/js/buttons.print.min.js', ['integrity' => 'sha384-5MVvNT5w7ht9uU89ZuYPDHs3Yap4hV/h/cPjiKBHdbS2pDKuY4ADmve/XwXN5oPQ', 'crossorigin' => 'anonymous']);
+        Basset::map('bp-datatables-colvis-button', 'https://cdn.datatables.net/buttons/2.3.2/js/buttons.colVis.min.js', ['integrity' => 'sha384-iWhT+VbS/XoLnEHwlRhpwgeNPjEFIs88MypVWxe99IVGqXljIX4vdFLr3fAbRGHM', 'crossorigin' => 'anonymous']);
+        Basset::map('bp-urijs', 'https://unpkg.com/urijs@1.19.11/src/URI.min.js', ['integrity' => 'sha384-VS1T95+I9NZNIjvlP0D/3HRlU1sKmoBzh71Pt08ckCdxEM2++7QEdbbp/3gi20js', 'crossorigin' => 'anonymous']);
+        Basset::map('bp-highlight-js', 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.6.0/highlight.min.js', ['integrity' => 'sha512-gU7kztaQEl7SHJyraPfZLQCNnrKdaQi5ndOyt4L4UPL/FHDd/uB9Je6KDARIqwnNNE27hnqoWLBq+Kpe4iHfeQ==', 'crossorigin' => 'anonymous']);
+        Basset::map('bp-highlight-css', 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.6.0/styles/base16/dracula.min.css', ['integrity' => 'sha512-GfRggx2Wc+POEPR0asMTNTyNug3rWJ9Jp4wxnHZ5VApMOUJRK4cEaRriXsx5tV1DakKHQWQ2noCbuzFiPJaYqA==', 'crossorigin' => 'anonymous']);
+        Basset::map('bp-animate-css', 'https://unpkg.com/animate.css@4.1.1/animate.compat.css', ['integrity' => 'sha384-B6emdNLLuHwwngyCsBGzzo6MQPmSygQu5cG4lfUfdSxzj0FJVJZu+7GOmB8/NHpd', 'crossorigin' => 'anonymous']);
+        Basset::map('bp-noty-css', 'https://unpkg.com/noty@3.2.0-beta-deprecated/lib/noty.css', ['integrity' => 'sha384-J/zBMo8aKN23nuimkvPbkLpGS1Uf1eCha++IoQfNVUpYCjvkuzLqO9nc4wizNAsv', 'crossorigin' => 'anonymous']);
+        Basset::map('bp-lineawesome-css', 'https://cdnjs.cloudflare.com/ajax/libs/line-awesome/1.3.0/line-awesome/css/line-awesome.min.css', ['integrity' => 'sha512-vebUliqxrVkBy3gucMhClmyQP9On/HAWQdKDXRaAlb/FKuTbxkjPKUyqVOxAcGwFDka79eTF+YXwfke1h3/wfg==', 'crossorigin' => 'anonymous']);
         Basset::map('bp-lineawesome-regular-400', 'https://cdnjs.cloudflare.com/ajax/libs/line-awesome/1.3.0/line-awesome/fonts/la-regular-400.woff2', ['integrity' => 'sha384-2MTGaE1Ew+cNL5I7ilrE0E2sXLiuf90OL5DDceb5boJQOSLbVZCEHWpUPpvdOF4Z', 'crossorigin' => 'anonymous']);
         Basset::map('bp-lineawesome-solid-900', 'https://cdnjs.cloudflare.com/ajax/libs/line-awesome/1.3.0/line-awesome/fonts/la-solid-900.woff2', ['integrity' => 'sha384-6Y7zlEnVxM1wRcJx7qtpAK54L2QoP4CcAaosx1EKa3QOLvq0LjT7Fus7E9IDidgR', 'crossorigin' => 'anonymous']);
         Basset::map('bp-lineawesome-brands-400', 'https://cdnjs.cloudflare.com/ajax/libs/line-awesome/1.3.0/line-awesome/fonts/la-brands-400.woff2', ['integrity' => 'sha384-4EZZRKjFRNbc6sX193USv6Is1dJHSHzcGtijtyeUV2KQFRhVgpeWsrebTKu7RKEl', 'crossorigin' => 'anonymous']);
@@ -99,11 +99,11 @@ class BackpackServiceProvider extends ServiceProvider
         Basset::map('bp-lineawesome-regular-400-ttf', 'https://cdnjs.cloudflare.com/ajax/libs/line-awesome/1.3.0/line-awesome/fonts/la-regular-400.ttf', ['integrity' => 'sha384-1zzwN3v7UDtBGkTNjIFcNTy1U3dQTa5nix6OaV0CY5YXqxhlXDm0dum9bWOfpbqF', 'crossorigin' => 'anonymous']);
         Basset::map('bp-lineawesome-solid-900-ttf', 'https://cdnjs.cloudflare.com/ajax/libs/line-awesome/1.3.0/line-awesome/fonts/la-solid-900.ttf', ['integrity' => 'https://cdnjs.cloudflare.com/ajax/libs/line-awesome/1.3.0/line-awesome/fonts/la-solid-900.ttf', 'crossorigin' => 'anonymous']);
         Basset::map('bp-lineawesome-brands-400-ttf', 'https://cdnjs.cloudflare.com/ajax/libs/line-awesome/1.3.0/line-awesome/fonts/la-brands-400.ttf', ['integrity' => 'https://cdnjs.cloudflare.com/ajax/libs/line-awesome/1.3.0/line-awesome/fonts/la-brands-400.ttf', 'crossorigin' => 'anonymous']);
-        Basset::map('bp-summernote-js', 'https://unpkg.com/summernote@0.8.20/dist/summernote-lite.min.js', ['integrity'   => 'sha384-fq3mhgSZ+13XGKx7olcZUFWes9hDmAR3b/WnNLKH6fRFsHonf6CGG+Dj1wypCgLq','crossorigin' => 'anonymous',]);
-        Basset::map('bp-noty-js', 'https://unpkg.com/noty@3.2.0-beta-deprecated/lib/noty.min.js', ['integrity'   => 'sha384-z7oxDqgQB0ThPzpmEjy9pcQT5oLRWvagLjZypnMIdKqBBLLvKNINZdifoEEPmrn1','crossorigin' => 'anonymous',]);
-        Basset::map('bp-sweet-alert-js', 'https://unpkg.com/sweetalert@2.1.2/dist/sweetalert.min.js', ['integrity'   => 'sha384-RIQuldGV8mnjGdob13cay/K1AJa+LR7VKHqSXrrB5DPGryn4pMUXRLh92Ev8KlGF','crossorigin' => 'anonymous',]);
-        Basset::map('bp-bootstrap4-js', 'https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.6.2/js/bootstrap.min.js', ['integrity'   => 'sha512-7rusk8kGPFynZWu26OKbTeI+QPoYchtxsmPeBqkHIEXJxeun4yJ4ISYe7C6sz9wdxeE1Gk3VxsIWgCZTc+vX3g==','crossorigin' => 'anonymous',]);
-        Basset::map('bp-bootstrap5-js', 'https://unpkg.com/bootstrap@5.2.3/dist/js/bootstrap.min.js', ['integrity'   => 'sha384-cuYeSxntonz0PPNlHhBs68uyIAVpIIOZZ5JqeqvYYIcEL727kskC66kF92t6Xl2V','crossorigin' => 'anonymous',]);
+        Basset::map('bp-summernote-js', 'https://unpkg.com/summernote@0.8.20/dist/summernote-lite.min.js', ['integrity' => 'sha384-fq3mhgSZ+13XGKx7olcZUFWes9hDmAR3b/WnNLKH6fRFsHonf6CGG+Dj1wypCgLq', 'crossorigin' => 'anonymous']);
+        Basset::map('bp-noty-js', 'https://unpkg.com/noty@3.2.0-beta-deprecated/lib/noty.min.js', ['integrity' => 'sha384-z7oxDqgQB0ThPzpmEjy9pcQT5oLRWvagLjZypnMIdKqBBLLvKNINZdifoEEPmrn1', 'crossorigin' => 'anonymous']);
+        Basset::map('bp-sweet-alert-js', 'https://unpkg.com/sweetalert@2.1.2/dist/sweetalert.min.js', ['integrity' => 'sha384-RIQuldGV8mnjGdob13cay/K1AJa+LR7VKHqSXrrB5DPGryn4pMUXRLh92Ev8KlGF', 'crossorigin' => 'anonymous']);
+        Basset::map('bp-bootstrap4-js', 'https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.6.2/js/bootstrap.min.js', ['integrity' => 'sha512-7rusk8kGPFynZWu26OKbTeI+QPoYchtxsmPeBqkHIEXJxeun4yJ4ISYe7C6sz9wdxeE1Gk3VxsIWgCZTc+vX3g==', 'crossorigin' => 'anonymous']);
+        Basset::map('bp-bootstrap5-js', 'https://unpkg.com/bootstrap@5.2.3/dist/js/bootstrap.min.js', ['integrity' => 'sha384-cuYeSxntonz0PPNlHhBs68uyIAVpIIOZZ5JqeqvYYIcEL727kskC66kF92t6Xl2V', 'crossorigin' => 'anonymous']);
 
         foreach (backpack_theme_config('scripts') as $path) {
             if (is_array($path)) {
@@ -315,7 +315,7 @@ class BackpackServiceProvider extends ServiceProvider
         // add the root disk to filesystem configuration
         app()->config['filesystems.disks.'.config('backpack.base.root_disk_name')] = [
             'driver' => 'local',
-            'root'   => base_path(),
+            'root' => base_path(),
         ];
 
         /*
@@ -334,7 +334,7 @@ class BackpackServiceProvider extends ServiceProvider
             [
                 'backpack' => [
                     'driver' => 'eloquent',
-                    'model'  => config('backpack.base.user_model_fqn'),
+                    'model' => config('backpack.base.user_model_fqn'),
                 ],
             ];
 
@@ -352,8 +352,8 @@ class BackpackServiceProvider extends ServiceProvider
         [
             'backpack' => [
                 'provider' => 'backpack',
-                'table'    => $backpackPasswordBrokerTable,
-                'expire'   => config('backpack.base.password_recovery_token_expiration', 60),
+                'table' => $backpackPasswordBrokerTable,
+                'expire' => config('backpack.base.password_recovery_token_expiration', 60),
                 'throttle' => config('backpack.base.password_recovery_throttle_notifications'),
             ],
         ];
@@ -362,7 +362,7 @@ class BackpackServiceProvider extends ServiceProvider
         app()->config['auth.guards'] = app()->config['auth.guards'] +
             [
                 'backpack' => [
-                    'driver'   => 'session',
+                    'driver' => 'session',
                     'provider' => 'backpack',
                 ],
             ];
