@@ -151,7 +151,7 @@
 
 @section('after_styles')
   {{-- DATA TABLES --}}
-  @basset('bp-datatables-css')
+  @basset('bp-datatables-bootstrap-css')
   @basset('bp-datatables-fixedheader-css')
   @basset('bp-datatables-responsive-css')
 

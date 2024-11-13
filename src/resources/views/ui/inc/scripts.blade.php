@@ -1,7 +1,7 @@
 @basset('bp-jquery')
 @basset('bp-popper-js')
 @basset('bp-noty-js')
-@basset('bp-sweetalert-js')
+@basset('bp-sweet-alert-js')
 
 @if (backpack_theme_config('scripts') && count(backpack_theme_config('scripts')))
     @foreach (backpack_theme_config('scripts') as $path)
