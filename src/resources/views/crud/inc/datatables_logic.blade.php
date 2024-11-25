@@ -6,12 +6,12 @@
  @endphp
 
   {{-- DATA TABLES SCRIPT --}}
-@basset("https://cdn.datatables.net/2.1.8/js/dataTables.js")
-@basset("https://cdn.datatables.net/2.1.8/css/dataTables.dataTables.css")
+@basset("https://cdn.datatables.net/2.1.8/js/dataTables.min.js")
+@basset("https://cdn.datatables.net/2.1.8/js/dataTables.bootstrap5.min.js")
 @basset("https://cdn.datatables.net/responsive/3.0.3/js/dataTables.responsive.min.js")
 @basset("https://cdn.datatables.net/responsive/3.0.3/css/responsive.dataTables.min.css")
-    @basset('https://cdn.datatables.net/fixedheader/4.0.1/css/fixedHeader.dataTables.min.css')
-  @basset('https://cdn.datatables.net/fixedheader/4.0.1/js/dataTables.fixedHeader.min.js')
+@basset('https://cdn.datatables.net/fixedheader/4.0.1/css/fixedHeader.dataTables.min.css')
+@basset('https://cdn.datatables.net/fixedheader/4.0.1/js/dataTables.fixedHeader.min.js')
 
   @basset(base_path('vendor/backpack/crud/src/resources/assets/img/spinner.svg'), false)
 
@@ -337,10 +337,10 @@
       window.crud.updateUrl(location.href);
 
       // move search bar
-      $("#datatable_search_stack input").remove();
-      $("#crudTable_filter input").appendTo($('#datatable_search_stack .input-icon'));
+      $(".dt-search input").remove();
+      $(".dt-search input").appendTo($('#datatable_search_stack .input-icon'));
       $("#datatable_search_stack input").removeClass('form-control-sm');
-      $("#crudTable_filter").remove();
+      $(".dt-search").remove();
 
       // remove btn-secondary from export and column visibility buttons
       $("#crudTable_wrapper .table-footer .btn-secondary").removeClass('btn-secondary');
