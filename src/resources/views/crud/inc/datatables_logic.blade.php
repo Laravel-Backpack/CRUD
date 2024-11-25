@@ -6,15 +6,20 @@
  @endphp
 
   {{-- DATA TABLES SCRIPT --}}
-@basset("https://cdn.datatables.net/2.1.8/js/dataTables.min.js")
-@basset("https://cdn.datatables.net/2.1.8/js/dataTables.bootstrap5.min.js")
-@basset("https://cdn.datatables.net/responsive/3.0.3/js/dataTables.responsive.min.js")
-@basset("https://cdn.datatables.net/responsive/3.0.3/css/responsive.dataTables.min.css")
-@basset('https://cdn.datatables.net/fixedheader/4.0.1/css/fixedHeader.dataTables.min.css')
-@basset('https://cdn.datatables.net/fixedheader/4.0.1/js/dataTables.fixedHeader.min.js')
+@push('after_scripts')
+    @basset("https://cdn.datatables.net/2.1.8/js/dataTables.min.js")
+    @basset("https://cdn.datatables.net/2.1.8/js/dataTables.bootstrap5.min.js")
+    @basset("https://cdn.datatables.net/responsive/3.0.3/js/dataTables.responsive.min.js")
+    @basset('https://cdn.datatables.net/fixedheader/4.0.1/js/dataTables.fixedHeader.min.js')
+    @basset(base_path('vendor/backpack/crud/src/resources/assets/img/spinner.svg'), false)
+@endpush
 
-  @basset(base_path('vendor/backpack/crud/src/resources/assets/img/spinner.svg'), false)
-
+@push('before_styles')
+    @basset('https://cdn.datatables.net/2.1.8/css/dataTables.bootstrap5.min.css')
+    @basset("https://cdn.datatables.net/responsive/3.0.3/css/responsive.dataTables.min.css")
+    @basset('https://cdn.datatables.net/fixedheader/4.0.1/css/fixedHeader.dataTables.min.css')
+@endpush
+@push('after_scripts')
   <script>
     // here we will check if the cached dataTables paginator length is conformable with current paginator settings.
     // datatables caches the ajax responses with pageLength in LocalStorage so when changing this
@@ -346,7 +351,7 @@
       $("#crudTable_wrapper .table-footer .btn-secondary").removeClass('btn-secondary');
 
       // remove forced overflow on load
-      $(".navbar.navbar-filters + div").css('overflow','initial');
+      $(".navbar.navbar-filters + div").css('overflow','hidden');
 
       // move "showing x out of y" info to header
       @if($crud->getSubheading())
@@ -520,5 +525,6 @@
         });
     }
   </script>
-
+ 
   @include('crud::inc.details_row_logic')
+@endpush
