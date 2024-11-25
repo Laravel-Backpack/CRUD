@@ -65,7 +65,7 @@ form .select2.select2-container {
     position: relative;
 }
 
-#crudTable_processing.dataTables_processing.card {
+#crudTable_processing.dt-processing.card {
     all: unset;
     position: absolute;
     background: rgba(255, 255, 255, 0.9);
@@ -77,7 +77,11 @@ form .select2.select2-container {
     border-radius: 5px;
 }
 
-#crudTable_processing.dataTables_processing.card > img {
+table.fixedHeader-floating, table.fixedHeader-locked {
+    background-color: white;
+}
+
+#crudTable_processing.dt-processing.card > img {
     margin: 0;
     position: absolute;
     top: 50%;
@@ -85,7 +89,7 @@ form .select2.select2-container {
     transform: translate(-50%, -50%);
 }
 
-#crudTable_processing.dataTables_processing.card > div {
+#crudTable_processing.dt-processing.card > div {
     display: none !important;
 }
 
