@@ -175,6 +175,19 @@ form .select2.select2-container {
     border: 0;
 }
 
+#crudTable_wrapper > div.table-footer > div:nth-child(1) > div.dt-length {
+    display: flex;
+    gap: .50rem;
+}
+
+#crudTable_wrapper > div.table-footer > div:nth-child(1) > div.dt-length select {
+   width: 4rem;
+}
+
+#crudTable_wrapper > div.table-footer > div:nth-child(1) > div.dt-length > label{
+    white-space: nowrap;
+}
+
 /*/Table - List View/*/
 .navbar-filters {
     min-height: 25px;
