@@ -448,7 +448,6 @@
         // when columns are hidden by reponsive plugin,
         // the table should have the has-hidden-columns class
         crud.table.on( 'responsive-resize', function ( e, datatable, columns ) {
-            console.log('responsive-resize', crud.table.responsive.hasHidden());
             if (crud.table.responsive.hasHidden()) {
                 $('.dtr-control').each(function() {
                     var $this = $(this);
