@@ -6,12 +6,12 @@
  @endphp
 
   {{-- DATA TABLES SCRIPT --}}
-  @basset('https://cdn.datatables.net/1.13.1/js/jquery.dataTables.min.js')
-  @basset('https://cdn.datatables.net/1.13.1/js/dataTables.bootstrap5.min.js')
-  @basset('https://cdn.datatables.net/responsive/2.4.0/js/dataTables.responsive.min.js')
-  @basset('https://cdn.datatables.net/responsive/2.4.0/css/responsive.dataTables.min.css')
-  @basset('https://cdn.datatables.net/fixedheader/3.3.1/js/dataTables.fixedHeader.min.js')
-  @basset('https://cdn.datatables.net/fixedheader/3.3.1/css/fixedHeader.dataTables.min.css')
+@basset("https://cdn.datatables.net/2.1.8/js/dataTables.js")
+@basset("https://cdn.datatables.net/2.1.8/css/dataTables.dataTables.css")
+@basset("https://cdn.datatables.net/responsive/3.0.3/js/dataTables.responsive.min.js")
+@basset("https://cdn.datatables.net/responsive/3.0.3/css/responsive.dataTables.min.css")
+    @basset('https://cdn.datatables.net/fixedheader/4.0.1/css/fixedHeader.dataTables.min.css')
+  @basset('https://cdn.datatables.net/fixedheader/4.0.1/js/dataTables.fixedHeader.min.js')
 
   @basset(base_path('vendor/backpack/crud/src/resources/assets/img/spinner.svg'), false)
 
@@ -154,7 +154,7 @@
         @if ($crud->getResponsiveTable())
         responsive: {
             details: {
-                display: $.fn.dataTable.Responsive.display.modal( {
+                display: DataTable.Responsive.display.modal( {
                     header: function ( row ) {
                         // show the content of the first column
                         // as the modal header
@@ -405,6 +405,7 @@
       // on DataTable draw event run all functions in the queue
       // (eg. delete and details_row buttons add functions to this queue)
       $('#crudTable').on( 'draw.dt',   function () {
+        console.log('draw.dt');
          crud.functionsToRunOnDataTablesDrawEvent.forEach(function(functionName) {
             crud.executeFunctionByName(functionName);
          });
@@ -435,6 +436,7 @@
         // when columns are hidden by reponsive plugin,
         // the table should have the has-hidden-columns class
         crud.table.on( 'responsive-resize', function ( e, datatable, columns ) {
+            console.log('responsive-resize', crud.table.responsive.hasHidden());
             if (crud.table.responsive.hasHidden()) {
                 $('.dtr-control').each(function() {
                     var $this = $(this);
