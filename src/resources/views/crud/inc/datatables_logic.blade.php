@@ -392,7 +392,6 @@
       // when datatables-colvis (column visibility) is toggled
       // rebuild the datatable using the datatable-responsive plugin
       $('#crudTable').on( 'column-visibility.dt',   function (event) {
-        console.log('column-visibility.dt');
          crud.table.responsive.rebuild();
       } ).dataTable();
 
