@@ -405,7 +405,6 @@
       // on DataTable draw event run all functions in the queue
       // (eg. delete and details_row buttons add functions to this queue)
       $('#crudTable').on( 'draw.dt',   function () {
-        console.log('draw.dt');
          crud.functionsToRunOnDataTablesDrawEvent.forEach(function(functionName) {
             crud.executeFunctionByName(functionName);
          });
@@ -423,6 +422,15 @@
             $("#crudTable").removeClass('has-hidden-columns').addClass('has-hidden-columns');
          }
 
+         // in datatables 2.0.3 the implementation was changed to use `replaceChildren`, for that reason scripts 
+         // that came with the response are no longer executed, like the delete button script or any other ajax 
+         // button created by the developer. For that reason, we move them to the end of the body
+         // ensuring they are re-evaluated on each draw event.
+        document.getElementById('crudTable').querySelectorAll('script').forEach(function(script) {
+            const newScript = document.createElement('script');
+            newScript.text = script.text;
+            document.body.appendChild(newScript);
+        });
       }).dataTable();
 
       // when datatables-colvis (column visibility) is toggled
