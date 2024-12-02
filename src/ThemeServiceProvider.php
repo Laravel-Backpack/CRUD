@@ -92,6 +92,25 @@ class ThemeServiceProvider extends ServiceProvider
 
         // Add basset view path
         Basset::addViewPath($this->packageViewsPath());
+        foreach (config($this->vendorNameDotPackageName().'.styles', []) as $path) {
+            if (is_array($path)) {
+                foreach ($path as $style) {
+                    Basset::map($style, $style);
+                }
+            } else {
+                Basset::map($path, $path);
+            }
+        }
+
+        foreach (config($this->vendorNameDotPackageName().'.scripts', []) as $path) {
+            if (is_array($path)) {
+                foreach ($path as $script) {
+                    Basset::map($script, $script);
+                }
+            } else {
+                Basset::map($path, $path);
+            }
+        }
     }
 
     /**

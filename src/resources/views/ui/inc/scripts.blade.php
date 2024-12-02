@@ -1,12 +1,14 @@
-@basset('https://unpkg.com/jquery@3.6.1/dist/jquery.min.js')
-@basset('https://unpkg.com/@popperjs/core@2.11.6/dist/umd/popper.min.js')
-@basset('https://unpkg.com/noty@3.2.0-beta-deprecated/lib/noty.min.js')
-@basset('https://unpkg.com/sweetalert@2.1.2/dist/sweetalert.min.js')
+@basset('bp-jquery')
+@basset('bp-popper-js')
+@basset('bp-noty-js')
+@basset('bp-sweet-alert-js')
 
 @if (backpack_theme_config('scripts') && count(backpack_theme_config('scripts')))
     @foreach (backpack_theme_config('scripts') as $path)
         @if(is_array($path))
-            @basset(...$path)
+        @foreach($path as $script)
+            @basset($script)
+        @endforeach
         @else
             @basset($path)
         @endif
