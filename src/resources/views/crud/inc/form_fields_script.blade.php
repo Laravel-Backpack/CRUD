@@ -196,5 +196,14 @@
 
         // Create all fields from a given name list
         fields: names => names.map(window.crud.field),
+        
+        // Get all fields from the current page
+        allFields: () => {
+            let fields = [];
+            $('form [bp-field-name]').each(function() {
+                fields.push(new CrudField($(this).attr('bp-field-name')));
+            });
+            return fields;
+        },
     };
 </script>
