@@ -2,6 +2,7 @@
 
 namespace Backpack\CRUD\app\Http\Controllers\Operations\Concerns;
 
+use Backpack\CRUD\app\Library\CrudPanel\Hooks\Facades\LifecycleHook;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Str;
 
@@ -38,8 +39,7 @@ trait HasForm
         // Access
         $this->crud->allowAccess($operationName);
 
-        // Config
-        $this->crud->operation($operationName, function () use ($operationName) {
+        LifecycleHook::hookInto($operationName.':before_setup', function () use ($operationName) {
             // if the backpack.operations.{operationName} config exists, use that one
             // otherwise, use the generic backpack.operations.form config
             if (config()->has('backpack.operations.'.$operationName)) {
@@ -61,8 +61,7 @@ trait HasForm
             ]);
         });
 
-        // Default Button
-        $this->crud->operation(['list', 'show'], function () use ($operationName, $buttonStack, $buttonMeta) {
+        LifecycleHook::hookInto(['list:before_setup', 'show:before_setup'], function () use ($operationName, $buttonStack, $buttonMeta) {
             $this->crud->button($operationName)->view('crud::buttons.quick')->stack($buttonStack)->meta($buttonMeta);
         });
     }
