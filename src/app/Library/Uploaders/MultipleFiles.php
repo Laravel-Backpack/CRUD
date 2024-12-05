@@ -22,7 +22,7 @@ class MultipleFiles extends Uploader
         }
 
         $filesToDelete = $this->getFilesToDeleteFromRequest();
-        $value = $value ?? collect(CRUD::getRequest()->file($this->getNameForRequest()))->flatten()->toArray();
+        $value = $value ?? collect($value)->flatten()->toArray();
         $previousFiles = $this->getPreviousFiles($entry) ?? [];
 
         if (is_array($previousFiles) && empty($previousFiles[0] ?? [])) {
@@ -108,12 +108,12 @@ class MultipleFiles extends Uploader
         return $fileOrder;
     }
 
-    protected function hasDeletedFiles($value): bool
+    public function hasDeletedFiles($value): bool
     {
         return empty($this->getFilesToDeleteFromRequest()) ? false : true;
     }
 
-    protected function getEntryAttributeValue(Model $entry)
+    public function getEntryAttributeValue(Model $entry)
     {
         $value = $entry->{$this->getAttributeName()};
 

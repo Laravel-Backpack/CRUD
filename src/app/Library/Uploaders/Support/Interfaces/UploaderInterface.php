@@ -15,10 +15,14 @@ interface UploaderInterface
     /**
      * Default implementation functions.
      */
+
+    // method called on `saving` event to store and update the entry with the uploaded files
     public function storeUploadedFiles(Model $entry);
 
+    // method called on `retrieved` event to populated the uploaded files in the entry
     public function retrieveUploadedFiles(Model $entry);
 
+    // method called on `deleting` event to delete the uploaded files
     public function deleteUploadedFiles(Model $entry);
 
     /**
@@ -55,17 +59,20 @@ interface UploaderInterface
 
     public function getNameForRequest(): string;
 
-    public function shouldDeleteFiles(): bool;
-
     public function canHandleMultipleFiles(): bool;
 
     public function isRelationship(): bool;
 
     public function getPreviousFiles(Model $entry): mixed;
 
-    public function getValueWithoutPath(?string $value = null): ?string;
+    /**
+     * Strategy methods.
+     */
+    public function shouldDeleteFiles(): bool;
 
-    public function isFake(): bool;
+    public function hasDeletedFiles($entryValue): bool;
 
-    public function getFakeAttribute(): bool|string;
+    public function shouldUploadFiles(mixed $value): bool;
+
+    public function shouldKeepPreviousValueUnchanged(Model $entry, mixed $entryValue): bool;
 }

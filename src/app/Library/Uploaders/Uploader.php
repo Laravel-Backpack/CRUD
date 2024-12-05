@@ -2,6 +2,7 @@
 
 namespace Backpack\CRUD\app\Library\Uploaders;
 
+use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 use Backpack\CRUD\app\Library\Uploaders\Support\Interfaces\UploaderInterface;
 use Backpack\CRUD\app\Library\Uploaders\Support\Traits\HandleFileNaming;
 use Backpack\CRUD\app\Library\Uploaders\Support\Traits\HandleRepeatableUploads;
@@ -76,17 +77,19 @@ abstract class Uploader implements UploaderInterface
             return $this->handleRepeatableFiles($entry);
         }
 
+        $values = $this->getUploadedFilesFromRequest();
+
         if ($this->attachedToFakeField) {
             $fakeFieldValue = $entry->{$this->attachedToFakeField};
             $fakeFieldValue = is_string($fakeFieldValue) ? json_decode($fakeFieldValue, true) : (array) $fakeFieldValue;
-            $fakeFieldValue[$this->getAttributeName()] = $this->uploadFiles($entry);
+            $fakeFieldValue[$this->getAttributeName()] = $this->uploadFiles($entry, $values);
 
             $entry->{$this->attachedToFakeField} = isset($entry->getCasts()[$this->attachedToFakeField]) ? $fakeFieldValue : json_encode($fakeFieldValue);
 
             return $entry;
         }
 
-        $entry->{$this->getAttributeName()} = $this->uploadFiles($entry);
+        $entry->{$this->getAttributeName()} = $this->uploadFiles($entry, $values);
 
         return $entry;
     }
@@ -151,6 +154,21 @@ abstract class Uploader implements UploaderInterface
         return $this->deleteWhenEntryIsDeleted;
     }
 
+    public function shouldUploadFiles($entryValue): bool
+    {
+        return true;
+    }
+
+    public function shouldKeepPreviousValueUnchanged(Model $entry, $entryValue): bool
+    {
+        return $entry->exists && ($entryValue === null || $entryValue === [null]);
+    }
+
+    public function hasDeletedFiles($entryValue): bool
+    {
+        return $entryValue === false || $entryValue === null || $entryValue === [null];
+    }
+
     public function getIdentifier(): string
     {
         if ($this->handleRepeatableFiles) {
@@ -191,6 +209,11 @@ abstract class Uploader implements UploaderInterface
         return $value ? Str::after($value, $this->path) : null;
     }
 
+    public function getUploadedFilesFromRequest()
+    {
+        return CRUD::getRequest()->file($this->getNameForRequest());
+    }
+
     public function isFake(): bool
     {
         return $this->attachedToFakeField !== false;
@@ -199,11 +222,6 @@ abstract class Uploader implements UploaderInterface
     public function getFakeAttribute(): bool|string
     {
         return $this->attachedToFakeField;
-    }
-
-    public function shouldKeepPreviousValueUnchanged(Model $entry, $entryValue): bool
-    {
-        return $entry->exists && ($entryValue === null || $entryValue === [null]);
     }
 
     /*******************************

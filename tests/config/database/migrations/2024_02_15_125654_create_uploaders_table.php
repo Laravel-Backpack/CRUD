@@ -18,6 +18,7 @@ return new class() extends Migration
             $table->json('upload_multiple')->nullable();
             $table->json('dropzone')->nullable();
             $table->json('easymde')->nullable();
+            $table->json('summernote')->nullable();
             $table->json('repeatable')->nullable();
             $table->json('extras')->nullable();
         });

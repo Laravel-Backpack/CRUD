@@ -62,7 +62,7 @@ trait HandleRepeatableUploads
             return $this->processRelationshipRepeatableUploaders($entry);
         }
 
-        $processedEntryValues = $this->processRepeatableUploads($entry, $value);
+        $processedEntryValues = $this->processRepeatableUploads($entry, $value)->toArray();
 
         if ($this->isFake()) {
             $fakeValues = $entry->{$this->getFakeAttribute()} ?? [];
@@ -147,17 +147,7 @@ trait HandleRepeatableUploads
         return $entry->getOriginal($this->getAttributeName());
     }
 
-    protected function shouldUploadFiles($entryValue): bool
-    {
-        return true;
-    }
-
-    protected function hasDeletedFiles($entryValue): bool
-    {
-        return $entryValue === false || $entryValue === null || $entryValue === [null];
-    }
-
-    protected function processRepeatableUploads(Model $entry, Collection $values): array
+    protected function processRepeatableUploads(Model $entry, Collection $values): Collection
     {
         foreach (app('UploadersRepository')->getRepeatableUploadersFor($this->getRepeatableContainerName()) as $uploader) {
             $uploadedValues = $uploader->uploadRepeatableFiles($values->pluck($uploader->getAttributeName())->toArray(), $this->getPreviousRepeatableValues($entry, $uploader));
@@ -169,7 +159,7 @@ trait HandleRepeatableUploads
             });
         }
 
-        return $values->toArray();
+        return $values;
     }
 
     private function retrieveRepeatableFiles(Model $entry): Model
