@@ -36,8 +36,10 @@ if (! Str::hasMacro('dotsToSquareBrackets')) {
 }
 if (! CrudColumn::hasMacro('withFiles')) {
     CrudColumn::macro('withFiles', function ($uploadDefinition = [], $subfield = null, $registerUploaderEvents = true) {
+        /** @var CrudColumn $this */
         $uploadDefinition = is_array($uploadDefinition) ? $uploadDefinition : [];
-        /** @var CrudField|CrudColumn $this */
+        $this->setAttributeValue('withFiles', $uploadDefinition);
+        $this->save();
         RegisterUploadEvents::handle($this, $uploadDefinition, 'withFiles', $subfield, $registerUploaderEvents);
 
         return $this;
@@ -46,8 +48,10 @@ if (! CrudColumn::hasMacro('withFiles')) {
 
 if (! CrudField::hasMacro('withFiles')) {
     CrudField::macro('withFiles', function ($uploadDefinition = [], $subfield = null, $registerUploaderEvents = true) {
+        /** @var CrudField $this */
         $uploadDefinition = is_array($uploadDefinition) ? $uploadDefinition : [];
-        /** @var CrudField|CrudColumn $this */
+        $this->setAttributeValue('withFiles', $uploadDefinition);
+        $this->save();
         RegisterUploadEvents::handle($this, $uploadDefinition, 'withFiles', $subfield, $registerUploaderEvents);
 
         return $this;
@@ -78,7 +82,7 @@ if (! CrudColumn::hasMacro('linkTo')) {
 
         // if the route doesn't exist, we'll throw an exception
         if (! $routeInstance = Route::getRoutes()->getByName($route)) {
-            throw new \Exception("Route [{$route}] not found while building the link for column [{$this->attributes['name']}].");
+            throw new Exception("Route [{$route}] not found while building the link for column [{$this->attributes['name']}].");
         }
 
         // calculate the parameters we'll be using for the route() call
@@ -92,7 +96,7 @@ if (! CrudColumn::hasMacro('linkTo')) {
 
             $autoInferredParameter = array_diff($expectedParameters, array_keys($parameters));
             if (count($autoInferredParameter) > 1) {
-                throw new \Exception("Route [{$route}] expects parameters [".implode(', ', $expectedParameters)."]. Insufficient parameters provided in column: [{$this->attributes['name']}].");
+                throw new Exception("Route [{$route}] expects parameters [".implode(', ', $expectedParameters)."]. Insufficient parameters provided in column: [{$this->attributes['name']}].");
             }
             $autoInferredParameter = current($autoInferredParameter) ? [current($autoInferredParameter) => function ($entry, $related_key, $column, $crud) {
                 $entity = $crud->isAttributeInRelationString($column) ? Str::before($column['entity'], '.') : $column['entity'];
@@ -110,7 +114,7 @@ if (! CrudColumn::hasMacro('linkTo')) {
 
             try {
                 return route($route, $parameters);
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 return false;
             }
         };
@@ -128,11 +132,11 @@ if (! CrudColumn::hasMacro('linkToShow')) {
         $route = "$entity.show";
 
         if (! $entity) {
-            throw new \Exception("Entity not found while building the link for column [{$name}].");
+            throw new Exception("Entity not found while building the link for column [{$name}].");
         }
 
         if (! Route::getRoutes()->getByName($route)) {
-            throw new \Exception("Route '{$route}' not found while building the link for column [{$name}].");
+            throw new Exception("Route '{$route}' not found while building the link for column [{$name}].");
         }
 
         // set up the link to the show page
@@ -187,6 +191,6 @@ if (! Route::hasMacro('crud')) {
             $groupNamespace = '';
         }
 
-        \Backpack\CRUD\app\Library\CrudPanel\CrudRouter::setupControllerRoutes($name, $routeName, $controller, $groupNamespace);
+        Backpack\CRUD\app\Library\CrudPanel\CrudRouter::setupControllerRoutes($name, $routeName, $controller, $groupNamespace);
     });
 }

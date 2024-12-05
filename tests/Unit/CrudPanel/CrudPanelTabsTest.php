@@ -11,6 +11,7 @@ use Illuminate\Support\Arr;
 class CrudPanelTabsTest extends \Backpack\CRUD\Tests\config\CrudPanel\BaseCrudPanel
 {
     private $horizontalTabsType = 'horizontal';
+
     private $verticalTabsType = 'vertical';
 
     private $threeTextFieldsArray = [
