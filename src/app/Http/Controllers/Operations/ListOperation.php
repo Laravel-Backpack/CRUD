@@ -45,6 +45,7 @@ trait ListOperation
 
         $this->crud->operation('list', function () {
             $this->crud->loadDefaultOperationSettingsFromConfig();
+            $this->crud->setOperationSetting('datatablesUrl', $this->crud->getRoute());
         });
     }
 
