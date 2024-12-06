@@ -36,6 +36,18 @@ trait DeleteOperation
         $this->crud->operation(['list', 'show'], function () {
             $this->crud->addButton('line', 'delete', 'view', 'crud::buttons.delete', 'end');
         });
+
+        // setup the default redirect to where user will be redirected after delete
+        // if user has access to list, redirect to list, otherwise redirect to previous page
+        $this->crud->operation('show', function () {
+            $this->crud->setOperationSetting('deleteButtonRedirect', function () {
+                if ($this->crud->hasAccess('list')) {
+                    return url($this->crud->route);
+                }
+
+                return url()->previous();
+            });
+        });
     }
 
     /**
