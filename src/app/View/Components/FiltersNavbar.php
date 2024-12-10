@@ -2,20 +2,23 @@
 
 namespace Backpack\CRUD\app\View\Components;
 
+use Backpack\CRUD\app\Library\CrudPanel\CrudPanel;
 use Closure;
 use Illuminate\Contracts\View\View;
 use Illuminate\View\Component;
 
 class FiltersNavbar extends Component
 {
-    public $crud;
+    public CrudPanel $crud;
+    public string $id;
 
     /**
      * Create a new component instance.
      */
-    public function __construct($crud)
+    public function __construct($crud, $id = null)
     {
         $this->crud = $crud;
+        $this->id = $id ?? 'filters-navbar-' . uniqid();
     }
 
     /**
