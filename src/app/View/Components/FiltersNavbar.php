@@ -18,7 +18,7 @@ class FiltersNavbar extends Component
     public function __construct($crud, $id = null)
     {
         $this->crud = $crud;
-        $this->id = $id ?? 'filters-navbar-' . uniqid();
+        $this->id = $id ?? 'filters-navbar-'.uniqid();
     }
 
     /**
