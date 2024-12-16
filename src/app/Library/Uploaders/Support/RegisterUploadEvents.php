@@ -25,7 +25,7 @@ final class RegisterUploadEvents
         }
     }
 
-    public static function handle(CrudField|CrudColumn $crudObject, array $uploaderConfiguration, string $macro, ?array $subfield = null, ?bool $registerModelEvents = true): void
+    public static function handle(CrudField|CrudColumn $crudObject, array $uploaderConfiguration, string $macro, ?array $subfield = null, bool $registerModelEvents = true): void
     {
         $instance = new self($crudObject, $uploaderConfiguration, $macro);
 
@@ -35,7 +35,7 @@ final class RegisterUploadEvents
     /*******************************
      * Private methods - implementation
      *******************************/
-    private function registerEvents(?array $subfield = [], ?bool $registerModelEvents = true): void
+    private function registerEvents(?array $subfield = [], bool $registerModelEvents = true): void
     {
         if (! empty($subfield)) {
             $this->registerSubfieldEvent($subfield, $registerModelEvents);
