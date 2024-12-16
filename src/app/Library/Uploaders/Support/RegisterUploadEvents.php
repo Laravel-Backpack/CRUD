@@ -25,7 +25,7 @@ final class RegisterUploadEvents
         }
     }
 
-    public static function handle(CrudField|CrudColumn $crudObject, array $uploaderConfiguration, string $macro, ?array $subfield = null, ?bool $registerModelEvents = true): void
+    public static function handle(CrudField|CrudColumn $crudObject, array $uploaderConfiguration, string $macro, ?array $subfield = null, bool $registerModelEvents = true): void
     {
         $instance = new self($crudObject, $uploaderConfiguration, $macro);
 

@@ -14,7 +14,7 @@ class ThemeServiceProvider extends ServiceProvider
     protected string $packageName = 'theme-name';
     protected array $commands = [];
     protected bool $theme = true;
-    protected null|string $componentsNamespace = null;
+    protected ?string $componentsNamespace = null;
 
     /**
      * -------------------------
