@@ -17,7 +17,7 @@ trait Input
      * Returns the direct inputs parsed for model and relationship creation.
      *
      * @param  array  $inputs
-     * @param  null|array  $relationDetails
+     * @param  ?array  $relationDetails
      * @param  bool|string  $relationMethod
      * @return array
      */

@@ -63,7 +63,7 @@ abstract class ValidFileArray extends BackpackCustomRule
         }
     }
 
-    protected function validateArrayData(string $attribute, Closure $fail, null|array $data = null, null|array $rules = null): void
+    protected function validateArrayData(string $attribute, Closure $fail, ?array $data = null, ?array $rules = null): void
     {
         $data = $data ?? $this->data;
         $rules = $rules ?? $this->getFieldRules();

@@ -136,7 +136,7 @@ trait Filters
 
     /**
      * @param  string  $name
-     * @return null|CrudFilter
+     * @return ?CrudFilter
      */
     public function getFilter($name)
     {

@@ -11,7 +11,7 @@ use Prologue\Alerts\Facades\Alert;
 
 class VerifyEmailController extends Controller
 {
-    public null|string $redirectTo = null;
+    public ?string $redirectTo = null;
 
     /**
      * Create a new controller instance.
