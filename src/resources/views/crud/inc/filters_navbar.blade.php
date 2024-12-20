@@ -113,7 +113,7 @@
       		e.preventDefault();
 
 		    	// behaviour for ajax table
-		    	var new_url = '{{ url($crud->route.'/search') }}';
+		    	var new_url = '{{ url($crud->getOperationSetting("datatablesUrl").'/search') }}';
 		    	var ajax_table = $("#crudTable").DataTable();
 
   				// replace the datatables ajax url with new_url and reload it
