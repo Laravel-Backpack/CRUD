@@ -114,7 +114,7 @@
 
 		    	// behaviour for ajax table
 		    	var new_url = '{{ url($crud->getOperationSetting("datatablesUrl").'/search') }}';
-		    	var ajax_table = $("#crudTable").DataTable();
+		    	var ajax_table = new DataTable('#crudTable');
 
   				// replace the datatables ajax url with new_url and reload it
   				ajax_table.ajax.url(new_url).load();
@@ -124,6 +124,9 @@
 
           // remove filters from URL
           crud.updateUrl(new_url);
+
+          // hide the Remove filters button when no filter is active
+          $('#remove_filters_button').addClass('invisible');
       	});
 
         // hide the Remove filters button when no filter is active
@@ -132,7 +135,6 @@
           $(".navbar-filters li[filter-name]").each(function () {
             if ($(this).hasClass('active')) {
               anyActiveFilters = true;
-              // console.log('ACTIVE FILTER');
             }
           });
 
