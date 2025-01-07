@@ -2,6 +2,15 @@
     $field['wrapper'] = $field['wrapper'] ?? $field['wrapperAttributes'] ?? [];
     $field['wrapper']['data-init-function'] = $field['wrapper']['data-init-function'] ?? 'bpFieldInitUploadElement';
     $field['wrapper']['data-field-name'] = $field['wrapper']['data-field-name'] ?? $field['name'];
+
+    // if it has a base name, it's a subfield in a repeatable. we are going to re-set the value from the old input
+    if(isset($field['parentFieldName'])) {
+      if(!empty(old())) {
+        $field['value'] = Arr::get(old(), square_brackets_to_dots($field['name'])) ?? 
+                          Arr::get(old(), '_order_'.square_brackets_to_dots($field['name'])) ??
+                          Arr::get(old(), '_clear_'.square_brackets_to_dots($field['name']));
+      }
+    }
 @endphp
 
 {{-- text input --}}
@@ -14,7 +23,7 @@
     <div class="existing-file">
         @if (isset($field['disk']))
         @if (isset($field['temporary']))
-            <a target="_blank" href="{{ (asset(\Storage::disk($field['disk'])->temporaryUrl(Arr::get($field, 'prefix', '').$field['value'], Carbon\Carbon::now()->addMinutes($field['temporary'])))) }}">
+            <a target="_blank" href="{{ (asset(\Storage::disk($field['disk'])->temporaryUrl(Arr::get($field, 'prefix', '').$field['value'], Carbon\Carbon::now()->addMinutes($field['expiration'])))) }}">
         @else
             <a target="_blank" href="{{ (asset(\Storage::disk($field['disk'])->url(Arr::get($field, 'prefix', '').$field['value']))) }}">
         @endif

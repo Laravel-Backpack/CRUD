@@ -37,6 +37,8 @@ abstract class BaseTestClass extends TestCase
     protected function getPackageProviders($app)
     {
         return [
+            TestsServiceProvider::class,
+            AlertsServiceProvider::class,
             BassetServiceProvider::class,
             BackpackServiceProvider::class,
             AlertsServiceProvider::class,
