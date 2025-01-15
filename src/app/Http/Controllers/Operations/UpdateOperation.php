@@ -2,6 +2,7 @@
 
 namespace Backpack\CRUD\app\Http\Controllers\Operations;
 
+use Backpack\CRUD\app\Library\CrudPanel\Hooks\Facades\LifecycleHook;
 use Illuminate\Support\Facades\Route;
 
 trait UpdateOperation
@@ -35,7 +36,7 @@ trait UpdateOperation
     {
         $this->crud->allowAccess('update');
 
-        $this->crud->operation('update', function () {
+        LifecycleHook::hookInto('update:before_setup', function () {
             $this->crud->loadDefaultOperationSettingsFromConfig();
 
             if ($this->crud->getModel()->translationEnabled()) {
@@ -49,7 +50,7 @@ trait UpdateOperation
             $this->crud->setupDefaultSaveActions();
         });
 
-        $this->crud->operation(['list', 'show'], function () {
+        LifecycleHook::hookInto(['list:before_setup', 'show:before_setup'], function () {
             $this->crud->addButton('line', 'update', 'view', 'crud::buttons.update', 'end');
         });
     }

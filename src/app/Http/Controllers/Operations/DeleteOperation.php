@@ -2,6 +2,7 @@
 
 namespace Backpack\CRUD\app\Http\Controllers\Operations;
 
+use Backpack\CRUD\app\Library\CrudPanel\Hooks\Facades\LifecycleHook;
 use Illuminate\Support\Facades\Route;
 
 trait DeleteOperation
@@ -29,11 +30,11 @@ trait DeleteOperation
     {
         $this->crud->allowAccess('delete');
 
-        $this->crud->operation('delete', function () {
+        LifecycleHook::hookInto('delete:before_setup', function () {
             $this->crud->loadDefaultOperationSettingsFromConfig();
         });
 
-        $this->crud->operation(['list', 'show'], function () {
+        LifecycleHook::hookInto(['list:before_setup', 'show:before_setup'], function () {
             $this->crud->addButton('line', 'delete', 'view', 'crud::buttons.delete', 'end');
         });
     }
