@@ -15,7 +15,7 @@ trait Read
     /**
      * Find and retrieve the id of the current entry.
      *
-     * @return int|bool The id in the db or false.
+     * @return int|string|bool The id in the db or false.
      */
     public function getCurrentEntryId()
     {
