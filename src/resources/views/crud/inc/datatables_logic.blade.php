@@ -6,20 +6,19 @@
  @endphp
 
   {{-- DATA TABLES SCRIPT --}}
-@push('after_scripts')
-    @basset("https://cdn.datatables.net/2.1.8/js/dataTables.min.js")
-    @basset("https://cdn.datatables.net/2.1.8/js/dataTables.bootstrap5.min.js")
-    @basset("https://cdn.datatables.net/responsive/3.0.3/js/dataTables.responsive.min.js")
-    @basset('https://cdn.datatables.net/fixedheader/4.0.1/js/dataTables.fixedHeader.min.js')
-    @basset(base_path('vendor/backpack/crud/src/resources/assets/img/spinner.svg'), false)
-@endpush
+
+@basset("https://cdn.datatables.net/2.1.8/js/dataTables.min.js")
+@basset("https://cdn.datatables.net/2.1.8/js/dataTables.bootstrap5.min.js")
+@basset("https://cdn.datatables.net/responsive/3.0.3/js/dataTables.responsive.min.js")
+@basset('https://cdn.datatables.net/fixedheader/4.0.1/js/dataTables.fixedHeader.min.js')
+@basset(base_path('vendor/backpack/crud/src/resources/assets/img/spinner.svg'), false)
+
 
 @push('before_styles')
     @basset('https://cdn.datatables.net/2.1.8/css/dataTables.bootstrap5.min.css')
     @basset("https://cdn.datatables.net/responsive/3.0.3/css/responsive.dataTables.min.css")
     @basset('https://cdn.datatables.net/fixedheader/4.0.1/css/fixedHeader.dataTables.min.css')
 @endpush
-@push('after_scripts')
   <script>
     // here we will check if the cached dataTables paginator length is conformable with current paginator settings.
     // datatables caches the ajax responses with pageLength in LocalStorage so when changing this
@@ -342,7 +341,7 @@
       window.crud.updateUrl(location.href);
 
       // move search bar
-      $(".dt-search input").remove();
+      $("#datatable_search_stack input").remove();
       $(".dt-search input").appendTo($('#datatable_search_stack .input-icon'));
       $("#datatable_search_stack input").removeClass('form-control-sm');
       $(".dt-search").remove();
@@ -525,4 +524,3 @@
   </script>
  
   @include('crud::inc.details_row_logic')
-@endpush
