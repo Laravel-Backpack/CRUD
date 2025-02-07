@@ -2,6 +2,7 @@
 
 namespace Backpack\CRUD\app\Http\Controllers\Operations;
 
+use Backpack\CRUD\app\Library\CrudPanel\Hooks\Facades\LifecycleHook;
 use Illuminate\Support\Facades\Route;
 
 trait ListOperation
@@ -43,7 +44,7 @@ trait ListOperation
     {
         $this->crud->allowAccess('list');
 
-        $this->crud->operation('list', function () {
+        LifecycleHook::hookInto('list:before_setup', function () {
             $this->crud->loadDefaultOperationSettingsFromConfig();
             $this->crud->setOperationSetting('datatablesUrl', $this->crud->getRoute());
         });
