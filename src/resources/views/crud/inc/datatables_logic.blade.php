@@ -303,6 +303,7 @@
                 "totalEntryCount": "{{$crud->getOperationSetting('totalEntryCount') ?? false}}"
             },
           },
+          pagingType: "simple_numbers",
           dom:
             "<'row hidden'<'col-sm-6'i><'col-sm-6 d-print-none'f>>" +
             "<'table-content row'<'col-sm-12'tr>>" +
@@ -409,32 +410,33 @@
       // on DataTable draw event run all functions in the queue
       // (eg. delete and details_row buttons add functions to this queue)
       $('#crudTable').on( 'draw.dt',   function () {
-         crud.functionsToRunOnDataTablesDrawEvent.forEach(function(functionName) {
+        // in datatables 2.0.3 the implementation was changed to use `replaceChildren`, for that reason scripts 
+         // that came with the response are no longer executed, like the delete button script or any other ajax 
+         // button created by the developer. For that reason, we move them to the end of the body
+         // ensuring they are re-evaluated on each draw event.
+         document.getElementById('crudTable').querySelectorAll('script').forEach(function(script) {
+            const newScript = document.createElement('script');
+            newScript.text = script.text;
+            document.body.appendChild(newScript);
+        });
+
+        crud.functionsToRunOnDataTablesDrawEvent.forEach(function(functionName) {
             crud.executeFunctionByName(functionName);
-         });
-         if ($('#crudTable').data('has-line-buttons-as-dropdown')) {
-          formatActionColumnAsDropdown();
-         }
+        });
+
+        if ($('#crudTable').data('has-line-buttons-as-dropdown')) {
+            formatActionColumnAsDropdown();
+        }
 
         if (! crud.table.responsive.hasHidden()) {
             crud.table.columns().header()[0].style.paddingLeft = '0.6rem';
         }
 
-         if (crud.table.responsive.hasHidden()) {
+        if (crud.table.responsive.hasHidden()) {
             $('.dtr-control').removeClass('d-none'); 
             $('.dtr-control').addClass('d-inline');
             $("#crudTable").removeClass('has-hidden-columns').addClass('has-hidden-columns');
-         }
-
-         // in datatables 2.0.3 the implementation was changed to use `replaceChildren`, for that reason scripts 
-         // that came with the response are no longer executed, like the delete button script or any other ajax 
-         // button created by the developer. For that reason, we move them to the end of the body
-         // ensuring they are re-evaluated on each draw event.
-        document.getElementById('crudTable').querySelectorAll('script').forEach(function(script) {
-            const newScript = document.createElement('script');
-            newScript.text = script.text;
-            document.body.appendChild(newScript);
-        });
+        }
       }).dataTable();
 
       // when datatables-colvis (column visibility) is toggled

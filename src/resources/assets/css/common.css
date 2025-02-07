@@ -192,6 +192,10 @@ table.fixedHeader-floating, table.fixedHeader-locked {
     white-space: nowrap;
 }
 
+div.dt-container div.dt-paging ul.pagination  {
+    justify-content: flex-end;
+}
+
 /*/Table - List View/*/
 .navbar-filters {
     min-height: 25px;
