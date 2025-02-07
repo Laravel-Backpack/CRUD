@@ -305,14 +305,35 @@
             "<'table-footer row mt-2 d-print-none align-items-center '<'col-sm-12 col-md-4'l><'col-sm-0 col-md-4 text-center'B><'col-sm-12 col-md-4 'p>>",
       }
   }
-  </script>
+  </script> 
   @include('crud::inc.export_buttons')
 
   <script type="text/javascript">
+    // TODO: this needs to be agnostic per filter navbar as in the future hopefully we can have more than one 
+    // table in the same page and setup filters for each one.
+    document.addEventListener('backpack:filters:cleared', function (event) {       
+        // behaviour for ajax table
+        var new_url = '{{ url($crud->getOperationSetting("datatablesUrl").'/search') }}';
+        var ajax_table = new DataTable('#crudTable');
+
+        // replace the datatables ajax url with new_url and reload it
+        ajax_table.ajax.url(new_url).load();
+
+        // remove filters from URL
+        crud.updateUrl(new_url);       
+    });
+
+    document.addEventListener('backpack:filter:changed', function (event) {
+        let filterName = event.detail.filterName;
+        let filterValue = event.detail.filterValue;
+        let shouldUpdateUrl = event.detail.shouldUpdateUrl;
+        let debounce = event.detail.debounce;
+        updateDatatablesOnFilterChange(filterName, filterValue, filterValue || shouldUpdateUrl, debounce);
+    });
+
     jQuery(document).ready(function($) {
 
       window.crud.table = $("#crudTable").DataTable(window.crud.dataTableConfiguration);
-
       window.crud.updateUrl(location.href);
 
       // move search bar
