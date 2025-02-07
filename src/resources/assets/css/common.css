@@ -181,7 +181,6 @@ table.fixedHeader-floating, table.fixedHeader-locked {
 
 #crudTable_wrapper > div.table-footer > div:nth-child(1) > div.dt-length {
     display: flex;
-    gap: .50rem;
 }
 
 #crudTable_wrapper > div.table-footer > div:nth-child(1) > div.dt-length select {
