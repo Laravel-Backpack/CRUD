@@ -6,15 +6,19 @@
  @endphp
 
   {{-- DATA TABLES SCRIPT --}}
-  @basset('https://cdn.datatables.net/1.13.1/js/jquery.dataTables.min.js')
-  @basset('https://cdn.datatables.net/1.13.1/js/dataTables.bootstrap5.min.js')
-  @basset('https://cdn.datatables.net/responsive/2.4.0/js/dataTables.responsive.min.js')
-  @basset('https://cdn.datatables.net/responsive/2.4.0/css/responsive.dataTables.min.css')
-  @basset('https://cdn.datatables.net/fixedheader/3.3.1/js/dataTables.fixedHeader.min.js')
-  @basset('https://cdn.datatables.net/fixedheader/3.3.1/css/fixedHeader.dataTables.min.css')
 
-  @basset(base_path('vendor/backpack/crud/src/resources/assets/img/spinner.svg'), false)
+@basset("https://cdn.datatables.net/2.1.8/js/dataTables.min.js")
+@basset("https://cdn.datatables.net/2.1.8/js/dataTables.bootstrap5.min.js")
+@basset("https://cdn.datatables.net/responsive/3.0.3/js/dataTables.responsive.min.js")
+@basset('https://cdn.datatables.net/fixedheader/4.0.1/js/dataTables.fixedHeader.min.js')
+@basset(base_path('vendor/backpack/crud/src/resources/assets/img/spinner.svg'), false)
 
+
+@push('before_styles')
+    @basset('https://cdn.datatables.net/2.1.8/css/dataTables.bootstrap5.min.css')
+    @basset("https://cdn.datatables.net/responsive/3.0.3/css/responsive.dataTables.min.css")
+    @basset('https://cdn.datatables.net/fixedheader/4.0.1/css/fixedHeader.dataTables.min.css')
+@endpush
   <script>
     // here we will check if the cached dataTables paginator length is conformable with current paginator settings.
     // datatables caches the ajax responses with pageLength in LocalStorage so when changing this
@@ -154,7 +158,7 @@
         @if ($crud->getResponsiveTable())
         responsive: {
             details: {
-                display: $.fn.dataTable.Responsive.display.modal( {
+                display: DataTable.Responsive.display.modal( {
                     header: function ( row ) {
                         // show the content of the first column
                         // as the modal header
@@ -299,6 +303,7 @@
                 "totalEntryCount": "{{$crud->getOperationSetting('totalEntryCount') ?? false}}"
             },
           },
+          pagingType: "simple_numbers",
           dom:
             "<'row hidden'<'col-sm-6'i><'col-sm-6 d-print-none'f>>" +
             "<'table-content row'<'col-sm-12'tr>>" +
@@ -338,15 +343,15 @@
 
       // move search bar
       $("#datatable_search_stack input").remove();
-      $("#crudTable_filter input").appendTo($('#datatable_search_stack .input-icon'));
+      $(".dt-search input").appendTo($('#datatable_search_stack .input-icon'));
       $("#datatable_search_stack input").removeClass('form-control-sm');
-      $("#crudTable_filter").remove();
+      $(".dt-search").remove();
 
       // remove btn-secondary from export and column visibility buttons
       $("#crudTable_wrapper .table-footer .btn-secondary").removeClass('btn-secondary');
 
       // remove forced overflow on load
-      $(".navbar.navbar-filters + div").css('overflow','initial');
+      $(".navbar.navbar-filters + div").css('overflow','hidden');
 
       // move "showing x out of y" info to header
       @if($crud->getSubheading())
@@ -405,29 +410,38 @@
       // on DataTable draw event run all functions in the queue
       // (eg. delete and details_row buttons add functions to this queue)
       $('#crudTable').on( 'draw.dt',   function () {
-         crud.functionsToRunOnDataTablesDrawEvent.forEach(function(functionName) {
+        // in datatables 2.0.3 the implementation was changed to use `replaceChildren`, for that reason scripts 
+         // that came with the response are no longer executed, like the delete button script or any other ajax 
+         // button created by the developer. For that reason, we move them to the end of the body
+         // ensuring they are re-evaluated on each draw event.
+         document.getElementById('crudTable').querySelectorAll('script').forEach(function(script) {
+            const newScript = document.createElement('script');
+            newScript.text = script.text;
+            document.body.appendChild(newScript);
+        });
+
+        crud.functionsToRunOnDataTablesDrawEvent.forEach(function(functionName) {
             crud.executeFunctionByName(functionName);
-         });
-         if ($('#crudTable').data('has-line-buttons-as-dropdown')) {
-          formatActionColumnAsDropdown();
-         }
+        });
+
+        if ($('#crudTable').data('has-line-buttons-as-dropdown')) {
+            formatActionColumnAsDropdown();
+        }
 
         if (! crud.table.responsive.hasHidden()) {
             crud.table.columns().header()[0].style.paddingLeft = '0.6rem';
         }
 
-         if (crud.table.responsive.hasHidden()) {
+        if (crud.table.responsive.hasHidden()) {
             $('.dtr-control').removeClass('d-none'); 
             $('.dtr-control').addClass('d-inline');
             $("#crudTable").removeClass('has-hidden-columns').addClass('has-hidden-columns');
-         }
-
+        }
       }).dataTable();
 
       // when datatables-colvis (column visibility) is toggled
       // rebuild the datatable using the datatable-responsive plugin
       $('#crudTable').on( 'column-visibility.dt',   function (event) {
-        console.log('column-visibility.dt');
          crud.table.responsive.rebuild();
       } ).dataTable();
 
@@ -510,5 +524,5 @@
         });
     }
   </script>
-
+ 
   @include('crud::inc.details_row_logic')
