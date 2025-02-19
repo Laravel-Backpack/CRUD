@@ -7,11 +7,11 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
+/** @codeCoverageIgnore */
 class SingleBase64Image extends Uploader
 {
     public function uploadFiles(Model $entry, $value = null)
     {
-        $value = $value ?? CRUD::getRequest()->get($this->getName());
         $previousImage = $this->getPreviousFiles($entry);
 
         if (! $value && $previousImage) {
@@ -51,7 +51,7 @@ class SingleBase64Image extends Uploader
             }
         }
 
-        $imagesToDelete = array_diff($previousRepeatableValues, $values);
+        $imagesToDelete = array_diff(array_filter($previousRepeatableValues), $values);
 
         foreach ($imagesToDelete as $image) {
             Storage::disk($this->getDisk())->delete($image);
@@ -60,13 +60,18 @@ class SingleBase64Image extends Uploader
         return $values;
     }
 
-    protected function shouldUploadFiles($value): bool
+    public function shouldUploadFiles($value): bool
     {
         return $value && is_string($value) && Str::startsWith($value, 'data:image');
     }
 
-    protected function shouldKeepPreviousValueUnchanged(Model $entry, $entryValue): bool
+    public function shouldKeepPreviousValueUnchanged(Model $entry, $entryValue): bool
     {
         return $entry->exists && is_string($entryValue) && ! Str::startsWith($entryValue, 'data:image');
+    }
+
+    public function getUploadedFilesFromRequest()
+    {
+        return CRUD::getRequest()->get($this->getNameForRequest());
     }
 }
