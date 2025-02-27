@@ -20,15 +20,15 @@
     // datatables caches the ajax responses with pageLength in LocalStorage so when changing this
     // settings in controller users get unexpected results. To avoid that we will reset
     // the table cache when both lengths don't match.
-    let $dtCachedInfo = JSON.parse(localStorage.getItem('DataTables_crudTable_/{{$crud->getRoute()}}'))
-        ? JSON.parse(localStorage.getItem('DataTables_crudTable_/{{$crud->getRoute()}}')) : [];
+    let $dtCachedInfo = JSON.parse(localStorage.getItem('DataTables_crudTable_/{{$crud->getOperationSetting("datatablesUrl")}}'))
+        ? JSON.parse(localStorage.getItem('DataTables_crudTable_/{{$crud->getOperationSetting("datatablesUrl")}}')) : [];
     var $dtDefaultPageLength = {{ $crud->getDefaultPageLength() }};
     let $pageLength = @json($crud->getPageLengthMenu());
     
-    let $dtStoredPageLength = parseInt(localStorage.getItem('DataTables_crudTable_/{{$crud->getRoute()}}_pageLength'));
+    let $dtStoredPageLength = parseInt(localStorage.getItem('DataTables_crudTable_/{{$crud->getOperationSetting("datatablesUrl")}}_pageLength'));
 
     if(!$dtStoredPageLength && $dtCachedInfo.length !== 0 && $dtCachedInfo.length !== $dtDefaultPageLength) {
-        localStorage.removeItem('DataTables_crudTable_/{{$crud->getRoute()}}');
+        localStorage.removeItem('DataTables_crudTable_/{{$crud->getOperationSetting("datatablesUrl")}}');
     }
 
     if($dtCachedInfo.length !== 0 && $pageLength[0].indexOf($dtCachedInfo.length) === -1) {
@@ -58,7 +58,7 @@
 
     @if ($crud->getPersistentTable())
 
-        var saved_list_url = localStorage.getItem('{{ Str::slug($crud->getRoute()) }}_list_url');
+        var saved_list_url = localStorage.getItem('{{ Str::slug($crud->getOperationSetting("datatablesUrl")) }}_list_url');
 
         //check if saved url has any parameter or is empty after clearing filters.
         if (saved_list_url && saved_list_url.indexOf('?') < 1) {
@@ -78,7 +78,7 @@
     }
 
     @if($crud->getPersistentTableDuration())
-        var saved_list_url_time = localStorage.getItem('{{ Str::slug($crud->getRoute()) }}_list_url_time');
+        var saved_list_url_time = localStorage.getItem('{{ Str::slug($crud->getOperationSetting("datatablesUrl")) }}_list_url_time');
 
         if (saved_list_url_time) {
             var $current_date = new Date();
@@ -125,7 +125,7 @@
         fn.apply(window, args);
       },
       updateUrl : function (url) {
-        let urlStart = "{{ url($crud->route) }}";
+        let urlStart = "{{ url($crud->getOperationSetting("datatablesUrl")) }}";
         let urlEnd = url.replace(urlStart, '');
         urlEnd = urlEnd.replace('/search', '');
         let newUrl = urlStart + urlEnd;
@@ -146,7 +146,7 @@
         }
         window.history.pushState({}, '', newUrl);
         @if ($crud->getPersistentTable())
-            localStorage.setItem('{{ Str::slug($crud->getRoute()) }}_list_url', newUrl);
+            localStorage.setItem('{{ Str::slug($crud->getOperationSetting("datatablesUrl")) }}_list_url', newUrl);
         @endif
       },
       dataTableConfiguration: {
@@ -219,7 +219,7 @@
 
         stateSaveParams: function(settings, data) {
 
-            localStorage.setItem('{{ Str::slug($crud->getRoute()) }}_list_url_time', data.time);
+            localStorage.setItem('{{ Str::slug($crud->getOperationSetting("datatablesUrl")) }}_list_url_time', data.time);
 
             data.columns.forEach(function(item, index) {
                 var columnHeading = crud.table.columns().header()[index];
@@ -237,11 +237,11 @@
 
             //if the save time as expired we force datatabled to clear localStorage
             if($saved_time < $current_date) {
-                if (localStorage.getItem('{{ Str::slug($crud->getRoute())}}_list_url')) {
-                    localStorage.removeItem('{{ Str::slug($crud->getRoute()) }}_list_url');
+                if (localStorage.getItem('{{ Str::slug($crud->getOperationSetting("datatablesUrl"))}}_list_url')) {
+                    localStorage.removeItem('{{ Str::slug($crud->getOperationSetting("datatablesUrl")) }}_list_url');
                 }
-                if (localStorage.getItem('{{ Str::slug($crud->getRoute())}}_list_url_time')) {
-                    localStorage.removeItem('{{ Str::slug($crud->getRoute()) }}_list_url_time');
+                if (localStorage.getItem('{{ Str::slug($crud->getOperationSetting("datatablesUrl"))}}_list_url_time')) {
+                    localStorage.removeItem('{{ Str::slug($crud->getOperationSetting("datatablesUrl")) }}_list_url_time');
                 }
                return false;
             }
@@ -293,7 +293,7 @@
           @endif
           searching: @json($crud->getOperationSetting('searchableTable') ?? true),
           ajax: {
-              "url": "{!! url($crud->route.'/search').'?'.Request::getQueryString() !!}",
+              "url": "{!! url($crud->getOperationSetting("datatablesUrl").'/search').'?'.Request::getQueryString() !!}",
               "type": "POST",
               "data": {
                 "totalEntryCount": "{{$crud->getOperationSetting('totalEntryCount') ?? false}}"
@@ -305,14 +305,35 @@
             "<'table-footer row mt-2 d-print-none align-items-center '<'col-sm-12 col-md-4'l><'col-sm-0 col-md-4 text-center'B><'col-sm-12 col-md-4 'p>>",
       }
   }
-  </script>
+  </script> 
   @include('crud::inc.export_buttons')
 
   <script type="text/javascript">
+    // TODO: this needs to be agnostic per filter navbar as in the future hopefully we can have more than one 
+    // table in the same page and setup filters for each one.
+    document.addEventListener('backpack:filters:cleared', function (event) {       
+        // behaviour for ajax table
+        var new_url = '{{ url($crud->getOperationSetting("datatablesUrl").'/search') }}';
+        var ajax_table = new DataTable('#crudTable');
+
+        // replace the datatables ajax url with new_url and reload it
+        ajax_table.ajax.url(new_url).load();
+
+        // remove filters from URL
+        crud.updateUrl(new_url);       
+    });
+
+    document.addEventListener('backpack:filter:changed', function (event) {
+        let filterName = event.detail.filterName;
+        let filterValue = event.detail.filterValue;
+        let shouldUpdateUrl = event.detail.shouldUpdateUrl;
+        let debounce = event.detail.debounce;
+        updateDatatablesOnFilterChange(filterName, filterValue, filterValue || shouldUpdateUrl, debounce);
+    });
+
     jQuery(document).ready(function($) {
 
       window.crud.table = $("#crudTable").DataTable(window.crud.dataTableConfiguration);
-
       window.crud.updateUrl(location.href);
 
       // move search bar
@@ -336,7 +357,7 @@
 
       @if($crud->getOperationSetting('resetButton') ?? true)
         // create the reset button
-        var crudTableResetButton = '<a href="{{url($crud->route)}}" class="ml-1 ms-1" id="crudTable_reset_button">{{ trans('backpack::crud.reset') }}</a>';
+        var crudTableResetButton = '<a href="{{url($crud->getOperationSetting("datatablesUrl"))}}" class="ml-1 ms-1" id="crudTable_reset_button">{{ trans('backpack::crud.reset') }}</a>';
 
         $('#datatable_info_stack').append(crudTableResetButton);
 
@@ -344,16 +365,16 @@
         $('#crudTable_reset_button').on('click', function() {
 
           //clear the filters
-          if (localStorage.getItem('{{ Str::slug($crud->getRoute())}}_list_url')) {
-              localStorage.removeItem('{{ Str::slug($crud->getRoute()) }}_list_url');
+          if (localStorage.getItem('{{ Str::slug($crud->getOperationSetting("datatablesUrl"))}}_list_url')) {
+              localStorage.removeItem('{{ Str::slug($crud->getOperationSetting("datatablesUrl")) }}_list_url');
           }
-          if (localStorage.getItem('{{ Str::slug($crud->getRoute())}}_list_url_time')) {
-              localStorage.removeItem('{{ Str::slug($crud->getRoute()) }}_list_url_time');
+          if (localStorage.getItem('{{ Str::slug($crud->getOperationSetting("datatablesUrl"))}}_list_url_time')) {
+              localStorage.removeItem('{{ Str::slug($crud->getOperationSetting("datatablesUrl")) }}_list_url_time');
           }
 
           //clear the table sorting/ordering/visibility
-          if(localStorage.getItem('DataTables_crudTable_/{{ $crud->getRoute() }}')) {
-              localStorage.removeItem('DataTables_crudTable_/{{ $crud->getRoute() }}');
+          if(localStorage.getItem('DataTables_crudTable_/{{ $crud->getOperationSetting("datatablesUrl") }}')) {
+              localStorage.removeItem('DataTables_crudTable_/{{ $crud->getOperationSetting("datatablesUrl") }}');
           }
         });
       @endif
@@ -374,7 +395,7 @@
         // so in next requests we know if the length changed by user
         // or by developer in the controller.
         $('#crudTable').on( 'length.dt', function ( e, settings, len ) {
-            localStorage.setItem('DataTables_crudTable_/{{$crud->getRoute()}}_pageLength', len);
+            localStorage.setItem('DataTables_crudTable_/{{$crud->getOperationSetting("datatablesUrl")}}_pageLength', len);
         });
 
         $('#crudTable').on( 'page.dt', function () {

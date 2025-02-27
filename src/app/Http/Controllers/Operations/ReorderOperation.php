@@ -2,6 +2,7 @@
 
 namespace Backpack\CRUD\app\Http\Controllers\Operations;
 
+use Backpack\CRUD\app\Library\CrudPanel\Hooks\Facades\LifecycleHook;
 use Illuminate\Support\Facades\Route;
 
 trait ReorderOperation
@@ -36,7 +37,7 @@ trait ReorderOperation
         $this->crud->set('reorder.enabled', true);
         $this->crud->allowAccess('reorder');
 
-        $this->crud->operation('reorder', function () {
+        LifecycleHook::hookInto('reorder:before_setup', function () {
             $this->crud->loadDefaultOperationSettingsFromConfig();
             $this->crud->setOperationSetting('reorderColumnNames', [
                 'parent_id' => 'parent_id',
@@ -46,7 +47,7 @@ trait ReorderOperation
             ]);
         });
 
-        $this->crud->operation('list', function () {
+        LifecycleHook::hookInto('list:before_setup', function () {
             $this->crud->addButton('top', 'reorder', 'view', 'crud::buttons.reorder');
         });
     }
