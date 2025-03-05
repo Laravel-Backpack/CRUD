@@ -102,8 +102,12 @@ trait ShowOperation
 
         // if the model has timestamps, add columns for created_at and updated_at
         if ($this->crud->get('show.timestamps') && $this->crud->model->usesTimestamps()) {
-            $this->crud->column($this->crud->model->getCreatedAtColumn())->type('datetime');
-            $this->crud->column($this->crud->model->getUpdatedAtColumn())->type('datetime');
+            if ($this->crud->model->getCreatedAtColumn()) {
+                $this->crud->column($this->crud->model->getCreatedAtColumn())->type('datetime');
+            }
+            if ($this->crud->model->getUpdatedAtColumn()) {
+                $this->crud->column($this->crud->model->getUpdatedAtColumn())->type('datetime');
+            }
         }
 
         // if the model has SoftDeletes, add column for deleted_at
