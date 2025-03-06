@@ -3,6 +3,7 @@
 namespace Backpack\CRUD\app\Http\Controllers;
 
 use Backpack\CRUD\app\Library\Attributes\DeprecatedIgnoreOnRuntime;
+use Backpack\CRUD\app\Library\CrudPanel\Hooks\Facades\LifecycleHook;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Routing\Controller;
@@ -19,6 +20,7 @@ class CrudController extends Controller
     use DispatchesJobs, ValidatesRequests;
 
     public $crud;
+
     public $data = [];
 
     public function __construct()
@@ -40,8 +42,14 @@ class CrudController extends Controller
 
             $this->crud->setRequest($request);
 
+            LifecycleHook::trigger('crud:before_setup_defaults', [$this]);
             $this->setupDefaults();
+            LifecycleHook::trigger('crud:after_setup_defaults', [$this]);
+
+            LifecycleHook::trigger('crud:before_setup', [$this]);
             $this->setup();
+            LifecycleHook::trigger('crud:after_setup', [$this]);
+
             $this->setupConfigurationForCurrentOperation();
 
             return $next($request);
@@ -109,13 +117,15 @@ class CrudController extends Controller
         /*
          * FIRST, run all Operation Closures for this operation.
          *
-         * It's preferred for this to closures first, because
+         * It's preferred for this to run closures first, because
          * (1) setup() is usually higher in a controller than any other method, so it's more intuitive,
          * since the first thing you write is the first thing that is being run;
          * (2) operations use operation closures themselves, inside their setupXxxDefaults(), and
          * you'd like the defaults to be applied before anything you write. That way, anything you
          * write is done after the default, so you can remove default settings, etc;
          */
+        LifecycleHook::trigger($operationName.':before_setup', [$this]);
+
         $this->crud->applyConfigurationFromSettings($operationName);
 
         /*
@@ -124,5 +134,7 @@ class CrudController extends Controller
         if (method_exists($this, $setupClassName)) {
             $this->{$setupClassName}();
         }
+
+        LifecycleHook::trigger($operationName.':after_setup', [$this]);
     }
 }

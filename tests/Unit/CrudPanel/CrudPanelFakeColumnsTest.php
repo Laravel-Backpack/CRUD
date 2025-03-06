@@ -7,7 +7,7 @@ use Backpack\CRUD\Tests\config\Models\Article;
 /**
  * @covers Backpack\CRUD\app\Library\CrudPanel\Traits\FakeColumns
  */
-class CrudPanelFakeColumnsTest extends \Backpack\CRUD\Tests\config\CrudPanel\BaseDBCrudPanel
+class CrudPanelFakeColumnsTest extends \Backpack\CRUD\Tests\config\CrudPanel\BaseCrudPanel
 {
     private $emptyFakeColumnsArray = ['extras'];
 

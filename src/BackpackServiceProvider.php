@@ -91,6 +91,10 @@ class BackpackServiceProvider extends ServiceProvider
             return new DatabaseSchema();
         });
 
+        $this->app->scoped('BackpackLifecycleHooks', function ($app) {
+            return new app\Library\CrudPanel\Hooks\LifecycleHooks();
+        });
+
         $this->app->singleton('BackpackViewNamespaces', function ($app) {
             return new ViewNamespaces();
         });

@@ -36,7 +36,7 @@
     ],
     "require": {
         "laravel/framework": "^10.0|^11.0|^12",
-        "backpack/basset": "^1.1.1|^1.3.2",
+        "backpack/basset": "^2.0.0-alpha",
         "creativeorange/gravatar": "^1.0",
         "prologue/alerts": "^1.0",
         "doctrine/dbal": "^3.0|^4.0",
@@ -62,9 +62,12 @@
         ]
     },
     "scripts": {
-        "test": "vendor/bin/phpunit --testdox",
+        "test": [
+            "@putenv XDEBUG_MODE=off",
+            "vendor/bin/phpunit"
+        ],
         "test-failing": "vendor/bin/phpunit --order-by=defects --stop-on-failure",
-        "test-coverage": "XDEBUG_MODE=coverage vendor/bin/phpunit --coverage-text"
+        "test-coverage": "XDEBUG_MODE=coverage vendor/bin/phpunit --coverage-html=coverage"
     },
     "extra": {
         "branch-alias": {
