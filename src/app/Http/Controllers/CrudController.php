@@ -2,8 +2,10 @@
 
 namespace Backpack\CRUD\app\Http\Controllers;
 
+use Backpack\CRUD\app\Http\Controllers\Contracts\CrudControllerContract;
 use Backpack\CRUD\app\Library\Attributes\DeprecatedIgnoreOnRuntime;
 use Backpack\CRUD\app\Library\CrudPanel\Hooks\Facades\LifecycleHook;
+use Backpack\CRUD\Backpack;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Routing\Controller;
@@ -15,20 +17,18 @@ use Illuminate\Support\Str;
  * @property-read \Backpack\CRUD\app\Library\CrudPanel\CrudPanel $crud
  * @property array $data
  */
-class CrudController extends Controller
+class CrudController extends Controller implements CrudControllerContract
 {
     use DispatchesJobs, ValidatesRequests;
 
-    public $crud;
+    //public $crud;
 
     public $data = [];
 
+    public $initialized = false;
+
     public function __construct()
     {
-        if ($this->crud) {
-            return;
-        }
-
         // ---------------------------
         // Create the CrudPanel object
         // ---------------------------
@@ -38,10 +38,11 @@ class CrudController extends Controller
         // It's done inside a middleware closure in order to have
         // the complete request inside the CrudPanel object.
         $this->middleware(function ($request, $next) {
-            $this->crud = app('crud');
+            if (! Backpack::hasCrudController(get_class($this))) {
+                $this->initializeCrud($request);
 
-            $this->crud->setRequest($request);
-
+                return $next($request);
+            }
             LifecycleHook::trigger('crud:before_setup_defaults', [$this]);
             $this->setupDefaults();
             LifecycleHook::trigger('crud:after_setup_defaults', [$this]);
@@ -52,8 +53,30 @@ class CrudController extends Controller
 
             $this->setupConfigurationForCurrentOperation();
 
+            $this->initialized = true;
+
             return $next($request);
         });
+    }
+
+    public function initializeCrud($request, $operation = null)
+    {
+        $crudController = Backpack::crud($this)->setRequest($request);
+        if ($crudController->isInitialized()) {
+            return;
+        }
+
+        LifecycleHook::trigger('crud:before_setup_defaults', [$crudController]);
+        $this->setupDefaults();
+        LifecycleHook::trigger('crud:after_setup_defaults', [$crudController]);
+
+        LifecycleHook::trigger('crud:before_setup', [$crudController]);
+        $this->setup();
+
+        LifecycleHook::trigger('crud:after_setup', [$crudController]);
+        $this->setupConfigurationForCurrentOperation();
+
+        $this->crud->initialized = true;
     }
 
     /**
@@ -105,9 +128,9 @@ class CrudController extends Controller
      * Allow developers to insert default settings by creating a method
      * that looks like setupOperationNameOperation (aka setupXxxOperation).
      */
-    protected function setupConfigurationForCurrentOperation()
+    protected function setupConfigurationForCurrentOperation(?string $operation = null)
     {
-        $operationName = $this->crud->getCurrentOperation();
+        $operationName = $operation ?? $this->crud->getCurrentOperation();
         if (! $operationName) {
             return;
         }
@@ -136,5 +159,14 @@ class CrudController extends Controller
         }
 
         LifecycleHook::trigger($operationName.':after_setup', [$this]);
+    }
+
+    public function __get($name)
+    {
+        if ($name === 'crud') {
+            return Backpack::getControllerCrud(get_class($this));
+        }
+
+        return $this->{$name};
     }
 }

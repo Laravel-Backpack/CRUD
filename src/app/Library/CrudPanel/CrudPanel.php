@@ -64,15 +64,17 @@ class CrudPanel
 
     protected $request;
 
+    public $initialized = false;
+
     // The following methods are used in CrudController or your EntityCrudController to manipulate the variables above.
 
     public function __construct()
     {
-        $this->setRequest();
+    }
 
-        if ($this->getCurrentOperation()) {
-            $this->setOperation($this->getCurrentOperation());
-        }
+    public function isInitialized()
+    {
+        return $this->initialized;
     }
 
     /**
@@ -80,9 +82,11 @@ class CrudPanel
      *
      * @param  \Illuminate\Http\Request  $request
      */
-    public function setRequest($request = null)
+    public function setRequest($request = null): self
     {
         $this->request = $request ?? \Request::instance();
+
+        return $this;
     }
 
     /**
