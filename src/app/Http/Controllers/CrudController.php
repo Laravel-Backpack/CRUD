@@ -25,6 +25,8 @@ class CrudController extends Controller implements CrudControllerContract
 
     public $data = [];
 
+    public $initialized = false;
+
     public function __construct()
     {
         // ---------------------------
@@ -38,8 +40,9 @@ class CrudController extends Controller implements CrudControllerContract
         $this->middleware(function ($request, $next) {
             if (! Backpack::hasCrudController(get_class($this))) {
                 $this->initializeCrud($request);
-            }
 
+                return $next($request);
+            }
             LifecycleHook::trigger('crud:before_setup_defaults', [$this]);
             $this->setupDefaults();
             LifecycleHook::trigger('crud:after_setup_defaults', [$this]);
@@ -50,16 +53,30 @@ class CrudController extends Controller implements CrudControllerContract
 
             $this->setupConfigurationForCurrentOperation();
 
+            $this->initialized = true;
+
             return $next($request);
         });
     }
 
     public function initializeCrud($request, $operation = null)
     {
-        Backpack::crud($this)->setRequest($request);
+        $crudController = Backpack::crud($this)->setRequest($request);
+        if ($crudController->isInitialized()) {
+            return;
+        }
+
+        LifecycleHook::trigger('crud:before_setup_defaults', [$crudController]);
         $this->setupDefaults();
+        LifecycleHook::trigger('crud:after_setup_defaults', [$crudController]);
+
+        LifecycleHook::trigger('crud:before_setup', [$crudController]);
         $this->setup();
-        $this->setupConfigurationForCurrentOperation($operation);
+
+        LifecycleHook::trigger('crud:after_setup', [$crudController]);
+        $this->setupConfigurationForCurrentOperation();
+
+        $this->crud->initialized = true;
     }
 
     /**
@@ -146,7 +163,7 @@ class CrudController extends Controller implements CrudControllerContract
 
     public function __get($name)
     {
-        if ($name == 'crud') {
+        if ($name === 'crud') {
             return Backpack::getControllerCrud(get_class($this));
         }
 

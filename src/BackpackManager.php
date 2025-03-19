@@ -9,9 +9,13 @@ final class BackpackManager
 {
     private array $cruds;
 
+    private $requestController = null;
+
     public function crud(CrudControllerContract $controller): CrudPanel
     {
         $controllerClass = get_class($controller);
+
+        $this->requestController = $controllerClass;
 
         if (isset($this->cruds[$controllerClass])) {
             return $this->cruds[$controllerClass];
@@ -30,14 +34,13 @@ final class BackpackManager
 
         $crud = $this->crud($controller);
 
-        // TODO: it's hardcoded, but we should figure out a way to make it dynamic if needed.
         $crud->setOperation('list');
 
         $primaryControllerRequest = $this->cruds[array_key_first($this->cruds)]->getRequest();
 
         $controller->initializeCrud($primaryControllerRequest, 'list');
 
-        return $this->cruds[get_class($controller)];
+        return $crud;
     }
 
     public function hasCrudController(string $controller): bool
@@ -47,6 +50,10 @@ final class BackpackManager
 
     public function getControllerCrud(string $controller): CrudPanel
     {
+        if (! isset($this->cruds[$controller])) {
+            return $this->crudFromController($this->requestController ?? $controller);
+        }
+
         return $this->cruds[$controller];
     }
 }

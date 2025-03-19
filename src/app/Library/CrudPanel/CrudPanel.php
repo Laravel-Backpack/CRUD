@@ -64,10 +64,17 @@ class CrudPanel
 
     protected $request;
 
+    public $initialized = false;
+
     // The following methods are used in CrudController or your EntityCrudController to manipulate the variables above.
 
     public function __construct()
     {
+    }
+
+    public function isInitialized()
+    {
+        return $this->initialized;
     }
 
     /**
