@@ -50,7 +50,7 @@ final class BackpackManager
 
         $primaryControllerRequest = $this->cruds[array_key_first($this->cruds)]->getRequest();
 
-        $controller->initializeCrud($primaryControllerRequest, 'list');
+        $controller->initializeCrud($primaryControllerRequest, $crud, 'list');
 
         return $crud;
     }

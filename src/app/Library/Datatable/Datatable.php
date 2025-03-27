@@ -7,8 +7,11 @@ use Illuminate\View\Component;
 
 class Datatable extends Component
 {
-    public function __construct(private CrudPanel $crud)
+    private CrudPanel $crud;
+
+    public function __construct(private string $controller)
     {
+        $this->crud = \Backpack\CRUD\Backpack::crudFromController($controller);
     }
 
     public function render()
