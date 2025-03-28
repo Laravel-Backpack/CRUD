@@ -7,17 +7,16 @@ use Illuminate\View\Component;
 
 class Datatable extends Component
 {
-    private CrudPanel $crud;
-
-    public function __construct(private string $controller)
+    public function __construct(private string $controller, private ?CrudPanel $crud = null, private bool $updatesUrl = true)
     {
-        $this->crud = \Backpack\CRUD\Backpack::crudFromController($controller);
+        $this->crud ??= \Backpack\CRUD\Backpack::crudFromController($controller);
     }
 
     public function render()
     {
         return view('crud::datatable.datatable', [
-            'crud' => $this->crud,
+            'crud'       => $this->crud,
+            'updatesUrl' => $this->updatesUrl,
         ]);
     }
 }
