@@ -1,1 +1,0 @@
-<x-datatable :controller="$column['controller']" />

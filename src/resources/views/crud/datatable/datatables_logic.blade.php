@@ -105,6 +105,7 @@ if (arr.length > 1 && arr[1] !== '') {
 @endif
 
 window.crud = {
+    updatesUrl: {{ var_export($updatesUrl) }},
   exportButtons: JSON.parse('{!! json_encode($crud->get('list.export_buttons')) !!}'),
   functionsToRunOnDataTablesDrawEvent: [],
   addFunctionToDataTablesDrawEventQueue: function (functionName) {
@@ -126,19 +127,22 @@ window.crud = {
     fn.apply(window, args);
   },
   updateUrl : function (url) {
-    let urlStart = "{{ url($crud->getOperationSetting("datatablesUrl")) }}";
-    // compare if url and urlStart are the same, if they are not, just return
-    if (urlStart !== url) {
+    if(! window.crud.updatesUrl) {
         return;
     }
+    let urlStart = "{{ url($crud->getOperationSetting("datatablesUrl")) }}";
+    // compare if url and urlStart are the same, if they are not, just return
     let urlEnd = url.replace(urlStart, '');
-    console.log(url, urlEnd);
+    
     urlEnd = urlEnd.replace('/search', '');
     let newUrl = urlStart + urlEnd;
     let tmpUrl = newUrl.split("?")[0],
     params_arr = [],
     queryString = (newUrl.indexOf("?") !== -1) ? newUrl.split("?")[1] : false;
 
+    if (urlStart !== tmpUrl) {
+        return;
+    }
     // exclude the persistent-table parameter from url
     if (queryString !== false) {
         params_arr = queryString.split("&");

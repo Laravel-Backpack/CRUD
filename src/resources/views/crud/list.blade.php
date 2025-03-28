@@ -25,7 +25,7 @@
     {{-- THE ACTUAL CONTENT --}}
     <div class="{{ $crud->getListContentClass() }}">
 
-      <x-datatable :crud="$crud" />
+      <x-datatable :controller="$controller" :crud="$crud" />
 
     </div>
 
