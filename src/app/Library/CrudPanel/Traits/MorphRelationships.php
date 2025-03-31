@@ -84,7 +84,7 @@ trait MorphRelationships
      *
      * @param  string|array  $fieldOrName  - The field array or the field name
      * @param  string  $key  - the morph option key, usually a \Model\Class or a string for the morphMap
-     * @param  string|null  $label  - the displayed text for this option
+     * @param  ?string  $label  - the displayed text for this option
      * @param  array  $options  - options for the corresponding morphable_id field (usually ajax options)
      * @return void|array
      */
@@ -130,7 +130,7 @@ trait MorphRelationships
      *
      * @param  array  $morphTypeField
      * @param  string  $key
-     * @param  string|null  $label
+     * @param  ?string  $label
      * @return array
      */
     private function getMorphTypeFieldWithOptions(array $morphTypeField, string $key, $label)

@@ -136,7 +136,7 @@ trait Filters
 
     /**
      * @param  string  $name
-     * @return null|CrudFilter
+     * @return ?CrudFilter
      */
     public function getFilter($name)
     {
@@ -234,7 +234,7 @@ trait Filters
     /**
      * Move this filter to be first in the columns list.
      *
-     * @return bool|null
+     * @return ?bool
      */
     public function makeFirstFilter()
     {

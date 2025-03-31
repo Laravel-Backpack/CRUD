@@ -66,7 +66,7 @@ class ResetPasswordController extends Controller
      * If no token is present, display the link request form.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  string|null  $token
+     * @param  ?string  $token
      * @return \Illuminate\Contracts\View\View
      */
     public function showResetForm(Request $request, $token = null)

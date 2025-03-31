@@ -19,8 +19,8 @@ final class DatatableCache extends SetupCache
      *
      * @param  string  $tableId  The table ID to use as cache key
      * @param  string  $controllerClass  The controller class
-     * @param  \Closure|null  $setup  The setup closure
-     * @param  string|null  $name  The element name
+     * @param  ?\Closure  $setup  The setup closure
+     * @param  ?string  $name  The element name
      * @param  CrudPanel  $crud  The CRUD panel instance to update with datatable_id
      * @return bool Whether the operation was successful
      */
@@ -132,7 +132,7 @@ final class DatatableCache extends SetupCache
      * @param  string  $controllerClass  The controller class
      * @param  string  $parentController  The parent controller
      * @param  mixed  $parentEntry  The parent entry
-     * @param  string|null  $elementName  The element name
+     * @param  ?string  $elementName  The element name
      * @return array The data to be cached
      */
     protected function prepareDataForStorage(...$args): array

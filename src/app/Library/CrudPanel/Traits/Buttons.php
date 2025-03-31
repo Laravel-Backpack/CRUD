@@ -112,7 +112,7 @@ trait Buttons
     public function modifyButton($name, $modifications = null)
     {
         /**
-         * @var CrudButton|null
+         * @var ?CrudButton
          */
         $button = $this->buttons()->firstWhere('name', $name);
 
@@ -144,7 +144,7 @@ trait Buttons
 
     /**
      * @param  array  $names  Button names
-     * @param  string|null  $stack  Optional stack name.
+     * @param  ?string  $stack  Optional stack name.
      */
     public function removeButtons($names, $stack = null)
     {

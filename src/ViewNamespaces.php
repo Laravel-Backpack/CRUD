@@ -96,7 +96,7 @@ class ViewNamespaces
      *
      * @param  string  $domain  (eg. fields, filters, buttons, columns)
      * @param  string  $viewName  (eg. text, select, checkbox)
-     * @param  string|null  $fallbackViewPath  (eg. 'crud::columns.text')
+     * @param  ?string  $fallbackViewPath  (eg. 'crud::columns.text')
      * @return array
      */
     public static function getViewPathsWithFallbackFor(string $domain, string $viewName, ?string $fallbackViewPath = null)

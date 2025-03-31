@@ -294,9 +294,9 @@ class CrudButton implements Arrayable
      * Get the end result that should be displayed to the user.
      * The HTML itself of the button.
      *
-     * @param  object|null  $entry  The eloquent Model for the current entry or null if no current entry.
-     * @param  \Backpack\CRUD\app\Library\CrudPanel\CrudPanel|null  $crud  The CRUD panel instance.
-     * @param  string|null  $crudTableId  The ID of the DataTable for multi-table support.
+     * @param  ?object  $entry  The eloquent Model for the current entry or null if no current entry.
+     * @param  ?\Backpack\CRUD\app\Library\CrudPanel\CrudPanel  $crud  The CRUD panel instance.
+     * @param  ?string  $crudTableId  The ID of the DataTable for multi-table support.
      * @return \Illuminate\Contracts\View\View
      */
     public function getHtml($entry = null, ?CrudPanel $crud = null, ?string $crudTableId = null)

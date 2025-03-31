@@ -99,7 +99,7 @@ trait Create
      *
      * @param  Model  $item  The current CRUD model.
      * @param  array  $formattedRelations  The form data.
-     * @return bool|null
+     * @return ?bool
      */
     private function createRelationsForItem($item, $formattedRelations)
     {
@@ -220,7 +220,7 @@ trait Create
      *                                  'attribute' => 'passport',
      *                                  'values' => **THE TRICKY BIT**,
      *                                  ]
-     * @return Model|null
+     * @return ?Model
      */
     private function createUpdateOrDeleteOneToOneRelation($relation, $relationMethod, $relationDetails)
     {

@@ -220,7 +220,7 @@ trait Query
     /**
      * Return the filtered query count or skip the counting when the `totalQuery` is the same as the filtered one.
      *
-     * @return int|null
+     * @return ?int
      */
     public function getFilteredQueryCount()
     {
