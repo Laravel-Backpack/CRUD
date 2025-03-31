@@ -154,9 +154,9 @@ trait Validation
      * Merge the form request validation with the fields validation.
      *
      * @param  FormRequest  $request
-     * @param  array|null  $rules
-     * @param  array|null  $messages
-     * @param  array|null  $attributes
+     * @param  ?array  $rules
+     * @param  ?array  $messages
+     * @param  ?array  $attributes
      * @return array
      */
     public function mergeRequestAndFieldRules($request, $rules = null, $messages = null, $attributes = null)
@@ -449,7 +449,7 @@ trait Validation
      *
      * @param  array  $rules
      * @param  array  $messages
-     * @param  \Illuminate\Http\Request|null  $request
+     * @param  ?\Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Request
      */
     private function checkRequestValidity($rules, $messages, $attributes, $request = null)

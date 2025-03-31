@@ -20,7 +20,6 @@ final class DataformCache extends SetupCache
      * @param  string  $formId  The form ID to use as cache key
      * @param  string  $controllerClass  The controller class
      * @param  array  $fieldsConfig  The field configuration after setup was applied
-     * @param  string|null  $name  The element name
      * @param  CrudPanel  $crud  The CRUD panel instance to update with form_id
      * @return bool Whether the operation was successful
      */
@@ -139,7 +138,7 @@ final class DataformCache extends SetupCache
      * @param  string  $controllerClass  The controller class
      * @param  string  $parentController  The parent controller
      * @param  mixed  $parentEntry  The parent entry
-     * @param  string|null  $elementName  The element name
+     * @param  ?string  $elementName  The element name
      * @return array The data to be cached
      */
     protected function prepareDataForStorage(...$args): array

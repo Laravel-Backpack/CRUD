@@ -13,7 +13,7 @@ class ThrottlePasswordRecovery extends ThrottleRequests
      * @param  \Illuminate\Http\Request  $request
      * @param  string  $key
      * @param  int  $maxAttempts
-     * @param  callable|null  $responseCallback
+     * @param  ?callable  $responseCallback
      * @return \Illuminate\Validation\ValidationException
      */
     protected function buildException($request, $key, $maxAttempts, $responseCallback = null)
