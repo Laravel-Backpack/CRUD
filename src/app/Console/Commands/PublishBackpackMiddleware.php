@@ -33,7 +33,7 @@ class PublishBackpackMiddleware extends GeneratorCommand
     /**
      * Execute the console command.
      *
-     * @return bool|null
+     * @return ?bool
      */
     public function handle()
     {
