@@ -32,7 +32,8 @@
             dataTablesExportStrip(data),
     };
 
-    window.crud.dataTableConfiguration.buttons = [
+    // Store buttons configuration in a variable instead of directly setting it
+    window.crud.exportButtonsConfiguration = [
         @if($crud->get('list.showExportButton'))
         {
             extend: 'collection',
@@ -150,6 +151,7 @@
                       .addClass('d-lg-inline-block');
     }
 
-    crud.addFunctionToDataTablesDrawEventQueue('moveExportButtonsToTopRight');
+    // Add the function to the queue for each table
+    window.crud.defaultTableConfig.addFunctionToDataTablesDrawEventQueue('moveExportButtonsToTopRight');
   </script>
 @endif

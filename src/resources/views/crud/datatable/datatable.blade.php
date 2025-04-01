@@ -28,9 +28,9 @@
 @endif
 
 <div class="{{ backpack_theme_config('classes.tableWrapper') }}">
-    <table
-      id="crudTable"
-      class="{{ backpack_theme_config('classes.table') ?? 'table table-striped table-hover nowrap rounded card-table table-vcenter card d-table shadow-xs border-xs' }}"
+<table
+      id="{{ $tableId ?? 'crudTable' }}"
+      class="{{ backpack_theme_config('classes.table') ?? 'table table-striped table-hover nowrap rounded card-table table-vcenter card d-table shadow-xs border-xs' }} crud-table"
       data-responsive-table="{{ (int) $crud->getOperationSetting('responsiveTable') }}"
       data-has-details-row="{{ (int) $crud->getOperationSetting('detailsRow') }}"
       data-has-bulk-actions="{{ (int) $crud->getOperationSetting('bulkActions') }}"
@@ -127,7 +127,7 @@
 @endsection
 
 @section('after_scripts')
-  @include('crud::datatable.datatables_logic')
+  @include('crud::datatable.datatables_logic', ['tableId' => $tableId ?? 'crudTable'])
 
   {{-- CRUD LIST CONTENT - crud_list_scripts stack --}}
   @stack('crud_list_scripts')

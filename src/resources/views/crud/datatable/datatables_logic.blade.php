@@ -4,6 +4,8 @@
 $backpack_alerts = \Alert::getMessages();
 \Alert::flush();
 
+// Define the table ID - use the provided tableId or default to 'crudTable'
+$tableId = $tableId ?? 'crudTable';
 @endphp
 
 {{-- DATA TABLES SCRIPT --}}
@@ -21,19 +23,19 @@ $backpack_alerts = \Alert::getMessages();
 // datatables caches the ajax responses with pageLength in LocalStorage so when changing this
 // settings in controller users get unexpected results. To avoid that we will reset
 // the table cache when both lengths don't match.
-let $dtCachedInfo = JSON.parse(localStorage.getItem('DataTables_crudTable_/{{$crud->getOperationSetting("datatablesUrl")}}'))
-    ? JSON.parse(localStorage.getItem('DataTables_crudTable_/{{$crud->getOperationSetting("datatablesUrl")}}')) : [];
+let $dtCachedInfo = JSON.parse(localStorage.getItem('DataTables_{{$tableId}}_/{{$crud->getOperationSetting("datatablesUrl")}}'))
+    ? JSON.parse(localStorage.getItem('DataTables_{{$tableId}}_/{{$crud->getOperationSetting("datatablesUrl")}}')) : [];
 var $dtDefaultPageLength = {{ $crud->getDefaultPageLength() }};
 let $pageLength = @json($crud->getPageLengthMenu());
 
-let $dtStoredPageLength = parseInt(localStorage.getItem('DataTables_crudTable_/{{$crud->getOperationSetting("datatablesUrl")}}_pageLength'));
+let $dtStoredPageLength = parseInt(localStorage.getItem('DataTables_{{$tableId}}_/{{$crud->getOperationSetting("datatablesUrl")}}_pageLength'));
 
 if(!$dtStoredPageLength && $dtCachedInfo.length !== 0 && $dtCachedInfo.length !== $dtDefaultPageLength) {
-    localStorage.removeItem('DataTables_crudTable_/{{$crud->getOperationSetting("datatablesUrl")}}');
+    localStorage.removeItem('DataTables_{{$tableId}}_/{{$crud->getOperationSetting("datatablesUrl")}}');
 }
 
 if($dtCachedInfo.length !== 0 && $pageLength[0].indexOf($dtCachedInfo.length) === -1) {
-    localStorage.removeItem('DataTables_crudTable_/{{$crud->getRoute()}}');
+    localStorage.removeItem('DataTables_{{$tableId}}_/{{$crud->getRoute()}}');
 }
 
 
@@ -96,88 +98,126 @@ if (arr.length > 1 && arr[1] !== '') {
             saved_list_url = false;
         }
     }
-
 @endif
+
     if (saved_list_url && persistentUrl!=window.location.href) {
         // finally redirect the user.
         window.location.href = persistentUrl;
     }
 @endif
 
-window.crud = {
-    updatesUrl: {{ var_export($updatesUrl) }},
-  exportButtons: JSON.parse('{!! json_encode($crud->get('list.export_buttons')) !!}'),
-  functionsToRunOnDataTablesDrawEvent: [],
-  addFunctionToDataTablesDrawEventQueue: function (functionName) {
-      if (this.functionsToRunOnDataTablesDrawEvent.indexOf(functionName) == -1) {
-      this.functionsToRunOnDataTablesDrawEvent.push(functionName);
-    }
-  },
-  responsiveToggle: function(dt) {
-      $(dt.table().header()).find('th').toggleClass('all');
-      dt.responsive.rebuild();
-      dt.responsive.recalc();
-  },
-  executeFunctionByName: function(str, args) {
-    var arr = str.split('.');
-    var fn = window[ arr[0] ];
+// Initialize the global crud object if it doesn't exist
+window.crud = window.crud || {};
 
-    for (var i = 1; i < arr.length; i++)
-    { fn = fn[ arr[i] ]; }
-    fn.apply(window, args);
-  },
-  updateUrl : function (url) {
-    if(! window.crud.updatesUrl) {
-        return;
-    }
-    let urlStart = "{{ url($crud->getOperationSetting("datatablesUrl")) }}";
-    // compare if url and urlStart are the same, if they are not, just return
-    let urlEnd = url.replace(urlStart, '');
-    
-    urlEnd = urlEnd.replace('/search', '');
-    let newUrl = urlStart + urlEnd;
-    let tmpUrl = newUrl.split("?")[0],
-    params_arr = [],
-    queryString = (newUrl.indexOf("?") !== -1) ? newUrl.split("?")[1] : false;
+// Initialize the tables object to store multiple table instances
+window.crud.tables = window.crud.tables || {};
 
-    if (urlStart !== tmpUrl) {
-        return;
-    }
-    // exclude the persistent-table parameter from url
-    if (queryString !== false) {
-        params_arr = queryString.split("&");
-        for (let i = params_arr.length - 1; i >= 0; i--) {
-            let param = params_arr[i].split("=")[0];
-            if (param === 'persistent-table') {
-                params_arr.splice(i, 1);
-            }
+// Create a default table configuration that can be extended for specific tables
+window.crud.defaultTableConfig = {
+    functionsToRunOnDataTablesDrawEvent: [],
+    addFunctionToDataTablesDrawEventQueue: function (functionName) {
+        if (this.functionsToRunOnDataTablesDrawEvent.indexOf(functionName) == -1) {
+            this.functionsToRunOnDataTablesDrawEvent.push(functionName);
         }
-        newUrl = params_arr.length ? tmpUrl + "?" + params_arr.join("&") : tmpUrl;
+    },
+    responsiveToggle: function(dt) {
+        $(dt.table().header()).find('th').toggleClass('all');
+        dt.responsive.rebuild();
+        dt.responsive.recalc();
+    },
+    executeFunctionByName: function(str, args) {
+        var arr = str.split('.');
+        var fn = window[ arr[0] ];
+
+        for (var i = 1; i < arr.length; i++)
+        { fn = fn[ arr[i] ]; }
+        fn.apply(window, args);
+    },
+    updateUrl: function (url) {
+        if(!this.updatesUrl) {
+            return;
+        }
+        let urlStart = this.urlStart;
+        // compare if url and urlStart are the same, if they are not, just return
+        let urlEnd = url.replace(urlStart, '');
+        
+        urlEnd = urlEnd.replace('/search', '');
+        let newUrl = urlStart + urlEnd;
+        let tmpUrl = newUrl.split("?")[0],
+        params_arr = [],
+        queryString = (newUrl.indexOf("?") !== -1) ? newUrl.split("?")[1] : false;
+
+        if (urlStart !== tmpUrl) {
+            return;
+        }
+        // exclude the persistent-table parameter from url
+        if (queryString !== false) {
+            params_arr = queryString.split("&");
+            for (let i = params_arr.length - 1; i >= 0; i--) {
+                let param = params_arr[i].split("=")[0];
+                if (param === 'persistent-table') {
+                    params_arr.splice(i, 1);
+                }
+            }
+            newUrl = params_arr.length ? tmpUrl + "?" + params_arr.join("&") : tmpUrl;
+        }
+        window.history.pushState({}, '', newUrl);
+        if (this.persistentTable) {
+            localStorage.setItem(this.persistentTableSlug + '_list_url', newUrl);
+        }
     }
-    window.history.pushState({}, '', newUrl);
-    @if ($crud->getPersistentTable())
-        localStorage.setItem('{{ Str::slug($crud->getOperationSetting("datatablesUrl")) }}_list_url', newUrl);
-    @endif
-  },
-  dataTableConfiguration: {
+};
+
+// Create a table-specific configuration
+window.crud.tableConfigs = window.crud.tableConfigs || {};
+
+// Initialize the current table configuration
+window.crud.tableConfigs['{{$tableId}}'] = Object.assign({}, window.crud.defaultTableConfig, {
+    updatesUrl: {{ var_export($updatesUrl) }},
+    exportButtons: JSON.parse('{!! json_encode($crud->get('list.export_buttons')) !!}'),
+    functionsToRunOnDataTablesDrawEvent: [],
+    urlStart: "{{ url($crud->getOperationSetting("datatablesUrl")) }}",
+    persistentTable: {{ $crud->getPersistentTable() ? 'true' : 'false' }},
+    persistentTableSlug: '{{ Str::slug($crud->getOperationSetting("datatablesUrl")) }}',
+    persistentTableDuration: {{ $crud->getPersistentTableDuration() ?: 'null' }},
+    subheading: {{ $crud->getSubheading() ? 'true' : 'false' }},
+    resetButton: {{ ($crud->getOperationSetting('resetButton') ?? true) ? 'true' : 'false' }},
+    responsiveTable: {{ $crud->getResponsiveTable() ? 'true' : 'false' }}
+});
+
+// For backward compatibility, maintain the global crud object
+if (!window.crud.table) {
+    window.crud.updatesUrl = window.crud.tableConfigs['{{$tableId}}'].updatesUrl;
+    window.crud.exportButtons = window.crud.tableConfigs['{{$tableId}}'].exportButtons;
+    window.crud.functionsToRunOnDataTablesDrawEvent = window.crud.tableConfigs['{{$tableId}}'].functionsToRunOnDataTablesDrawEvent;
+    window.crud.addFunctionToDataTablesDrawEventQueue = window.crud.tableConfigs['{{$tableId}}'].addFunctionToDataTablesDrawEventQueue;
+    window.crud.responsiveToggle = window.crud.tableConfigs['{{$tableId}}'].responsiveToggle;
+    window.crud.executeFunctionByName = window.crud.tableConfigs['{{$tableId}}'].executeFunctionByName;
+    window.crud.updateUrl = window.crud.tableConfigs['{{$tableId}}'].updateUrl;
+}
+
+// Create a table-specific datatable configuration
+window.crud.tableConfigs['{{$tableId}}'].dataTableConfiguration = {
     bInfo: {{ var_export($crud->getOperationSetting('showEntryCount') ?? true) }},
     @if ($crud->getResponsiveTable())
     responsive: {
         details: {
             display: $.fn.dataTable.Responsive.display.modal( {
                 header: function ( row ) {
-                    // show the content of the first column
-                    // as the modal header
-                    // var data = row.data();
-                    // return data[0];
                     return '';
                 }
             }),
             type: 'none',
             target: '.dtr-control',
             renderer: function ( api, rowIdx, columns ) {
+                console.log('Responsive Renderer Called');
+                console.log('Columns:', columns);
+                console.log('Row Index:', rowIdx);
                 var data = $.map( columns, function ( col, i ) {
-                    var columnHeading = crud.table.columns().header()[col.columnIndex];
+                    // Use the table instance from the API
+                    var table = api.table().context[0].oInstance;
+                    var tableId = table.attr('id');
+                    var columnHeading = window.crud.tables[tableId].columns().header()[col.columnIndex];
                     // hide columns that have VisibleInModal false
                     if ($(columnHeading).attr('data-visible-in-modal') == 'false') {
                         return '';
@@ -222,17 +262,15 @@ window.crud = {
 
     @if ($crud->getPersistentTable())
     stateSave: true,
-    /*
-        if developer forced field into table 'visibleInTable => true' we make sure when saving datatables state
-        that it reflects the developer decision.
-    */
-
     stateSaveParams: function(settings, data) {
-
         localStorage.setItem('{{ Str::slug($crud->getOperationSetting("datatablesUrl")) }}_list_url_time', data.time);
 
+        // Get the table ID from the settings
+        var tableId = settings.sTableId;
+        var table = window.crud.tables[tableId];
+        
         data.columns.forEach(function(item, index) {
-            var columnHeading = crud.table.columns().header()[index];
+            var columnHeading = table.columns().header()[index];
             if ($(columnHeading).attr('data-visible-in-table') == 'true') {
                 return item.visible = true;
             }
@@ -313,24 +351,255 @@ window.crud = {
         "<'row hidden'<'col-sm-6'i><'col-sm-6 d-print-none'f>>" +
         "<'table-content row'<'col-sm-12'tr>>" +
         "<'table-footer row mt-2 d-print-none align-items-center '<'col-sm-12 col-md-4'l><'col-sm-0 col-md-4 text-center'B><'col-sm-12 col-md-4 'p>>",
-  }
-}
+  };
 </script> 
 @include('crud::inc.export_buttons')
 
 <script type="text/javascript">
-// TODO: this needs to be agnostic per filter navbar as in the future hopefully we can have more than one 
-// table in the same page and setup filters for each one.
+// Function to initialize a DataTable with the given ID and configuration
+window.crud.initializeTable = function(tableId, customConfig = {}) {
+    console.log('Initializing table:', tableId);
+    console.log('Responsive Table Setting:', $(`#${tableId}`).data('responsive-table'));
+    
+    // Get the table configuration or create a new one if it doesn't exist
+    if (!window.crud.tableConfigs[tableId]) {
+        // Create a new configuration by copying properties from the default config
+        window.crud.tableConfigs[tableId] = {};
+        
+        // Copy primitive properties and create new objects for nested properties
+        for (let key in window.crud.defaultTableConfig) {
+            if (typeof window.crud.defaultTableConfig[key] === 'function') {
+                // Preserve function references
+                window.crud.tableConfigs[tableId][key] = window.crud.defaultTableConfig[key];
+            } else if (typeof window.crud.defaultTableConfig[key] === 'object' && window.crud.defaultTableConfig[key] !== null) {
+                // Create a new object for nested properties
+                window.crud.tableConfigs[tableId][key] = Array.isArray(window.crud.defaultTableConfig[key]) 
+                    ? [...window.crud.defaultTableConfig[key]] 
+                    : {...window.crud.defaultTableConfig[key]};
+            } else {
+                // Copy primitive values
+                window.crud.tableConfigs[tableId][key] = window.crud.defaultTableConfig[key];
+            }
+        }
+        
+        // Copy essential properties from the main table configuration
+        window.crud.tableConfigs[tableId].urlStart = window.crud.tableConfigs['{{$tableId}}'].urlStart;
+        window.crud.tableConfigs[tableId].updatesUrl = window.crud.tableConfigs['{{$tableId}}'].updatesUrl;
+        window.crud.tableConfigs[tableId].persistentTable = window.crud.tableConfigs['{{$tableId}}'].persistentTable;
+        window.crud.tableConfigs[tableId].persistentTableSlug = window.crud.tableConfigs['{{$tableId}}'].persistentTableSlug;
+        
+        // Apply custom config
+        Object.assign(window.crud.tableConfigs[tableId], customConfig);
+    } else {
+        // Merge custom config with existing config
+        Object.assign(window.crud.tableConfigs[tableId], customConfig);
+    }
+
+    const config = window.crud.tableConfigs[tableId];
+    
+    // Create a deep copy of the DataTable configuration to ensure independence
+    const dataTableConfig = JSON.parse(JSON.stringify(window.crud.tableConfigs['{{$tableId}}'].dataTableConfiguration));
+    
+    // Add buttons configuration if available
+    if (window.crud.exportButtonsConfiguration) {
+        dataTableConfig.buttons = window.crud.exportButtonsConfiguration;
+    }
+    
+    // Ensure the AJAX URL is correctly set for this specific table
+    if (dataTableConfig.ajax) {
+        // Create a completely new AJAX configuration for this table
+        const originalAjax = dataTableConfig.ajax;
+        dataTableConfig.ajax = {
+            "url": originalAjax.url,
+            "type": originalAjax.type,
+            "data": Object.assign({}, originalAjax.data)
+        };
+        console.log('Setting AJAX URL for table:', tableId, dataTableConfig.ajax.url);
+    }
+    
+    // Ensure only the custom loader is used
+    dataTableConfig.processing = true;
+    dataTableConfig.language = dataTableConfig.language || {};
+    dataTableConfig.language.processing = "<img src='{{ Basset::getUrl('vendor/backpack/crud/src/resources/assets/img/spinner.svg') }}' alt='{{ trans('backpack::crud.processing') }}'>";
+    
+    // Initialize the table with the table-specific configuration
+    window.crud.tables[tableId] = $(`#${tableId}`).DataTable(dataTableConfig);
+    
+    // For backward compatibility, maintain the global crud.table reference if this is the first table
+    if (!window.crud.table) {
+        window.crud.table = window.crud.tables[tableId];
+    }
+    
+    config.updateUrl(location.href);
+
+    // Setup table-specific UI elements
+    setupTableUI(tableId, config);
+    
+    // Setup table-specific event handlers
+    setupTableEvents(tableId, config);
+    
+    return window.crud.tables[tableId];
+};
+
+// Function to set up table UI elements
+function setupTableUI(tableId, config) {
+    // move search bar
+    console.log('setting up table ui for table:', tableId);
+    $(`#${tableId}_filter input`).appendTo($('#datatable_search_stack .input-icon'));
+    $("#datatable_search_stack input").removeClass('form-control-sm');
+    $(`#${tableId}_filter`).remove();
+
+    // remove btn-secondary from export and column visibility buttons
+    $(`#${tableId}_wrapper .table-footer .btn-secondary`).removeClass('btn-secondary');
+
+    // remove forced overflow on load
+    $(".navbar.navbar-filters + div").css('overflow','initial');
+
+    // move "showing x out of y" info to header
+    if (config.subheading) {
+        $(`#${tableId}_info`).hide();
+    } else {
+        $("#datatable_info_stack").html($(`#${tableId}_info`)).css('display','inline-flex').addClass('animated fadeIn');
+    }
+
+    // Create reset button if needed
+    if (config.resetButton !== false) {
+        var crudTableResetButton = `<a href="${config.urlStart}" class="ml-1 ms-1" id="${tableId}_reset_button">{{ trans('backpack::crud.reset') }}</a>`;
+        $('#datatable_info_stack').append(crudTableResetButton);
+
+        // when clicking in reset button we clear the localStorage for datatables
+        $(`#${tableId}_reset_button`).on('click', function() {
+            // Clear the filters
+            if (localStorage.getItem(`${config.persistentTableSlug}_list_url`)) {
+                localStorage.removeItem(`${config.persistentTableSlug}_list_url`);
+            }
+            if (localStorage.getItem(`${config.persistentTableSlug}_list_url_time`)) {
+                localStorage.removeItem(`${config.persistentTableSlug}_list_url_time`);
+            }
+
+            // Clear the table sorting/ordering/visibility
+            if(localStorage.getItem(`DataTables_${tableId}_/${config.urlStart}`)) {
+                localStorage.removeItem(`DataTables_${tableId}_/${config.urlStart}`);
+            }
+        });
+    }
+
+    // move the bottom buttons before pagination
+    $("#bottom_buttons").insertBefore($(`#${tableId}_wrapper .row:last-child`));
+}
+
+// Function to set up table event handlers
+function setupTableEvents(tableId, config) {
+    const table = window.crud.tables[tableId];
+    
+    // override ajax error message
+    $.fn.dataTable.ext.errMode = 'none';
+    $(`#${tableId}`).on('error.dt', function(e, settings, techNote, message) {
+        new Noty({
+            type: "error",
+            text: "<strong>{{ trans('backpack::crud.ajax_error_title') }}</strong><br>{{ trans('backpack::crud.ajax_error_text') }}"
+        }).show();
+    });
+
+    // when changing page length in datatables, save it into localStorage
+    $(`#${tableId}`).on('length.dt', function(e, settings, len) {
+        localStorage.setItem(`DataTables_${tableId}_/${config.urlStart}_pageLength`, len);
+    });
+
+    $(`#${tableId}`).on('page.dt', function() {
+        localStorage.setItem('page_changed', true);
+    });
+
+    // on DataTable draw event run all functions in the queue
+    $(`#${tableId}`).on('draw.dt', function() {
+        console.log('Table Draw Event');
+        console.log('Responsive Controls:', $('.dtr-control'));
+        console.log('Has Hidden Columns:', table.responsive.hasHidden());
+        config.functionsToRunOnDataTablesDrawEvent.forEach(function(functionName) {
+            config.executeFunctionByName(functionName);
+        });
+        
+        if ($(`#${tableId}`).data('has-line-buttons-as-dropdown')) {
+            formatActionColumnAsDropdown(tableId);
+        }
+
+        if (!table.responsive.hasHidden()) {
+            table.columns().header()[0].style.paddingLeft = '0.6rem';
+        }
+
+        if (table.responsive.hasHidden()) {
+            $('.dtr-control').removeClass('d-none');
+            $('.dtr-control').addClass('d-inline');
+            $(`#${tableId}`).removeClass('has-hidden-columns').addClass('has-hidden-columns');
+        }
+    }).dataTable();
+
+    // when datatables-colvis (column visibility) is toggled
+    $(`#${tableId}`).on('column-visibility.dt', function(event) {
+        table.responsive.rebuild();
+    }).dataTable();
+
+    // Handle responsive table if enabled
+    if (config.responsiveTable) {
+        // when columns are hidden by responsive plugin
+        table.on('responsive-resize', function(e, datatable, columns) {
+            console.log('Hidden Column Indices:', columns.reduce((acc, isHidden, index) => {
+                if (isHidden) acc.push(index);
+                return acc;
+            }, []));
+
+            if (table.responsive.hasHidden()) {
+                $('.dtr-control').each(function() {
+                    var $this = $(this);
+                    var $row = $this.closest('tr');
+                    
+                    var $firstVisibleColumn = $row.find('td').filter(function() {
+                        return $(this).css('display') !== 'none';
+                    }).first();
+                    $this.prependTo($firstVisibleColumn);
+                });
+
+                $('.dtr-control').removeClass('d-none');
+                $('.dtr-control').addClass('d-inline');
+                $(`#${tableId}`).removeClass('has-hidden-columns').addClass('has-hidden-columns');
+            } else {
+                $('.dtr-control').removeClass('d-none').removeClass('d-inline').addClass('d-none');
+                $(`#${tableId}`).removeClass('has-hidden-columns');
+            }
+        });
+    } else {
+        // make sure the column headings have the same width as the actual columns
+        var resizeTimer;
+        function resizeCrudTableColumnWidths() {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(function() {
+                table.columns.adjust();
+            }, 250);
+        }
+        $(window).on('resize', function(e) {
+            resizeCrudTableColumnWidths();
+        });
+        $('.sidebar-toggler').click(function() {
+            resizeCrudTableColumnWidths();
+        });
+    }
+}
+
+// Support for multiple tables with filters
 document.addEventListener('backpack:filters:cleared', function (event) {       
+    // Get the table ID from the event detail or default to the current table ID
+    const tableId = event.detail && event.detail.tableId ? event.detail.tableId : '{{$tableId}}';
+    const config = window.crud.tableConfigs[tableId];
+    
     // behaviour for ajax table
-    var new_url = '{{ url($crud->getOperationSetting("datatablesUrl").'/search') }}';
-    var ajax_table = new DataTable('#crudTable');
+    var new_url = `${config.urlStart}/search`;
+    var ajax_table = window.crud.tables[tableId];
 
     // replace the datatables ajax url with new_url and reload it
     ajax_table.ajax.url(new_url).load();
 
     // remove filters from URL
-    crud.updateUrl(new_url);       
+    config.updateUrl(new_url);       
 });
 
 document.addEventListener('backpack:filter:changed', function (event) {
@@ -338,161 +607,72 @@ document.addEventListener('backpack:filter:changed', function (event) {
     let filterValue = event.detail.filterValue;
     let shouldUpdateUrl = event.detail.shouldUpdateUrl;
     let debounce = event.detail.debounce;
-    updateDatatablesOnFilterChange(filterName, filterValue, filterValue || shouldUpdateUrl, debounce);
+    let tableId = event.detail.tableId || '{{$tableId}}';
+    
+    updateDatatablesOnFilterChange(filterName, filterValue, filterValue || shouldUpdateUrl, debounce, tableId);
 });
+
+// Update the updateDatatablesOnFilterChange function to support multiple tables
+function updateDatatablesOnFilterChange(filterName, filterValue, shouldUpdateUrl, debounce, tableId) {
+    tableId = tableId || '{{$tableId}}';
+    
+    // Get the table instance and config
+    const table = window.crud.tables[tableId];
+    const tableConfig = window.crud.tableConfigs[tableId];
+    
+    if (!table) return;
+    
+    // Get the current URL from the table's ajax settings
+    let currentUrl = table.ajax.url();
+    
+    // Update the URL with the new filter parameter
+    let newUrl = addOrUpdateUriParameter(currentUrl, filterName, filterValue);
+    
+    // Set the new URL for the table
+    table.ajax.url(newUrl);
+    
+    // Update the browser URL if needed
+    if (shouldUpdateUrl) {
+        tableConfig.updateUrl(newUrl);
+    }
+    
+    // Reload the table with the new URL if needed
+    if (shouldUpdateUrl) {
+        callFunctionOnce(function() { 
+            table.ajax.reload();
+        }, debounce, 'refreshDatatablesOnFilterChange_' + tableId);
+    }
+    
+    return newUrl;
+}
 
 jQuery(document).ready(function($) {
-
-  window.crud.table = $("#crudTable").DataTable(window.crud.dataTableConfiguration);
-  window.crud.updateUrl(location.href);
-
-  // move search bar
-  $("#datatable_search_stack input").remove();
-  $("#crudTable_filter input").appendTo($('#datatable_search_stack .input-icon'));
-  $("#datatable_search_stack input").removeClass('form-control-sm');
-  $("#crudTable_filter").remove();
-
-  // remove btn-secondary from export and column visibility buttons
-  $("#crudTable_wrapper .table-footer .btn-secondary").removeClass('btn-secondary');
-
-  // remove forced overflow on load
-  $(".navbar.navbar-filters + div").css('overflow','initial');
-
-  // move "showing x out of y" info to header
-  @if($crud->getSubheading())
-  $('#crudTable_info').hide();
-  @else
-  $("#datatable_info_stack").html($('#crudTable_info')).css('display','inline-flex').addClass('animated fadeIn');
-  @endif
-
-  @if($crud->getOperationSetting('resetButton') ?? true)
-    // create the reset button
-    var crudTableResetButton = '<a href="{{url($crud->getOperationSetting("datatablesUrl"))}}" class="ml-1 ms-1" id="crudTable_reset_button">{{ trans('backpack::crud.reset') }}</a>';
-
-    $('#datatable_info_stack').append(crudTableResetButton);
-
-      // when clicking in reset button we clear the localStorage for datatables.
-    $('#crudTable_reset_button').on('click', function() {
-
-      //clear the filters
-      if (localStorage.getItem('{{ Str::slug($crud->getOperationSetting("datatablesUrl"))}}_list_url')) {
-          localStorage.removeItem('{{ Str::slug($crud->getOperationSetting("datatablesUrl")) }}_list_url');
-      }
-      if (localStorage.getItem('{{ Str::slug($crud->getOperationSetting("datatablesUrl"))}}_list_url_time')) {
-          localStorage.removeItem('{{ Str::slug($crud->getOperationSetting("datatablesUrl")) }}_list_url_time');
-      }
-
-      //clear the table sorting/ordering/visibility
-      if(localStorage.getItem('DataTables_crudTable_/{{ $crud->getOperationSetting("datatablesUrl") }}')) {
-          localStorage.removeItem('DataTables_crudTable_/{{ $crud->getOperationSetting("datatablesUrl") }}');
-      }
-    });
-  @endif
-
-  // move the bottom buttons before pagination
-  $("#bottom_buttons").insertBefore($('#crudTable_wrapper .row:last-child' ));
-
-  // override ajax error message
-  $.fn.dataTable.ext.errMode = 'none';
-  $('#crudTable').on('error.dt', function(e, settings, techNote, message) {
-      new Noty({
-          type: "error",
-          text: "<strong>{{ trans('backpack::crud.ajax_error_title') }}</strong><br>{{ trans('backpack::crud.ajax_error_text') }}"
-      }).show();
-  });
-
-    // when changing page length in datatables, save it into localStorage
-    // so in next requests we know if the length changed by user
-    // or by developer in the controller.
-    $('#crudTable').on( 'length.dt', function ( e, settings, len ) {
-        localStorage.setItem('DataTables_crudTable_/{{$crud->getOperationSetting("datatablesUrl")}}_pageLength', len);
-    });
-
-    $('#crudTable').on( 'page.dt', function () {
-        localStorage.setItem('page_changed', true);
-    });
-
-  // on DataTable draw event run all functions in the queue
-  // (eg. delete and details_row buttons add functions to this queue)
-  $('#crudTable').on( 'draw.dt',   function () {
-     crud.functionsToRunOnDataTablesDrawEvent.forEach(function(functionName) {
-        crud.executeFunctionByName(functionName);
-     });
-     if ($('#crudTable').data('has-line-buttons-as-dropdown')) {
-      formatActionColumnAsDropdown();
-     }
-
-    if (! crud.table.responsive.hasHidden()) {
-        crud.table.columns().header()[0].style.paddingLeft = '0.6rem';
-    }
-
-     if (crud.table.responsive.hasHidden()) {
-        $('.dtr-control').removeClass('d-none'); 
-        $('.dtr-control').addClass('d-inline');
-        $("#crudTable").removeClass('has-hidden-columns').addClass('has-hidden-columns');
-     }
-
-  }).dataTable();
-
-  // when datatables-colvis (column visibility) is toggled
-  // rebuild the datatable using the datatable-responsive plugin
-  $('#crudTable').on( 'column-visibility.dt',   function (event) {
-    console.log('column-visibility.dt');
-     crud.table.responsive.rebuild();
-  } ).dataTable();
-
-  @if ($crud->getResponsiveTable())
-    // when columns are hidden by reponsive plugin,
-    // the table should have the has-hidden-columns class
-    crud.table.on( 'responsive-resize', function ( e, datatable, columns ) {
-        if (crud.table.responsive.hasHidden()) {
-            $('.dtr-control').each(function() {
-                var $this = $(this);
-                var $row = $this.closest('tr');
-                var $firstVisibleColumn = $row.find('td').filter(function() {
-                    return $(this).css('display') !== 'none';
-                }).first();
-                $this.prependTo($firstVisibleColumn);
-            });
-
-            $('.dtr-control').removeClass('d-none'); 
-            $('.dtr-control').addClass('d-inline');
-            $("#crudTable").removeClass('has-hidden-columns').addClass('has-hidden-columns');
-        } else {
-            $('.dtr-control').removeClass('d-none').removeClass('d-inline').addClass('d-none');  
-            $("#crudTable").removeClass('has-hidden-columns');
+    // Always initialize all tables with the crud-table class
+    $('.crud-table').each(function() {
+        const tableId = $(this).attr('id');
+        // Check if the table is already initialized
+        if (tableId && !$.fn.DataTable.isDataTable(`#${tableId}`)) {
+            console.log('Auto-initializing table:', tableId);
+            window.crud.initializeTable(tableId);
         }
     });
-  @else
-    // make sure the column headings have the same width as the actual columns
-    // after the user manually resizes the window
-    var resizeTimer;
-    function resizeCrudTableColumnWidths() {
-      clearTimeout(resizeTimer);
-      resizeTimer = setTimeout(function() {
-        // Run code here, resizing has "stopped"
-        crud.table.columns.adjust();
-      }, 250);
-    }
-    $(window).on('resize', function(e) {
-      resizeCrudTableColumnWidths();
-    });
-    $('.sidebar-toggler').click(function() {
-      resizeCrudTableColumnWidths();
-    });
-  @endif
 
+    // Remove any duplicate inputs that might be left over
+    $("#datatable_search_stack input").not(':first').remove();
 });
 
-function formatActionColumnAsDropdown() {
+function formatActionColumnAsDropdown(tableId) {
+    // Use the provided tableId or default to 'crudTable' for backward compatibility
+    tableId = tableId || 'crudTable';
+    
     // Get action column
-    const actionColumnIndex = $('#crudTable').find('th[data-action-column=true]').index();
+    const actionColumnIndex = $('#' + tableId).find('th[data-action-column=true]').index();
     if (actionColumnIndex === -1) return;
 
-    const minimumButtonsToBuildDropdown = $('#crudTable').data('line-buttons-as-dropdown-minimum');
-    const buttonsToShowBeforeDropdown = $('#crudTable').data('line-buttons-as-dropdown-show-before-dropdown');
+    const minimumButtonsToBuildDropdown = $('#' + tableId).data('line-buttons-as-dropdown-minimum');
+    const buttonsToShowBeforeDropdown = $('#' + tableId).data('line-buttons-as-dropdown-show-before-dropdown');
 
-    $('#crudTable tbody tr').each(function (i, tr) {
+    $('#' + tableId + ' tbody tr').each(function (i, tr) {
         const actionCell = $(tr).find('td').eq(actionColumnIndex);
         const actionButtons = actionCell.find('a.btn.btn-link');
         if (actionCell.find('.actions-buttons-column').length) return;
