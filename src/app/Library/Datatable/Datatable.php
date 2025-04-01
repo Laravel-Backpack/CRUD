@@ -19,8 +19,8 @@ class Datatable extends Component
 
         // Merge default options with provided options
         $this->tableOptions = array_merge([
-            'pageLength'      => $this->crud->getDefaultPageLength(),
-            'searchDelay'     => $this->crud->getOperationSetting('searchDelay'),
+            'pageLength' => $this->crud->getDefaultPageLength(),
+            'searchDelay' => $this->crud->getOperationSetting('searchDelay'),
             'searchableTable' => $this->crud->getOperationSetting('searchableTable') ?? true,
         ], $tableOptions);
     }
@@ -28,9 +28,9 @@ class Datatable extends Component
     public function render()
     {
         return view('crud::datatable.datatable', [
-            'crud'         => $this->crud,
-            'updatesUrl'   => $this->updatesUrl,
-            'tableId'      => $this->tableId,
+            'crud' => $this->crud,
+            'updatesUrl' => $this->updatesUrl,
+            'tableId' => $this->tableId,
             'tableOptions' => $this->tableOptions,
         ]);
     }
