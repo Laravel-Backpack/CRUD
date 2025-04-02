@@ -234,6 +234,7 @@ class CrudPanelValidationTest extends \Backpack\CRUD\Tests\config\CrudPanel\Base
         $this->crudPanel->setValidation([
             'email' => 'required',
             'password.*.test' => 'required',
+            'not_required' => 'present',
         ]);
 
         $this->crudPanel->setValidation(UserRequest::class);
@@ -250,11 +251,29 @@ class CrudPanelValidationTest extends \Backpack\CRUD\Tests\config\CrudPanel\Base
         $this->crudPanel->setValidation([
             'email' => ValidUpload::field('required'),
             'password' => ValidUploadMultiple::field('required'),
+            'not_required' => ValidUpload::field('present'),
         ]);
 
         $this->assertEquals(['email', 'password'], array_values($this->crudPanel->getOperationSetting('requiredFields')));
         $this->assertTrue($this->crudPanel->isRequired('email'));
         $this->assertTrue($this->crudPanel->isRequired('password'));
+    }
+
+    public function testItCanGetTheRequiredFieldsFromRulesArray()
+    {
+        $this->crudPanel->setModel(User::class);
+
+        $this->crudPanel->setValidation([
+            'email' => ['required', 'string'],
+            'password' => ['string', 'required'],
+            'password_confirm' => ['same:password', ValidUploadMultiple::field('required')],
+            'not_required' => ['string', 'present', 'foobar'],
+        ]);
+
+        $this->assertEquals(['email', 'password', 'password_confirm'], array_values($this->crudPanel->getOperationSetting('requiredFields')));
+        $this->assertTrue($this->crudPanel->isRequired('email'));
+        $this->assertTrue($this->crudPanel->isRequired('password'));
+        $this->assertTrue($this->crudPanel->isRequired('password_confirm'));
     }
 
     public function testItCanValidateCustomRules()

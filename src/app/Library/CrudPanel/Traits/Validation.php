@@ -201,17 +201,21 @@ trait Validation
                 foreach ($validationRules as $rule) {
                     if (is_a($rule, BackpackCustomRule::class, true)) {
                         foreach ($rule->getFieldRules() as $customValidatorRules) {
-                            $key = $this->checkIfRuleIsRequired($key, $customValidatorRules);
-                            if ($key) {
-                                $requiredFields[] = $key;
+                            if ($requiredFieldName = $this->checkIfRuleIsRequired($key, $customValidatorRules)) {
+                                // Field is required, move on to next field
+                                $requiredFields[] = $requiredFieldName;
+                                break;
                             }
                         }
 
+                        // Try next rule for field
                         continue;
                     }
-                    $key = $this->checkIfRuleIsRequired($key, $rule);
-                    if ($key) {
-                        $requiredFields[] = $key;
+
+                    if ($requiredFieldName = $this->checkIfRuleIsRequired($key, $rule)) {
+                        // Field is required, move on to next field
+                        $requiredFields[] = $requiredFieldName;
+                        break;
                     }
                 }
             }
