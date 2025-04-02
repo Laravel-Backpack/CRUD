@@ -140,7 +140,7 @@ return [
 
     //filters language strings
     'today' => 'Oggi',
-    'yesterday' => 'Domani',
+    'yesterday' => 'Ieri',
     'last_7_days' => 'Ultimi 7 giorni',
     'last_30_days' => 'Ultimi 30 giorni',
     'this_month' => 'Questo mese',
