@@ -1,0 +1,1 @@
+<x-datatable :controller="$column['controller']" :updatesUrl="false" />

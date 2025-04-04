@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Facade;
 /**
  * This object allows developers to use CRUD::addField() instead of $this->crud->addField(),
  * by providing a Facade that leads to the CrudPanel object. That object is stored in Laravel's
- * service container as 'crud'.
+ * service container as 'backpack.crud'.
  */
 /**
  * @codeCoverageIgnore
@@ -36,6 +36,6 @@ class CrudPanelFacade extends Facade
      */
     protected static function getFacadeAccessor()
     {
-        return 'crud';
+        return 'backpack.crud';
     }
 }

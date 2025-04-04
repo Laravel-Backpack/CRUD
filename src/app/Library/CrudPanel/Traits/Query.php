@@ -277,7 +277,6 @@ trait Query
         }
 
         // re-set the previous query bindings
-        //dump($crudQuery->getColumns(), get_class($crudQuery), get_class($subQuery));
         foreach ($crudQuery->getRawBindings() as $type => $binding) {
             $subQuery->setBindings($binding, $type);
         }

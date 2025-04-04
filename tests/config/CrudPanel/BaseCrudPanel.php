@@ -3,6 +3,7 @@
 namespace Backpack\CRUD\Tests\Config\CrudPanel;
 
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanel;
+use Backpack\CRUD\Backpack;
 use Backpack\CRUD\Tests\BaseTestClass;
 use Backpack\CRUD\Tests\config\Models\TestModel;
 
@@ -24,12 +25,10 @@ abstract class BaseCrudPanel extends BaseTestClass
     {
         parent::setUp();
 
-        $this->app->singleton('crud', function ($app) {
-            return new CrudPanel($app);
-        });
-        $this->crudPanel = app('crud');
+        $this->crudPanel = Backpack::getCrudPanelInstance();
         $this->crudPanel->setModel(TestModel::class);
-        $this->model = $this->crudPanel->getModel();
+        $this->crudPanel->setRequest();
+        $this->model = TestModel::class;
     }
 
     /**
