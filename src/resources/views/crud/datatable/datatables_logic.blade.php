@@ -15,6 +15,7 @@ $tableId = $tableId ?? 'crudTable';
 @basset('https://cdn.datatables.net/responsive/2.4.0/css/responsive.dataTables.min.css')
 @basset('https://cdn.datatables.net/fixedheader/3.3.1/js/dataTables.fixedHeader.min.js')
 @basset('https://cdn.datatables.net/fixedheader/3.3.1/css/fixedHeader.dataTables.min.css')
+@basset(base_path('vendor/backpack/crud/src/resources/assets/css/responsive-modal.css'), false)
 
 @basset(base_path('vendor/backpack/crud/src/resources/assets/img/spinner.svg'), false)
 
@@ -116,6 +117,11 @@ window.crud.tables = window.crud.tables || {};
 window.crud.defaultTableConfig = {
     functionsToRunOnDataTablesDrawEvent: [],
     addFunctionToDataTablesDrawEventQueue: function (functionName) {
+        console.log(functionName);
+        if (typeof functionName !== 'string') {
+            console.error('Function name must be a string. Received:', functionName);
+            //return;
+        }
         if (this.functionsToRunOnDataTablesDrawEvent.indexOf(functionName) == -1) {
             this.functionsToRunOnDataTablesDrawEvent.push(functionName);
         }
@@ -126,12 +132,49 @@ window.crud.defaultTableConfig = {
         dt.responsive.recalc();
     },
     executeFunctionByName: function(str, args) {
-        var arr = str.split('.');
-        var fn = window[ arr[0] ];
+        console.log('Executing function: ' + str, args);
+        try {
+            // First check if the function exists directly in the window object
+            if (typeof window[str] === 'function') {
+                console.log('Calling function directly from window: ' + str);
+                window[str].apply(window, args || []);
+                return;
+            }
+            
+            // Check if the function name contains parentheses
+            if (str.indexOf('(') !== -1) {
+                // Extract the function name and arguments
+                var funcNameMatch = str.match(/([^(]+)\((.*)\)$/);
+                if (funcNameMatch) {
+                    var funcName = funcNameMatch[1];
+                    console.log('Extracted function name: ' + funcName);
+                    
+                    // Handle direct function call
+                    if (typeof window[funcName] === 'function') {
+                        console.log('Calling function directly: ' + funcName);
+                        window[funcName]();
+                        return;
+                    }
+                }
+            }
+            
+            // Standard method - split by dots for namespaced functions
+            var arr = str.split('.');
+            var fn = window[ arr[0] ];
 
-        for (var i = 1; i < arr.length; i++)
-        { fn = fn[ arr[i] ]; }
-        fn.apply(window, args);
+            for (var i = 1; i < arr.length; i++) { 
+                fn = fn[ arr[i] ]; 
+            }
+            
+            if (typeof fn === 'function') {
+                console.log('Function found, applying with args');
+                fn.apply(window, args || []);
+            } else {
+                console.error('Function not found: ' + str);
+            }
+        } catch (e) {
+            console.error('Error executing function ' + str + ': ', e);
+        }
     },
     updateUrl: function (url) {
         if(!this.updatesUrl) {
@@ -205,14 +248,11 @@ window.crud.tableConfigs['{{$tableId}}'].dataTableConfiguration = {
             display: $.fn.dataTable.Responsive.display.modal( {
                 header: function ( row ) {
                     return '';
-                }
+                },
             }),
             type: 'none',
             target: '.dtr-control',
             renderer: function ( api, rowIdx, columns ) {
-                console.log('Responsive Renderer Called');
-                console.log('Columns:', columns);
-                console.log('Row Index:', rowIdx);
                 var data = $.map( columns, function ( col, i ) {
                     // Use the table instance from the API
                     var table = api.table().context[0].oInstance;
@@ -357,10 +397,7 @@ window.crud.tableConfigs['{{$tableId}}'].dataTableConfiguration = {
 
 <script type="text/javascript">
 // Function to initialize a DataTable with the given ID and configuration
-window.crud.initializeTable = function(tableId, customConfig = {}) {
-    console.log('Initializing table:', tableId);
-    console.log('Responsive Table Setting:', $(`#${tableId}`).data('responsive-table'));
-    
+window.crud.initializeTable = function(tableId, customConfig = {}) {   
     // Get the table configuration or create a new one if it doesn't exist
     if (!window.crud.tableConfigs[tableId]) {
         // Create a new configuration by copying properties from the default config
@@ -400,6 +437,59 @@ window.crud.initializeTable = function(tableId, customConfig = {}) {
     // Create a deep copy of the DataTable configuration to ensure independence
     const dataTableConfig = JSON.parse(JSON.stringify(window.crud.tableConfigs['{{$tableId}}'].dataTableConfiguration));
     
+    // Restore the responsive display function which is lost during JSON serialization
+    if (dataTableConfig.responsive && window.crud.tableConfigs['{{$tableId}}'].dataTableConfiguration.responsive) {
+        dataTableConfig.responsive.details.display = $.fn.dataTable.Responsive.display.modal({
+            header: function(row) {
+                return '';
+            },
+            // Add custom class to modal for styling
+            class: 'dtr-bs-modal'
+        });
+        
+        // Ensure the renderer properly creates a table structure
+        dataTableConfig.responsive.details.renderer = function(api, rowIdx, columns) {
+            var data = $.map(columns, function(col, i) {
+                // Use the table instance from the API
+                var table = api.table().context[0].oInstance;
+                var tableId = table.attr('id');
+                var columnHeading = window.crud.tables[tableId].columns().header()[col.columnIndex];
+                // hide columns that have VisibleInModal false
+                if ($(columnHeading).attr('data-visible-in-modal') == 'false') {
+                    return '';
+                }
+
+                if (col.data.indexOf('crud_bulk_actions_checkbox') !== -1) {
+                    col.data = col.data.replace('crud_bulk_actions_checkbox', 'crud_bulk_actions_checkbox d-none');
+                }
+
+                let colTitle = '';
+                if (col.title) {
+                    let tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = col.title;
+                    
+                    let checkboxSpan = tempDiv.querySelector('.crud_bulk_actions_checkbox');
+                    if (checkboxSpan) {
+                        checkboxSpan.remove();
+                    }
+                    
+                    colTitle = tempDiv.textContent.trim();
+                } else {
+                    colTitle = '';
+                }
+
+                return '<tr data-dt-row="'+col.rowIndex+'" data-dt-column="'+col.columnIndex+'">'+
+                        '<td style="vertical-align:top; border:none;"><strong>'+colTitle+':'+'</strong></td> '+
+                        '<td style="padding-left:10px;padding-bottom:10px; border:none;">'+col.data+'</td>'+
+                        '</tr>';
+            }).join('');
+
+            return data ?
+                $('<table class="table table-striped mb-0 dtr-details-table">').append('<tbody>' + data + '</tbody>') :
+                false;
+        };
+    }
+    
     // Add buttons configuration if available
     if (window.crud.exportButtonsConfiguration) {
         dataTableConfig.buttons = window.crud.exportButtonsConfiguration;
@@ -414,7 +504,6 @@ window.crud.initializeTable = function(tableId, customConfig = {}) {
             "type": originalAjax.type,
             "data": Object.assign({}, originalAjax.data)
         };
-        console.log('Setting AJAX URL for table:', tableId, dataTableConfig.ajax.url);
     }
     
     // Ensure only the custom loader is used
@@ -444,7 +533,6 @@ window.crud.initializeTable = function(tableId, customConfig = {}) {
 // Function to set up table UI elements
 function setupTableUI(tableId, config) {
     // move search bar
-    console.log('setting up table ui for table:', tableId);
     $(`#${tableId}_filter input`).appendTo($('#datatable_search_stack .input-icon'));
     $("#datatable_search_stack input").removeClass('form-control-sm');
     $(`#${tableId}_filter`).remove();
@@ -512,10 +600,10 @@ function setupTableEvents(tableId, config) {
 
     // on DataTable draw event run all functions in the queue
     $(`#${tableId}`).on('draw.dt', function() {
-        console.log('Table Draw Event');
-        console.log('Responsive Controls:', $('.dtr-control'));
-        console.log('Has Hidden Columns:', table.responsive.hasHidden());
-        config.functionsToRunOnDataTablesDrawEvent.forEach(function(functionName) {
+        console.log('DataTable draw event triggered for ' + tableId);
+        console.log('Functions in queue:', config.functionsToRunOnDataTablesDrawEvent);
+        console.log(config, window.crud.defaultTableConfig);
+        window.crud.defaultTableConfig.functionsToRunOnDataTablesDrawEvent.forEach(function(functionName) {
             config.executeFunctionByName(functionName);
         });
         
@@ -527,7 +615,7 @@ function setupTableEvents(tableId, config) {
             table.columns().header()[0].style.paddingLeft = '0.6rem';
         }
 
-        if (table.responsive.hasHidden()) {
+        if (table.responsive.hasHidden()) {           
             $('.dtr-control').removeClass('d-none');
             $('.dtr-control').addClass('d-inline');
             $(`#${tableId}`).removeClass('has-hidden-columns').addClass('has-hidden-columns');
@@ -543,11 +631,6 @@ function setupTableEvents(tableId, config) {
     if (config.responsiveTable) {
         // when columns are hidden by responsive plugin
         table.on('responsive-resize', function(e, datatable, columns) {
-            console.log('Hidden Column Indices:', columns.reduce((acc, isHidden, index) => {
-                if (isHidden) acc.push(index);
-                return acc;
-            }, []));
-
             if (table.responsive.hasHidden()) {
                 $('.dtr-control').each(function() {
                     var $this = $(this);
@@ -652,7 +735,6 @@ jQuery(document).ready(function($) {
         const tableId = $(this).attr('id');
         // Check if the table is already initialized
         if (tableId && !$.fn.DataTable.isDataTable(`#${tableId}`)) {
-            console.log('Auto-initializing table:', tableId);
             window.crud.initializeTable(tableId);
         }
     });

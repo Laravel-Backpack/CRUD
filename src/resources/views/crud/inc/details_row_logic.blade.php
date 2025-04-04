@@ -1,23 +1,42 @@
-  @if ($crud->get('list.detailsRow'))
+ @if ($crud->get('list.detailsRow'))
   <script>
-    if (typeof registerDetailsRowButtonAction != 'function') {
-      function registerDetailsRowButtonAction() {
-            // Remove any previously registered event handlers from draw.dt event callback
-            $('#crudTable tbody').off('click', 'td .details-row-button');
+    // Define the function in the global scope
+    window.registerDetailsRowButtonAction = function() {
+        console.log('registerDetailsRowButtonAction called');
+        // Process all DataTables on the page
+        $('table.dataTable').each(function() {
+          // Check if this table has already been initialized for details row
+          if ($(this).data('details-row-initialized')) {
+            console.log('Table already initialized for details row: ' + $(this).attr('id'));
+            return; // Skip already initialized tables
+          }
+          
+          var tableId = $(this).attr('id');
+          if (!tableId) return; // Skip tables without ID
+          
+          var tableSelector = '#' + tableId;
+          console.log('Registering details row button action for table: ' + tableSelector);
+          
+          // Remove any previously registered event handlers from draw.dt event callback
+          $(tableSelector + ' tbody').off('click', 'td .details-row-button');
 
-            // Make sure the ajaxDatatables rows also have the correct classes
-            $('#crudTable tbody td .details-row-button').parent('td')
-              .removeClass('details-control').addClass('details-control')
-              .removeClass('text-center').addClass('text-center')
-              .removeClass('cursor-pointer').addClass('cursor-pointer');
+          // Make sure the ajaxDatatables rows also have the correct classes
+          $(tableSelector + ' tbody td .details-row-button').parent('td')
+            .removeClass('details-control').addClass('details-control')
+            .removeClass('text-center').addClass('text-center')
+            .removeClass('cursor-pointer').addClass('cursor-pointer');
 
-            // Add event listener for opening and closing details
-            $('#crudTable tbody td .details-control').on('click', function (e) {
+          // Mark this table as initialized
+          $(this).data('details-row-initialized', true);
+          
+          // Add event listener for opening and closing details
+          $(tableSelector + ' tbody td .details-control').on('click', function (e) {
                 e.stopPropagation();
 
                 var tr = $(this).closest('tr');
                 var btn = $(this).find('.details-row-button');
-                var row = crud.table.row( tr );
+                var table = $(tableSelector).DataTable();
+                var row = table.row(tr);
 
                 if (row.child.isShown()) {
                     // This row is already open - close it
@@ -46,11 +65,9 @@
                     });
                 }
             } );
-          }
+          });
       }
-
-    // make it so that the function above is run after each DataTable draw event
-    // otherwise details_row buttons wouldn't work on subsequent pages (page 2, page 17, etc)
-    crud.addFunctionToDataTablesDrawEventQueue('registerDetailsRowButtonAction');
+      window.crud.defaultTableConfig.addFunctionToDataTablesDrawEventQueue('registerDetailsRowButtonAction');
+    
   </script>
 @endif

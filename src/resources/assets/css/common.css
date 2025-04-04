@@ -231,30 +231,61 @@
     padding-left: 0.6rem;
 }
 
-.dataTables_wrapper .dataTables_processing {
+.dataTables_processing.card {
+    all: unset;
+    position: absolute;
+    background: rgba(255, 255, 255, 0.9);
+    height: 100%;
+    width: 100%;
+    top: 0;
+    /*left: 10px;*/
+    z-index: 999;
+    border-radius: 5px;
+}
+
+.dataTables_processing.card > img {
+    margin: 0;
     position: absolute;
     top: 50%;
     left: 50%;
-    width: 100%;
-    height: 40px;
-    margin-left: -50%;
-    margin-top: -25px;
-    padding-top: 20px;
-    text-align: center;
-    font-size: 1.2em;
-    background-color: white;
-    background: -webkit-gradient(linear, left top, right top, color-stop(0%, rgba(255, 255, 255, 0)), color-stop(25%, rgba(255, 255, 255, 0.9)), color-stop(75%, rgba(255, 255, 255, 0.9)), color-stop(100%, rgba(255, 255, 255, 0)));
-    background: -webkit-linear-gradient(left, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.9) 25%, rgba(255, 255, 255, 0.9) 75%, rgba(255, 255, 255, 0) 100%);
-    background: -moz-linear-gradient(left, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.9) 25%, rgba(255, 255, 255, 0.9) 75%, rgba(255, 255, 255, 0) 100%);
-    background: -ms-linear-gradient(left, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.9) 25%, rgba(255, 255, 255, 0.9) 75%, rgba(255, 255, 255, 0) 100%);
-    background: -o-linear-gradient(left, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.9) 25%, rgba(255, 255, 255, 0.9) 75%, rgba(255, 255, 255, 0) 100%);
-    background: linear-gradient(to right, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.9) 25%, rgba(255, 255, 255, 0.9) 75%, rgba(255, 255, 255, 0) 100%);
+    transform: translate(-50%, -50%);
+}
+
+#crudTable_wrapper table.dataTable .crud_bulk_actions_line_checkbox {
+    vertical-align: text-top;
+}
+
+.dataTables_processing.card > div {
+    display: none !important;
+}
+
+.dt-buttons,
+.dtr-modal .details-control,
+.modal .details-control {
+    display: none;
+}
+
+.crud-table.dtr-none > tbody > tr > td > div.dtr-control:before,
+.crud-table.dtr-none > tbody > tr > td > div.dtr-control:before {
+    background-color: transparent;
+    color: #636161;
+    font-family: "Line Awesome Free";
+    font-weight: 900;
+    width: 1rem;
+    content: "\f142";
+    font-size: 21px;
+    box-shadow: none;
+    border: none;
+    display: inline-block;
+    position: relative;
+    top: 0;
+    left: 0;
+    margin: 0 0 0 -0.25rem;
 }
 
 .dataTables_wrapper .dataTables_length,
 .dataTables_wrapper .dataTables_filter,
 .dataTables_wrapper .dataTables_info,
-.dataTables_wrapper .dataTables_processing,
 .dataTables_wrapper .dataTables_paginate {
     color: #333;
 }
