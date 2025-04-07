@@ -138,7 +138,7 @@ trait FieldsProtectedMethods
      */
     protected function makeSureFieldHasEntity($field)
     {
-        $model = isset($field['baseModel']) ? (new $field['baseModel']) : $this->model;
+        $model = isset($field['baseModel']) ? (new $field['baseModel']) : $this->getModel();
 
         if (isset($field['entity'])) {
             return $field;

@@ -7,6 +7,7 @@ use Backpack\CRUD\app\Http\Middleware\EnsureEmailVerification;
 use Backpack\CRUD\app\Http\Middleware\ThrottlePasswordRecovery;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanel;
 use Backpack\CRUD\app\Library\Database\DatabaseSchema;
+use Backpack\CRUD\app\Library\Datatable\Datatable;
 use Backpack\CRUD\app\Library\Uploaders\Support\UploadersRepository;
 use Illuminate\Contracts\Debug\ExceptionHandler;
 use Illuminate\Routing\Router;
@@ -63,6 +64,7 @@ class BackpackServiceProvider extends ServiceProvider
         $this->sendUsageStats();
 
         Basset::addViewPath(realpath(__DIR__.'/resources/views'));
+        Blade::component('datatable', Datatable::class);
     }
 
     /**
@@ -83,8 +85,61 @@ class BackpackServiceProvider extends ServiceProvider
         $this->registerBackpackErrorViews();
 
         // Bind the CrudPanel object to Laravel's service container
-        $this->app->scoped('crud', function ($app) {
-            return new CrudPanel();
+        $this->app->bind('crud', function ($app) {
+            // Prioritize explicit controller context
+            $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS);
+            $controller = null;
+
+            foreach ($trace as $step) {
+                if (isset($step['class']) &&
+                    is_a($step['class'], app\Http\Controllers\Contracts\CrudControllerContract::class, true)) {
+                    $controller = $step['class'];
+                    break;
+                }
+            }
+
+            if ($controller) {
+                $crudPanel = Backpack::getControllerCrud($controller);
+
+                return $crudPanel;
+            }
+            // Fallback to a more robust initialization
+            $cruds = Backpack::getCruds();
+
+            if (! empty($cruds)) {
+                $crudPanel = reset($cruds);
+
+                // Ensure upload events are registered
+                return $crudPanel;
+            }
+
+            return Backpack::getCrudPanelInstance();
+        });
+
+        // Bind a special CrudPanel object for the CrudPanelFacade
+        $this->app->bind('backpack.crud', function ($app) {
+            // Similar logic to 'crud' binding
+            $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS);
+            $controller = null;
+            foreach ($trace as $step) {
+                if (isset($step['class']) &&
+                    is_a($step['class'], app\Http\Controllers\Contracts\CrudControllerContract::class, true)) {
+                    $controller = $step['class'];
+                    break;
+                }
+            }
+
+            if ($controller) {
+                $crudPanel = Backpack::getControllerCrud($controller);
+
+                return $crudPanel;
+            }
+
+            return Backpack::getCrudPanelInstance();
+        });
+
+        $this->app->scoped('backpack-manager', function ($app) {
+            return new BackpackManager();
         });
 
         $this->app->scoped('DatabaseSchema', function ($app) {
@@ -181,7 +236,7 @@ class BackpackServiceProvider extends ServiceProvider
     /**
      * Define the routes for the application.
      *
-     * @param  \Illuminate\Routing\Router  $router
+     * @param  Router  $router
      * @return void
      */
     public function setupRoutes(Router $router)
@@ -200,7 +255,7 @@ class BackpackServiceProvider extends ServiceProvider
     /**
      * Load custom routes file.
      *
-     * @param  \Illuminate\Routing\Router  $router
+     * @param  Router  $router
      * @return void
      */
     public function setupCustomRoutes(Router $router)
@@ -333,7 +388,7 @@ class BackpackServiceProvider extends ServiceProvider
      */
     public function provides()
     {
-        return ['crud', 'widgets', 'BackpackViewNamespaces', 'DatabaseSchema', 'UploadersRepository'];
+        return ['widgets', 'BackpackViewNamespaces', 'DatabaseSchema', 'UploadersRepository'];
     }
 
     private function registerBackpackErrorViews()

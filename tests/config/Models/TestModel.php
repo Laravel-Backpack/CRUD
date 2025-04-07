@@ -1,6 +1,6 @@
 <?php
 
-namespace Backpack\CRUD\Tests\Config\Models;
+namespace Backpack\CRUD\Tests\config\Models;
 
 use Backpack\CRUD\app\Models\Traits\CrudTrait;
 
