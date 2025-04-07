@@ -12,26 +12,23 @@ class Datatable extends Component
         private ?CrudPanel $crud = null,
         private bool $updatesUrl = true,
         private ?string $tableId = null,
-        private array $tableOptions = []
+        private ?\Closure $configure = null
     ) {
         $this->crud ??= \Backpack\CRUD\Backpack::crudFromController($controller);
         $this->tableId = 'crudTable_'.uniqid();
 
-        // Merge default options with provided options
-        $this->tableOptions = array_merge([
-            'pageLength' => $this->crud->getDefaultPageLength(),
-            'searchDelay' => $this->crud->getOperationSetting('searchDelay'),
-            'searchableTable' => $this->crud->getOperationSetting('searchableTable') ?? true,
-        ], $tableOptions);
+        // Apply the configuration if provided
+        if ($this->configure) {
+            ($this->configure)($this->crud);
+        }
     }
 
     public function render()
     {
         return view('crud::datatable.datatable', [
-            'crud' => $this->crud,
+            'crud'       => $this->crud,
             'updatesUrl' => $this->updatesUrl,
-            'tableId' => $this->tableId,
-            'tableOptions' => $this->tableOptions,
+            'tableId'    => $this->tableId,
         ]);
     }
 }
