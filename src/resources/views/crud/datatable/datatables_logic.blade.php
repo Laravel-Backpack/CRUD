@@ -117,11 +117,6 @@ window.crud.tables = window.crud.tables || {};
 window.crud.defaultTableConfig = {
     functionsToRunOnDataTablesDrawEvent: [],
     addFunctionToDataTablesDrawEventQueue: function (functionName) {
-        console.log(functionName);
-        if (typeof functionName !== 'string') {
-            console.error('Function name must be a string. Received:', functionName);
-            //return;
-        }
         if (this.functionsToRunOnDataTablesDrawEvent.indexOf(functionName) == -1) {
             this.functionsToRunOnDataTablesDrawEvent.push(functionName);
         }
@@ -132,11 +127,9 @@ window.crud.defaultTableConfig = {
         dt.responsive.recalc();
     },
     executeFunctionByName: function(str, args) {
-        console.log('Executing function: ' + str, args);
         try {
             // First check if the function exists directly in the window object
             if (typeof window[str] === 'function') {
-                console.log('Calling function directly from window: ' + str);
                 window[str].apply(window, args || []);
                 return;
             }
@@ -147,11 +140,9 @@ window.crud.defaultTableConfig = {
                 var funcNameMatch = str.match(/([^(]+)\((.*)\)$/);
                 if (funcNameMatch) {
                     var funcName = funcNameMatch[1];
-                    console.log('Extracted function name: ' + funcName);
                     
                     // Handle direct function call
                     if (typeof window[funcName] === 'function') {
-                        console.log('Calling function directly: ' + funcName);
                         window[funcName]();
                         return;
                     }
@@ -167,13 +158,10 @@ window.crud.defaultTableConfig = {
             }
             
             if (typeof fn === 'function') {
-                console.log('Function found, applying with args');
                 fn.apply(window, args || []);
             } else {
-                console.error('Function not found: ' + str);
             }
         } catch (e) {
-            console.error('Error executing function ' + str + ': ', e);
         }
     },
     updateUrl: function (url) {
@@ -531,10 +519,20 @@ window.crud.initializeTable = function(tableId, customConfig = {}) {
 };
 
 // Function to set up table UI elements
-function setupTableUI(tableId, config) {
-    // move search bar
-    $(`#${tableId}_filter input`).appendTo($('#datatable_search_stack .input-icon'));
-    $("#datatable_search_stack input").removeClass('form-control-sm');
+function setupTableUI(tableId, config) {    
+    // Set up the search functionality for the existing input
+    const searchInput = $(`#datatable_search_stack_${tableId} input.datatable-search-input`);
+    
+    if (searchInput.length > 0) {
+        // Set up the search functionality
+        searchInput.on('keyup', function() {
+            window.crud.tables[tableId].search(this.value).draw();
+        });
+    } else {
+        console.error(`Search input not found for table: ${tableId}`);
+    }
+    
+    // Remove the original filter div
     $(`#${tableId}_filter`).remove();
 
     // remove btn-secondary from export and column visibility buttons
@@ -600,9 +598,6 @@ function setupTableEvents(tableId, config) {
 
     // on DataTable draw event run all functions in the queue
     $(`#${tableId}`).on('draw.dt', function() {
-        console.log('DataTable draw event triggered for ' + tableId);
-        console.log('Functions in queue:', config.functionsToRunOnDataTablesDrawEvent);
-        console.log(config, window.crud.defaultTableConfig);
         window.crud.defaultTableConfig.functionsToRunOnDataTablesDrawEvent.forEach(function(functionName) {
             config.executeFunctionByName(functionName);
         });
@@ -738,9 +733,6 @@ jQuery(document).ready(function($) {
             window.crud.initializeTable(tableId);
         }
     });
-
-    // Remove any duplicate inputs that might be left over
-    $("#datatable_search_stack input").not(':first').remove();
 });
 
 function formatActionColumnAsDropdown(tableId) {

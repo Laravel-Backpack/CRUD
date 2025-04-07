@@ -128,6 +128,12 @@
     width: auto;
 }
 
+.datatable_search_stack input {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
 .dataTables_wrapper .dataTables_info {
     clear: both;
     float: left;
@@ -235,12 +241,13 @@
     all: unset;
     position: absolute;
     background: rgba(255, 255, 255, 0.9);
-    height: 100%;
-    width: 100%;
+    height: calc(100% - 6px);
+    width: calc(100% - 20px);
     top: 0;
-    /*left: 10px;*/
+    left: 10px;
     z-index: 999;
     border-radius: 5px;
+    overflow: hidden;
 }
 
 .dataTables_processing.card > img {
@@ -251,8 +258,12 @@
     transform: translate(-50%, -50%);
 }
 
-#crudTable_wrapper table.dataTable .crud_bulk_actions_line_checkbox {
+.dataTables_wrapper table.dataTable .crud_bulk_actions_line_checkbox {
     vertical-align: text-top;
+}
+
+.dataTables_wrapper div.row .col-sm-12 {
+    position: relative;
 }
 
 .dataTables_processing.card > div {
