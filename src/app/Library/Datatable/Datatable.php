@@ -26,9 +26,9 @@ class Datatable extends Component
     public function render()
     {
         return view('crud::datatable.datatable', [
-            'crud'       => $this->crud,
+            'crud' => $this->crud,
             'updatesUrl' => $this->updatesUrl,
-            'tableId'    => $this->tableId,
+            'tableId' => $this->tableId,
         ]);
     }
 }
