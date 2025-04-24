@@ -113,7 +113,6 @@ window.crud = window.crud || {};
 // Initialize the tables object to store multiple table instances
 window.crud.tables = window.crud.tables || {};
 
-// Create a default table configuration that can be extended for specific tables
 window.crud.defaultTableConfig = {
     functionsToRunOnDataTablesDrawEvent: [],
     addFunctionToDataTablesDrawEventQueue: function (functionName) {
@@ -384,147 +383,120 @@ window.crud.tableConfigs['{{$tableId}}'].dataTableConfiguration = {
 @include('crud::inc.export_buttons')
 
 <script type="text/javascript">
-// Function to initialize a DataTable with the given ID and configuration
 window.crud.initializeTable = function(tableId, customConfig = {}) {   
-    // Get the table configuration or create a new one if it doesn't exist
+    console.log(`Starting initialization of table ${tableId}`);
+    
     if (!window.crud.tableConfigs[tableId]) {
-        // Create a new configuration by copying properties from the default config
         window.crud.tableConfigs[tableId] = {};
         
-        // Copy primitive properties and create new objects for nested properties
         for (let key in window.crud.defaultTableConfig) {
             if (typeof window.crud.defaultTableConfig[key] === 'function') {
-                // Preserve function references
                 window.crud.tableConfigs[tableId][key] = window.crud.defaultTableConfig[key];
             } else if (typeof window.crud.defaultTableConfig[key] === 'object' && window.crud.defaultTableConfig[key] !== null) {
-                // Create a new object for nested properties
                 window.crud.tableConfigs[tableId][key] = Array.isArray(window.crud.defaultTableConfig[key]) 
                     ? [...window.crud.defaultTableConfig[key]] 
                     : {...window.crud.defaultTableConfig[key]};
             } else {
-                // Copy primitive values
                 window.crud.tableConfigs[tableId][key] = window.crud.defaultTableConfig[key];
             }
         }
-        
-        // Copy essential properties from the main table configuration
-        window.crud.tableConfigs[tableId].urlStart = window.crud.tableConfigs['{{$tableId}}'].urlStart;
-        window.crud.tableConfigs[tableId].updatesUrl = window.crud.tableConfigs['{{$tableId}}'].updatesUrl;
-        window.crud.tableConfigs[tableId].persistentTable = window.crud.tableConfigs['{{$tableId}}'].persistentTable;
-        window.crud.tableConfigs[tableId].persistentTableSlug = window.crud.tableConfigs['{{$tableId}}'].persistentTableSlug;
-        
-        // Apply custom config
-        Object.assign(window.crud.tableConfigs[tableId], customConfig);
-    } else {
-        // Merge custom config with existing config
-        Object.assign(window.crud.tableConfigs[tableId], customConfig);
     }
 
+    const tableElement = document.getElementById(tableId);
+    if (tableElement) {
+        const dataUrlStart = tableElement.getAttribute('data-url-start');
+        if (dataUrlStart) {
+            console.log(`Table ${tableId} found data-url-start: ${dataUrlStart}`);
+            window.crud.tableConfigs[tableId].urlStart = dataUrlStart;
+        } else {
+            console.error(`Table ${tableId} is missing data-url-start attribute!`);
+        }
+    } else {
+        console.error(`Table element ${tableId} not found in DOM!`);
+    }
+    
+    // Apply any custom config
+    if (customConfig && Object.keys(customConfig).length > 0) {
+        console.log(`Applying custom config to table ${tableId}:`, customConfig);
+        Object.assign(window.crud.tableConfigs[tableId], customConfig);
+    }
+    
     const config = window.crud.tableConfigs[tableId];
     
-    // Create a deep copy of the DataTable configuration to ensure independence
-    const dataTableConfig = JSON.parse(JSON.stringify(window.crud.tableConfigs['{{$tableId}}'].dataTableConfiguration));
+    // Create a completely new DataTable configuration
+    let dataTableConfig = {
+        bInfo: true,
+        responsive: config.responsiveTable === true,
+        fixedHeader: config.responsiveTable === true,
+        scrollX: config.responsiveTable !== true,
+        autoWidth: false,
+        processing: true,
+        serverSide: true,
+        searching: true,
+        pageLength: {{ $crud->getDefaultPageLength() }},
+        lengthMenu: @json($crud->getPageLengthMenu()),
+        language: {
+            processing: "<img src='{{ Basset::getUrl('vendor/backpack/crud/src/resources/assets/img/spinner.svg') }}' alt='{{ trans('backpack::crud.processing') }}'>"
+        },
+        dom: "<'row hidden'<'col-sm-6'i><'col-sm-6 d-print-none'f>>" +
+             "<'table-content row'<'col-sm-12'tr>>" +
+             "<'table-footer row mt-2 d-print-none align-items-center '<'col-sm-12 col-md-4'l><'col-sm-0 col-md-4 text-center'B><'col-sm-12 col-md-4 'p>>"
+    };
     
-    // Restore the responsive display function which is lost during JSON serialization
-    if (dataTableConfig.responsive && window.crud.tableConfigs['{{$tableId}}'].dataTableConfiguration.responsive) {
-        dataTableConfig.responsive.details.display = $.fn.dataTable.Responsive.display.modal({
-            header: function(row) {
-                return '';
-            },
-            // Add custom class to modal for styling
-            class: 'dtr-bs-modal'
-        });
+    if (config.urlStart) {
+        const currentParams = new URLSearchParams(window.location.search);
+        const searchParams = currentParams.toString() ? '?' + currentParams.toString() : '';
         
-        // Ensure the renderer properly creates a table structure
-        dataTableConfig.responsive.details.renderer = function(api, rowIdx, columns) {
-            var data = $.map(columns, function(col, i) {
-                // Use the table instance from the API
-                var table = api.table().context[0].oInstance;
-                var tableId = table.attr('id');
-                var columnHeading = window.crud.tables[tableId].columns().header()[col.columnIndex];
-                // hide columns that have VisibleInModal false
-                if ($(columnHeading).attr('data-visible-in-modal') == 'false') {
-                    return '';
-                }
-
-                if (col.data.indexOf('crud_bulk_actions_checkbox') !== -1) {
-                    col.data = col.data.replace('crud_bulk_actions_checkbox', 'crud_bulk_actions_checkbox d-none');
-                }
-
-                let colTitle = '';
-                if (col.title) {
-                    let tempDiv = document.createElement('div');
-                    tempDiv.innerHTML = col.title;
-                    
-                    let checkboxSpan = tempDiv.querySelector('.crud_bulk_actions_checkbox');
-                    if (checkboxSpan) {
-                        checkboxSpan.remove();
-                    }
-                    
-                    colTitle = tempDiv.textContent.trim();
-                } else {
-                    colTitle = '';
-                }
-
-                return '<tr data-dt-row="'+col.rowIndex+'" data-dt-column="'+col.columnIndex+'">'+
-                        '<td style="vertical-align:top; border:none;"><strong>'+colTitle+':'+'</strong></td> '+
-                        '<td style="padding-left:10px;padding-bottom:10px; border:none;">'+col.data+'</td>'+
-                        '</tr>';
-            }).join('');
-
-            return data ?
-                $('<table class="table table-striped mb-0 dtr-details-table">').append('<tbody>' + data + '</tbody>') :
-                false;
-        };
-    }
-    
-    // Add buttons configuration if available
-    if (window.crud.exportButtonsConfiguration) {
-        dataTableConfig.buttons = window.crud.exportButtonsConfiguration;
-    }
-    
-    // Ensure the AJAX URL is correctly set for this specific table
-    if (dataTableConfig.ajax) {
-        // Create a completely new AJAX configuration for this table
-        const originalAjax = dataTableConfig.ajax;
+        const ajaxUrl = config.urlStart + '/search' + searchParams;
         dataTableConfig.ajax = {
-            "url": originalAjax.url,
-            "type": originalAjax.type,
-            "data": Object.assign({}, originalAjax.data)
+            "url": ajaxUrl,
+            "type": "POST",
+            "data": {
+                "totalEntryCount": "{{$crud->getOperationSetting('totalEntryCount') ?? false}}"
+            }
         };
+        
+        console.log(`Table ${tableId} initialized with URL: ${ajaxUrl}`);
+    } else {
+        console.error(`No urlStart found for table ${tableId}!`);
     }
     
-    // Ensure only the custom loader is used
-    dataTableConfig.processing = true;
-    dataTableConfig.language = dataTableConfig.language || {};
-    dataTableConfig.language.processing = "<img src='{{ Basset::getUrl('vendor/backpack/crud/src/resources/assets/img/spinner.svg') }}' alt='{{ trans('backpack::crud.processing') }}'>";
-    
-    // Initialize the table with the table-specific configuration
     window.crud.tables[tableId] = $(`#${tableId}`).DataTable(dataTableConfig);
     
-    // For backward compatibility, maintain the global crud.table reference if this is the first table
     if (!window.crud.table) {
         window.crud.table = window.crud.tables[tableId];
     }
     
-    config.updateUrl(location.href);
-
-    // Setup table-specific UI elements
-    setupTableUI(tableId, config);
+    if (config.updateUrl) {
+        config.updateUrl(location.href);
+    }
     
-    // Setup table-specific event handlers
+    setupTableUI(tableId, config);
     setupTableEvents(tableId, config);
     
     return window.crud.tables[tableId];
 };
 
-// Function to set up table UI elements
+// Document ready function to initialize all tables
+jQuery(document).ready(function($) {
+    // Initialize each table with its own data-url-start attribute
+    $('.crud-table').each(function() {
+        const tableId = $(this).attr('id');
+        if (!tableId) return;
+        
+        if ($.fn.DataTable.isDataTable(`#${tableId}`)) {
+            return;
+        }
+        window.crud.initializeTable(tableId, {});
+    });
+});
+
+
+
 function setupTableUI(tableId, config) {    
-    // Set up the search functionality for the existing input
     const searchInput = $(`#datatable_search_stack_${tableId} input.datatable-search-input`);
     
     if (searchInput.length > 0) {
-        // Set up the search functionality
         searchInput.on('keyup', function() {
             window.crud.tables[tableId].search(this.value).draw();
         });
@@ -532,23 +504,18 @@ function setupTableUI(tableId, config) {
         console.error(`Search input not found for table: ${tableId}`);
     }
     
-    // Remove the original filter div
     $(`#${tableId}_filter`).remove();
 
-    // remove btn-secondary from export and column visibility buttons
     $(`#${tableId}_wrapper .table-footer .btn-secondary`).removeClass('btn-secondary');
 
-    // remove forced overflow on load
     $(".navbar.navbar-filters + div").css('overflow','initial');
 
-    // move "showing x out of y" info to header
     if (config.subheading) {
         $(`#${tableId}_info`).hide();
     } else {
         $("#datatable_info_stack").html($(`#${tableId}_info`)).css('display','inline-flex').addClass('animated fadeIn');
     }
 
-    // Create reset button if needed
     if (config.resetButton !== false) {
         var crudTableResetButton = `<a href="${config.urlStart}" class="ml-1 ms-1" id="${tableId}_reset_button">{{ trans('backpack::crud.reset') }}</a>`;
         $('#datatable_info_stack').append(crudTableResetButton);
@@ -724,16 +691,6 @@ function updateDatatablesOnFilterChange(filterName, filterValue, shouldUpdateUrl
     return newUrl;
 }
 
-jQuery(document).ready(function($) {
-    // Always initialize all tables with the crud-table class
-    $('.crud-table').each(function() {
-        const tableId = $(this).attr('id');
-        // Check if the table is already initialized
-        if (tableId && !$.fn.DataTable.isDataTable(`#${tableId}`)) {
-            window.crud.initializeTable(tableId);
-        }
-    });
-});
 
 function formatActionColumnAsDropdown(tableId) {
     // Use the provided tableId or default to 'crudTable' for backward compatibility
@@ -767,7 +724,6 @@ function formatActionColumnAsDropdown(tableId) {
 
             actionCell.prepend('<a class="btn btn-sm px-2 py-1 btn-outline-primary dropdown-toggle actions-buttons-column" href="#" data-toggle="dropdown" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">{{ trans('backpack::crud.actions') }}</a>');
             
-            // Move the remaining buttons outside the dropdown
             const remainingButtons = actionButtons.slice(0, buttonsToShowBeforeDropdown);
             actionCell.prepend(remainingButtons);
         }

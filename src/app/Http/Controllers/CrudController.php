@@ -22,8 +22,6 @@ class CrudController extends Controller implements CrudControllerContract
 {
     use DispatchesJobs, ValidatesRequests;
 
-    //public $crud;
-
     public $data = [];
 
     public $initialized = false;
@@ -55,14 +53,14 @@ class CrudController extends Controller implements CrudControllerContract
         });
     }
 
-    public function initializeCrud($request, $crudPanel = null, $operation = null): CrudPanel
+    public function initializeCrud($request, $crudPanel = null, $operation = null): void
     {
         $crudPanel ??= Backpack::crud($this);
 
         if ($crudPanel->isInitialized()) {
             $crudPanel->setRequest($request);
 
-            return $crudPanel;
+            Backpack::setControllerCrud(get_class($this), $crudPanel);
         }
 
         $crudPanel->initialized = true;
@@ -70,7 +68,7 @@ class CrudController extends Controller implements CrudControllerContract
 
         $this->triggerControllerHooks();
 
-        return $crudPanel;
+        Backpack::setControllerCrud(get_class($this), $crudPanel);
     }
 
     private function triggerControllerHooks()

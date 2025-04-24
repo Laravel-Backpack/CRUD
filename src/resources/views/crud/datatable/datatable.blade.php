@@ -37,6 +37,7 @@
       data-has-line-buttons-as-dropdown="{{ (int) $crud->getOperationSetting('lineButtonsAsDropdown') }}"
       data-line-buttons-as-dropdown-minimum="{{ (int) $crud->getOperationSetting('lineButtonsAsDropdownMinimum') }}"
       data-line-buttons-as-dropdown-show-before-dropdown="{{ (int) $crud->getOperationSetting('lineButtonsAsDropdownShowBefore') }}"
+      data-url-start="{{ url($crud->getOperationSetting('datatablesUrl')) }}"
       cellspacing="0">
     <thead>
       <tr>

@@ -4,10 +4,13 @@ namespace Backpack\CRUD;
 
 use Backpack\CRUD\app\Http\Controllers\Contracts\CrudControllerContract;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanel;
+use Illuminate\Support\Facades\Facade;
 
 final class BackpackManager
 {
     private array $cruds = [];
+
+    private ?string $currentlyActiveCrudController = null;
 
     private CrudPanel $crudPanelInstance;
 
@@ -49,10 +52,16 @@ final class BackpackManager
         $crud->setOperation('list');
 
         $primaryControllerRequest = $this->cruds[array_key_first($this->cruds)]->getRequest();
-
-        $controller->initializeCrud($primaryControllerRequest, $crud, 'list');
+        if(! $crud->isInitialized()) {
+            $controller->initializeCrud($primaryControllerRequest, $crud, 'list');
+        }
 
         return $crud;
+    }
+
+    public function setControllerCrud(string $controller, CrudPanel $crud): void
+    {
+        $this->cruds[$controller] = $crud;
     }
 
     public function hasCrudController(string $controller): bool
@@ -63,10 +72,30 @@ final class BackpackManager
     public function getControllerCrud(string $controller): CrudPanel
     {
         if (! isset($this->cruds[$controller])) {
-            return $this->crudFromController($this->requestController ?? $controller);
+            return $this->crudFromController($this->getActiveController() ?? $this->requestController ?? $controller);
         }
-
         return $this->cruds[$controller];
+    }
+
+    public function getRequestController(): ?string
+    {
+        return $this->requestController;
+    }
+
+    public function setActiveController(string $controller): void
+    {
+        Facade::clearResolvedInstance('crud');
+        $this->currentlyActiveCrudController = $controller;
+    }
+
+    public function getActiveController(): ?string
+    {
+        return $this->currentlyActiveCrudController;
+    }
+
+    public function unsetActiveController(): void
+    {
+        $this->currentlyActiveCrudController = null;
     }
 
     public function getCruds(): array

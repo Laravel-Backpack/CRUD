@@ -84,12 +84,15 @@ class BackpackServiceProvider extends ServiceProvider
 
         $this->registerBackpackErrorViews();
 
-        // Bind the CrudPanel object to Laravel's service container
         $this->app->bind('crud', function ($app) {
+            if (Backpack::getActiveController()) {
+                return Backpack::crudFromController(Backpack::getActiveController());
+            }
+    
             // Prioritize explicit controller context
             $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS);
             $controller = null;
-
+    
             foreach ($trace as $step) {
                 if (isset($step['class']) &&
                     is_a($step['class'], app\Http\Controllers\Contracts\CrudControllerContract::class, true)) {
@@ -97,44 +100,21 @@ class BackpackServiceProvider extends ServiceProvider
                     break;
                 }
             }
-
+    
             if ($controller) {
                 $crudPanel = Backpack::getControllerCrud($controller);
-
+    
                 return $crudPanel;
             }
-            // Fallback to a more robust initialization
+    
             $cruds = Backpack::getCruds();
-
+    
             if (! empty($cruds)) {
                 $crudPanel = reset($cruds);
-
-                // Ensure upload events are registered
+    
                 return $crudPanel;
             }
-
-            return Backpack::getCrudPanelInstance();
-        });
-
-        // Bind a special CrudPanel object for the CrudPanelFacade
-        $this->app->bind('backpack.crud', function ($app) {
-            // Similar logic to 'crud' binding
-            $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS);
-            $controller = null;
-            foreach ($trace as $step) {
-                if (isset($step['class']) &&
-                    is_a($step['class'], app\Http\Controllers\Contracts\CrudControllerContract::class, true)) {
-                    $controller = $step['class'];
-                    break;
-                }
-            }
-
-            if ($controller) {
-                $crudPanel = Backpack::getControllerCrud($controller);
-
-                return $crudPanel;
-            }
-
+    
             return Backpack::getCrudPanelInstance();
         });
 

@@ -36,6 +36,6 @@ class CrudPanelFacade extends Facade
      */
     protected static function getFacadeAccessor()
     {
-        return 'backpack.crud';
+        return 'crud';
     }
 }
