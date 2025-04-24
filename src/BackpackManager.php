@@ -52,7 +52,7 @@ final class BackpackManager
         $crud->setOperation('list');
 
         $primaryControllerRequest = $this->cruds[array_key_first($this->cruds)]->getRequest();
-        if(! $crud->isInitialized()) {
+        if (! $crud->isInitialized()) {
             $controller->initializeCrud($primaryControllerRequest, $crud, 'list');
         }
 
@@ -74,6 +74,7 @@ final class BackpackManager
         if (! isset($this->cruds[$controller])) {
             return $this->crudFromController($this->getActiveController() ?? $this->requestController ?? $controller);
         }
+
         return $this->cruds[$controller];
     }
 

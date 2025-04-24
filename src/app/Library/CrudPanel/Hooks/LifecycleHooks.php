@@ -1,6 +1,7 @@
 <?php
 
 namespace Backpack\CRUD\app\Library\CrudPanel\Hooks;
+
 use Backpack\CRUD\Backpack;
 
 final class LifecycleHooks
@@ -34,6 +35,7 @@ final class LifecycleHooks
     public function has(string $hook): bool
     {
         $controller = Backpack::getActiveController() ?? Backpack::getRequestController();
+
         return isset($this->hooks[$controller][$hook]);
     }
 }

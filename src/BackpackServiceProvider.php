@@ -5,7 +5,6 @@ namespace Backpack\CRUD;
 use Backpack\Basset\Facades\Basset;
 use Backpack\CRUD\app\Http\Middleware\EnsureEmailVerification;
 use Backpack\CRUD\app\Http\Middleware\ThrottlePasswordRecovery;
-use Backpack\CRUD\app\Library\CrudPanel\CrudPanel;
 use Backpack\CRUD\app\Library\Database\DatabaseSchema;
 use Backpack\CRUD\app\Library\Datatable\Datatable;
 use Backpack\CRUD\app\Library\Uploaders\Support\UploadersRepository;
@@ -88,11 +87,11 @@ class BackpackServiceProvider extends ServiceProvider
             if (Backpack::getActiveController()) {
                 return Backpack::crudFromController(Backpack::getActiveController());
             }
-    
+
             // Prioritize explicit controller context
             $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS);
             $controller = null;
-    
+
             foreach ($trace as $step) {
                 if (isset($step['class']) &&
                     is_a($step['class'], app\Http\Controllers\Contracts\CrudControllerContract::class, true)) {
@@ -100,21 +99,21 @@ class BackpackServiceProvider extends ServiceProvider
                     break;
                 }
             }
-    
+
             if ($controller) {
                 $crudPanel = Backpack::getControllerCrud($controller);
-    
+
                 return $crudPanel;
             }
-    
+
             $cruds = Backpack::getCruds();
-    
+
             if (! empty($cruds)) {
                 $crudPanel = reset($cruds);
-    
+
                 return $crudPanel;
             }
-    
+
             return Backpack::getCrudPanelInstance();
         });
 

@@ -17,16 +17,16 @@ class Datatable extends Component
     ) {
         // Set active controller for proper context
         Backpack::setActiveController($controller);
-        
+
         $this->crud ??= Backpack::crudFromController($controller);
-        
+
         $this->tableId = $tableId ?? 'crudTable_'.uniqid();
-       
+
         if ($this->configure) {
             ($this->configure)($this->crud);
         }
-        
-        if (!$this->crud->getOperationSetting('datatablesUrl')) {
+
+        if (! $this->crud->getOperationSetting('datatablesUrl')) {
             $this->crud->setOperationSetting('datatablesUrl', $this->crud->getRoute());
         }
 
@@ -37,9 +37,9 @@ class Datatable extends Component
     public function render()
     {
         return view('crud::datatable.datatable', [
-            'crud'       => $this->crud,
+            'crud' => $this->crud,
             'updatesUrl' => $this->updatesUrl,
-            'tableId'    => $this->tableId,
+            'tableId' => $this->tableId,
         ]);
     }
 }
