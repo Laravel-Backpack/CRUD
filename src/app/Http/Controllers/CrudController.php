@@ -24,8 +24,6 @@ class CrudController extends Controller implements CrudControllerContract
 
     public $data = [];
 
-    public $initialized = false;
-
     public function __construct()
     {
         // ---------------------------
@@ -38,14 +36,12 @@ class CrudController extends Controller implements CrudControllerContract
         // the complete request inside the CrudPanel object.
         $this->middleware(function ($request, $next) {
             if (! CrudManager::hasCrudController(get_class($this))) {
-                $this->initializeCrud($request);
+                $this->initializeCrudController($request);
 
                 return $next($request);
             }
 
             $this->setupCrudController();
-
-            $this->initialized = true;
 
             CrudManager::crud($this)->setRequest($request);
 
@@ -53,28 +49,16 @@ class CrudController extends Controller implements CrudControllerContract
         });
     }
 
-    public function initializeCrud($request, $crudPanel = null, $operation = null): void
+    public function initializeCrudController($request, $crudPanel = null): void
     {
         $crudPanel ??= CrudManager::crud($this);
-        \Log::debug('Initializing CrudPanel', [
-            'controller' => get_class($this),
-            'operation' => $operation,
-        ]);
-        if ($crudPanel->isInitialized()) {
-            \Log::debug('CrudPanel is already initialized. Skipping initialization.', [
-                'controller' => get_class($this),
-                'operation' => $operation,
-            ]);
-            $crudPanel->setRequest($request);
-            $crudPanel->setCrudController(get_class($this));
-            CrudManager::setControllerCrud(get_class($this), $crudPanel);
-        }
+        
+        $crudPanel->initialize(get_class($this), $request);
 
-        $crudPanel->initialized = true;
-        $crudPanel->setRequest($request);
-        $crudPanel->setCrudController(get_class($this));
-
-        $this->setupCrudController();
+        if(! $crudPanel->isInitialized()) {
+            $crudPanel->initialized = true;
+            $this->setupCrudController();
+        }        
 
         CrudManager::setControllerCrud(get_class($this), $crudPanel);
     }

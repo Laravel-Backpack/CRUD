@@ -55,7 +55,7 @@ final class CrudPanelManager
 
         $primaryControllerRequest = $this->cruds[array_key_first($this->cruds)]->getRequest();
         if (! $crud->isInitialized()) {
-            $controller->initializeCrud($primaryControllerRequest, $crud, $operation);
+            $controller->initializeCrudController($primaryControllerRequest, $crud);
         }
 
         return $crud;
@@ -101,10 +101,10 @@ final class CrudPanelManager
         $this->currentlyActiveCrudController = null;
     }
 
-    public static function getCrudPanel(): CrudPanel
+    public function getCrudPanel(): CrudPanel
     {
-        if (self::getActiveController()) {
-            return self::crudFromController(self::getActiveController());
+        if ($this->getActiveController()) {
+            return $this->crudFromController($this->getActiveController());
         }
 
         // Prioritize explicit controller context
