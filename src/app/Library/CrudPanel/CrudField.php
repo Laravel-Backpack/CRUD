@@ -77,7 +77,7 @@ class CrudField
 
     public function crud()
     {
-        return app('backpack.crud');
+        return app('crud');
     }
 
     /**

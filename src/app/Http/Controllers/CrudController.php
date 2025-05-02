@@ -6,7 +6,7 @@ use Backpack\CRUD\app\Http\Controllers\Contracts\CrudControllerContract;
 use Backpack\CRUD\app\Library\Attributes\DeprecatedIgnoreOnRuntime;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanel;
 use Backpack\CRUD\app\Library\CrudPanel\Hooks\Facades\LifecycleHook;
-use Backpack\CRUD\Backpack;
+use Backpack\CRUD\CrudManager;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Routing\Controller;
@@ -37,17 +37,17 @@ class CrudController extends Controller implements CrudControllerContract
         // It's done inside a middleware closure in order to have
         // the complete request inside the CrudPanel object.
         $this->middleware(function ($request, $next) {
-            if (! Backpack::hasCrudController(get_class($this))) {
+            if (! CrudManager::hasCrudController(get_class($this))) {
                 $this->initializeCrud($request);
 
                 return $next($request);
             }
 
-            $this->triggerControllerHooks();
+            $this->setupCrudController();
 
             $this->initialized = true;
 
-            Backpack::crud($this)->setRequest($request);
+            CrudManager::crud($this)->setRequest($request);
 
             return $next($request);
         });
@@ -55,23 +55,31 @@ class CrudController extends Controller implements CrudControllerContract
 
     public function initializeCrud($request, $crudPanel = null, $operation = null): void
     {
-        $crudPanel ??= Backpack::crud($this);
-
+        $crudPanel ??= CrudManager::crud($this);
+        \Log::debug('Initializing CrudPanel', [
+            'controller' => get_class($this),
+            'operation' => $operation,
+        ]);
         if ($crudPanel->isInitialized()) {
+            \Log::debug('CrudPanel is already initialized. Skipping initialization.', [
+                'controller' => get_class($this),
+                'operation' => $operation,
+            ]);
             $crudPanel->setRequest($request);
-
-            Backpack::setControllerCrud(get_class($this), $crudPanel);
+            $crudPanel->setCrudController(get_class($this));
+            CrudManager::setControllerCrud(get_class($this), $crudPanel);
         }
 
         $crudPanel->initialized = true;
         $crudPanel->setRequest($request);
+        $crudPanel->setCrudController(get_class($this));
 
-        $this->triggerControllerHooks();
+        $this->setupCrudController();
 
-        Backpack::setControllerCrud(get_class($this), $crudPanel);
+        CrudManager::setControllerCrud(get_class($this), $crudPanel);
     }
 
-    private function triggerControllerHooks()
+    private function setupCrudController()
     {
         LifecycleHook::trigger('crud:before_setup_defaults', [$this]);
         $this->setupDefaults();
@@ -166,7 +174,7 @@ class CrudController extends Controller implements CrudControllerContract
     public function __get($name)
     {
         if ($name === 'crud') {
-            return Backpack::getControllerCrud(get_class($this));
+            return CrudManager::getControllerCrud(get_class($this));
         }
 
         return $this->{$name};

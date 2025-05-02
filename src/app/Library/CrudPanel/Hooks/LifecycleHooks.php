@@ -2,7 +2,7 @@
 
 namespace Backpack\CRUD\app\Library\CrudPanel\Hooks;
 
-use Backpack\CRUD\Backpack;
+use Backpack\CRUD\CrudManager;
 
 final class LifecycleHooks
 {
@@ -12,14 +12,14 @@ final class LifecycleHooks
     {
         $hooks = is_array($hooks) ? $hooks : [$hooks];
         foreach ($hooks as $hook) {
-            $this->hooks[Backpack::getActiveController() ?? Backpack::getRequestController()][$hook][] = $callback;
+            $this->hooks[CrudManager::getActiveController() ?? CrudManager::getRequestController()][$hook][] = $callback;
         }
     }
 
     public function trigger(string|array $hooks, array $parameters = []): void
     {
         $hooks = is_array($hooks) ? $hooks : [$hooks];
-        $controller = Backpack::getActiveController() ?? Backpack::getRequestController();
+        $controller = CrudManager::getActiveController() ?? CrudManager::getRequestController();
 
         foreach ($hooks as $hook) {
             if (isset($this->hooks[$controller][$hook])) {
@@ -34,7 +34,7 @@ final class LifecycleHooks
 
     public function has(string $hook): bool
     {
-        $controller = Backpack::getActiveController() ?? Backpack::getRequestController();
+        $controller = CrudManager::getActiveController() ?? CrudManager::getRequestController();
 
         return isset($this->hooks[$controller][$hook]);
     }

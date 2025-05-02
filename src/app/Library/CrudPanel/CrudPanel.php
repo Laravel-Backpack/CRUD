@@ -68,6 +68,8 @@ class CrudPanel
 
     public $initialized = false;
 
+    public $crudController;
+
     // The following methods are used in CrudController or your EntityCrudController to manipulate the variables above.
 
     public function __construct()
@@ -146,6 +148,11 @@ class CrudPanel
     private function getSchema()
     {
         return $this->getModel()->getConnection()->getSchemaBuilder();
+    }
+
+    public function setCrudController(string $crudController)
+    {
+        $this->crudController = $crudController;
     }
 
     /**

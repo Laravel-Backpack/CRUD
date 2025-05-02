@@ -76,6 +76,10 @@ trait ListOperation
     {
         $this->crud->hasAccessOrFail('list');
 
+        // Check if this is a request from a datatable embedded in a parent view
+        // If so, apply the cached configuration
+        \Backpack\CRUD\app\Library\Datatable\Datatable::applyCachedConfig($this->crud);
+
         $this->crud->applyUnappliedFilters();
 
         $start = (int) request()->input('start');

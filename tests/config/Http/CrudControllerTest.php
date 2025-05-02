@@ -2,7 +2,7 @@
 
 namespace Backpack\CRUD\Tests\Unit\Http;
 
-use Backpack\CRUD\Backpack;
+use Backpack\CRUD\CrudManager;
 use Backpack\CRUD\Tests\BaseTestClass;
 
 /**
@@ -23,7 +23,7 @@ class CrudControllerTest extends BaseTestClass
     {
         parent::defineEnvironment($app);
 
-        $this->crudPanel = Backpack::getCrudPanelInstance();
+        $this->crudPanel = CrudManager::getCrudPanelInstance();
         $this->crudPanel->setRequest();
     }
 

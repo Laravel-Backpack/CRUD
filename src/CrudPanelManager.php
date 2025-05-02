@@ -6,7 +6,7 @@ use Backpack\CRUD\app\Http\Controllers\Contracts\CrudControllerContract;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanel;
 use Illuminate\Support\Facades\Facade;
 
-final class BackpackManager
+final class CrudPanelManager
 {
     private array $cruds = [];
 
@@ -43,17 +43,19 @@ final class BackpackManager
         return $this->cruds[$controllerClass];
     }
 
-    public function crudFromController(string $controller): CrudPanel
+    public function crudFromController(string $controller, ?string $operation = null): CrudPanel
     {
         $controller = new $controller();
 
         $crud = $this->crud($controller);
 
-        $crud->setOperation('list');
+        // Use provided operation or default to 'list'
+        $operation = $operation ?? 'list';
+        $crud->setOperation($operation);
 
         $primaryControllerRequest = $this->cruds[array_key_first($this->cruds)]->getRequest();
         if (! $crud->isInitialized()) {
-            $controller->initializeCrud($primaryControllerRequest, $crud, 'list');
+            $controller->initializeCrud($primaryControllerRequest, $crud, $operation);
         }
 
         return $crud;
@@ -97,6 +99,41 @@ final class BackpackManager
     public function unsetActiveController(): void
     {
         $this->currentlyActiveCrudController = null;
+    }
+
+    public static function getCrudPanel(): CrudPanel
+    {
+        if (self::getActiveController()) {
+            return self::crudFromController(self::getActiveController());
+        }
+
+        // Prioritize explicit controller context
+        $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS);
+        $controller = null;
+
+        foreach ($trace as $step) {
+            if (isset($step['class']) &&
+                is_a($step['class'], CrudControllerContract::class, true)) {
+                $controller = (string) $step['class'];
+                break;
+            }
+        }
+
+        if ($controller) {
+            $crudPanel = self::getControllerCrud($controller);
+
+            return $crudPanel;
+        }
+
+        $cruds = self::getCruds();
+
+        if (! empty($cruds)) {
+            $crudPanel = reset($cruds);
+
+            return $crudPanel;
+        }
+
+        return self::getCrudPanelInstance();
     }
 
     public function getCruds(): array

@@ -5,12 +5,12 @@ namespace Backpack\CRUD;
 use Illuminate\Support\Facades\Facade;
 
 /**
- * @see BackpackManager
+ * @see CrudPanelManager
  */
-class Backpack extends Facade
+class CrudManager extends Facade
 {
     protected static function getFacadeAccessor()
     {
-        return 'backpack-manager';
+        return 'crud-manager';
     }
 }

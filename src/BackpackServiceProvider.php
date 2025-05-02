@@ -84,8 +84,8 @@ class BackpackServiceProvider extends ServiceProvider
         $this->registerBackpackErrorViews();
 
         $this->app->bind('crud', function ($app) {
-            if (Backpack::getActiveController()) {
-                return Backpack::crudFromController(Backpack::getActiveController());
+            if (CrudManager::getActiveController()) {
+                return CrudManager::crudFromController(CrudManager::getActiveController());
             }
 
             // Prioritize explicit controller context
@@ -101,12 +101,12 @@ class BackpackServiceProvider extends ServiceProvider
             }
 
             if ($controller) {
-                $crudPanel = Backpack::getControllerCrud($controller);
+                $crudPanel = CrudManager::getControllerCrud($controller);
 
                 return $crudPanel;
             }
 
-            $cruds = Backpack::getCruds();
+            $cruds = CrudManager::getCruds();
 
             if (! empty($cruds)) {
                 $crudPanel = reset($cruds);
@@ -114,11 +114,11 @@ class BackpackServiceProvider extends ServiceProvider
                 return $crudPanel;
             }
 
-            return Backpack::getCrudPanelInstance();
+            return CrudManager::getCrudPanelInstance();
         });
 
-        $this->app->scoped('backpack-manager', function ($app) {
-            return new BackpackManager();
+        $this->app->scoped('crud-manager', function ($app) {
+            return new CrudPanelManager();
         });
 
         $this->app->scoped('DatabaseSchema', function ($app) {
@@ -367,7 +367,7 @@ class BackpackServiceProvider extends ServiceProvider
      */
     public function provides()
     {
-        return ['widgets', 'BackpackViewNamespaces', 'DatabaseSchema', 'UploadersRepository'];
+        return ['widgets', 'BackpackViewNamespaces', 'DatabaseSchema', 'UploadersRepository', 'crud-manager'];
     }
 
     private function registerBackpackErrorViews()

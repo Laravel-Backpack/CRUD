@@ -367,13 +367,6 @@ window.crud.tableConfigs['{{$tableId}}'].dataTableConfiguration = {
         pagingType: "simple",
       @endif
       searching: @json($crud->getOperationSetting('searchableTable') ?? true),
-      ajax: {
-          "url": "{!! url($crud->getOperationSetting("datatablesUrl").'/search').'?'.Request::getQueryString() !!}",
-          "type": "POST",
-          "data": {
-            "totalEntryCount": "{{$crud->getOperationSetting('totalEntryCount') ?? false}}"
-        },
-      },
       dom:
         "<'row hidden'<'col-sm-6'i><'col-sm-6 d-print-none'f>>" +
         "<'table-content row'<'col-sm-12'tr>>" +
@@ -383,9 +376,7 @@ window.crud.tableConfigs['{{$tableId}}'].dataTableConfiguration = {
 @include('crud::inc.export_buttons')
 
 <script type="text/javascript">
-window.crud.initializeTable = function(tableId, customConfig = {}) {   
-    console.log(`Starting initialization of table ${tableId}`);
-    
+window.crud.initializeTable = function(tableId, customConfig = {}) {       
     if (!window.crud.tableConfigs[tableId]) {
         window.crud.tableConfigs[tableId] = {};
         
@@ -406,7 +397,6 @@ window.crud.initializeTable = function(tableId, customConfig = {}) {
     if (tableElement) {
         const dataUrlStart = tableElement.getAttribute('data-url-start');
         if (dataUrlStart) {
-            console.log(`Table ${tableId} found data-url-start: ${dataUrlStart}`);
             window.crud.tableConfigs[tableId].urlStart = dataUrlStart;
         } else {
             console.error(`Table ${tableId} is missing data-url-start attribute!`);
@@ -417,56 +407,140 @@ window.crud.initializeTable = function(tableId, customConfig = {}) {
     
     // Apply any custom config
     if (customConfig && Object.keys(customConfig).length > 0) {
-        console.log(`Applying custom config to table ${tableId}:`, customConfig);
         Object.assign(window.crud.tableConfigs[tableId], customConfig);
     }
     
     const config = window.crud.tableConfigs[tableId];
     
-    // Create a completely new DataTable configuration
-    let dataTableConfig = {
-        bInfo: true,
-        responsive: config.responsiveTable === true,
-        fixedHeader: config.responsiveTable === true,
-        scrollX: config.responsiveTable !== true,
-        autoWidth: false,
-        processing: true,
-        serverSide: true,
-        searching: true,
-        pageLength: {{ $crud->getDefaultPageLength() }},
-        lengthMenu: @json($crud->getPageLengthMenu()),
-        language: {
-            processing: "<img src='{{ Basset::getUrl('vendor/backpack/crud/src/resources/assets/img/spinner.svg') }}' alt='{{ trans('backpack::crud.processing') }}'>"
-        },
-        dom: "<'row hidden'<'col-sm-6'i><'col-sm-6 d-print-none'f>>" +
-             "<'table-content row'<'col-sm-12'tr>>" +
-             "<'table-footer row mt-2 d-print-none align-items-center '<'col-sm-12 col-md-4'l><'col-sm-0 col-md-4 text-center'B><'col-sm-12 col-md-4 'p>>"
-    };
+    // Use the pre-defined dataTableConfiguration as the base
+    let dataTableConfig = {};
     
-    if (config.urlStart) {
-        const currentParams = new URLSearchParams(window.location.search);
-        const searchParams = currentParams.toString() ? '?' + currentParams.toString() : '';
-        
-        const ajaxUrl = config.urlStart + '/search' + searchParams;
-        dataTableConfig.ajax = {
-            "url": ajaxUrl,
-            "type": "POST",
-            "data": {
-                "totalEntryCount": "{{$crud->getOperationSetting('totalEntryCount') ?? false}}"
-            }
+    // If there's already a dataTableConfiguration, use it as base
+    if (window.crud.tableConfigs[tableId].dataTableConfiguration) {
+        dataTableConfig = {...window.crud.tableConfigs[tableId].dataTableConfiguration};
+    } else {
+        // Otherwise use the default dataTableConfiguration from the earlier part of the file
+        dataTableConfig = {
+            bInfo: true,
+            responsive: config.responsiveTable === true,
+            fixedHeader: config.responsiveTable === true,
+            scrollX: config.responsiveTable !== true,
+            autoWidth: false,
+            processing: true,
+            serverSide: true,
+            searching: true,
+            pageLength: {{ $crud->getDefaultPageLength() }},
+            lengthMenu: @json($crud->getPageLengthMenu()),
+            aaSorting: [],
+            language: {
+                processing: "<img src='{{ Basset::getUrl('vendor/backpack/crud/src/resources/assets/img/spinner.svg') }}' alt='{{ trans('backpack::crud.processing') }}'>"
+            },
+            dom: "<'row hidden'<'col-sm-6'i><'col-sm-6 d-print-none'f>>" +
+                 "<'table-content row'<'col-sm-12'tr>>" +
+                 "<'table-footer row mt-2 d-print-none align-items-center '<'col-sm-12 col-md-4'l><'col-sm-0 col-md-4 text-center'B><'col-sm-12 col-md-4 'p>>"
         };
         
-        console.log(`Table ${tableId} initialized with URL: ${ajaxUrl}`);
-    } else {
-        console.error(`No urlStart found for table ${tableId}!`);
+        // Copy over important responsive settings if present
+        if (config.responsiveTable) {
+            dataTableConfig.responsive = {
+                details: {
+                    display: $.fn.dataTable.Responsive.display.modal({
+                        header: function() { return ''; }
+                    }),
+                    type: 'none',
+                    target: '.dtr-control',
+                    renderer: function(api, rowIdx, columns) {
+                        // Copy the renderer from the original configuration
+                        // This part can be enhanced if needed
+                        var data = $.map(columns, function(col, i) {
+                            // Use the table instance from the API
+                            var table = api.table().context[0].oInstance;
+                            var tableId = table.attr('id');
+                            var columnHeading = window.crud.tables[tableId].columns().header()[col.columnIndex];
+                            
+                            if ($(columnHeading).attr('data-visible-in-modal') == 'false') {
+                                return '';
+                            }
+
+                            if (col.data.indexOf('crud_bulk_actions_checkbox') !== -1) {
+                                col.data = col.data.replace('crud_bulk_actions_checkbox', 'crud_bulk_actions_checkbox d-none');
+                            }
+
+                            let colTitle = '';
+                            if (col.title) {
+                                let tempDiv = document.createElement('div');
+                                tempDiv.innerHTML = col.title;
+                                
+                                let checkboxSpan = tempDiv.querySelector('.crud_bulk_actions_checkbox');
+                                if (checkboxSpan) {
+                                    checkboxSpan.remove();
+                                }
+                                
+                                colTitle = tempDiv.textContent.trim();
+                            } else {
+                                colTitle = '';
+                            }
+
+                            return '<tr data-dt-row="'+col.rowIndex+'" data-dt-column="'+col.columnIndex+'">'+
+                                    '<td style="vertical-align:top; border:none;"><strong>'+colTitle+':'+'<strong></td> '+
+                                    '<td style="padding-left:10px;padding-bottom:10px; border:none;">'+col.data+'</td>'+
+                                    '</tr>';
+                        }).join('');
+
+                        return data ?
+                            $('<table class="table table-striped mb-0">').append('<tbody>' + data + '</tbody>') :
+                            false;
+                    }
+                }
+            };
+        }
     }
     
+// Update the Ajax URL with the current URL parameters
+if (config.urlStart) {
+    const currentParams = new URLSearchParams(window.location.search);
+    const searchParams = currentParams.toString() ? '?' + currentParams.toString() : '';
+    
+    // Get the complete datatablesUrl as a string without relying on PHP parsing
+    const fullDatatablesUrl = "{!! $crud->getOperationSetting('datatablesUrl') !!}";
+    
+    // Extract query parameters from the full URL
+    const urlParts = fullDatatablesUrl.split('?');
+    let datatableUrlParams = new URLSearchParams('');
+    
+    if (urlParts.length > 1) {
+        datatableUrlParams = new URLSearchParams(urlParts[1]);
+    }
+        
+    // Configure the ajax URL and data
+    const ajaxUrl = config.urlStart + '/search' + searchParams;
+    dataTableConfig.ajax = {
+        "url": ajaxUrl,
+        "type": "POST",
+        "data": function(d) {
+            // Add the totalEntryCount parameter
+            d.totalEntryCount = "{{$crud->getOperationSetting('totalEntryCount') ?? false}}";
+            
+            // get the table ID from the current table we are initializing
+            d.datatable_id = tableId;
+            
+            return d;
+        }
+    };
+}
+    
+    // Store the dataTableConfig in the config object for future reference
+    window.crud.tableConfigs[tableId].dataTableConfig = dataTableConfig;
+    
+    // Initialize the DataTable with the config
     window.crud.tables[tableId] = $(`#${tableId}`).DataTable(dataTableConfig);
     
+    // For backward compatibility
     if (!window.crud.table) {
         window.crud.table = window.crud.tables[tableId];
     }
     
+    // Update URL if needed
     if (config.updateUrl) {
         config.updateUrl(location.href);
     }
