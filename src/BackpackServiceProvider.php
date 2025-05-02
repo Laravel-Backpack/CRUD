@@ -84,37 +84,7 @@ class BackpackServiceProvider extends ServiceProvider
         $this->registerBackpackErrorViews();
 
         $this->app->bind('crud', function ($app) {
-            if (CrudManager::getActiveController()) {
-                return CrudManager::crudFromController(CrudManager::getActiveController());
-            }
-
-            // Prioritize explicit controller context
-            $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS);
-            $controller = null;
-
-            foreach ($trace as $step) {
-                if (isset($step['class']) &&
-                    is_a($step['class'], app\Http\Controllers\Contracts\CrudControllerContract::class, true)) {
-                    $controller = $step['class'];
-                    break;
-                }
-            }
-
-            if ($controller) {
-                $crudPanel = CrudManager::getControllerCrud($controller);
-
-                return $crudPanel;
-            }
-
-            $cruds = CrudManager::getCruds();
-
-            if (! empty($cruds)) {
-                $crudPanel = reset($cruds);
-
-                return $crudPanel;
-            }
-
-            return CrudManager::getCrudPanelInstance();
+            CrudManager::getCrudPanel();
         });
 
         $this->app->scoped('crud-manager', function ($app) {
