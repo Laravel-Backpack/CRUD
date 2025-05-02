@@ -52,13 +52,13 @@ class CrudController extends Controller implements CrudControllerContract
     public function initializeCrudController($request, $crudPanel = null): void
     {
         $crudPanel ??= CrudManager::crud($this);
-        
+
         $crudPanel->initialize(get_class($this), $request);
 
-        if(! $crudPanel->isInitialized()) {
+        if (! $crudPanel->isInitialized()) {
             $crudPanel->initialized = true;
             $this->setupCrudController();
-        }        
+        }
 
         CrudManager::setControllerCrud(get_class($this), $crudPanel);
     }

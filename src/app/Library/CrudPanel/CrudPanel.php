@@ -31,7 +31,6 @@ use Backpack\CRUD\app\Library\CrudPanel\Traits\Tabs;
 use Backpack\CRUD\app\Library\CrudPanel\Traits\Update;
 use Backpack\CRUD\app\Library\CrudPanel\Traits\Validation;
 use Backpack\CRUD\app\Library\CrudPanel\Traits\Views;
-use Backpack\CRUD\CrudManager;
 use Exception;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
@@ -85,8 +84,8 @@ class CrudPanel
     public function initialize(string $controller, $request): self
     {
         $this->setRequest($request);
-        $this->setCrudController($controller);    
-        
+        $this->setCrudController($controller);
+
         return $this;
     }
 
