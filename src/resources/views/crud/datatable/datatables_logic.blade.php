@@ -9,15 +9,17 @@ $tableId = $tableId ?? 'crudTable';
 @endphp
 
 {{-- DATA TABLES SCRIPT --}}
-@basset('https://cdn.datatables.net/1.13.1/js/jquery.dataTables.min.js')
-@basset('https://cdn.datatables.net/1.13.1/js/dataTables.bootstrap5.min.js')
-@basset('https://cdn.datatables.net/responsive/2.4.0/js/dataTables.responsive.min.js')
-@basset('https://cdn.datatables.net/responsive/2.4.0/css/responsive.dataTables.min.css')
-@basset('https://cdn.datatables.net/fixedheader/3.3.1/js/dataTables.fixedHeader.min.js')
-@basset('https://cdn.datatables.net/fixedheader/3.3.1/css/fixedHeader.dataTables.min.css')
-@basset(base_path('vendor/backpack/crud/src/resources/assets/css/responsive-modal.css'), false)
-
+@basset("https://cdn.datatables.net/2.1.8/js/dataTables.min.js")
+@basset("https://cdn.datatables.net/2.1.8/js/dataTables.bootstrap5.min.js")
+@basset("https://cdn.datatables.net/responsive/3.0.3/js/dataTables.responsive.min.js")
+@basset('https://cdn.datatables.net/fixedheader/4.0.1/js/dataTables.fixedHeader.min.js')
 @basset(base_path('vendor/backpack/crud/src/resources/assets/img/spinner.svg'), false)
+
+@push('before_styles')
+    @basset('https://cdn.datatables.net/2.1.8/css/dataTables.bootstrap5.min.css')
+    @basset("https://cdn.datatables.net/responsive/3.0.3/css/responsive.dataTables.min.css")
+    @basset('https://cdn.datatables.net/fixedheader/4.0.1/css/fixedHeader.dataTables.min.css')
+@endpush
 
 <script>
 // here we will check if the cached dataTables paginator length is conformable with current paginator settings.
@@ -232,7 +234,7 @@ window.crud.tableConfigs['{{$tableId}}'].dataTableConfiguration = {
     @if ($crud->getResponsiveTable())
     responsive: {
         details: {
-            display: $.fn.dataTable.Responsive.display.modal( {
+            display: DataTable.Responsive.display.modal( {
                 header: function ( row ) {
                     return '';
                 },
@@ -326,6 +328,7 @@ window.crud.tableConfigs['{{$tableId}}'].dataTableConfiguration = {
     autoWidth: false,
     pageLength: $dtDefaultPageLength,
     lengthMenu: $pageLength,
+    pagingType: "simple_numbers",
     /* Disable initial sort */
     aaSorting: [],
     language: {
@@ -337,7 +340,7 @@ window.crud.tableConfigs['{{$tableId}}'].dataTableConfiguration = {
           "thousands":      "{{ trans('backpack::crud.thousands') }}",
           "lengthMenu":     "{{ trans('backpack::crud.lengthMenu') }}",
           "loadingRecords": "{{ trans('backpack::crud.loadingRecords') }}",
-          "processing":     "<img src='{{ Basset::getUrl('vendor/backpack/crud/src/resources/assets/img/spinner.svg') }}' alt='{{ trans('backpack::crud.processing') }}'>",
+          "processing":     "<img src='{{ Basset::getUrl('vendor/backpack/crud/src/resources/assets/img/spinner.svg') }}' alt='{{ trans('backpack::crud.processing') }}' style='display:block !important;width:60px !important;height:60px !important;'>",
           "search": "_INPUT_",
           "searchPlaceholder": "{{ trans('backpack::crud.search') }}...",
           "zeroRecords":    "{{ trans('backpack::crud.zeroRecords') }}",
@@ -582,7 +585,7 @@ function setupTableUI(tableId, config) {
 
     $(`#${tableId}_wrapper .table-footer .btn-secondary`).removeClass('btn-secondary');
 
-    $(".navbar.navbar-filters + div").css('overflow','initial');
+    $(".navbar.navbar-filters + div").css('overflow','hidden');
 
     if (config.subheading) {
         $(`#${tableId}_info`).hide();
@@ -639,6 +642,17 @@ function setupTableEvents(tableId, config) {
 
     // on DataTable draw event run all functions in the queue
     $(`#${tableId}`).on('draw.dt', function() {
+        console.log('draw event fired for table: ' + tableId);
+        // in datatables 2.0.3 the implementation was changed to use `replaceChildren`, for that reason scripts 
+         // that came with the response are no longer executed, like the delete button script or any other ajax 
+         // button created by the developer. For that reason, we move them to the end of the body
+         // ensuring they are re-evaluated on each draw event.
+         document.getElementById(tableId).querySelectorAll('script').forEach(function(script) {
+            const newScript = document.createElement('script');
+            newScript.text = script.text;
+            document.body.appendChild(newScript);
+        });
+
         window.crud.defaultTableConfig.functionsToRunOnDataTablesDrawEvent.forEach(function(functionName) {
             config.executeFunctionByName(functionName);
         });

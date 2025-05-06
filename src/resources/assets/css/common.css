@@ -208,6 +208,22 @@
     /* W3C */
 }
 
+.dataTables_wrapper > div.table-footer > div:nth-child(1) > div.dt-length {
+    display: flex;
+}
+
+.dataTables_wrapper > div.table-footer > div:nth-child(1) > div.dt-length select {
+   width: 4rem;
+}
+
+.dataTables_wrapper > div.table-footer > div:nth-child(1) > div.dt-length > label{
+    white-space: nowrap;
+}
+
+div.dt-container div.dt-paging ul.pagination  {
+    justify-content: flex-end;
+}
+
 .dataTables_wrapper .dataTables_paginate .paginate_button:active {
     outline: none;
     background-color: #2b2b2b;
@@ -237,25 +253,58 @@
     padding-left: 0.6rem;
 }
 
-.dataTables_processing.card {
-    all: unset;
-    position: absolute;
-    background: rgba(255, 255, 255, 0.9);
-    height: calc(100% - 6px);
-    width: calc(100% - 20px);
-    top: 0;
-    left: 10px;
-    z-index: 999;
-    border-radius: 5px;
-    overflow: hidden;
+/* Improved spinner display for DataTables */
+.dataTables_processing,
+.dt-processing {
+    background: rgba(255, 255, 255, 0.8) !important;
+    color: transparent !important; /* Hide any text */
+    border: none !important;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1) !important;
+    border-radius: 5px !important;
+    /* Full table content coverage */
+    width: 100% !important;
+    height: 100% !important;
+    /* Position it to cover the entire table content */
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    /* Reset transform since we're using top/left 0 */
+    transform: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    z-index: 999 !important;
+    /* Center the spinner image using flex */
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
 }
 
-.dataTables_processing.card > img {
-    margin: 0;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+/* Make sure the spinner image displays properly */
+.dataTables_processing img,
+.dt-processing img {
+    display: block !important;
+    width: 60px !important;
+    height: 60px !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    margin: 0 auto !important;
+}
+
+/* Hide any text that might be in the processing element */
+.dataTables_processing > *:not(img),
+.dt-processing > *:not(img) {
+    display: none !important;
+}
+
+/* Ensure it's hidden when processing is done */
+.dataTables_processing:not([style*="block"]),
+.dt-processing:not([style*="block"]) {
+    display: none !important;
+}
+
+/* Ensure proper positioning context */
+.table-content {
+    position: relative !important;
 }
 
 .dataTables_wrapper table.dataTable .crud_bulk_actions_line_checkbox {
@@ -267,6 +316,10 @@
 }
 
 .dataTables_processing.card > div {
+    display: none !important;
+}
+
+.dt-processing.card > div {
     display: none !important;
 }
 
