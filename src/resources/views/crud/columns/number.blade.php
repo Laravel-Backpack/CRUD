@@ -14,7 +14,8 @@
     }
     
     if (!is_null($column['value'])) {
-        $column['value'] = number_format($column['value'], $column['decimals'], $column['dec_point'], $column['thousands_sep']);
+	$column['value'] = (float) $column['value'];
+	$column['value'] = number_format($column['value'], $column['decimals'], $column['dec_point'], $column['thousands_sep']);
         $column['text'] = $column['prefix'].$column['value'].$column['suffix'];
     }
 @endphp
