@@ -498,39 +498,44 @@ window.crud.initializeTable = function(tableId, customConfig = {}) {
             };
         }
     }
+
+    dataTableConfig.buttons = [];
+    if (window.crud.exportButtonsConfig) {
+        dataTableConfig.buttons = window.crud.exportButtonsConfig;
+    }
     
 // Update the Ajax URL with the current URL parameters
-if (config.urlStart) {
-    const currentParams = new URLSearchParams(window.location.search);
-    const searchParams = currentParams.toString() ? '?' + currentParams.toString() : '';
-    
-    // Get the complete datatablesUrl as a string without relying on PHP parsing
-    const fullDatatablesUrl = "{!! $crud->getOperationSetting('datatablesUrl') !!}";
-    
-    // Extract query parameters from the full URL
-    const urlParts = fullDatatablesUrl.split('?');
-    let datatableUrlParams = new URLSearchParams('');
-    
-    if (urlParts.length > 1) {
-        datatableUrlParams = new URLSearchParams(urlParts[1]);
-    }
+    if (config.urlStart) {
+        const currentParams = new URLSearchParams(window.location.search);
+        const searchParams = currentParams.toString() ? '?' + currentParams.toString() : '';
         
-    // Configure the ajax URL and data
-    const ajaxUrl = config.urlStart + '/search' + searchParams;
-    dataTableConfig.ajax = {
-        "url": ajaxUrl,
-        "type": "POST",
-        "data": function(d) {
-            // Add the totalEntryCount parameter
-            d.totalEntryCount = "{{$crud->getOperationSetting('totalEntryCount') ?? false}}";
-            
-            // get the table ID from the current table we are initializing
-            d.datatable_id = tableId;
-            
-            return d;
+        // Get the complete datatablesUrl as a string without relying on PHP parsing
+        const fullDatatablesUrl = "{!! $crud->getOperationSetting('datatablesUrl') !!}";
+        
+        // Extract query parameters from the full URL
+        const urlParts = fullDatatablesUrl.split('?');
+        let datatableUrlParams = new URLSearchParams('');
+        
+        if (urlParts.length > 1) {
+            datatableUrlParams = new URLSearchParams(urlParts[1]);
         }
-    };
-}
+            
+        // Configure the ajax URL and data
+        const ajaxUrl = config.urlStart + '/search' + searchParams;
+        dataTableConfig.ajax = {
+            "url": ajaxUrl,
+            "type": "POST",
+            "data": function(d) {
+                // Add the totalEntryCount parameter
+                d.totalEntryCount = "{{$crud->getOperationSetting('totalEntryCount') ?? false}}";
+                
+                // get the table ID from the current table we are initializing
+                d.datatable_id = tableId;
+                
+                return d;
+            }
+        };
+    }
     
     // Store the dataTableConfig in the config object for future reference
     window.crud.tableConfigs[tableId].dataTableConfig = dataTableConfig;
@@ -613,6 +618,16 @@ function setupTableUI(tableId, config) {
             }
         });
     }
+
+    if (config.exportButtons && window.crud.exportButtonsConfig) {
+    // Add the export buttons to the DataTable configuration
+    window.crud.tables[tableId].buttons().add(window.crud.exportButtonsConfig);
+    
+    // Initialize the buttons and place them in the correct container
+    if (typeof window.crud.moveExportButtonsToTopRight === 'function') {
+        window.crud.moveExportButtonsToTopRight(tableId);
+    }
+}
 
     // move the bottom buttons before pagination
     $("#bottom_buttons").insertBefore($(`#${tableId}_wrapper .row:last-child`));
