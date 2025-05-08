@@ -1,0 +1,39 @@
+/* DataTables Responsive Modal Styling */
+.dtr-bs-modal .modal-body {
+    padding: 20px;
+}
+
+.dtr-bs-modal .dtr-details-table {
+    width: 100%;
+    margin-bottom: 0;
+}
+
+.dtr-bs-modal .dtr-details-table td {
+    padding: 8px;
+    vertical-align: top;
+}
+
+.dtr-bs-modal .dtr-details-table tr {
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.dtr-bs-modal .dtr-details-table tr:last-child {
+    border-bottom: none;
+}
+
+.dtr-bs-modal .modal-header {
+    border-bottom: 1px solid #e9ecef;
+    padding: 15px 20px;
+}
+
+.dtr-bs-modal .modal-footer {
+    border-top: 1px solid #e9ecef;
+    padding: 15px 20px;
+}
+
+/* Fix for bullet list appearance */
+.dtr-bs-modal ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}

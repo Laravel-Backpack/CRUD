@@ -77,7 +77,7 @@ class CrudField
 
     public function crud()
     {
-        return app()->make('crud');
+        return app('crud');
     }
 
     /**

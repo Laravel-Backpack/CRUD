@@ -2,6 +2,8 @@
 
 namespace Backpack\CRUD\app\Library\CrudPanel;
 
+use Backpack\CRUD\app\Http\Controllers\CrudController;
+use Backpack\CRUD\Backpack;
 use Backpack\CRUD\ViewNamespaces;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Support\Traits\Conditionable;
@@ -434,7 +436,7 @@ class CrudButton implements Arrayable
     /**
      * Access the global CrudPanel object.
      *
-     * @return \Backpack\CRUD\app\Library\CrudPanel\CrudPanel
+     * @return CrudPanel
      */
     public function crud()
     {
