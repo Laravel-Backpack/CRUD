@@ -3,9 +3,6 @@
 // and flush them from session, so we will get them later from localStorage.
 $backpack_alerts = \Alert::getMessages();
 \Alert::flush();
-
-// Define the table ID - use the provided tableId or default to 'crudTable'
-$tableId = $tableId ?? 'crudTable';
 @endphp
 
 {{-- DATA TABLES SCRIPT --}}
@@ -22,29 +19,8 @@ $tableId = $tableId ?? 'crudTable';
 @endpush
 
 <script>
-// here we will check if the cached dataTables paginator length is conformable with current paginator settings.
-// datatables caches the ajax responses with pageLength in LocalStorage so when changing this
-// settings in controller users get unexpected results. To avoid that we will reset
-// the table cache when both lengths don't match.
-let $dtCachedInfo = JSON.parse(localStorage.getItem('DataTables_{{$tableId}}_/{{$crud->getOperationSetting("datatablesUrl")}}'))
-    ? JSON.parse(localStorage.getItem('DataTables_{{$tableId}}_/{{$crud->getOperationSetting("datatablesUrl")}}')) : [];
-var $dtDefaultPageLength = {{ $crud->getDefaultPageLength() }};
-let $pageLength = @json($crud->getPageLengthMenu());
-
-let $dtStoredPageLength = parseInt(localStorage.getItem('DataTables_{{$tableId}}_/{{$crud->getOperationSetting("datatablesUrl")}}_pageLength'));
-
-if(!$dtStoredPageLength && $dtCachedInfo.length !== 0 && $dtCachedInfo.length !== $dtDefaultPageLength) {
-    localStorage.removeItem('DataTables_{{$tableId}}_/{{$crud->getOperationSetting("datatablesUrl")}}');
-}
-
-if($dtCachedInfo.length !== 0 && $pageLength[0].indexOf($dtCachedInfo.length) === -1) {
-    localStorage.removeItem('DataTables_{{$tableId}}_/{{$crud->getRoute()}}');
-}
-
-
-// in this page we always pass the alerts to localStorage because we can be redirected with
-// persistent table, and this way we guarantee non-duplicate alerts.
-$oldAlerts = JSON.parse(localStorage.getItem('backpack_alerts'))
+// Store the alerts in localStorage for this page
+let $oldAlerts = JSON.parse(localStorage.getItem('backpack_alerts'))
     ? JSON.parse(localStorage.getItem('backpack_alerts')) : {};
 
 $newAlerts = @json($backpack_alerts);
@@ -61,53 +37,6 @@ Object.entries($newAlerts).forEach(function(type) {
 
 // always store the alerts in localStorage for this page
 localStorage.setItem('backpack_alerts', JSON.stringify($oldAlerts));
-
-@if ($crud->getPersistentTable())
-
-    var saved_list_url = localStorage.getItem('{{ Str::slug($crud->getOperationSetting("datatablesUrl")) }}_list_url');
-
-    //check if saved url has any parameter or is empty after clearing filters.
-    if (saved_list_url && saved_list_url.indexOf('?') < 1) {
-        var saved_list_url = false;
-    } else {
-        var persistentUrl = saved_list_url+'&persistent-table=true';
-    }
-
-var arr = window.location.href.split('?');
-// check if url has parameters.
-if (arr.length > 1 && arr[1] !== '') {
-    // IT HAS! Check if it is our own persistence redirect.
-    if (window.location.search.indexOf('persistent-table=true') < 1) {
-        // IF NOT: we don't want to redirect the user.
-        saved_list_url = false;
-    }
-}
-
-@if($crud->getPersistentTableDuration())
-    var saved_list_url_time = localStorage.getItem('{{ Str::slug($crud->getOperationSetting("datatablesUrl")) }}_list_url_time');
-
-    if (saved_list_url_time) {
-        var $current_date = new Date();
-        var $saved_time = new Date(parseInt(saved_list_url_time));
-        $saved_time.setMinutes($saved_time.getMinutes() + {{$crud->getPersistentTableDuration()}});
-
-        // if the save time is not expired we force the filter redirection.
-        if($saved_time > $current_date) {
-            if (saved_list_url && persistentUrl!=window.location.href) {
-                window.location.href = persistentUrl;
-            }
-        } else {
-            // persistent table expired, let's not redirect the user
-            saved_list_url = false;
-        }
-    }
-@endif
-
-    if (saved_list_url && persistentUrl!=window.location.href) {
-        // finally redirect the user.
-        window.location.href = persistentUrl;
-    }
-@endif
 
 // Initialize the global crud object if it doesn't exist
 window.crud = window.crud || {};
@@ -203,186 +132,19 @@ window.crud.defaultTableConfig = {
 // Create a table-specific configuration
 window.crud.tableConfigs = window.crud.tableConfigs || {};
 
-// Initialize the current table configuration
-window.crud.tableConfigs['{{$tableId}}'] = Object.assign({}, window.crud.defaultTableConfig, {
-    updatesUrl: {{ var_export($updatesUrl) }},
-    exportButtons: JSON.parse('{!! json_encode($crud->get('list.export_buttons')) !!}'),
-    functionsToRunOnDataTablesDrawEvent: [],
-    urlStart: "{{ url($crud->getOperationSetting("datatablesUrl")) }}",
-    persistentTable: {{ $crud->getPersistentTable() ? 'true' : 'false' }},
-    persistentTableSlug: '{{ Str::slug($crud->getOperationSetting("datatablesUrl")) }}',
-    persistentTableDuration: {{ $crud->getPersistentTableDuration() ?: 'null' }},
-    subheading: {{ $crud->getSubheading() ? 'true' : 'false' }},
-    resetButton: {{ ($crud->getOperationSetting('resetButton') ?? true) ? 'true' : 'false' }},
-    responsiveTable: {{ $crud->getResponsiveTable() ? 'true' : 'false' }}
-});
-
 // For backward compatibility, maintain the global crud object
-if (!window.crud.table) {
-    window.crud.updatesUrl = window.crud.tableConfigs['{{$tableId}}'].updatesUrl;
-    window.crud.exportButtons = window.crud.tableConfigs['{{$tableId}}'].exportButtons;
-    window.crud.functionsToRunOnDataTablesDrawEvent = window.crud.tableConfigs['{{$tableId}}'].functionsToRunOnDataTablesDrawEvent;
-    window.crud.addFunctionToDataTablesDrawEventQueue = window.crud.tableConfigs['{{$tableId}}'].addFunctionToDataTablesDrawEventQueue;
-    window.crud.responsiveToggle = window.crud.tableConfigs['{{$tableId}}'].responsiveToggle;
-    window.crud.executeFunctionByName = window.crud.tableConfigs['{{$tableId}}'].executeFunctionByName;
-    window.crud.updateUrl = window.crud.tableConfigs['{{$tableId}}'].updateUrl;
-}
+window.crud.addFunctionToDataTablesDrawEventQueue = function(functionName) {
+    window.crud.defaultTableConfig.addFunctionToDataTablesDrawEventQueue(functionName);
+};
+window.crud.responsiveToggle = window.crud.defaultTableConfig.responsiveToggle;
+window.crud.executeFunctionByName = window.crud.defaultTableConfig.executeFunctionByName;
+window.crud.updateUrl = window.crud.defaultTableConfig.updateUrl;
 
-// Create a table-specific datatable configuration
-window.crud.tableConfigs['{{$tableId}}'].dataTableConfiguration = {
-    bInfo: {{ var_export($crud->getOperationSetting('showEntryCount') ?? true) }},
-    @if ($crud->getResponsiveTable())
-    responsive: {
-        details: {
-            display: DataTable.Responsive.display.modal( {
-                header: function ( row ) {
-                    return '';
-                },
-            }),
-            type: 'none',
-            target: '.dtr-control',
-            renderer: function ( api, rowIdx, columns ) {
-                var data = $.map( columns, function ( col, i ) {
-                    // Use the table instance from the API
-                    var table = api.table().context[0].oInstance;
-                    var tableId = table.attr('id');
-                    var columnHeading = window.crud.tables[tableId].columns().header()[col.columnIndex];
-                    // hide columns that have VisibleInModal false
-                    if ($(columnHeading).attr('data-visible-in-modal') == 'false') {
-                        return '';
-                    }
-
-                    if (col.data.indexOf('crud_bulk_actions_checkbox') !== -1) {
-                        col.data = col.data.replace('crud_bulk_actions_checkbox', 'crud_bulk_actions_checkbox d-none');
-                    }
-
-                    let colTitle = '';
-                    if (col.title) {
-                        let tempDiv = document.createElement('div');
-                        tempDiv.innerHTML = col.title;
-                        
-                        let checkboxSpan = tempDiv.querySelector('.crud_bulk_actions_checkbox');
-                        if (checkboxSpan) {
-                            checkboxSpan.remove();
-                        }
-                        
-                        colTitle = tempDiv.textContent.trim();
-                    } else {
-                        colTitle = '';
-                    }
-
-                    return '<tr data-dt-row="'+col.rowIndex+'" data-dt-column="'+col.columnIndex+'">'+
-                            '<td style="vertical-align:top; border:none;"><strong>'+colTitle+':'+'<strong></td> '+
-                            '<td style="padding-left:10px;padding-bottom:10px; border:none;">'+col.data+'</td>'+
-                            '</tr>';
-                }).join('');
-
-                return data ?
-                    $('<table class="table table-striped mb-0">').append( '<tbody>' + data + '</tbody>' ) :
-                    false;
-            },
-        }
-    },
-    fixedHeader: true,
-    @else
-    responsive: false,
-    scrollX: true,
-    @endif
-
-    @if ($crud->getPersistentTable())
-    stateSave: true,
-    stateSaveParams: function(settings, data) {
-        localStorage.setItem('{{ Str::slug($crud->getOperationSetting("datatablesUrl")) }}_list_url_time', data.time);
-
-        // Get the table ID from the settings
-        var tableId = settings.sTableId;
-        var table = window.crud.tables[tableId];
-        
-        data.columns.forEach(function(item, index) {
-            var columnHeading = table.columns().header()[index];
-            if ($(columnHeading).attr('data-visible-in-table') == 'true') {
-                return item.visible = true;
-            }
-        });
-    },
-    @if($crud->getPersistentTableDuration())
-    stateLoadParams: function(settings, data) {
-        var $saved_time = new Date(data.time);
-        var $current_date = new Date();
-
-        $saved_time.setMinutes($saved_time.getMinutes() + {{$crud->getPersistentTableDuration()}});
-
-        //if the save time as expired we force datatabled to clear localStorage
-        if($saved_time < $current_date) {
-            if (localStorage.getItem('{{ Str::slug($crud->getOperationSetting("datatablesUrl"))}}_list_url')) {
-                localStorage.removeItem('{{ Str::slug($crud->getOperationSetting("datatablesUrl")) }}_list_url');
-            }
-            if (localStorage.getItem('{{ Str::slug($crud->getOperationSetting("datatablesUrl"))}}_list_url_time')) {
-                localStorage.removeItem('{{ Str::slug($crud->getOperationSetting("datatablesUrl")) }}_list_url_time');
-            }
-           return false;
-        }
-    },
-    @endif
-    @endif
-    autoWidth: false,
-    pageLength: $dtDefaultPageLength,
-    lengthMenu: $pageLength,
-    pagingType: "simple_numbers",
-    /* Disable initial sort */
-    aaSorting: [],
-    language: {
-          "emptyTable":     "{{ trans('backpack::crud.emptyTable') }}",
-          "info":           "{{ trans('backpack::crud.info') }}",
-          "infoEmpty":      "{{ trans('backpack::crud.infoEmpty') }}",
-          "infoFiltered":   "{{ trans('backpack::crud.infoFiltered') }}",
-          "infoPostFix":    "{{ trans('backpack::crud.infoPostFix') }}",
-          "thousands":      "{{ trans('backpack::crud.thousands') }}",
-          "lengthMenu":     "{{ trans('backpack::crud.lengthMenu') }}",
-          "loadingRecords": "{{ trans('backpack::crud.loadingRecords') }}",
-          "processing":     "<img src='{{ Basset::getUrl('vendor/backpack/crud/src/resources/assets/img/spinner.svg') }}' alt='{{ trans('backpack::crud.processing') }}' style='display:block !important;width:60px !important;height:60px !important;'>",
-          "search": "_INPUT_",
-          "searchPlaceholder": "{{ trans('backpack::crud.search') }}...",
-          "zeroRecords":    "{{ trans('backpack::crud.zeroRecords') }}",
-          "paginate": {
-              "first":      "{{ trans('backpack::crud.paginate.first') }}",
-              "last":       "{{ trans('backpack::crud.paginate.last') }}",
-              "next":       '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M8 5l5 5l-5 5"></path></svg>',
-              "previous":   '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-5 5l5 5"></path></svg>'
-          },
-          "aria": {
-              "sortAscending":  "{{ trans('backpack::crud.aria.sortAscending') }}",
-              "sortDescending": "{{ trans('backpack::crud.aria.sortDescending') }}"
-          },
-          "buttons": {
-              "copy":   "{{ trans('backpack::crud.export.copy') }}",
-              "excel":  "{{ trans('backpack::crud.export.excel') }}",
-              "csv":    "{{ trans('backpack::crud.export.csv') }}",
-              "pdf":    "{{ trans('backpack::crud.export.pdf') }}",
-              "print":  "{{ trans('backpack::crud.export.print') }}",
-              "colvis": "{{ trans('backpack::crud.export.column_visibility') }}"
-          },
-      },
-      processing: true,
-      serverSide: true,
-      searchDelay: {{ $crud->getOperationSetting('searchDelay') }},
-      @if($crud->getOperationSetting('showEntryCount') === false)
-        pagingType: "simple",
-      @endif
-      searching: @json($crud->getOperationSetting('searchableTable') ?? true),
-      dom:
-        "<'row hidden'<'col-sm-6'i><'col-sm-6 d-print-none'f>>" +
-        "<'table-content row'<'col-sm-12'tr>>" +
-        "<'table-footer row mt-2 d-print-none align-items-center '<'col-sm-12 col-md-4'l><'col-sm-0 col-md-4 text-center'B><'col-sm-12 col-md-4 'p>>",
-  };
-</script> 
-@include('crud::inc.export_buttons')
-
-<script type="text/javascript">
 window.crud.initializeTable = function(tableId, customConfig = {}) {       
     if (!window.crud.tableConfigs[tableId]) {
         window.crud.tableConfigs[tableId] = {};
         
+        // Clone default config properties into the table-specific config
         for (let key in window.crud.defaultTableConfig) {
             if (typeof window.crud.defaultTableConfig[key] === 'function') {
                 window.crud.tableConfigs[tableId][key] = window.crud.defaultTableConfig[key];
@@ -396,152 +158,284 @@ window.crud.initializeTable = function(tableId, customConfig = {}) {
         }
     }
 
+    // Get table element
     const tableElement = document.getElementById(tableId);
-    if (tableElement) {
-        const dataUrlStart = tableElement.getAttribute('data-url-start');
-        if (dataUrlStart) {
-            window.crud.tableConfigs[tableId].urlStart = dataUrlStart;
-        } else {
-            console.error(`Table ${tableId} is missing data-url-start attribute!`);
-        }
-    } else {
+    if (!tableElement) {
         console.error(`Table element ${tableId} not found in DOM!`);
+        return;
     }
+
+    // Extract all configuration from data attributes
+    const config = window.crud.tableConfigs[tableId];
+    
+    // Read all configuration from data attributes
+    config.urlStart = tableElement.getAttribute('data-url-start') || '';
+    config.responsiveTable = tableElement.getAttribute('data-responsive-table') === 'true';
+    config.persistentTable = tableElement.getAttribute('data-persistent-table') === 'true';
+    config.persistentTableSlug = tableElement.getAttribute('data-persistent-table-slug') || '';
+    config.persistentTableDuration = parseInt(tableElement.getAttribute('data-persistent-table-duration')) || null;
+    config.subheading = tableElement.getAttribute('data-subheading') === 'true';
+    config.resetButton = tableElement.getAttribute('data-reset-button') !== 'false';
+    config.updatesUrl = tableElement.getAttribute('data-updates-url') === 'true';
+    config.searchDelay = parseInt(tableElement.getAttribute('data-search-delay')) || 500;
+    config.defaultPageLength = parseInt(tableElement.getAttribute('data-default-page-length')) || 10;
+    
+    // Parse complex JSON structures from data attributes
+    try {
+        config.exportButtons = JSON.parse(tableElement.getAttribute('data-export-buttons') || '[]');
+        config.pageLengthMenu = JSON.parse(tableElement.getAttribute('data-page-length-menu') || '[[10, 25, 50, 100], [10, 25, 50, 100]]');
+    } catch (e) {
+        console.error(`Error parsing JSON data attributes for table ${tableId}:`, e);
+        config.exportButtons = [];
+        config.pageLengthMenu = [[10, 25, 50, 100], [10, 25, 50, 100]];
+    }
+    
+    // Boolean attributes
+    config.showEntryCount = tableElement.getAttribute('data-show-entry-count') !== 'false';
+    config.searchableTable = tableElement.getAttribute('data-searchable-table') !== 'false';
+    config.hasDetailsRow = tableElement.getAttribute('data-has-details-row') === 'true' || tableElement.getAttribute('data-has-details-row') === '1';
+    config.hasBulkActions = tableElement.getAttribute('data-has-bulk-actions') === 'true' || tableElement.getAttribute('data-has-bulk-actions') === '1';
+    config.hasLineButtonsAsDropdown = tableElement.getAttribute('data-has-line-buttons-as-dropdown') === 'true' || tableElement.getAttribute('data-has-line-buttons-as-dropdown') === '1';
+    config.lineButtonsAsDropdownMinimum = parseInt(tableElement.getAttribute('data-line-buttons-as-dropdown-minimum')) || 3;
+    config.lineButtonsAsDropdownShowBeforeDropdown = parseInt(tableElement.getAttribute('data-line-buttons-as-dropdown-show-before-dropdown')) || 1;
     
     // Apply any custom config
     if (customConfig && Object.keys(customConfig).length > 0) {
-        Object.assign(window.crud.tableConfigs[tableId], customConfig);
+        Object.assign(config, customConfig);
     }
     
-    const config = window.crud.tableConfigs[tableId];
+    // Check for persistent table redirect
+    if (config.persistentTable) {
+        const savedListUrl = localStorage.getItem(`${config.persistentTableSlug}_list_url`);
+        
+        // Check if saved url has any parameter or is empty after clearing filters
+        if (savedListUrl && savedListUrl.indexOf('?') >= 1) {
+            const persistentUrl = savedListUrl + '&persistent-table=true';
+            
+            const arr = window.location.href.split('?');
+            // Check if url has parameters
+            if (arr.length > 1 && arr[1] !== '') {
+                // Check if it is our own persistence redirect
+                if (window.location.search.indexOf('persistent-table=true') < 1) {
+                    // If not, we don't want to redirect the user
+                    if (persistentUrl != window.location.href) {
+                        // Check duration if specified
+                        if (config.persistentTableDuration) {
+                            const savedListUrlTime = localStorage.getItem(`${config.persistentTableSlug}_list_url_time`);
+                            
+                            if (savedListUrlTime) {
+                                const currentDate = new Date();
+                                const savedTime = new Date(parseInt(savedListUrlTime));
+                                savedTime.setMinutes(savedTime.getMinutes() + config.persistentTableDuration);
+                                
+                                // If the save time is not expired, redirect
+                                if (savedTime > currentDate) {
+                                    window.location.href = persistentUrl;
+                                }
+                            }
+                        } else {
+                            // No duration specified, just redirect
+                            window.location.href = persistentUrl;
+                        }
+                    }
+                }
+            } else {
+                // No parameters in current URL, redirect
+                window.location.href = persistentUrl;
+            }
+        }
+    }
     
-    // Use the pre-defined dataTableConfiguration as the base
-    let dataTableConfig = {};
+    // Check cached datatables info
+    const dtCachedInfoKey = `DataTables_${tableId}_/${config.urlStart}`;
+    const dtCachedInfo = JSON.parse(localStorage.getItem(dtCachedInfoKey)) || [];
+    const dtStoredPageLength = parseInt(localStorage.getItem(`${dtCachedInfoKey}_pageLength`));
     
-    // If there's already a dataTableConfiguration, use it as base
-    if (window.crud.tableConfigs[tableId].dataTableConfiguration) {
-        dataTableConfig = {...window.crud.tableConfigs[tableId].dataTableConfiguration};
-    } else {
-        // Otherwise use the default dataTableConfiguration from the earlier part of the file
-        dataTableConfig = {
-            bInfo: true,
-            responsive: config.responsiveTable === true,
-            fixedHeader: config.responsiveTable === true,
-            scrollX: config.responsiveTable !== true,
-            autoWidth: false,
-            processing: true,
-            serverSide: true,
-            searching: true,
-            pageLength: {{ $crud->getDefaultPageLength() }},
-            lengthMenu: @json($crud->getPageLengthMenu()),
-            aaSorting: [],
-            language: {
-                processing: "<img src='{{ Basset::getUrl('vendor/backpack/crud/src/resources/assets/img/spinner.svg') }}' alt='{{ trans('backpack::crud.processing') }}'>"
+    // Clear cache if page lengths don't match
+    if (!dtStoredPageLength && dtCachedInfo.length !== 0 && dtCachedInfo.length !== config.defaultPageLength) {
+        localStorage.removeItem(dtCachedInfoKey);
+    }
+    
+    if (dtCachedInfo.length !== 0 && config.pageLengthMenu[0].indexOf(dtCachedInfo.length) === -1) {
+        localStorage.removeItem(dtCachedInfoKey);
+    }
+    
+    // Create DataTable configuration
+    const dataTableConfig = {
+        bInfo: config.showEntryCount,
+        responsive: config.responsiveTable,
+        fixedHeader: config.responsiveTable,
+        scrollX: !config.responsiveTable,
+        autoWidth: false,
+        processing: true,
+        serverSide: true,
+        searchDelay: config.searchDelay,
+        searching: config.searchableTable,
+        pageLength: config.defaultPageLength,
+        lengthMenu: config.pageLengthMenu,
+        aaSorting: [],
+        language: {
+            emptyTable: "No entries found",
+            info: "Showing _START_ to _END_ of _TOTAL_ entries",
+            infoEmpty: "Showing 0 to 0 of 0 entries",
+            infoFiltered: "(filtered from _MAX_ total entries)",
+            infoPostFix: "",
+            thousands: ",",
+            lengthMenu: "_MENU_ entries per page",
+            loadingRecords: "Loading...",
+            "processing":     "<img src='{{ Basset::getUrl('vendor/backpack/crud/src/resources/assets/img/spinner.svg') }}' alt='{{ trans('backpack::crud.processing') }}'>",
+            search: "_INPUT_",
+            searchPlaceholder: "Search...",
+            zeroRecords: "No matching records found",
+            paginate: {
+                first: "«",
+                last: "»",
+                next: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M8 5l5 5l-5 5"></path></svg>',
+                previous: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-5 5l5 5"></path></svg>'
             },
-            dom: "<'row hidden'<'col-sm-6'i><'col-sm-6 d-print-none'f>>" +
-                 "<'table-content row'<'col-sm-12'tr>>" +
-                 "<'table-footer row mt-2 d-print-none align-items-center '<'col-sm-12 col-md-4'l><'col-sm-0 col-md-4 text-center'B><'col-sm-12 col-md-4 'p>>"
+            aria: {
+                sortAscending: ": activate to sort column ascending",
+                sortDescending: ": activate to sort column descending"
+            },
+            buttons: {
+                copy: "Copy",
+                excel: "Excel",
+                csv: "CSV",
+                pdf: "PDF",
+                print: "Print",
+                colvis: "Column visibility"
+            },
+        },
+        dom:
+            "<'row hidden'<'col-sm-6'i><'col-sm-6 d-print-none'f>>" +
+            "<'table-content row'<'col-sm-12'tr>>" +
+            "<'table-footer row mt-2 d-print-none align-items-center '<'col-sm-12 col-md-4'l><'col-sm-0 col-md-4 text-center'B><'col-sm-12 col-md-4 'p>>",
+        buttons: []
+    };
+    
+    // Add responsive details if needed
+    if (config.responsiveTable) {
+        dataTableConfig.responsive = {
+            details: {
+                display: DataTable.Responsive.display.modal({
+                    header: function() { return ''; }
+                }),
+                type: 'none',
+                target: '.dtr-control',
+                renderer: function(api, rowIdx, columns) {
+                    var data = $.map(columns, function(col, i) {
+                        // Use the table instance from the API
+                        var table = api.table().context[0].oInstance;
+                        var tableId = table.attr('id');
+                        var columnHeading = window.crud.tables[tableId].columns().header()[col.columnIndex];
+                        
+                        if ($(columnHeading).attr('data-visible-in-modal') == 'false') {
+                            return '';
+                        }
+
+                        if (col.data.indexOf('crud_bulk_actions_checkbox') !== -1) {
+                            col.data = col.data.replace('crud_bulk_actions_checkbox', 'crud_bulk_actions_checkbox d-none');
+                        }
+
+                        let colTitle = '';
+                        if (col.title) {
+                            let tempDiv = document.createElement('div');
+                            tempDiv.innerHTML = col.title;
+                            
+                            let checkboxSpan = tempDiv.querySelector('.crud_bulk_actions_checkbox');
+                            if (checkboxSpan) {
+                                checkboxSpan.remove();
+                            }
+                            
+                            colTitle = tempDiv.textContent.trim();
+                        } else {
+                            colTitle = '';
+                        }
+
+                        return '<tr data-dt-row="'+col.rowIndex+'" data-dt-column="'+col.columnIndex+'">'+
+                                '<td style="vertical-align:top; border:none;"><strong>'+colTitle+':'+'<strong></td> '+
+                                '<td style="padding-left:10px;padding-bottom:10px; border:none;">'+col.data+'</td>'+
+                                '</tr>';
+                    }).join('');
+
+                    return data ?
+                        $('<table class="table table-striped mb-0">').append('<tbody>' + data + '</tbody>') :
+                        false;
+                }
+            }
+        };
+    }
+    
+    // Add persistent table settings if needed
+    if (config.persistentTable) {
+        dataTableConfig.stateSave = true;
+        dataTableConfig.stateSaveParams = function(settings, data) {
+            localStorage.setItem(`${config.persistentTableSlug}_list_url_time`, data.time);
+
+            // Get the table ID from the settings
+            var tableId = settings.sTableId;
+            var table = window.crud.tables[tableId];
+            
+            data.columns.forEach(function(item, index) {
+                var columnHeading = table.columns().header()[index];
+                if ($(columnHeading).attr('data-visible-in-table') == 'true') {
+                    return item.visible = true;
+                }
+            });
         };
         
-        // Copy over important responsive settings if present
-        if (config.responsiveTable) {
-            dataTableConfig.responsive = {
-                details: {
-                    display: $.fn.dataTable.Responsive.display.modal({
-                        header: function() { return ''; }
-                    }),
-                    type: 'none',
-                    target: '.dtr-control',
-                    renderer: function(api, rowIdx, columns) {
-                        // Copy the renderer from the original configuration
-                        // This part can be enhanced if needed
-                        var data = $.map(columns, function(col, i) {
-                            // Use the table instance from the API
-                            var table = api.table().context[0].oInstance;
-                            var tableId = table.attr('id');
-                            var columnHeading = window.crud.tables[tableId].columns().header()[col.columnIndex];
-                            
-                            if ($(columnHeading).attr('data-visible-in-modal') == 'false') {
-                                return '';
-                            }
+        if (config.persistentTableDuration) {
+            dataTableConfig.stateLoadParams = function(settings, data) {
+                var savedTime = new Date(data.time);
+                var currentDate = new Date();
 
-                            if (col.data.indexOf('crud_bulk_actions_checkbox') !== -1) {
-                                col.data = col.data.replace('crud_bulk_actions_checkbox', 'crud_bulk_actions_checkbox d-none');
-                            }
+                savedTime.setMinutes(savedTime.getMinutes() + config.persistentTableDuration);
 
-                            let colTitle = '';
-                            if (col.title) {
-                                let tempDiv = document.createElement('div');
-                                tempDiv.innerHTML = col.title;
-                                
-                                let checkboxSpan = tempDiv.querySelector('.crud_bulk_actions_checkbox');
-                                if (checkboxSpan) {
-                                    checkboxSpan.remove();
-                                }
-                                
-                                colTitle = tempDiv.textContent.trim();
-                            } else {
-                                colTitle = '';
-                            }
-
-                            return '<tr data-dt-row="'+col.rowIndex+'" data-dt-column="'+col.columnIndex+'">'+
-                                    '<td style="vertical-align:top; border:none;"><strong>'+colTitle+':'+'<strong></td> '+
-                                    '<td style="padding-left:10px;padding-bottom:10px; border:none;">'+col.data+'</td>'+
-                                    '</tr>';
-                        }).join('');
-
-                        return data ?
-                            $('<table class="table table-striped mb-0">').append('<tbody>' + data + '</tbody>') :
-                            false;
+                // If the save time has expired, force datatables to clear localStorage
+                if (savedTime < currentDate) {
+                    if (localStorage.getItem(`${config.persistentTableSlug}_list_url`)) {
+                        localStorage.removeItem(`${config.persistentTableSlug}_list_url`);
                     }
+                    if (localStorage.getItem(`${config.persistentTableSlug}_list_url_time`)) {
+                        localStorage.removeItem(`${config.persistentTableSlug}_list_url_time`);
+                    }
+                    return false;
                 }
             };
         }
     }
-
-    dataTableConfig.buttons = [];
-    if (window.crud.exportButtonsConfig) {
-        dataTableConfig.buttons = window.crud.exportButtonsConfig;
+    
+    // Configure export buttons if present
+    if (config.exportButtons && config.exportButtons.length > 0) {
+        if (window.crud.exportButtonsConfig) {
+            dataTableConfig.buttons = window.crud.exportButtonsConfig;
+        }
     }
     
-// Update the Ajax URL with the current URL parameters
+    // Configure ajax for server-side processing
     if (config.urlStart) {
         const currentParams = new URLSearchParams(window.location.search);
         const searchParams = currentParams.toString() ? '?' + currentParams.toString() : '';
         
-        // Get the complete datatablesUrl as a string without relying on PHP parsing
-        const fullDatatablesUrl = "{!! $crud->getOperationSetting('datatablesUrl') !!}";
-        
-        // Extract query parameters from the full URL
-        const urlParts = fullDatatablesUrl.split('?');
-        let datatableUrlParams = new URLSearchParams('');
-        
-        if (urlParts.length > 1) {
-            datatableUrlParams = new URLSearchParams(urlParts[1]);
-        }
-            
         // Configure the ajax URL and data
         const ajaxUrl = config.urlStart + '/search' + searchParams;
         dataTableConfig.ajax = {
             "url": ajaxUrl,
             "type": "POST",
             "data": function(d) {
-                // Add the totalEntryCount parameter
-                d.totalEntryCount = "{{$crud->getOperationSetting('totalEntryCount') ?? false}}";
-                
-                // get the table ID from the current table we are initializing
+                // Add table-specific parameters
+                d.totalEntryCount = tableElement.getAttribute('data-total-entry-count') || false;
                 d.datatable_id = tableId;
-                
                 return d;
             }
         };
     }
     
     // Store the dataTableConfig in the config object for future reference
-    window.crud.tableConfigs[tableId].dataTableConfig = dataTableConfig;
+    config.dataTableConfig = dataTableConfig;
     
     // Initialize the DataTable with the config
-    window.crud.tables[tableId] = $(`#${tableId}`).DataTable(dataTableConfig);
+    window.crud.tables[tableId] = $('#'+tableId).DataTable(dataTableConfig);
     
     // For backward compatibility
     if (!window.crud.table) {
@@ -549,7 +443,7 @@ window.crud.initializeTable = function(tableId, customConfig = {}) {
     }
     
     // Update URL if needed
-    if (config.updateUrl) {
+    if (config.updatesUrl) {
         config.updateUrl(location.href);
     }
     
@@ -566,14 +460,12 @@ jQuery(document).ready(function($) {
         const tableId = $(this).attr('id');
         if (!tableId) return;
         
-        if ($.fn.DataTable.isDataTable(`#${tableId}`)) {
+        if ($.fn.DataTable.isDataTable('#' + tableId)) {
             return;
         }
         window.crud.initializeTable(tableId, {});
     });
 });
-
-
 
 function setupTableUI(tableId, config) {    
     const searchInput = $(`#datatable_search_stack_${tableId} input.datatable-search-input`);
@@ -582,8 +474,6 @@ function setupTableUI(tableId, config) {
         searchInput.on('keyup', function() {
             window.crud.tables[tableId].search(this.value).draw();
         });
-    } else {
-        console.error(`Search input not found for table: ${tableId}`);
     }
     
     $(`#${tableId}_filter`).remove();
@@ -599,7 +489,7 @@ function setupTableUI(tableId, config) {
     }
 
     if (config.resetButton !== false) {
-        var crudTableResetButton = `<a href="${config.urlStart}" class="ml-1 ms-1" id="${tableId}_reset_button">{{ trans('backpack::crud.reset') }}</a>`;
+        var crudTableResetButton = `<a href="${config.urlStart}" class="ml-1 ms-1" id="${tableId}_reset_button">Reset</a>`;
         $('#datatable_info_stack').append(crudTableResetButton);
 
         // when clicking in reset button we clear the localStorage for datatables
@@ -619,15 +509,15 @@ function setupTableUI(tableId, config) {
         });
     }
 
-    if (config.exportButtons && window.crud.exportButtonsConfig) {
-    // Add the export buttons to the DataTable configuration
-    window.crud.tables[tableId].buttons().add(window.crud.exportButtonsConfig);
-    
-    // Initialize the buttons and place them in the correct container
-    if (typeof window.crud.moveExportButtonsToTopRight === 'function') {
-        window.crud.moveExportButtonsToTopRight(tableId);
+    if (config.exportButtons && config.exportButtons.length > 0 && window.crud.exportButtonsConfig) {
+        // Add the export buttons to the DataTable configuration
+        window.crud.tables[tableId].buttons().add(window.crud.exportButtonsConfig);
+        
+        // Initialize the buttons and place them in the correct container
+        if (typeof window.crud.moveExportButtonsToTopRight === 'function') {
+            window.crud.moveExportButtonsToTopRight(tableId);
+        }
     }
-}
 
     // move the bottom buttons before pagination
     $("#bottom_buttons").insertBefore($(`#${tableId}_wrapper .row:last-child`));
@@ -642,7 +532,7 @@ function setupTableEvents(tableId, config) {
     $(`#${tableId}`).on('error.dt', function(e, settings, techNote, message) {
         new Noty({
             type: "error",
-            text: "<strong>{{ trans('backpack::crud.ajax_error_title') }}</strong><br>{{ trans('backpack::crud.ajax_error_text') }}"
+            text: "<strong>Ajax Error</strong><br>Something went wrong with the AJAX request."
         }).show();
     });
 
@@ -657,7 +547,6 @@ function setupTableEvents(tableId, config) {
 
     // on DataTable draw event run all functions in the queue
     $(`#${tableId}`).on('draw.dt', function() {
-        console.log('draw event fired for table: ' + tableId);
         // in datatables 2.0.3 the implementation was changed to use `replaceChildren`, for that reason scripts 
          // that came with the response are no longer executed, like the delete button script or any other ajax 
          // button created by the developer. For that reason, we move them to the end of the body
@@ -668,19 +557,27 @@ function setupTableEvents(tableId, config) {
             document.body.appendChild(newScript);
         });
 
+        // Run global functions
         window.crud.defaultTableConfig.functionsToRunOnDataTablesDrawEvent.forEach(function(functionName) {
             config.executeFunctionByName(functionName);
         });
+
+        // Run table-specific functions
+        if (config.functionsToRunOnDataTablesDrawEvent && config.functionsToRunOnDataTablesDrawEvent.length) {
+            config.functionsToRunOnDataTablesDrawEvent.forEach(function(functionName) {
+                config.executeFunctionByName(functionName);
+            });
+        }
         
         if ($(`#${tableId}`).data('has-line-buttons-as-dropdown')) {
             formatActionColumnAsDropdown(tableId);
         }
 
-        if (!table.responsive.hasHidden()) {
+        if (table.responsive && !table.responsive.hasHidden()) {
             table.columns().header()[0].style.paddingLeft = '0.6rem';
         }
 
-        if (table.responsive.hasHidden()) {           
+        if (table.responsive && table.responsive.hasHidden()) {           
             $('.dtr-control').removeClass('d-none');
             $('.dtr-control').addClass('d-inline');
             $(`#${tableId}`).removeClass('has-hidden-columns').addClass('has-hidden-columns');
@@ -689,11 +586,13 @@ function setupTableEvents(tableId, config) {
 
     // when datatables-colvis (column visibility) is toggled
     $(`#${tableId}`).on('column-visibility.dt', function(event) {
-        table.responsive.rebuild();
+        if (table.responsive) {
+            table.responsive.rebuild();
+        }
     }).dataTable();
 
     // Handle responsive table if enabled
-    if (config.responsiveTable) {
+    if (config.responsiveTable && table.responsive) {
         // when columns are hidden by responsive plugin
         table.on('responsive-resize', function(e, datatable, columns) {
             if (table.responsive.hasHidden()) {
@@ -715,13 +614,15 @@ function setupTableEvents(tableId, config) {
                 $(`#${tableId}`).removeClass('has-hidden-columns');
             }
         });
-    } else {
+    } else if (!config.responsiveTable) {
         // make sure the column headings have the same width as the actual columns
         var resizeTimer;
         function resizeCrudTableColumnWidths() {
             clearTimeout(resizeTimer);
             resizeTimer = setTimeout(function() {
-                table.columns.adjust();
+                if (table.columns) {
+                    table.columns.adjust();
+                }
             }, 250);
         }
         $(window).on('resize', function(e) {
@@ -736,7 +637,9 @@ function setupTableEvents(tableId, config) {
 // Support for multiple tables with filters
 document.addEventListener('backpack:filters:cleared', function (event) {       
     // Get the table ID from the event detail or default to the current table ID
-    const tableId = event.detail && event.detail.tableId ? event.detail.tableId : '{{$tableId}}';
+    const tableId = event.detail && event.detail.tableId ? event.detail.tableId : 'crudTable';
+    if (!window.crud.tableConfigs[tableId]) return;
+    
     const config = window.crud.tableConfigs[tableId];
     
     // behaviour for ajax table
@@ -755,14 +658,14 @@ document.addEventListener('backpack:filter:changed', function (event) {
     let filterValue = event.detail.filterValue;
     let shouldUpdateUrl = event.detail.shouldUpdateUrl;
     let debounce = event.detail.debounce;
-    let tableId = event.detail.tableId || '{{$tableId}}';
+    let tableId = event.detail.tableId || 'crudTable';
     
     updateDatatablesOnFilterChange(filterName, filterValue, filterValue || shouldUpdateUrl, debounce, tableId);
 });
 
 // Update the updateDatatablesOnFilterChange function to support multiple tables
 function updateDatatablesOnFilterChange(filterName, filterValue, shouldUpdateUrl, debounce, tableId) {
-    tableId = tableId || '{{$tableId}}';
+    tableId = tableId || 'crudTable';
     
     // Get the table instance and config
     const table = window.crud.tables[tableId];
@@ -794,17 +697,19 @@ function updateDatatablesOnFilterChange(filterName, filterValue, shouldUpdateUrl
     return newUrl;
 }
 
-
 function formatActionColumnAsDropdown(tableId) {
     // Use the provided tableId or default to 'crudTable' for backward compatibility
     tableId = tableId || 'crudTable';
+    const table = document.getElementById(tableId);
+    if (!table) return;
+    
+    // Get configuration
+    const minimumButtonsToBuildDropdown = parseInt(table.getAttribute('data-line-buttons-as-dropdown-minimum')) || 3;
+    const buttonsToShowBeforeDropdown = parseInt(table.getAttribute('data-line-buttons-as-dropdown-show-before-dropdown')) || 1;
     
     // Get action column
     const actionColumnIndex = $('#' + tableId).find('th[data-action-column=true]').index();
     if (actionColumnIndex === -1) return;
-
-    const minimumButtonsToBuildDropdown = $('#' + tableId).data('line-buttons-as-dropdown-minimum');
-    const buttonsToShowBeforeDropdown = $('#' + tableId).data('line-buttons-as-dropdown-show-before-dropdown');
 
     $('#' + tableId + ' tbody tr').each(function (i, tr) {
         const actionCell = $(tr).find('td').eq(actionColumnIndex);
@@ -825,7 +730,7 @@ function formatActionColumnAsDropdown(tableId) {
             actionCell.wrapInner('<div class="nav-item dropdown"></div>');
             actionCell.wrapInner('<div class="dropdown-menu dropdown-menu-left"></div>');
 
-            actionCell.prepend('<a class="btn btn-sm px-2 py-1 btn-outline-primary dropdown-toggle actions-buttons-column" href="#" data-toggle="dropdown" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">{{ trans('backpack::crud.actions') }}</a>');
+            actionCell.prepend('<a class="btn btn-sm px-2 py-1 btn-outline-primary dropdown-toggle actions-buttons-column" href="#" data-toggle="dropdown" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">Actions</a>');
             
             const remainingButtons = actionButtons.slice(0, buttonsToShowBeforeDropdown);
             actionCell.prepend(remainingButtons);
@@ -834,4 +739,5 @@ function formatActionColumnAsDropdown(tableId) {
 }
 </script>
 
+@include('crud::inc.export_buttons')
 @include('crud::inc.details_row_logic')

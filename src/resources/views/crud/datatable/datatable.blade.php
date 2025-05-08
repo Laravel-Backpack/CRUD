@@ -1,21 +1,24 @@
+@php
+    // Define the table ID - use the provided tableId or default to 'crudTable'
+    $tableId = $tableId ?? 'crudTable';
+@endphp
+
 <div class="row mb-2 align-items-center">
   <div class="col-sm-9">
     @if ( $crud->buttons()->where('stack', 'top')->count() ||  $crud->exportButtons())
       <div class="d-print-none {{ $crud->hasAccess('create')?'with-border':'' }}">
-
         @include('crud::inc.button_stack', ['stack' => 'top'])
-
       </div>
     @endif
   </div>
   @if($crud->getOperationSetting('searchableTable'))
   <div class="col-sm-3">
-    <div id="datatable_search_stack_{{ $tableId ?? 'crudTable' }}" class="mt-sm-0 mt-2 d-print-none datatable_search_stack">
+    <div id="datatable_search_stack_{{ $tableId }}" class="mt-sm-0 mt-2 d-print-none datatable_search_stack">
       <div class="input-icon">
         <span class="input-icon-addon">
           <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M10 10m-7 0a7 7 0 1 0 14 0a7 7 0 1 0 -14 0"></path><path d="M21 21l-6 -6"></path></svg>
         </span>
-        <input type="search" class="form-control datatable-search-input" data-table-id="{{ $tableId ?? 'crudTable' }}" placeholder="{{ trans('backpack::crud.search') }}..."/>
+        <input type="search" class="form-control datatable-search-input" data-table-id="{{ $tableId }}" placeholder="{{ trans('backpack::crud.search') }}..."/>
       </div>
     </div>
   </div>
@@ -29,7 +32,7 @@
 
 <div class="{{ backpack_theme_config('classes.tableWrapper') }}">
 <table
-      id="{{ $tableId ?? 'crudTable' }}"
+      id="{{ $tableId }}"
       class="{{ backpack_theme_config('classes.table') ?? 'table table-striped table-hover nowrap rounded card-table table-vcenter card d-table shadow-xs border-xs' }} crud-table"
       data-responsive-table="{{ (int) $crud->getOperationSetting('responsiveTable') }}"
       data-has-details-row="{{ (int) $crud->getOperationSetting('detailsRow') }}"
@@ -38,6 +41,20 @@
       data-line-buttons-as-dropdown-minimum="{{ (int) $crud->getOperationSetting('lineButtonsAsDropdownMinimum') }}"
       data-line-buttons-as-dropdown-show-before-dropdown="{{ (int) $crud->getOperationSetting('lineButtonsAsDropdownShowBefore') }}"
       data-url-start="{{ url($crud->getOperationSetting('datatablesUrl')) }}"
+      data-responsive-table="{{ $crud->getResponsiveTable() ? 'true' : 'false' }}"
+      data-persistent-table="{{ $crud->getPersistentTable() ? 'true' : 'false' }}"
+      data-persistent-table-slug="{{ Str::slug($crud->getOperationSetting('datatablesUrl')) }}"
+      data-persistent-table-duration="{{ $crud->getPersistentTableDuration() ?: '' }}"
+      data-subheading="{{ $crud->getSubheading() ? 'true' : 'false' }}"
+      data-reset-button="{{ ($crud->getOperationSetting('resetButton') ?? true) ? 'true' : 'false' }}"
+      data-updates-url="{{ var_export($updatesUrl ?? true) }}"
+      data-export-buttons="{{ json_encode($crud->get('list.export_buttons') ?? []) }}"
+      data-default-page-length="{{ $crud->getDefaultPageLength() }}"
+      data-page-length-menu="{{ json_encode($crud->getPageLengthMenu()) }}"
+      data-show-entry-count="{{ var_export($crud->getOperationSetting('showEntryCount') ?? true) }}"
+      data-searchable-table="{{ var_export($crud->getOperationSetting('searchableTable') ?? true) }}"
+      data-search-delay="{{ $crud->getOperationSetting('searchDelay') ?? 500 }}"
+      data-total-entry-count="{{ var_export($crud->getOperationSetting('totalEntryCount') ?? false) }}"
       cellspacing="0">
     <thead>
       <tr>
@@ -117,13 +134,13 @@
     </div>
 @endif
 
-  @section('after_styles')
+@section('after_styles')
   {{-- CRUD LIST CONTENT - crud_list_styles stack --}}
   @stack('crud_list_styles')
 @endsection
 
 @section('after_scripts')
-  @include('crud::datatable.datatables_logic', ['tableId' => $tableId ?? 'crudTable'])
+  @include('crud::datatable.datatables_logic', ['tableId' => $tableId])
 
   {{-- CRUD LIST CONTENT - crud_list_scripts stack --}}
   @stack('crud_list_scripts')
