@@ -1,0 +1,25 @@
+<svg width="114.3" height="20" viewBox="0 0 1143 200" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="coverage: 83.32%">
+  <title>coverage: 83.32%</title>
+  <linearGradient id="a" x2="0" y2="100%">
+    <stop offset="0" stop-opacity=".1" stop-color="#EEE"/>
+    <stop offset="1" stop-opacity=".1"/>
+  </linearGradient>
+  <mask id="m"><rect width="1143" height="200" rx="30" fill="#FFF"/></mask>
+  <g mask="url(#m)">
+    <rect width="603" height="200" fill="#555"/>
+    <rect width="540" height="200" fill="url(#x)" x="603"/>
+    <rect width="1143" height="200" fill="url(#a)"/>
+  </g>
+  <g aria-hidden="true" fill="#fff" text-anchor="start" font-family="Verdana,DejaVu Sans,sans-serif" font-size="110">
+    <text x="60" y="148" textLength="503" fill="#000" opacity="0.25">coverage</text>
+    <text x="50" y="138" textLength="503">coverage</text>
+    <text x="658" y="148" textLength="440" fill="#000" opacity="0.25">83.32%</text>
+    <text x="648" y="138" textLength="440">83.32%</text>
+  </g>
+  
+  <linearGradient id="x" x1="0%" y1="0%" x2="100%" y2="0%">
+    <stop offset="0%" style="stop-color:#DB1" />
+    <stop offset="50%" style="stop-color:#3C1" />
+    <stop offset="100%" style="stop-color:#3C1" />
+  </linearGradient>
+</svg>
