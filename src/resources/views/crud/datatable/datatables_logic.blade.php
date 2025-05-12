@@ -198,7 +198,8 @@ window.crud.initializeTable = function(tableId, customConfig = {}) {
     config.hasLineButtonsAsDropdown = tableElement.getAttribute('data-has-line-buttons-as-dropdown') === 'true' || tableElement.getAttribute('data-has-line-buttons-as-dropdown') === '1';
     config.lineButtonsAsDropdownMinimum = parseInt(tableElement.getAttribute('data-line-buttons-as-dropdown-minimum')) || 3;
     config.lineButtonsAsDropdownShowBeforeDropdown = parseInt(tableElement.getAttribute('data-line-buttons-as-dropdown-show-before-dropdown')) || 1;
-    
+    config.responsiveTable = tableElement.getAttribute('data-responsive-table') === 'true' || tableElement.getAttribute('data-responsive-table') === '1';
+
     // Apply any custom config
     if (customConfig && Object.keys(customConfig).length > 0) {
         Object.assign(config, customConfig);
@@ -275,37 +276,37 @@ window.crud.initializeTable = function(tableId, customConfig = {}) {
         lengthMenu: config.pageLengthMenu,
         aaSorting: [],
         language: {
-            emptyTable: "No entries found",
-            info: "Showing _START_ to _END_ of _TOTAL_ entries",
-            infoEmpty: "Showing 0 to 0 of 0 entries",
-            infoFiltered: "(filtered from _MAX_ total entries)",
-            infoPostFix: "",
-            thousands: ",",
-            lengthMenu: "_MENU_ entries per page",
-            loadingRecords: "Loading...",
-            "processing":     "<img src='{{ Basset::getUrl('vendor/backpack/crud/src/resources/assets/img/spinner.svg') }}' alt='{{ trans('backpack::crud.processing') }}'>",
-            search: "_INPUT_",
-            searchPlaceholder: "Search...",
-            zeroRecords: "No matching records found",
-            paginate: {
-                first: "«",
-                last: "»",
-                next: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M8 5l5 5l-5 5"></path></svg>',
-                previous: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-5 5l5 5"></path></svg>'
-            },
-            aria: {
-                sortAscending: ": activate to sort column ascending",
-                sortDescending: ": activate to sort column descending"
-            },
-            buttons: {
-                copy: "Copy",
-                excel: "Excel",
-                csv: "CSV",
-                pdf: "PDF",
-                print: "Print",
-                colvis: "Column visibility"
-            },
-        },
+              "emptyTable":     "{{ trans('backpack::crud.emptyTable') }}",
+              "info":           "{{ trans('backpack::crud.info') }}",
+              "infoEmpty":      "{{ trans('backpack::crud.infoEmpty') }}",
+              "infoFiltered":   "{{ trans('backpack::crud.infoFiltered') }}",
+              "infoPostFix":    "{{ trans('backpack::crud.infoPostFix') }}",
+              "thousands":      "{{ trans('backpack::crud.thousands') }}",
+              "lengthMenu":     "{{ trans('backpack::crud.lengthMenu') }}",
+              "loadingRecords": "{{ trans('backpack::crud.loadingRecords') }}",
+              "processing":     "<img src='{{ Basset::getUrl('vendor/backpack/crud/src/resources/assets/img/spinner.svg') }}' alt='{{ trans('backpack::crud.processing') }}'>",
+              "search": "_INPUT_",
+              "searchPlaceholder": "{{ trans('backpack::crud.search') }}...",
+              "zeroRecords":    "{{ trans('backpack::crud.zeroRecords') }}",
+              "paginate": {
+                  "first":      "{{ trans('backpack::crud.paginate.first') }}",
+                  "last":       "{{ trans('backpack::crud.paginate.last') }}",
+                  "next":       '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M8 5l5 5l-5 5"></path></svg>',
+                  "previous":   '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-5 5l5 5"></path></svg>'
+              },
+              "aria": {
+                  "sortAscending":  "{{ trans('backpack::crud.aria.sortAscending') }}",
+                  "sortDescending": "{{ trans('backpack::crud.aria.sortDescending') }}"
+              },
+              "buttons": {
+                  "copy":   "{{ trans('backpack::crud.export.copy') }}",
+                  "excel":  "{{ trans('backpack::crud.export.excel') }}",
+                  "csv":    "{{ trans('backpack::crud.export.csv') }}",
+                  "pdf":    "{{ trans('backpack::crud.export.pdf') }}",
+                  "print":  "{{ trans('backpack::crud.export.print') }}",
+                  "colvis": "{{ trans('backpack::crud.export.column_visibility') }}"
+              },
+          },
         dom:
             "<'row hidden'<'col-sm-6'i><'col-sm-6 d-print-none'f>>" +
             "<'table-content row'<'col-sm-12'tr>>" +
@@ -547,6 +548,8 @@ function setupTableEvents(tableId, config) {
 
     // on DataTable draw event run all functions in the queue
     $(`#${tableId}`).on('draw.dt', function() {
+        $(`#${tableId} tbody tr td[colspan]`).attr('colspan', '1');
+
         // in datatables 2.0.3 the implementation was changed to use `replaceChildren`, for that reason scripts 
          // that came with the response are no longer executed, like the delete button script or any other ajax 
          // button created by the developer. For that reason, we move them to the end of the body
