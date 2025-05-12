@@ -434,7 +434,7 @@ class CrudButton implements Arrayable
     /**
      * Access the global CrudPanel object.
      *
-     * @return \Backpack\CRUD\app\Library\CrudPanel\CrudPanel
+     * @return CrudPanel
      */
     public function crud()
     {
