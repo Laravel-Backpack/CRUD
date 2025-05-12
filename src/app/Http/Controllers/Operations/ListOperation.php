@@ -110,10 +110,10 @@ trait ListOperation
         $this->crud->applyDatatableOrder();
 
         $entries = $this->crud->getEntries();
-
+        $requestTotalEntryCount = request()->get('totalEntryCount') ? (int) request()->get('totalEntryCount') : null;
         // if show entry count is disabled we use the "simplePagination" technique to move between pages.
         if ($this->crud->getOperationSetting('showEntryCount')) {
-            $totalEntryCount = (int) (request()->get('totalEntryCount') ?: $this->crud->getTotalQueryCount());
+            $totalEntryCount = (int) ($requestTotalEntryCount ?: $this->crud->getTotalQueryCount());
             $filteredEntryCount = $this->crud->getFilteredQueryCount() ?? $totalEntryCount;
         } else {
             $totalEntryCount = $length;
