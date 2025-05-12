@@ -11,6 +11,6 @@ class CrudManager extends Facade
 {
     protected static function getFacadeAccessor()
     {
-        return 'crud-manager';
+        return 'CrudManager';
     }
 }

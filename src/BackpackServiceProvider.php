@@ -87,7 +87,7 @@ class BackpackServiceProvider extends ServiceProvider
             return CrudManager::getCrudPanel();
         });
 
-        $this->app->scoped('crud-manager', function ($app) {
+        $this->app->scoped('CrudManager', function ($app) {
             return new CrudPanelManager();
         });
 
@@ -337,7 +337,7 @@ class BackpackServiceProvider extends ServiceProvider
      */
     public function provides()
     {
-        return ['widgets', 'BackpackViewNamespaces', 'DatabaseSchema', 'UploadersRepository', 'crud-manager'];
+        return ['widgets', 'BackpackViewNamespaces', 'DatabaseSchema', 'UploadersRepository', 'CrudManager'];
     }
 
     private function registerBackpackErrorViews()

@@ -11,8 +11,9 @@ final class LifecycleHooks
     public function hookInto(string|array $hooks, callable $callback): void
     {
         $hooks = is_array($hooks) ? $hooks : [$hooks];
+        $controller = CrudManager::getActiveController() ?? CrudManager::getRequestController();
         foreach ($hooks as $hook) {
-            $this->hooks[CrudManager::getActiveController() ?? CrudManager::getRequestController()][$hook][] = $callback;
+            $this->hooks[$controller][$hook][] = $callback;
         }
     }
 

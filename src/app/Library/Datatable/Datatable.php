@@ -61,7 +61,7 @@ class Datatable extends Component
 
         if ($parentCrud && $parentCrud->getCurrentEntry()) {
             $parentEntry = $parentCrud->getCurrentEntry();
-            $parentController = $parentCrud->crudController;
+            $parentController = $parentCrud->controller;
             $cacheKey = 'datatable_config_'.$this->tableId;
 
             // Store the controller class, parent entry, element type and name

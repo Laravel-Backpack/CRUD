@@ -68,7 +68,7 @@ class CrudPanel
 
     public $initialized = false;
 
-    public $crudController;
+    public $controller;
 
     // The following methods are used in CrudController or your EntityCrudController to manipulate the variables above.
 
@@ -84,7 +84,7 @@ class CrudPanel
     public function initialize(string $controller, $request): self
     {
         $this->setRequest($request);
-        $this->setCrudController($controller);
+        $this->setController($controller);
 
         return $this;
     }
@@ -158,9 +158,9 @@ class CrudPanel
         return $this->getModel()->getConnection()->getSchemaBuilder();
     }
 
-    public function setCrudController(string $crudController)
+    public function setController(string $crudController)
     {
-        $this->crudController = $crudController;
+        $this->controller = $crudController;
     }
 
     /**
