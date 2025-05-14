@@ -56,6 +56,22 @@ return [
     'welcome' => 'Benvenuto!',
     'use_sidebar' => 'Utilizza la barra laterale per creare, modificare od eliminare contenuti.',
 
+    'error_page' => [
+        'title' => 'Errore :error',
+        'button' => 'Torna alla home',
+        'message_4xx' => 'Per favore <a :href_back>torna indietro</a> o ritorna alla <a :href_homepage>nostra homepage</a>.',
+        'message_500' => 'Si è verificato un errore interno del server. Se l\'errore persiste, contatta il team di sviluppo.',
+        'message_503' => 'Il server è sovraccarico o in manutenzione. Riprova più tardi.',
+        '400' => 'Richiesta non valida.',
+        '401' => 'Azione non autorizzata.',
+        '403' => 'Accesso negato.',
+        '404' => 'Pagina non trovata.',
+        '405' => 'Metodo non consentito.',
+        '408' => 'Timeout della richiesta.',
+        '429' => 'Troppe richieste.',
+        '500' => 'Non è colpa tua, è colpa nostra.',
+    ],
+
     'password_reset' => [
         'greeting' => 'Ciao!',
         'subject' => 'Notifica di reset della password',
@@ -74,8 +90,9 @@ return [
 
     'verify_email' => [
         'email_verification' => 'Verifica Email',
-        'verification_link_sent' => 'Un collegamento di verifica è stato inviato al tuo indirizzo email.',
-        'email_verification_required' => 'Verifica il tuo indirizzo email facendo clic sul collegamento che ti abbiamo inviato.',
-        'resend_verification_link' => 'Invia nuovamente il link di verifica',
+        'verification_link_sent' => 'Un link di verifica è stato inviato al tuo indirizzo email.',
+        'email_verification_required' => 'Per favore verifica il tuo indirizzo email cliccando sul link che ti abbiamo inviato.',
+        'resend_verification_link' => 'Invia nuovamente il link',
+        'email_sent_with_success' => 'Link di verifica email inviato con successo.',
     ],
 ];

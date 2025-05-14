@@ -111,6 +111,11 @@ return [
         'print' => 'Stampa',
         'column_visibility' => 'Visibilità colonne',
     ],
+    'custom_views' => [
+        'title' => 'viste personalizzate',
+        'title_short' => 'viste',
+        'default' => 'predefinito',
+    ],
 
     // global crud - errors
     'unauthorized_access' => 'Accesso non autorizzato - non hai i permessi necessari per vedere questa pagina.',
@@ -151,6 +156,7 @@ return [
     // Fields
     'browse_uploads' => 'Sfoglia file caricati',
     'select_all' => 'Seleziona tutti',
+    'unselect_all' => 'Deseleziona tutto',
     'select_files' => 'Seleziona i files',
     'select_file' => 'Seleziona un file',
     'clear' => 'Pulisci',
@@ -163,10 +169,14 @@ return [
     'new_item' => 'Nuovo elemento',
     'select_entry' => 'Seleziona un elemento',
     'select_entries' => 'Select degli elementi',
+    'upload_multiple_files_selected' => 'File selezionati. Dopo il salvataggio, appariranno sopra.',
 
     //Table field
     'table_cant_add' => 'Impossibile aggiungere una nuova :entity',
     'table_max_reached' => 'Numero massimo di :max raggiunto',
+
+    // google_map
+    'google_map_locate' => 'Ottieni la mia posizione',
 
     // File manager
     'file_manager' => 'File Manager',
@@ -174,10 +184,21 @@ return [
     // InlineCreateOperation
     'related_entry_created_success' => 'L\'elemento correlato è stato creato e selezionato.',
     'related_entry_created_error' => 'Non è possibile creare elementi correlati.',
+    'inline_saving' => 'Salvataggio...',
 
     // returned when no translations found in select inputs
     'empty_translations' => '(nessuna voce)',
 
     // The pivot selector required validation message
     'pivot_selector_required_validation_message' => 'Il campo pivot è obbligatorio.',
+
+    // Quick button messages
+    'quick_button_ajax_error_title' => 'Richiesta fallita!',
+    'quick_button_ajax_error_message' => 'Si è verificato un errore durante l\'elaborazione della richiesta.',
+    'quick_button_ajax_success_title' => 'Richiesta completata!',
+    'quick_button_ajax_success_message' => 'La tua richiesta è stata completata con successo.',
+
+    // translations
+    'no_attributes_translated' => 'Questa voce non è tradotta in :locale.',
+    'no_attributes_translated_href_text' => 'Compila i campi da :locale',
 ];
