@@ -81,17 +81,14 @@ trait CreateOperation
         return view(
             $this->crud->getFirstFieldView('form.create_form'),
             [
-                'fields'             => $this->crud->getCreateFields(),
-                'action'             => 'create',
-                'crud'               => $this->crud,
-                'modalClass'         => request()->get('modal_class'),
+                'fields' => $this->crud->getCreateFields(),
+                'action' => 'create',
+                'crud' => $this->crud,
+                'modalClass' => request()->get('modal_class'),
                 'parentLoadedAssets' => request()->get('parent_loaded_assets'),
             ]
         );
-
-    }        
-       
-
+    }
 
     /**
      * Store a newly created resource in the database.
