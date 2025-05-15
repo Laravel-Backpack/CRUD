@@ -27,6 +27,12 @@ trait CreateOperation
             'uses' => $controller.'@store',
             'operation' => 'create',
         ]);
+
+        Route::get($segment.'/create-form', [
+            'as' => $routeName.'.create-form',
+            'uses' => $controller.'@createForm',
+            'operation' => 'create',
+        ]);
     }
 
     /**
@@ -62,6 +68,30 @@ trait CreateOperation
         // load the view from /resources/views/vendor/backpack/crud/ if it exists, otherwise load the one in the package
         return view($this->crud->getCreateView(), $this->data);
     }
+
+    public function createForm()
+    {
+        $this->crud->hasAccessOrFail('create');
+
+        // if the request isn't an AJAX request, return a 404
+        if (! request()->ajax()) {
+            abort(404);
+        }
+
+        return view(
+            $this->crud->getFirstFieldView('form.create_form'),
+            [
+                'fields'             => $this->crud->getCreateFields(),
+                'action'             => 'create',
+                'crud'               => $this->crud,
+                'modalClass'         => request()->get('modal_class'),
+                'parentLoadedAssets' => request()->get('parent_loaded_assets'),
+            ]
+        );
+
+    }        
+       
+
 
     /**
      * Store a newly created resource in the database.

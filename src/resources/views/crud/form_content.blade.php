@@ -172,14 +172,15 @@
         @else
             focusField = getFirstFocusableField($('form'));
         @endif
+        if(focusField.length !== 0) {
+          const fieldOffset = focusField.offset().top;
+          const scrollTolerance = $(window).height() / 2;
 
-        const fieldOffset = focusField.offset().top;
-        const scrollTolerance = $(window).height() / 2;
+          triggerFocusOnFirstInputField(focusField);
 
-        triggerFocusOnFirstInputField(focusField);
-
-        if( fieldOffset > scrollTolerance ){
-            $('html, body').animate({scrollTop: (fieldOffset - 30)});
+          if( fieldOffset > scrollTolerance ){
+              $('html, body').animate({scrollTop: (fieldOffset - 30)});
+          }
         }
       @endif
 
