@@ -1,73 +1,98 @@
  @if ($crud->get('list.detailsRow'))
-  <script>
+    <script>
     // Define the function in the global scope
-    window.registerDetailsRowButtonAction = function() {
-        console.log('registerDetailsRowButtonAction called');
-        // Process all DataTables on the page
-        $('table.dataTable').each(function() {
-          // Check if this table has already been initialized for details row
-          if ($(this).data('details-row-initialized')) {
-            console.log('Table already initialized for details row: ' + $(this).attr('id'));
+    window.registerDetailsRowButtonAction = function(tableId = 'crudTable') {
+        console.log(`registerDetailsRowButtonAction called for table: ${tableId}`);
+        
+        // Get the target table element
+        const tableElement = document.getElementById(tableId);
+        if (!tableElement) {
+            console.error(`Table #${tableId} not found in DOM`);
+            return;
+        }
+        
+        // Check if this table has already been initialized for details row
+        if (tableElement.getAttribute('data-details-row-initialized') === 'true') {
+            console.log(`Table already initialized for details row: ${tableId}`);
             return; // Skip already initialized tables
-          }
-          
-          var tableId = $(this).attr('id');
-          if (!tableId) return; // Skip tables without ID
-          
-          var tableSelector = '#' + tableId;
-          console.log('Registering details row button action for table: ' + tableSelector);
-          
-          // Remove any previously registered event handlers from draw.dt event callback
-          $(tableSelector + ' tbody').off('click', 'td .details-row-button');
-
-          // Make sure the ajaxDatatables rows also have the correct classes
-          $(tableSelector + ' tbody td .details-row-button').parent('td')
-            .removeClass('details-control').addClass('details-control')
-            .removeClass('text-center').addClass('text-center')
-            .removeClass('cursor-pointer').addClass('cursor-pointer');
-
-          // Mark this table as initialized
-          $(this).data('details-row-initialized', true);
-          
-          // Add event listener for opening and closing details
-          $(tableSelector + ' tbody td .details-control').on('click', function (e) {
+        }
+        
+        // Mark this table as initialized
+        tableElement.setAttribute('data-details-row-initialized', 'true');
+        
+        // Make sure the ajaxDatatables rows also have the correct classes
+        const detailsButtons = tableElement.querySelectorAll('tbody td .details-row-button');
+        detailsButtons.forEach(button => {
+            const parentCell = button.closest('td');
+            if (parentCell) {
+                // Ensure the cell has the correct classes
+                parentCell.classList.add('details-control', 'text-center', 'cursor-pointer');
+            }
+        });
+        
+        // Add event listener for opening and closing details
+        const detailsControls = tableElement.querySelectorAll('tbody td.details-control');
+        detailsControls.forEach(cell => {
+            // Remove any existing event listeners by cloning and replacing the element
+            const newCell = cell.cloneNode(true);
+            cell.parentNode.replaceChild(newCell, cell);
+            
+            newCell.addEventListener('click', function(e) {
                 e.stopPropagation();
-
-                var tr = $(this).closest('tr');
-                var btn = $(this).find('.details-row-button');
-                var table = $(tableSelector).DataTable();
-                var row = table.row(tr);
-
+                
+                const tr = this.closest('tr');
+                const btn = this.querySelector('.details-row-button');
+                const table = window.crud.tables[tableId];
+                const row = table.row(tr);
+                
                 if (row.child.isShown()) {
                     // This row is already open - close it
-                    btn.removeClass('la-minus-square-o').addClass('la-plus-square-o');
-                    $('div.table_row_slider', row.child()).slideUp( function () {
+                    btn.classList.remove('la-minus-square-o');
+                    btn.classList.add('la-plus-square-o');
+                    
+                    const slider = row.child().find('div.table_row_slider');
+                    slider.slideUp(function() {
                         row.child.hide();
-                        tr.removeClass('shown');
-                    } );
+                        tr.classList.remove('shown');
+                    });
                 } else {
                     // Open this row
-                    btn.removeClass('la-plus-square-o').addClass('la-minus-square-o');
-                    // Get the details with ajax
-                    $.ajax({
-                      url: '{{ url($crud->route) }}/'+btn.data('entry-id')+'/details',
-                      type: 'GET',
-                    })
-                    .done(function(data) {
-                      row.child("<div class='table_row_slider'>" + data + "</div>", 'no-padding').show();
-                      tr.addClass('shown');
-                      $('div.table_row_slider', row.child()).slideDown();
-                    })
-                    .fail(function(data) {
-                      row.child("<div class='table_row_slider'>{{ trans('backpack::crud.details_row_loading_error') }}</div>").show();
-                      tr.addClass('shown');
-                      $('div.table_row_slider', row.child()).slideDown();
-                    });
+                    btn.classList.remove('la-plus-square-o');
+                    btn.classList.add('la-minus-square-o');
+                    
+                    // Get the details with fetch API
+                    const entryId = btn.getAttribute('data-entry-id');
+                    const url = '{{ url($crud->route) }}/' + entryId + '/details';
+                    
+                    fetch(url)
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error('Network response was not ok');
+                            }
+                            return response.text();
+                        })
+                        .then(data => {
+                            row.child("<div class='table_row_slider'>" + data + "</div>", 'no-padding').show();
+                            tr.classList.add('shown');
+                            
+                            // We still need to use jQuery for the slideDown animation as it's more complex to implement in vanilla JS
+                            const slider = row.child().find('div.table_row_slider');
+                            slider.slideDown();
+                        })
+                        .catch(error => {
+                            row.child("<div class='table_row_slider'>{{ trans('backpack::crud.details_row_loading_error') }}</div>").show();
+                            tr.classList.add('shown');
+                            
+                            const slider = row.child().find('div.table_row_slider');
+                            slider.slideDown();
+                            console.error('Error fetching details:', error);
+                        });
                 }
-            } );
-          });
-      }
-      window.crud.defaultTableConfig.addFunctionToDataTablesDrawEventQueue('registerDetailsRowButtonAction');
+            });
+        });
+    };
     
+    // Register the function to be called for each table
+    window.crud.defaultTableConfig.addFunctionToDataTablesDrawEventQueue('registerDetailsRowButtonAction');
   </script>
 @endif

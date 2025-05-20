@@ -259,8 +259,8 @@ table.dataTable tr th:first-child, table.dataTable tr td:first-child, table.data
 .dataTables_processing img,
 .dt-processing img {
     display: block !important;
-    width: 60px !important;
-    height: 60px !important;
+    width: 30px !important;
+    height: 30px !important;
     opacity: 1 !important;
     visibility: visible !important;
     margin: 0 auto !important;

@@ -6,14 +6,15 @@
     <span class="crud_bulk_actions_checkbox">
         <input type="checkbox" class="crud_bulk_actions_line_checkbox form-check-input" data-primary-key-value="{{ $entry->getKey() }}">
     </span>
-
+@endif
     @bassetBlock('backpack/crud/operations/list/bulk-actions-checkbox.js')
     <script>
-    if (typeof addOrRemoveCrudCheckedItem !== 'function') {
-        function addOrRemoveCrudCheckedItem(element) {
+    if (typeof window.crud.addOrRemoveCrudCheckedItem !== 'function') {
+        window.crud.addOrRemoveCrudCheckedItem = function(element, tableId = 'crudTable') {
+            const crud = window.crud.tableConfigs[tableId] || window.crud;
             crud.lastCheckedItem = false;
 
-            document.querySelectorAll('input.crud_bulk_actions_line_checkbox').forEach(checkbox => checkbox.onclick = e => {
+            document.querySelectorAll(`#${tableId} input.crud_bulk_actions_line_checkbox`).forEach(checkbox => checkbox.onclick = e => {
                 e.stopPropagation();
 
                 let checked = checkbox.checked;
@@ -29,8 +30,8 @@
                     // between the last checked item and this one
                     if (crud.lastCheckedItem && e.shiftKey) {
                         let getNodeindex = elm => [...elm.parentNode.children].indexOf(elm);
-                        let first = document.querySelector(`input.crud_bulk_actions_line_checkbox[data-primary-key-value="${crud.lastCheckedItem}"]`).closest('tr');
-                        let last = document.querySelector(`input.crud_bulk_actions_line_checkbox[data-primary-key-value="${primaryKeyValue}"]`).closest('tr');
+                        let first = document.querySelector(`#${tableId} input.crud_bulk_actions_line_checkbox[data-primary-key-value="${crud.lastCheckedItem}"]`).closest('tr');
+                        let last = document.querySelector(`#${tableId} input.crud_bulk_actions_line_checkbox[data-primary-key-value="${primaryKeyValue}"]`).closest('tr');
                         let firstIndex = getNodeindex(first);
                         let lastIndex = getNodeindex(last)
                         
@@ -49,16 +50,17 @@
                 }
 
                 // if no items are selected, disable all bulk buttons
-                enableOrDisableBulkButtons();
+                enableOrDisableBulkButtons(tableId);
             });
         }
     }
 
-    if (typeof markCheckboxAsCheckedIfPreviouslySelected !== 'function') {
-        function markCheckboxAsCheckedIfPreviouslySelected() {
+    if (typeof window.crud.markCheckboxAsCheckedIfPreviouslySelected !== 'function') {
+        window.crud.markCheckboxAsCheckedIfPreviouslySelected = function(tableId = 'crudTable') {
+            const crud = window.crud.tableConfigs[tableId] || window.crud;
             let checkedItems = crud.checkedItems ?? [];
             let pageChanged = localStorage.getItem('page_changed') ?? false;
-            let tableUrl = crud.table.ajax.url();
+            let tableUrl = window.crud.tables[tableId]?.ajax.url() || '';
             let hasFilterApplied = false;
 
             if (tableUrl.indexOf('?') > -1) {
@@ -70,11 +72,11 @@
             // if it was not a page change, we check if datatables have any search, or the url have any parameters.
             // if you have filtered entries, and then remove the filters we are sure the entries are in the table.
             // we don't remove them in that case.
-            if (! pageChanged && (crud.table.search().length !== 0 || hasFilterApplied)) {
+            if (! pageChanged && (window.crud.tables[tableId]?.search().length !== 0 || hasFilterApplied)) {
                 crud.checkedItems = [];
             }
             document
-                .querySelectorAll('input.crud_bulk_actions_line_checkbox[data-primary-key-value]')
+                .querySelectorAll(`#${tableId} input.crud_bulk_actions_line_checkbox[data-primary-key-value]`)
                 .forEach(function(elem) {
                     let checked = checkedItems.length && checkedItems.indexOf(elem.dataset.primaryKeyValue) > -1;
                     elem.checked = checked;
@@ -87,14 +89,15 @@
         }
     }
 
-    if (typeof addBulkActionMainCheckboxesFunctionality !== 'function') {
-        function addBulkActionMainCheckboxesFunctionality() {
-            let mainCheckboxes = Array.from(document.querySelectorAll('input.crud_bulk_actions_general_checkbox'));
-            let rowCheckboxes = Array.from(document.querySelectorAll('input.crud_bulk_actions_line_checkbox'));
+    if (typeof window.crud.addBulkActionMainCheckboxesFunctionality !== 'function') {
+        window.crud.addBulkActionMainCheckboxesFunctionality = function(tableId = 'crudTable') {
+            console.log(`addBulkActionMainCheckboxesFunctionality called for table: ${tableId}`);
+            let mainCheckboxes = Array.from(document.querySelectorAll(`#${tableId} input.crud_bulk_actions_general_checkbox`));
+            let rowCheckboxes = Array.from(document.querySelectorAll(`#${tableId} input.crud_bulk_actions_line_checkbox`));
 
             mainCheckboxes.forEach(checkbox => {
                 // set initial checked status
-                checkbox.checked = document.querySelectorAll('input.crud_bulk_actions_line_checkbox:not(:checked)').length === 0;
+                checkbox.checked = document.querySelectorAll(`#${tableId} input.crud_bulk_actions_line_checkbox:not(:checked)`).length === 0;
 
                 // when the crud_bulk_actions_general_checkbox is selected, toggle all visible checkboxes
                 checkbox.onclick = event => {
@@ -108,20 +111,21 @@
             });
 
             // Stop propagation of href on the first column
-            document.querySelectorAll('table td.dtr-control a').forEach(link => link.onclick = e => e.stopPropagation());
+            document.querySelectorAll(`#${tableId} td.dtr-control a`).forEach(link => link.onclick = e => e.stopPropagation());
         }
     }
 
-    if (typeof enableOrDisableBulkButtons !== 'function') {
-        function enableOrDisableBulkButtons() {
-            document.querySelectorAll('.bulk-button').forEach(btn => btn.classList.toggle('disabled', !crud.checkedItems?.length));
+    if (typeof window.crud.enableOrDisableBulkButtons !== 'function') {
+        window.crud.enableOrDisableBulkButtons = function(tableId = 'crudTable') {
+            console.log(`enableOrDisableBulkButtons called for table: ${tableId}`);
+            const crud = window.crud.tableConfigs[tableId] || window.crud;
+            document.querySelectorAll(`#${tableId}_wrapper .bulk-button`).forEach(btn => btn.classList.toggle('disabled', !crud.checkedItems?.length));
         }
     }
 
-    crud.addFunctionToDataTablesDrawEventQueue('addOrRemoveCrudCheckedItem');
-    crud.addFunctionToDataTablesDrawEventQueue('markCheckboxAsCheckedIfPreviouslySelected');
-    crud.addFunctionToDataTablesDrawEventQueue('addBulkActionMainCheckboxesFunctionality');
-    crud.addFunctionToDataTablesDrawEventQueue('enableOrDisableBulkButtons');
-    </script>
+    window.crud.addFunctionToDataTablesDrawEventQueue('addOrRemoveCrudCheckedItem');
+    window.crud.addFunctionToDataTablesDrawEventQueue('markCheckboxAsCheckedIfPreviouslySelected');
+    window.crud.addFunctionToDataTablesDrawEventQueue('addBulkActionMainCheckboxesFunctionality');
+    window.crud.addFunctionToDataTablesDrawEventQueue('enableOrDisableBulkButtons');
+</script>
     @endBassetBlock
-@endif

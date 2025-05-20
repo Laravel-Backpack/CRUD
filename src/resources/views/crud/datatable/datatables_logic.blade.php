@@ -182,11 +182,9 @@ window.crud.initializeTable = function(tableId, customConfig = {}) {
     
     // Parse complex JSON structures from data attributes
     try {
-        config.exportButtons = JSON.parse(tableElement.getAttribute('data-export-buttons') || '[]');
         config.pageLengthMenu = JSON.parse(tableElement.getAttribute('data-page-length-menu') || '[[10, 25, 50, 100], [10, 25, 50, 100]]');
     } catch (e) {
         console.error(`Error parsing JSON data attributes for table ${tableId}:`, e);
-        config.exportButtons = [];
         config.pageLengthMenu = [[10, 25, 50, 100], [10, 25, 50, 100]];
     }
     
@@ -199,7 +197,7 @@ window.crud.initializeTable = function(tableId, customConfig = {}) {
     config.lineButtonsAsDropdownMinimum = parseInt(tableElement.getAttribute('data-line-buttons-as-dropdown-minimum')) || 3;
     config.lineButtonsAsDropdownShowBeforeDropdown = parseInt(tableElement.getAttribute('data-line-buttons-as-dropdown-show-before-dropdown')) || 1;
     config.responsiveTable = tableElement.getAttribute('data-responsive-table') === 'true' || tableElement.getAttribute('data-responsive-table') === '1';
-
+    config.exportButtons = tableElement.getAttribute('data-has-export-buttons') === 'true';
     // Apply any custom config
     if (customConfig && Object.keys(customConfig).length > 0) {
         Object.assign(config, customConfig);
@@ -407,11 +405,10 @@ window.crud.initializeTable = function(tableId, customConfig = {}) {
     }
     
     // Configure export buttons if present
-    if (config.exportButtons && config.exportButtons.length > 0) {
-        if (window.crud.exportButtonsConfig) {
-            dataTableConfig.buttons = window.crud.exportButtonsConfig;
-        }
+    if (config.exportButtons) {
+        dataTableConfig.buttons = window.crud.exportButtonsConfig;
     }
+    
     
     // Configure ajax for server-side processing
     if (config.urlStart) {
@@ -509,17 +506,19 @@ function setupTableUI(tableId, config) {
             }
         });
     }
-
-    if (config.exportButtons && config.exportButtons.length > 0 && window.crud.exportButtonsConfig) {
+    console.log('config.exportButtons', config.exportButtons);
+    console.log(window.crud);
+    if (config.exportButtons && window.crud.exportButtonsConfig) {
         // Add the export buttons to the DataTable configuration
-        window.crud.tables[tableId].buttons().add(window.crud.exportButtonsConfig);
-        
+        new $.fn.dataTable.Buttons(window.crud.tables[tableId], {
+            buttons: window.crud.exportButtonsConfig
+        });
         // Initialize the buttons and place them in the correct container
         if (typeof window.crud.moveExportButtonsToTopRight === 'function') {
             window.crud.moveExportButtonsToTopRight(tableId);
         }
     }
-
+    console.log('Table initialized:', tableId);
     // move the bottom buttons before pagination
     $("#bottom_buttons").insertBefore($(`#${tableId}_wrapper .row:last-child`));
 }
@@ -562,12 +561,14 @@ function setupTableEvents(tableId, config) {
 
         // Run global functions
         window.crud.defaultTableConfig.functionsToRunOnDataTablesDrawEvent.forEach(function(functionName) {
+            console.log('Running function:', functionName);
             config.executeFunctionByName(functionName);
         });
 
         // Run table-specific functions
         if (config.functionsToRunOnDataTablesDrawEvent && config.functionsToRunOnDataTablesDrawEvent.length) {
             config.functionsToRunOnDataTablesDrawEvent.forEach(function(functionName) {
+                console.log('Running table specific function:', functionName);
                 config.executeFunctionByName(functionName);
             });
         }
@@ -741,6 +742,3 @@ function formatActionColumnAsDropdown(tableId) {
     });
 }
 </script>
-
-@include('crud::inc.export_buttons')
-@include('crud::inc.details_row_logic')

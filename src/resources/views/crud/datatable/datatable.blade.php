@@ -29,7 +29,6 @@
 @if ($crud->filtersEnabled())
   @include('crud::inc.filters_navbar')
 @endif
-
 <div class="{{ backpack_theme_config('classes.tableWrapper') }}">
 <table
       id="{{ $tableId }}"
@@ -48,7 +47,7 @@
       data-subheading="{{ $crud->getSubheading() ? 'true' : 'false' }}"
       data-reset-button="{{ ($crud->getOperationSetting('resetButton') ?? true) ? 'true' : 'false' }}"
       data-updates-url="{{ var_export($updatesUrl ?? true) }}"
-      data-export-buttons="{{ json_encode($crud->get('list.export_buttons') ?? []) }}"
+      data-has-export-buttons="{{ var_export($crud->get('list.exportButtons') ?? false) }}"
       data-default-page-length="{{ $crud->getDefaultPageLength() }}"
       data-page-length-menu="{{ json_encode($crud->getPageLengthMenu()) }}"
       data-show-entry-count="{{ var_export($crud->getOperationSetting('showEntryCount') ?? true) }}"
@@ -141,6 +140,8 @@
 
 @section('after_scripts')
   @include('crud::datatable.datatables_logic', ['tableId' => $tableId])
+  @include('crud::inc.export_buttons')
+  @include('crud::inc.details_row_logic')
 
   {{-- CRUD LIST CONTENT - crud_list_scripts stack --}}
   @stack('crud_list_scripts')
