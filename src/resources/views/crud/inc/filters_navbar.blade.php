@@ -1,4 +1,4 @@
-<nav class="navbar navbar-expand-lg navbar-filters mb-0 py-0 shadow-none">
+<nav class="navbar navbar-expand-lg navbar-filters mb-0 py-0 shadow-none" componentId="{{ $componentId ?? '' }}">
     {{-- Brand and toggle get grouped for better mobile display --}}
     <a class="nav-item d-none d-lg-block my-auto"><span class="la la-filter"></span></a>
     <button class="navbar-toggler ms-3"
@@ -62,16 +62,19 @@
     }
 
     if(typeof updateDatatablesOnFilterChange !== 'function') {
-        function updateDatatablesOnFilterChange(filterName, filterValue, update_url = false, debounce = 500) {
+        function updateDatatablesOnFilterChange(filterName, filterValue, update_url = false, debounce = 500, tableId = 'crudTable') {
+            // Get the table instance based on the tableId
+            let table = window.crud.tables[tableId] || window.crud.table;
+            
             // behaviour for ajax tables
-            let new_url = updatePageUrl(filterName, filterValue, crud.table.ajax.url());
-            crud.table.ajax.url(new_url);
+            let new_url = updatePageUrl(filterName, filterValue, table.ajax.url());
+            table.ajax.url(new_url);
 
             // when we are clearing ALL filters, we would not update the table url here, because this is done PER filter
             // and we have a function that will do this update for us after all filters had been cleared.
             if(update_url) {
                 // replace the datatables ajax url with new_url and reload it
-                callFunctionOnce(function() { refreshDatatablesOnFilterChange(new_url) }, debounce, 'refreshDatatablesOnFilterChange');
+                callFunctionOnce(function() { refreshDatatablesOnFilterChange(new_url, tableId) }, debounce, 'refreshDatatablesOnFilterChange_' + tableId);
             }
 
             return new_url;
@@ -101,10 +104,13 @@
     }
 
     if(typeof refreshDatatablesOnFilterChange !== 'function') {
-        function refreshDatatablesOnFilterChange(url)
+        function refreshDatatablesOnFilterChange(url, tableId = 'crudTable')
         {
+            // Get the table instance based on the tableId
+            let table = window.crud.tables[tableId] || window.crud.table;
+            
             // replace the datatables ajax url with new_url and reload it
-            crud.table.ajax.url(url).load();
+            table.ajax.url(url).load();
         }
     }   
 
@@ -161,10 +167,29 @@
                 removeFiltersButton.addEventListener('click', function(e) {
                     e.preventDefault();
 
-                    document.dispatchEvent(new Event('backpack:filters:cleared', {
-                            detail: {
-                                navbar: navbar,
-                                filters: filters,
+                    // Find the closest datatable to this navbar
+                    let closestTable = null;
+                    let navbarParent = navbar.parentElement;
+                    
+                    // Look for the datatable in the DOM
+                    if (navbarParent) {
+                        // First try to find a table with an ID that starts with the specified prefix
+                        closestTable = navbarParent.querySelector('table[id^="datatable"]');
+                        
+                        // If not found, try to find any table that might be the datatable
+                        if (!closestTable) {
+                            closestTable = navbarParent.querySelector('table.dataTable');
+                        }
+                    }
+                    
+                    // Get the table ID if found, otherwise use the default 'crudTable'
+                    let tableId = closestTable ? closestTable.id : 'crudTable';
+                    
+                    document.dispatchEvent(new CustomEvent('backpack:filters:cleared', {
+                        detail: {
+                            navbar: navbar,
+                            filters: filters,
+                            tableId: tableId
                         }
                     }));
 
@@ -195,4 +220,4 @@
         });
     });
     </script>
-@endpush 
+@endpush
