@@ -157,7 +157,7 @@
         };
     
         // Add the function to the draw event queue
-        window.crud.addFunctionToDataTablesDrawEventQueue('moveExportButtonsToTopRight');
+        window.crud.defaultTableConfig.addFunctionToDataTablesDrawEventQueue('moveExportButtonsToTopRight');
     </script>
     @push('after_styles')
         @basset('https://cdn.datatables.net/buttons/3.2.0/css/buttons.bootstrap5.min.css')

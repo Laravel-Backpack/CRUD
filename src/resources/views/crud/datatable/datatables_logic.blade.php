@@ -506,8 +506,7 @@ function setupTableUI(tableId, config) {
             }
         });
     }
-    console.log('config.exportButtons', config.exportButtons);
-    console.log(window.crud);
+
     if (config.exportButtons && window.crud.exportButtonsConfig) {
         // Add the export buttons to the DataTable configuration
         new $.fn.dataTable.Buttons(window.crud.tables[tableId], {
@@ -518,7 +517,15 @@ function setupTableUI(tableId, config) {
             window.crud.moveExportButtonsToTopRight(tableId);
         }
     }
-    console.log('Table initialized:', tableId);
+
+    // dispatch an event that the table has been initialized
+    const event = new CustomEvent('backpack:table:initialized', {
+        detail: {
+            tableId: tableId,
+            config: config
+        }
+    });
+    window.dispatchEvent(event);
     // move the bottom buttons before pagination
     $("#bottom_buttons").insertBefore($(`#${tableId}_wrapper .row:last-child`));
 }
@@ -547,29 +554,21 @@ function setupTableEvents(tableId, config) {
 
     // on DataTable draw event run all functions in the queue
     $(`#${tableId}`).on('draw.dt', function() {
-        $(`#${tableId} tbody tr td[colspan]`).attr('colspan', '1');
-
         // in datatables 2.0.3 the implementation was changed to use `replaceChildren`, for that reason scripts 
-         // that came with the response are no longer executed, like the delete button script or any other ajax 
-         // button created by the developer. For that reason, we move them to the end of the body
-         // ensuring they are re-evaluated on each draw event.
-         document.getElementById(tableId).querySelectorAll('script').forEach(function(script) {
+        // that came with the response are no longer executed, like the delete button script or any other ajax 
+        // button created by the developer. For that reason, we move them to the end of the body
+        // ensuring they are re-evaluated on each draw event.
+        document.getElementById(tableId).querySelectorAll('script').forEach(function(script) {
             const newScript = document.createElement('script');
             newScript.text = script.text;
             document.body.appendChild(newScript);
         });
 
-        // Run global functions
-        window.crud.defaultTableConfig.functionsToRunOnDataTablesDrawEvent.forEach(function(functionName) {
-            console.log('Running function:', functionName);
-            config.executeFunctionByName(functionName);
-        });
-
-        // Run table-specific functions
+        // Run table-specific functions and pass the tableId
+        // to the function
         if (config.functionsToRunOnDataTablesDrawEvent && config.functionsToRunOnDataTablesDrawEvent.length) {
             config.functionsToRunOnDataTablesDrawEvent.forEach(function(functionName) {
-                console.log('Running table specific function:', functionName);
-                config.executeFunctionByName(functionName);
+                config.executeFunctionByName(functionName, [tableId]);
             });
         }
         
@@ -658,11 +657,18 @@ document.addEventListener('backpack:filters:cleared', function (event) {
 });
 
 document.addEventListener('backpack:filter:changed', function (event) {
+    const tableId = event.detail.componentId || '';
+    if (!tableId) {
+        console.log('No componentId provided in event detail. Exiting.');
+        return;
+    }
+
+    if (!window.crud.tableConfigs[tableId]) return;
+
     let filterName = event.detail.filterName;
     let filterValue = event.detail.filterValue;
     let shouldUpdateUrl = event.detail.shouldUpdateUrl;
     let debounce = event.detail.debounce;
-    let tableId = event.detail.tableId || 'crudTable';
     
     updateDatatablesOnFilterChange(filterName, filterValue, filterValue || shouldUpdateUrl, debounce, tableId);
 });

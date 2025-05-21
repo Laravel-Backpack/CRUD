@@ -27,7 +27,7 @@
 
 {{-- Backpack List Filters --}}
 @if ($crud->filtersEnabled())
-  @include('crud::inc.filters_navbar')
+  @include('crud::inc.filters_navbar', ['componentId' => $tableId])
 @endif
 <div class="{{ backpack_theme_config('classes.tableWrapper') }}">
 <table

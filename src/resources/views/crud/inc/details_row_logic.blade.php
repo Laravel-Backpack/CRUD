@@ -1,9 +1,7 @@
- @if ($crud->get('list.detailsRow'))
+@if($crud->get('list.detailsRow'))
     <script>
     // Define the function in the global scope
-    window.registerDetailsRowButtonAction = function(tableId = 'crudTable') {
-        console.log(`registerDetailsRowButtonAction called for table: ${tableId}`);
-        
+    window.registerDetailsRowButtonAction = function(tableId = 'crudTable') {        
         // Get the target table element
         const tableElement = document.getElementById(tableId);
         if (!tableElement) {
@@ -13,8 +11,7 @@
         
         // Check if this table has already been initialized for details row
         if (tableElement.getAttribute('data-details-row-initialized') === 'true') {
-            console.log(`Table already initialized for details row: ${tableId}`);
-            return; // Skip already initialized tables
+            return;
         }
         
         // Mark this table as initialized
@@ -25,45 +22,62 @@
         detailsButtons.forEach(button => {
             const parentCell = button.closest('td');
             if (parentCell) {
-                // Ensure the cell has the correct classes
-                parentCell.classList.add('details-control', 'text-center', 'cursor-pointer');
+                // Ensure the cell has the correct classes but DO NOT add cursor-pointer to the cell
+                // as we only want the button to be clickable
+                parentCell.classList.add('details-control');
             }
         });
         
-        // Add event listener for opening and closing details
-        const detailsControls = tableElement.querySelectorAll('tbody td.details-control');
-        detailsControls.forEach(cell => {
-            // Remove any existing event listeners by cloning and replacing the element
-            const newCell = cell.cloneNode(true);
-            cell.parentNode.replaceChild(newCell, cell);
+        // Now add event listeners ONLY to the buttons
+        const buttons = tableElement.querySelectorAll('tbody td .details-row-button');
+        buttons.forEach(button => {
+            // Remove any existing event listeners by cloning and replacing each button
+            const newButton = button.cloneNode(true);
+            if (button.parentNode) {
+                button.parentNode.replaceChild(newButton, button);
+            }
             
-            newCell.addEventListener('click', function(e) {
+            // Add the event listener to the new button
+            newButton.addEventListener('click', function(e) {
+                e.preventDefault();
                 e.stopPropagation();
                 
                 const tr = this.closest('tr');
-                const btn = this.querySelector('.details-row-button');
+                // Ensure the tr reference is valid
+                if (!tr) {
+                    console.error('Could not find parent row');
+                    return;
+                }
+                
+                // Make sure we have access to the table
                 const table = window.crud.tables[tableId];
+                if (!table) {
+                    console.error(`Table ${tableId} not found in crud.tables`);
+                    return;
+                }
+                
+                // Use DataTables API to get the row
                 const row = table.row(tr);
                 
                 if (row.child.isShown()) {
                     // This row is already open - close it
-                    btn.classList.remove('la-minus-square-o');
-                    btn.classList.add('la-plus-square-o');
+                    this.classList.remove('la-minus-square-o');
+                    this.classList.add('la-plus-square-o');
                     
-                    const slider = row.child().find('div.table_row_slider');
-                    slider.slideUp(function() {
+                    // Hide with animation
+                    $(row.child()).find('div.table_row_slider').slideUp(function() {
                         row.child.hide();
                         tr.classList.remove('shown');
                     });
                 } else {
                     // Open this row
-                    btn.classList.remove('la-plus-square-o');
-                    btn.classList.add('la-minus-square-o');
+                    this.classList.remove('la-plus-square-o');
+                    this.classList.add('la-minus-square-o');
                     
                     // Get the details with fetch API
-                    const entryId = btn.getAttribute('data-entry-id');
+                    const entryId = this.getAttribute('data-entry-id');
                     const url = '{{ url($crud->route) }}/' + entryId + '/details';
-                    
+                                        
                     fetch(url)
                         .then(response => {
                             if (!response.ok) {
@@ -71,21 +85,21 @@
                             }
                             return response.text();
                         })
-                        .then(data => {
-                            row.child("<div class='table_row_slider'>" + data + "</div>", 'no-padding').show();
+                        .then(data => {                            
+                            // Use DataTables API properly
+                            row.child(`<div class='table_row_slider'>${data}</div>`, 'details-row').show();
                             tr.classList.add('shown');
                             
-                            // We still need to use jQuery for the slideDown animation as it's more complex to implement in vanilla JS
-                            const slider = row.child().find('div.table_row_slider');
-                            slider.slideDown();
+                            // Ensure the new content is correctly shown
+                            $(row.child()).find('div.table_row_slider').slideDown();
                         })
                         .catch(error => {
-                            row.child("<div class='table_row_slider'>{{ trans('backpack::crud.details_row_loading_error') }}</div>").show();
+                            console.error('Error fetching details:', error);
+                            
+                            row.child(`<div class='table_row_slider'>{{ trans('backpack::crud.details_row_loading_error') }}</div>`).show();
                             tr.classList.add('shown');
                             
-                            const slider = row.child().find('div.table_row_slider');
-                            slider.slideDown();
-                            console.error('Error fetching details:', error);
+                            $(row.child()).find('div.table_row_slider').slideDown();
                         });
                 }
             });
@@ -94,5 +108,23 @@
     
     // Register the function to be called for each table
     window.crud.defaultTableConfig.addFunctionToDataTablesDrawEventQueue('registerDetailsRowButtonAction');
-  </script>
+    
+    // Also run immediately for any tables already in the DOM
+    document.addEventListener('DOMContentLoaded', function() {
+        if (typeof window.crud !== 'undefined') {
+            if (window.crud.tables) {
+                // For multiple tables
+                Object.keys(window.crud.tables).forEach(tableId => {
+                    window.registerDetailsRowButtonAction(tableId);
+                });
+            }
+        }
+    });
+    </script>
+    
+    <style>
+    .details-row-button {
+        cursor: pointer;
+    }
+    </style>
 @endif

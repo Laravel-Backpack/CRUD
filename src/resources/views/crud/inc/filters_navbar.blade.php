@@ -1,4 +1,4 @@
-<nav class="navbar navbar-expand-lg navbar-filters mb-0 py-0 shadow-none">
+<nav class="navbar navbar-expand-lg navbar-filters mb-0 py-0 shadow-none" componentId="{{ $componentId ?? '' }}">
     {{-- Brand and toggle get grouped for better mobile display --}}
     <a class="nav-item d-none d-lg-block my-auto"><span class="la la-filter"></span></a>
     <button class="navbar-toggler ms-3"

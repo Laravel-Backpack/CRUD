@@ -24,11 +24,7 @@ class Datatable extends Component
 
         $this->crud ??= CrudManager::crudFromController($controller);
 
-        $controllerPart = str_replace('\\', '_', $this->controller);
-        $typePart = $this->type ?? 'default';
-        $namePart = $this->name ?? 'default';
-        $uniqueId = md5($controllerPart.'_'.$typePart.'_'.$namePart);
-        $this->tableId = 'crudTable_'.$uniqueId;
+        $this->tableId = $this->generateTableId();
 
         if ($this->configure) {
             // Apply the configuration
@@ -44,6 +40,15 @@ class Datatable extends Component
 
         // Reset the active controller
         CrudManager::unsetActiveController($controller);
+    }
+
+    private function generateTableId(): string
+    {
+        $controllerPart = str_replace('\\', '_', $this->controller);
+        $typePart = $this->type ?? 'default';
+        $namePart = $this->name ?? 'default';
+        $uniqueId = md5($controllerPart.'_'.$typePart.'_'.$namePart);
+        return 'crudTable_'.$uniqueId;
     }
 
     /**
