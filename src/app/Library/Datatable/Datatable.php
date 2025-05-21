@@ -48,6 +48,7 @@ class Datatable extends Component
         $typePart = $this->type ?? 'default';
         $namePart = $this->name ?? 'default';
         $uniqueId = md5($controllerPart.'_'.$typePart.'_'.$namePart);
+
         return 'crudTable_'.$uniqueId;
     }
 
