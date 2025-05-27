@@ -70,6 +70,8 @@ class Datatable extends Component
             $parentController = $parentCrud->controller;
             $cacheKey = 'datatable_config_'.$this->tableId;
 
+            Cache::forget($cacheKey);
+
             // Store the controller class, parent entry, element type and name
             Cache::put($cacheKey, [
                 'controller' => $controllerClass,
@@ -83,7 +85,7 @@ class Datatable extends Component
         }
     }
 
-    public static function applyCachedConfig($crud)
+    public static function applyCachedConfigurationClosure($crud)
     {
         $tableId = request('datatable_id');
 
@@ -103,13 +105,6 @@ class Datatable extends Component
         }
 
         try {
-            \Log::debug('Found matching configuration by table ID', [
-                'controller' => $cachedData['controller'],
-                'element_type' => $cachedData['element_type'],
-                'element_name' => $cachedData['element_name'],
-                'table_id' => $tableId,
-            ]);
-
             // Get the parent crud instance
             $parentCrud = CrudManager::crudFromController($cachedData['parentController'], 'show');
             $entry = $cachedData['parent_entry'];
@@ -118,24 +113,7 @@ class Datatable extends Component
             $elementType = $cachedData['element_type'];
             $elementName = $cachedData['element_name'];
 
-            \Log::debug('Element type and name', [
-                'element_type' => $elementType,
-                'element_name' => $elementName,
-            ]);
-
-            if ($elementType === 'column') {
-                $column = $parentCrud->columns()[$elementName] ?? null;
-                if ($column && isset($column['configure'])) {
-                    self::applyColumnDatatableConfig($parentCrud, $crud, $elementName, $entry);
-                    // clear the cache after applying the configuration
-                    Cache::forget($cacheKey);
-
-                    return true;
-                }
-                \Log::debug('Column not found or no configure closure defined');
-
-                return false;
-            } elseif ($elementType === 'widget') {
+            if ($elementType === 'widget') {
                 $widgets = $parentCrud->getOperationSetting('widgets') ?? [];
                 foreach ($widgets as $widget) {
                     if ($widget['type'] === 'datatable' &&
@@ -148,7 +126,6 @@ class Datatable extends Component
                         return true;
                     }
                 }
-                \Log::debug('Widget not found or no configure closure defined');
 
                 return false;
             }
@@ -156,20 +133,6 @@ class Datatable extends Component
             \Log::error('Error applying cached datatable config: '.$e->getMessage(), [
                 'exception' => $e,
             ]);
-        }
-
-        \Log::debug('No matching configuration found');
-
-        return false;
-    }
-
-    private static function applyColumnDatatableConfig($parentCrud, $crud, $elementName, $entry)
-    {
-        $column = $parentCrud->columns()[$elementName];
-        if (isset($column['configure'])) {
-            ($column['configure'])($crud, $entry);
-
-            return true;
         }
 
         return false;

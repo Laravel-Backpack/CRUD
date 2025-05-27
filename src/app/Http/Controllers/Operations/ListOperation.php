@@ -76,9 +76,9 @@ trait ListOperation
     {
         $this->crud->hasAccessOrFail('list');
 
-        // Check if this is a request from a datatable embedded in a parent view
-        // If so, apply the cached configuration
-        \Backpack\CRUD\app\Library\Datatable\Datatable::applyCachedConfig($this->crud);
+        // If there's a config closure in the cache for this CRUD, run that configuration closure.
+        // This is done in order to allow the developer to configure the datatable component.
+        \Backpack\CRUD\app\Library\Datatable\Datatable::applyCachedConfigurationClosure($this->crud);
 
         $this->crud->applyUnappliedFilters();
 

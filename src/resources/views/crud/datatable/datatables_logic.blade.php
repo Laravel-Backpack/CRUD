@@ -527,7 +527,7 @@ function setupTableUI(tableId, config) {
     });
     window.dispatchEvent(event);
     // move the bottom buttons before pagination
-    $("#bottom_buttons").insertBefore($(`#${tableId}_wrapper .row:last-child`));
+    $(`#bottom_buttons_${tableId}`).insertBefore($(`#${tableId}_wrapper .row:last-child`));
 }
 
 // Function to set up table event handlers

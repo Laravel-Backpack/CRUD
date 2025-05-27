@@ -695,6 +695,14 @@ table.dataTable tr th:first-child, table.dataTable tr td:first-child, table.data
     display: none;
 }
 
+div.dtr-modal div.dtr-modal-content {
+    padding: 0;
+}
+
+.details-row-button {
+    cursor: pointer;
+}
+
 .crud-table.dtr-none > tbody > tr > td > div.dtr-control:before,
 .crud-table.dtr-none > tbody > tr > td > div.dtr-control:before {
     background-color: transparent;

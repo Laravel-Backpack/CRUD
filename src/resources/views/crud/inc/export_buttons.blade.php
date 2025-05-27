@@ -45,7 +45,8 @@
                         exportOptions: {
                             columns: function ( idx, data, node ) {
                                 // Use the current table from the crud.table object
-                                var $column = this.column(idx);
+                                var dt = $(node).closest('table').DataTable();
+                                var $column = dt.column(idx);  
                                 return  ($column.visible() && $(node).attr('data-visible-in-export') != 'false') || $(node).attr('data-force-export') == 'true';
                             },
                             format: dataTablesExportFormat,
@@ -61,7 +62,8 @@
                         extend: 'excelHtml5',
                         exportOptions: {
                             columns: function ( idx, data, node ) {
-                                var $column = this.column(idx);
+                                var dt = $(node).closest('table').DataTable();
+                                var $column = dt.column(idx);  
                                 return  ($column.visible() && $(node).attr('data-visible-in-export') != 'false') || $(node).attr('data-force-export') == 'true';
                             },
                             format: dataTablesExportFormat,
@@ -77,7 +79,8 @@
                         extend: 'csvHtml5',
                         exportOptions: {
                             columns: function ( idx, data, node ) {
-                                var $column = this.column(idx);
+                                var dt = $(node).closest('table').DataTable();
+                                var $column = dt.column(idx);  
                                 return  ($column.visible() && $(node).attr('data-visible-in-export') != 'false') || $(node).attr('data-force-export') == 'true';
                             },
                             format: dataTablesExportFormat,
@@ -93,7 +96,8 @@
                         extend: 'pdfHtml5',
                         exportOptions: {
                             columns: function ( idx, data, node ) {
-                                var $column = this.column(idx);
+                                var dt = $(node).closest('table').DataTable();
+                                var $column = dt.column(idx);  
                                 return  ($column.visible() && $(node).attr('data-visible-in-export') != 'false') || $(node).attr('data-force-export') == 'true';
                             },
                             format: dataTablesExportFormat,
@@ -110,11 +114,13 @@
                         extend: 'print',
                         exportOptions: {
                             columns: function ( idx, data, node ) {
-                                var $column = this.column(idx);
+                                var dt = $(node).closest('table').DataTable();
+                                var $column = dt.column(idx);  
                                 return  ($column.visible() && $(node).attr('data-visible-in-export') != 'false') || $(node).attr('data-force-export') == 'true';
                             },
                             format: dataTablesExportFormat,
                         },
+                        orientation: 'landscape',
                         action: function(e, dt, button, config) {
                             window.crud.responsiveToggle(dt);
                             $.fn.DataTable.ext.buttons.print.action.call(this, e, dt, button, config);
@@ -149,7 +155,7 @@
                 }
             });
             
-            $(`#${tableId}_wrapper .dt-buttons`).appendTo($('#datatable_button_stack'));
+            $(`#${tableId}_wrapper .dt-buttons`).appendTo($('.datatable_button_stack'));
             $('.dt-buttons').addClass('d-xs-block')
                             .addClass('d-sm-inline-block')
                             .addClass('d-md-inline-block')

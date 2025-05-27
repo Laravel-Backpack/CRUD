@@ -127,9 +127,9 @@
 </div>
 
 @if ( $crud->buttons()->where('stack', 'bottom')->count() )
-    <div id="bottom_buttons" class="d-print-none text-sm-left">
+    <div id="bottom_buttons_{{$tableId}}" class="bottom_buttons d-print-none text-sm-left">
         @include('crud::inc.button_stack', ['stack' => 'bottom'])
-        <div id="datatable_button_stack" class="float-right float-end text-right hidden-xs"></div>
+        <div id="datatable_button_stack_{{$tableId}}" class="datatable_button_stack float-right float-end text-right hidden-xs"></div>
     </div>
 @endif
 

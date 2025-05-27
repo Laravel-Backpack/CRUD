@@ -153,7 +153,7 @@ window.crud.addBulkActionMainCheckboxesFunctionality = function(tableId = 'crudT
 };
 
 if (typeof window.crud.enableOrDisableBulkButtons !== 'function') {
-    window.crud.enableOrDisableBulkButtons = function(tableId = 'crudTable') {        
+    window.crud.enableOrDisableBulkButtons = function(tableId) {        
         // Get the correct table configuration
         const tableConfig = window.crud.tableConfigs[tableId] || window.crud;
         
@@ -175,7 +175,8 @@ if (typeof window.crud.enableOrDisableBulkButtons !== 'function') {
                           tableElement.getAttribute('data-has-bulk-actions') === '1';
         
         // Find all bulk buttons
-        const bulkButtons = document.querySelectorAll('.bulk-button');
+        const tableWrapper = document.getElementById(`${tableId}_wrapper`);
+        const bulkButtons = tableWrapper.querySelectorAll('.bulk-button');
         
         // Update all buttons based on selection state
         bulkButtons.forEach(btn => {

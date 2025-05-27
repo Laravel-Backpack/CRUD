@@ -121,10 +121,4 @@
         }
     });
     </script>
-    
-    <style>
-    .details-row-button {
-        cursor: pointer;
-    }
-    </style>
 @endif
