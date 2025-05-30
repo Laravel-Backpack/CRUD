@@ -35,7 +35,9 @@ use Exception;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
+use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Route;
 
 class CrudPanel
 {
@@ -64,31 +66,45 @@ class CrudPanel
 
     protected $request;
 
+    public bool $initialized = false;
+
+    public $controller;
+
     // The following methods are used in CrudController or your EntityCrudController to manipulate the variables above.
 
     public function __construct()
     {
-        $this->setRequest();
+    }
 
-        if ($this->getCurrentOperation()) {
-            $this->setOperation($this->getCurrentOperation());
-        }
+    public function isInitialized()
+    {
+        return $this->initialized;
+    }
+
+    public function initialize(string $controller, $request): self
+    {
+        $this->setRequest($request);
+        $this->setController($controller);
+
+        return $this;
     }
 
     /**
      * Set the request instance for this CRUD.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param  Request  $request
      */
-    public function setRequest($request = null)
+    public function setRequest($request = null): self
     {
         $this->request = $request ?? \Request::instance();
+
+        return $this;
     }
 
     /**
      * Get the request instance for this CRUD.
      *
-     * @return \Illuminate\Http\Request
+     * @return Request
      */
     public function getRequest()
     {
@@ -140,6 +156,11 @@ class CrudPanel
     private function getSchema()
     {
         return $this->getModel()->getConnection()->getSchemaBuilder();
+    }
+
+    public function setController(string $crudController)
+    {
+        $this->controller = $crudController;
     }
 
     /**

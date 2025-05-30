@@ -14,7 +14,7 @@ class MyColumnTypeWithOtherConnection extends ColumnType
  * @covers Backpack\CRUD\app\Library\CrudPanel\Traits\Autoset
  * @covers Backpack\CRUD\app\Library\CrudPanel\CrudPanel
  */
-class CrudPanelAutoSetTest extends \Backpack\CRUD\Tests\config\CrudPanel\BaseDBCrudPanel
+class CrudPanelAutoSetTest extends \Backpack\CRUD\Tests\config\CrudPanel\BaseDBCrudPanelWithSingleton
 {
     private $expectedUnknownFieldType = 'text';
 
@@ -794,6 +794,8 @@ class CrudPanelAutoSetTest extends \Backpack\CRUD\Tests\config\CrudPanel\BaseDBC
 
     public function testGetFieldTypeFromDbColumnTypeUnknownField()
     {
+        $this->crudPanel->setModel(ColumnType::class);
+
         $fieldType = $this->invokeMethod($this->crudPanel, 'inferFieldTypeFromDbColumnType', ['someUnknowField1']);
 
         $this->assertEquals($this->expectedUnknownFieldType, $fieldType);
@@ -848,6 +850,7 @@ class CrudPanelAutoSetTest extends \Backpack\CRUD\Tests\config\CrudPanel\BaseDBC
 
     public function testSetDoctrineTypesMapping()
     {
+        $this->crudPanel->setModel(ColumnType::class);
         if (! method_exists($this->crudPanel->getModel()->getConnection(), 'getDoctrineConnection')) {
             $this->markTestSkipped('This test is only for Laravel 10, Laravel 11 does not have dbal as a dependency anymore');
         }
