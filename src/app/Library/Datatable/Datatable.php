@@ -121,12 +121,9 @@ class Datatable extends Component
                         (isset($widget['name']) && $widget['name'] === $elementName) &&
                         (isset($widget['configure']) && $widget['configure'] instanceof \Closure)) {
                         $widget['configure']($crud, $entry);
-                        Cache::forget($cacheKey);
-
                         return true;
                     }
                 }
-                Cache::forget($cacheKey);
 
                 return false;
             }
@@ -135,8 +132,6 @@ class Datatable extends Component
                 'exception' => $e,
             ]);
         }
-        Cache::forget($cacheKey);
-
         return false;
     }
 
