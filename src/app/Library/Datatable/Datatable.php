@@ -121,6 +121,7 @@ class Datatable extends Component
                         (isset($widget['name']) && $widget['name'] === $elementName) &&
                         (isset($widget['configure']) && $widget['configure'] instanceof \Closure)) {
                         $widget['configure']($crud, $entry);
+
                         return true;
                     }
                 }
@@ -132,6 +133,7 @@ class Datatable extends Component
                 'exception' => $e,
             ]);
         }
+
         return false;
     }
 
