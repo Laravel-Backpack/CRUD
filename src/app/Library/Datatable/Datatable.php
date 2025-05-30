@@ -120,12 +120,14 @@ class Datatable extends Component
                     if ($widget['type'] === 'datatable' &&
                         (isset($widget['name']) && $widget['name'] === $elementName) &&
                         (isset($widget['configure']) && $widget['configure'] instanceof \Closure)) {
-                            $widget['configure']($crud, $entry);
-                            Cache::forget($cacheKey);
-                            return true;
+                        $widget['configure']($crud, $entry);
+                        Cache::forget($cacheKey);
+
+                        return true;
                     }
                 }
                 Cache::forget($cacheKey);
+
                 return false;
             }
         } catch (\Exception $e) {
@@ -134,6 +136,7 @@ class Datatable extends Component
             ]);
         }
         Cache::forget($cacheKey);
+
         return false;
     }
 

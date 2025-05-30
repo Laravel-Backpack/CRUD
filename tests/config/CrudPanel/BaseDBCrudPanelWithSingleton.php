@@ -3,13 +3,9 @@
 namespace Backpack\CRUD\Tests\config\CrudPanel;
 
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanel;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Backpack\CRUD\app\Http\Controllers\CrudController;
-use Backpack\CRUD\CrudManager;
 
 abstract class BaseDBCrudPanelWithSingleton extends BaseDBCrudPanel
 {
-
     /**
      * Setup the test environment.
      *

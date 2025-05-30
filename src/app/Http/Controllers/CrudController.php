@@ -60,7 +60,7 @@ class CrudController extends Controller implements CrudControllerContract
 
             $this->setupCrudController($crudPanel->getCurrentOperation());
         }
-        
+
         CrudManager::setControllerCrud(get_class($this), $crudPanel);
     }
 

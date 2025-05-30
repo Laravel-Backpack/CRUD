@@ -3,7 +3,6 @@
 namespace Backpack\CRUD\Tests\Config\CrudPanel;
 
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanel;
-use Backpack\CRUD\CrudManager;
 use Backpack\CRUD\Tests\BaseTestClass;
 use Backpack\CRUD\Tests\config\Models\TestModel;
 

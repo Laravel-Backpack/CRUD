@@ -2,7 +2,6 @@
 
 namespace Backpack\CRUD\Tests\Unit\Http;
 
-use Backpack\CRUD\CrudManager;
 use Backpack\CRUD\Tests\BaseTestClass;
 
 /**
@@ -40,7 +39,7 @@ class CrudControllerTest extends BaseTestClass
         $this->assertEquals(route('users.index'), $crudPanel->getRoute());
     }
 
-    /** 
+    /**
      * @group fail
      */
     public function testCrudRequestUpdatesOnEachRequest()
@@ -53,7 +52,7 @@ class CrudControllerTest extends BaseTestClass
 
         // see if the first global request has been passed to the CRUD object
         $this->assertSame(app('crud')->getRequest(), $firstRequest);
-        
+
         // create a second request
         $secondRequest = request()->create('admin/users/1', 'PUT', ['name' => 'foo']);
         app()->handle($secondRequest);

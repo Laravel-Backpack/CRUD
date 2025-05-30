@@ -50,6 +50,7 @@ final class CrudPanelManager
             $controller->initializeCrudController($primaryControllerRequest, $crud);
             self::unsetActiveController();
             $crud = $this->cruds[$controller::class];
+
             return $this->cruds[$controller::class];
         }
 
@@ -129,6 +130,7 @@ final class CrudPanelManager
         }
 
         $this->cruds[CrudController::class] = new CrudPanel();
+
         return $this->cruds[CrudController::class];
     }
 
