@@ -3,6 +3,7 @@
 namespace Backpack\CRUD\app\Library\Datatable;
 
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanel;
+use Backpack\CRUD\app\Library\Widget;
 use Backpack\CRUD\CrudManager;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\View\Component;
@@ -22,20 +23,20 @@ class Datatable extends Component
         // Set active controller for proper context
         CrudManager::setActiveController($controller);
 
-        $this->crud ??= CrudManager::crudFromController($controller);
+        $this->crud ??= CrudManager::crudFromController($controller, 'list');
 
         $this->tableId = $this->generateTableId();
 
         if ($this->configure) {
             // Apply the configuration
-            ($this->configure)($this->crud);
+            ($this->configure)($this->crud, null);
 
             // Store the configuration in cache for Ajax requests
             $this->storeDatatableConfig();
         }
 
-        if (! $this->crud->getOperationSetting('datatablesUrl')) {
-            $this->crud->setOperationSetting('datatablesUrl', $this->crud->getRoute());
+        if (! $this->crud->has('list.datatablesUrl')) {
+            $this->crud->set('list.datatablesUrl', $this->crud->getRoute());
         }
 
         // Reset the active controller
@@ -81,7 +82,7 @@ class Datatable extends Component
                 'element_name' => $this->name,
             ], now()->addHours(1));
 
-            $this->crud->setOperationSetting('datatable_id', $this->tableId);
+            $this->crud->set('list.datatable_id', $this->tableId);
         }
     }
 
@@ -99,34 +100,32 @@ class Datatable extends Component
         $cachedData = Cache::get($cacheKey);
 
         if (! $cachedData) {
-            \Log::debug('No cached configuration found for the given datatable_id');
-
             return false;
         }
 
         try {
             // Get the parent crud instance
+            $parentCrud = CrudManager::crudFromController($cachedData['parentController']);
+            $parentCrud->initialized = false;
             $parentCrud = CrudManager::crudFromController($cachedData['parentController'], 'show');
             $entry = $cachedData['parent_entry'];
-
             // Get element type and name from cached data
             $elementType = $cachedData['element_type'];
             $elementName = $cachedData['element_name'];
 
             if ($elementType === 'widget') {
-                $widgets = $parentCrud->getOperationSetting('widgets') ?? [];
+                $widgets = Widget::collection();
+
                 foreach ($widgets as $widget) {
                     if ($widget['type'] === 'datatable' &&
                         (isset($widget['name']) && $widget['name'] === $elementName) &&
-                        isset($widget['configure'])) {
-                        self::applyWidgetDatatableConfig($parentCrud, $crud, $elementName, $entry);
-                        // clear the cache after applying the configuration
-                        Cache::forget($cacheKey);
-
-                        return true;
+                        (isset($widget['configure']) && $widget['configure'] instanceof \Closure)) {
+                            $widget['configure']($crud, $entry);
+                            Cache::forget($cacheKey);
+                            return true;
                     }
                 }
-
+                Cache::forget($cacheKey);
                 return false;
             }
         } catch (\Exception $e) {
@@ -134,23 +133,7 @@ class Datatable extends Component
                 'exception' => $e,
             ]);
         }
-
-        return false;
-    }
-
-    private static function applyWidgetDatatableConfig($parentCrud, $crud, $elementName, $entry)
-    {
-        $widgets = $parentCrud->getOperationSetting('widgets') ?? [];
-        foreach ($widgets as $widget) {
-            if ($widget['type'] === 'datatable' &&
-                (isset($widget['name']) && $widget['name'] === $elementName) &&
-                isset($widget['configure'])) {
-                ($widget['configure'])($crud, $entry);
-
-                return true;
-            }
-        }
-
+        Cache::forget($cacheKey);
         return false;
     }
 

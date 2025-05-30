@@ -66,7 +66,7 @@ class CrudPanel
 
     protected $request;
 
-    public $initialized = false;
+    public bool $initialized = false;
 
     public $controller;
 

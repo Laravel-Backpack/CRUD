@@ -3,6 +3,7 @@
 namespace Backpack\CRUD;
 
 use Backpack\CRUD\app\Http\Controllers\Contracts\CrudControllerContract;
+use Backpack\CRUD\app\Http\Controllers\CrudController;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanel;
 use Illuminate\Support\Facades\Facade;
 
@@ -12,19 +13,7 @@ final class CrudPanelManager
 
     private ?string $currentlyActiveCrudController = null;
 
-    private CrudPanel $crudPanelInstance;
-
     private $requestController = null;
-
-    public function __construct()
-    {
-        $this->crudPanelInstance = new CrudPanel();
-    }
-
-    public function getCrudPanelInstance(): CrudPanel
-    {
-        return $this->crudPanelInstance;
-    }
 
     public function crud(CrudControllerContract $controller): CrudPanel
     {
@@ -45,7 +34,9 @@ final class CrudPanelManager
 
     public function crudFromController(string $controller, ?string $operation = null): CrudPanel
     {
-        $controller = new $controller();
+        $controller = $this->getActiveController() ?? $controller;
+
+        $controller = is_string($controller) ? app($controller) : $controller;
 
         $crud = $this->crud($controller);
 
@@ -55,10 +46,14 @@ final class CrudPanelManager
 
         $primaryControllerRequest = $this->cruds[array_key_first($this->cruds)]->getRequest();
         if (! $crud->isInitialized()) {
+            self::setActiveController($controller::class);
             $controller->initializeCrudController($primaryControllerRequest, $crud);
+            self::unsetActiveController();
+            $crud = $this->cruds[$controller::class];
+            return $this->cruds[$controller::class];
         }
 
-        return $crud;
+        return $this->cruds[$controller::class];
     }
 
     public function setControllerCrud(string $controller, CrudPanel $crud): void
@@ -101,7 +96,7 @@ final class CrudPanelManager
         $this->currentlyActiveCrudController = null;
     }
 
-    public function getCrudPanel(): CrudPanel
+    public function getCrudPanel()
     {
         if ($this->getActiveController()) {
             return $this->crudFromController($this->getActiveController());
@@ -133,7 +128,8 @@ final class CrudPanelManager
             return $crudPanel;
         }
 
-        return self::getCrudPanelInstance();
+        $this->cruds[CrudController::class] = new CrudPanel();
+        return $this->cruds[CrudController::class];
     }
 
     public function getCruds(): array

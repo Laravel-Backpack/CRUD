@@ -11,8 +11,6 @@ use Backpack\CRUD\Tests\BaseTestClass;
  */
 class CrudControllerTest extends BaseTestClass
 {
-    private $crudPanel;
-
     /**
      * Define environment setup.
      *
@@ -23,24 +21,28 @@ class CrudControllerTest extends BaseTestClass
     {
         parent::defineEnvironment($app);
 
-        $this->crudPanel = CrudManager::getCrudPanelInstance();
-        $this->crudPanel->setRequest();
+        //$this->crudPanel = app('crud');
     }
 
     public function testSetRouteName()
     {
-        $this->crudPanel->setRouteName('users');
+        $crudPanel = app('crud');
+        $crudPanel->setRouteName('users');
 
-        $this->assertEquals(url('admin/users'), $this->crudPanel->getRoute());
+        $this->assertEquals(url('admin/users'), $crudPanel->getRoute());
     }
 
     public function testSetRoute()
     {
-        $this->crudPanel->setRoute(backpack_url('users'));
-        $this->crudPanel->setEntityNameStrings('singular', 'plural');
-        $this->assertEquals(route('users.index'), $this->crudPanel->getRoute());
+        $crudPanel = app('crud');
+        $crudPanel->setRoute(backpack_url('users'));
+        $crudPanel->setEntityNameStrings('singular', 'plural');
+        $this->assertEquals(route('users.index'), $crudPanel->getRoute());
     }
 
+    /** 
+     * @group fail
+     */
     public function testCrudRequestUpdatesOnEachRequest()
     {
         // create a first request
@@ -51,7 +53,7 @@ class CrudControllerTest extends BaseTestClass
 
         // see if the first global request has been passed to the CRUD object
         $this->assertSame(app('crud')->getRequest(), $firstRequest);
-
+        
         // create a second request
         $secondRequest = request()->create('admin/users/1', 'PUT', ['name' => 'foo']);
         app()->handle($secondRequest);

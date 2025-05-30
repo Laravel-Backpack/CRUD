@@ -25,7 +25,7 @@ abstract class BaseCrudPanel extends BaseTestClass
     {
         parent::setUp();
 
-        $this->crudPanel = CrudManager::getCrudPanelInstance();
+        $this->crudPanel = app('crud');
         $this->crudPanel->setModel(TestModel::class);
         $this->crudPanel->setRequest();
         $this->model = TestModel::class;
@@ -50,6 +50,10 @@ abstract class BaseCrudPanel extends BaseTestClass
                     return $next($request);
                 }
             };
+        });
+
+        $app->scoped('crud', function () {
+            return new CrudPanel();
         });
     }
 }

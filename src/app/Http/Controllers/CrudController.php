@@ -53,27 +53,26 @@ class CrudController extends Controller implements CrudControllerContract
     {
         $crudPanel ??= CrudManager::crud($this);
 
-        $crudPanel->initialize(get_class($this), $request);
+        $crudPanel = $crudPanel->initialize(get_class($this), $request);
 
         if (! $crudPanel->isInitialized()) {
             $crudPanel->initialized = true;
-            $this->setupCrudController();
-        }
 
+            $this->setupCrudController($crudPanel->getCurrentOperation());
+        }
+        
         CrudManager::setControllerCrud(get_class($this), $crudPanel);
     }
 
-    private function setupCrudController()
+    private function setupCrudController($operation = null)
     {
         LifecycleHook::trigger('crud:before_setup_defaults', [$this]);
         $this->setupDefaults();
         LifecycleHook::trigger('crud:after_setup_defaults', [$this]);
-
         LifecycleHook::trigger('crud:before_setup', [$this]);
         $this->setup();
         LifecycleHook::trigger('crud:after_setup', [$this]);
-
-        $this->setupConfigurationForCurrentOperation();
+        $this->setupConfigurationForCurrentOperation($operation);
     }
 
     /**
