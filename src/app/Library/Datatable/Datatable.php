@@ -15,24 +15,23 @@ class Datatable extends Component
     public function __construct(
         private string $controller,
         private ?CrudPanel $crud = null,
-        private bool $updatesUrl = true,
-        private ?\Closure $configure = null,
-        private ?string $type = null,
-        private ?string $name = null
+        private bool $modifiesUrl = false,
+        private ?\Closure $setup = null,
+        private ?string $name = null,
     ) {
         // Set active controller for proper context
         CrudManager::setActiveController($controller);
 
-        $this->crud ??= CrudManager::crudFromController($controller, 'list');
+        $this->crud ??= CrudManager::setupCrudPanel($controller, 'list');
 
         $this->tableId = $this->generateTableId();
 
-        if ($this->configure) {
+        if ($this->setup) {
             // Apply the configuration
-            ($this->configure)($this->crud, null);
+            ($this->setup)($this->crud, $this->getParentCrudEntry());
 
             // Store the configuration in cache for Ajax requests
-            $this->storeDatatableConfig();
+            $this->cacheSetupClosure();
         }
 
         if (! $this->crud->has('list.datatablesUrl')) {
@@ -43,12 +42,27 @@ class Datatable extends Component
         CrudManager::unsetActiveController($controller);
     }
 
+    private function getParentCrudEntry()
+    {
+        $cruds = CrudManager::getCrudPanels();
+        $parentCrud = reset($cruds);
+
+        if ($parentCrud && $parentCrud->getCurrentEntry()) {
+            CrudManager::storeInitializedOperation(
+                $parentCrud->controller,
+                $parentCrud->getCurrentOperation()
+            );
+            return $parentCrud->getCurrentEntry();
+        }
+
+        return null;
+    }
+
     private function generateTableId(): string
     {
         $controllerPart = str_replace('\\', '_', $this->controller);
-        $typePart = $this->type ?? 'default';
         $namePart = $this->name ?? 'default';
-        $uniqueId = md5($controllerPart.'_'.$typePart.'_'.$namePart);
+        $uniqueId = md5($controllerPart.'_'.$namePart);
 
         return 'crudTable_'.$uniqueId;
     }
@@ -56,14 +70,14 @@ class Datatable extends Component
     /**
      * Store the datatable configuration in the cache for later use in Ajax requests.
      */
-    private function storeDatatableConfig()
+    private function cacheSetupClosure()
     {
-        if (! $this->configure) {
+        if (! $this->setup) {
             return;
         }
 
         $controllerClass = $this->controller;
-        $cruds = CrudManager::getCruds();
+        $cruds = CrudManager::getCrudPanels();
         $parentCrud = reset($cruds);
 
         if ($parentCrud && $parentCrud->getCurrentEntry()) {
@@ -78,15 +92,15 @@ class Datatable extends Component
                 'controller' => $controllerClass,
                 'parentController' => $parentController,
                 'parent_entry' => $parentEntry,
-                'element_type' => $this->type,
                 'element_name' => $this->name,
+                'operations' => CrudManager::getInitializedOperations($parentController),
             ], now()->addHours(1));
 
             $this->crud->set('list.datatable_id', $this->tableId);
         }
     }
 
-    public static function applyCachedConfigurationClosure($crud)
+    public static function applyCachedSetupClosure($crud)
     {
         $tableId = request('datatable_id');
 
@@ -105,43 +119,45 @@ class Datatable extends Component
 
         try {
             // Get the parent crud instance
-            $parentCrud = CrudManager::crudFromController($cachedData['parentController']);
-            $parentCrud->initialized = false;
-            $parentCrud = CrudManager::crudFromController($cachedData['parentController'], 'show');
+            self::initializeOperations($cachedData['parentController'], $cachedData['operations']);
+
             $entry = $cachedData['parent_entry'];
-            // Get element type and name from cached data
-            $elementType = $cachedData['element_type'];
             $elementName = $cachedData['element_name'];
-
-            if ($elementType === 'widget') {
-                $widgets = Widget::collection();
-
-                foreach ($widgets as $widget) {
-                    if ($widget['type'] === 'datatable' &&
-                        (isset($widget['name']) && $widget['name'] === $elementName) &&
-                        (isset($widget['configure']) && $widget['configure'] instanceof \Closure)) {
-                        $widget['configure']($crud, $entry);
-
-                        return true;
-                    }
+            $widgets = Widget::collection();
+            foreach ($widgets as $widget) {
+                if ($widget['type'] === 'datatable' &&
+                    (isset($widget['name']) && $widget['name'] === $elementName) &&
+                    (isset($widget['setup']) && $widget['setup'] instanceof \Closure)) {
+                    $widget['setup']($crud, $entry);
+                    return true;
                 }
-
-                return false;
             }
+
+            return false;
+            
         } catch (\Exception $e) {
             \Log::error('Error applying cached datatable config: '.$e->getMessage(), [
                 'exception' => $e,
             ]);
         }
-
         return false;
+    }
+
+    private static function initializeOperations(string $parentController, $operations)
+    {
+        $parentCrud = CrudManager::setupCrudPanel($parentController);
+
+        foreach($operations as $operation) {
+            $parentCrud->initialized = false;
+            CrudManager::setupCrudPanel($parentController, $operation);
+        }
     }
 
     public function render()
     {
         return view('crud::datatable.datatable', [
             'crud' => $this->crud,
-            'updatesUrl' => $this->updatesUrl,
+            'modifiesUrl' => $this->modifiesUrl,
             'tableId' => $this->tableId,
         ]);
     }

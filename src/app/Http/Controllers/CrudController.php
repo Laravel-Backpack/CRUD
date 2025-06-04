@@ -35,33 +35,38 @@ class CrudController extends Controller implements CrudControllerContract
         // It's done inside a middleware closure in order to have
         // the complete request inside the CrudPanel object.
         $this->middleware(function ($request, $next) {
-            if (! CrudManager::hasCrudController(get_class($this))) {
-                $this->initializeCrudController($request);
+            if (! CrudManager::hasCrudPanel(get_class($this))) {
+                $this->initializeCrudPanel($request);
 
                 return $next($request);
             }
 
             $this->setupCrudController();
 
-            CrudManager::crud($this)->setRequest($request);
+            CrudManager::getCrudPanel($this)->setRequest($request);
 
             return $next($request);
         });
     }
 
-    public function initializeCrudController($request, $crudPanel = null): void
+    public function initializeCrudPanel($request, $crudPanel = null): void
     {
-        $crudPanel ??= CrudManager::crud($this);
+        $crudPanel ??= CrudManager::getCrudPanel($this);
 
         $crudPanel = $crudPanel->initialize(get_class($this), $request);
 
+        CrudManager::storeInitializedOperation(
+            get_class($this),
+            $crudPanel->getCurrentOperation()
+        );
+        
         if (! $crudPanel->isInitialized()) {
             $crudPanel->initialized = true;
 
             $this->setupCrudController($crudPanel->getCurrentOperation());
         }
 
-        CrudManager::setControllerCrud(get_class($this), $crudPanel);
+        CrudManager::storeCrudPanel(get_class($this), $crudPanel);
     }
 
     private function setupCrudController($operation = null)
@@ -157,7 +162,7 @@ class CrudController extends Controller implements CrudControllerContract
     public function __get($name)
     {
         if ($name === 'crud') {
-            return CrudManager::getControllerCrud(get_class($this));
+            return CrudManager::getActiveCrudPanel(get_class($this));
         }
 
         return $this->{$name};

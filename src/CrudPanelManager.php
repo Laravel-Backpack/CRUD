@@ -11,15 +11,13 @@ final class CrudPanelManager
 {
     private array $cruds = [];
 
+    private array $initializedOperations = [];
+
     private ?string $currentlyActiveCrudController = null;
 
-    private $requestController = null;
-
-    public function crud(CrudControllerContract $controller): CrudPanel
+    public function getCrudPanel(CrudControllerContract|string $controller): CrudPanel
     {
-        $controllerClass = get_class($controller);
-
-        $this->requestController = $controllerClass;
+        $controllerClass = is_string($controller) ? $controller : get_class($controller);
 
         if (isset($this->cruds[$controllerClass])) {
             return $this->cruds[$controllerClass];
@@ -32,13 +30,13 @@ final class CrudPanelManager
         return $this->cruds[$controllerClass];
     }
 
-    public function crudFromController(string $controller, ?string $operation = null): CrudPanel
+    public function setupCrudPanel(string $controller, ?string $operation = null): CrudPanel
     {
         $controller = $this->getActiveController() ?? $controller;
 
         $controller = is_string($controller) ? app($controller) : $controller;
 
-        $crud = $this->crud($controller);
+        $crud = $this->getCrudPanel($controller);
 
         // Use provided operation or default to 'list'
         $operation = $operation ?? 'list';
@@ -47,7 +45,7 @@ final class CrudPanelManager
         $primaryControllerRequest = $this->cruds[array_key_first($this->cruds)]->getRequest();
         if (! $crud->isInitialized()) {
             self::setActiveController($controller::class);
-            $controller->initializeCrudController($primaryControllerRequest, $crud);
+            $controller->initializeCrudPanel($primaryControllerRequest, $crud);
             self::unsetActiveController();
             $crud = $this->cruds[$controller::class];
 
@@ -57,28 +55,42 @@ final class CrudPanelManager
         return $this->cruds[$controller::class];
     }
 
-    public function setControllerCrud(string $controller, CrudPanel $crud): void
+    public function storeInitializedOperation(string $controller, string $operation): void
+    {
+        $this->initializedOperations[$controller][] = $operation;
+    }
+
+    public function getInitializedOperations (string $controller): array
+    {
+        return $this->initializedOperations[$controller] ?? [];
+    }
+
+    public function storeCrudPanel(string $controller, CrudPanel $crud): void
     {
         $this->cruds[$controller] = $crud;
     }
 
-    public function hasCrudController(string $controller): bool
+    public function hasCrudPanel(string $controller): bool
     {
         return isset($this->cruds[$controller]);
     }
 
-    public function getControllerCrud(string $controller): CrudPanel
+    public function getActiveCrudPanel(string $controller): CrudPanel
     {
         if (! isset($this->cruds[$controller])) {
-            return $this->crudFromController($this->getActiveController() ?? $this->requestController ?? $controller);
+            return $this->getCrudPanel($this->getActiveController() ?? $this->getParentController() ?? $controller);
         }
 
         return $this->cruds[$controller];
     }
 
-    public function getRequestController(): ?string
+    public function getParentController(): ?string
     {
-        return $this->requestController;
+        if (! empty($this->cruds)) {
+            return array_key_first($this->cruds);
+        }
+
+        return $this->getActiveController();
     }
 
     public function setActiveController(string $controller): void
@@ -97,10 +109,10 @@ final class CrudPanelManager
         $this->currentlyActiveCrudController = null;
     }
 
-    public function getCrudPanel()
+    public function identifyCrudPanel(): CrudPanel
     {
         if ($this->getActiveController()) {
-            return $this->crudFromController($this->getActiveController());
+            return $this->getCrudPanel($this->getActiveController());
         }
 
         // Prioritize explicit controller context
@@ -116,12 +128,12 @@ final class CrudPanelManager
         }
 
         if ($controller) {
-            $crudPanel = self::getControllerCrud($controller);
+            $crudPanel = self::getActiveCrudPanel($controller);
 
             return $crudPanel;
         }
 
-        $cruds = self::getCruds();
+        $cruds = self::getCrudPanels();
 
         if (! empty($cruds)) {
             $crudPanel = reset($cruds);
@@ -134,7 +146,7 @@ final class CrudPanelManager
         return $this->cruds[CrudController::class];
     }
 
-    public function getCruds(): array
+    public function getCrudPanels(): array
     {
         return $this->cruds;
     }

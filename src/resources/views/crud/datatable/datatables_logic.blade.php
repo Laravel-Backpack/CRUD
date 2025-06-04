@@ -95,7 +95,7 @@ window.crud.defaultTableConfig = {
         }
     },
     updateUrl: function (url) {
-        if(!this.updatesUrl) {
+        if(!this.modifiesUrl) {
             return;
         }
         let urlStart = this.urlStart;
@@ -176,7 +176,7 @@ window.crud.initializeTable = function(tableId, customConfig = {}) {
     config.persistentTableDuration = parseInt(tableElement.getAttribute('data-persistent-table-duration')) || null;
     config.subheading = tableElement.getAttribute('data-subheading') === 'true';
     config.resetButton = tableElement.getAttribute('data-reset-button') !== 'false';
-    config.updatesUrl = tableElement.getAttribute('data-updates-url') === 'true';
+    config.modifiesUrl = tableElement.getAttribute('data-modifies-url') === 'true';
     config.searchDelay = parseInt(tableElement.getAttribute('data-search-delay')) || 500;
     config.defaultPageLength = parseInt(tableElement.getAttribute('data-default-page-length')) || 10;
     
@@ -441,7 +441,7 @@ window.crud.initializeTable = function(tableId, customConfig = {}) {
     }
     
     // Update URL if needed
-    if (config.updatesUrl) {
+    if (config.modifiesUrl) {
         config.updateUrl(location.href);
     }
     

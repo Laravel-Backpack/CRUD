@@ -78,7 +78,7 @@ trait ListOperation
 
         // If there's a config closure in the cache for this CRUD, run that configuration closure.
         // This is done in order to allow the developer to configure the datatable component.
-        \Backpack\CRUD\app\Library\Datatable\Datatable::applyCachedConfigurationClosure($this->crud);
+        \Backpack\CRUD\app\Library\Datatable\Datatable::applyCachedSetupClosure($this->crud);
 
         $this->crud->applyUnappliedFilters();
 

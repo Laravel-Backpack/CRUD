@@ -46,7 +46,7 @@
       data-persistent-table-duration="{{ $crud->getPersistentTableDuration() ?: '' }}"
       data-subheading="{{ $crud->getSubheading() ? 'true' : 'false' }}"
       data-reset-button="{{ ($crud->getOperationSetting('resetButton') ?? true) ? 'true' : 'false' }}"
-      data-updates-url="{{ var_export($updatesUrl ?? true) }}"
+      data-modifies-url="{{ var_export($modifiesUrl ?? false) }}"
       data-has-export-buttons="{{ var_export($crud->get('list.exportButtons') ?? false) }}"
       data-default-page-length="{{ $crud->getDefaultPageLength() }}"
       data-page-length-menu="{{ json_encode($crud->getPageLengthMenu()) }}"

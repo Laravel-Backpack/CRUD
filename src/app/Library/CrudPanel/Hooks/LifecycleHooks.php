@@ -11,7 +11,7 @@ final class LifecycleHooks
     public function hookInto(string|array $hooks, callable $callback): void
     {
         $hooks = is_array($hooks) ? $hooks : [$hooks];
-        $controller = CrudManager::getActiveController() ?? CrudManager::getRequestController();
+        $controller = CrudManager::getActiveController() ?? CrudManager::getParentController();
         foreach ($hooks as $hook) {
             $this->hooks[$controller][$hook][] = $callback;
         }
@@ -20,7 +20,7 @@ final class LifecycleHooks
     public function trigger(string|array $hooks, array $parameters = []): void
     {
         $hooks = is_array($hooks) ? $hooks : [$hooks];
-        $controller = CrudManager::getActiveController() ?? CrudManager::getRequestController();
+        $controller = CrudManager::getActiveController() ?? CrudManager::getParentController();
 
         foreach ($hooks as $hook) {
             if (isset($this->hooks[$controller][$hook])) {
@@ -35,7 +35,7 @@ final class LifecycleHooks
 
     public function has(string $hook): bool
     {
-        $controller = CrudManager::getActiveController() ?? CrudManager::getRequestController();
+        $controller = CrudManager::getActiveController() ?? CrudManager::getParentController();
 
         return isset($this->hooks[$controller][$hook]);
     }

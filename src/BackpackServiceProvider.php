@@ -84,7 +84,7 @@ class BackpackServiceProvider extends ServiceProvider
         $this->registerBackpackErrorViews();
 
         $this->app->bind('crud', function ($app) {
-            return CrudManager::getCrudPanel();
+            return CrudManager::identifyCrudPanel();
         });
 
         $this->app->scoped('CrudManager', function ($app) {
