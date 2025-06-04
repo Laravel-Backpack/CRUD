@@ -128,12 +128,12 @@ final class CrudPanelManager
         }
 
         if ($controller) {
-            $crudPanel = self::getActiveCrudPanel($controller);
+            $crudPanel = $this->getActiveCrudPanel($controller);
 
             return $crudPanel;
         }
 
-        $cruds = self::getCrudPanels();
+        $cruds = $this->getCrudPanels();
 
         if (! empty($cruds)) {
             $crudPanel = reset($cruds);

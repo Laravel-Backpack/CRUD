@@ -289,7 +289,6 @@ class CrudColumn
     private function save()
     {
         $key = $this->attributes['key'] ?? $this->attributes['name'];
-
         if ($this->crud()->hasColumnWhere('key', $key)) {
             $this->crud()->setColumnDetails($key, $this->attributes);
         } else {

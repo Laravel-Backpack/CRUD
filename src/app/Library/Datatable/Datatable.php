@@ -27,10 +27,8 @@ class Datatable extends Component
         $this->tableId = $this->generateTableId();
 
         if ($this->setup) {
-            // Apply the configuration
-            ($this->setup)($this->crud, $this->getParentCrudEntry());
-
-            // Store the configuration in cache for Ajax requests
+           // Apply the configuration using the shared method
+            $this->applySetupClosure($this->crud, $this->controller, $this->setup, $this->getParentCrudEntry());
             $this->cacheSetupClosure();
         }
 
@@ -39,7 +37,27 @@ class Datatable extends Component
         }
 
         // Reset the active controller
-        CrudManager::unsetActiveController($controller);
+        CrudManager::unsetActiveController();
+    }
+
+    private function applySetupClosure(CrudPanel $crud, string $controllerClass, \Closure $setupClosure, $entry = null)
+    {
+        $originalSetup = $setupClosure;
+        $modifiedSetup = function($crud, $entry) use ($originalSetup, $controllerClass) {
+          
+            CrudManager::setActiveController($controllerClass);            
+            // Run the original closure
+            return ($originalSetup)($crud, $entry);
+        };
+        
+        try {
+            // Execute the modified closure
+            ($modifiedSetup)($crud, $entry);
+            return true;
+        } finally {
+            // Clean up
+            CrudManager::unsetActiveController();
+        }
     }
 
     private function getParentCrudEntry()
@@ -121,19 +139,20 @@ class Datatable extends Component
         try {
             // Get the parent crud instance
             self::initializeOperations($cachedData['parentController'], $cachedData['operations']);
-
             $entry = $cachedData['parent_entry'];
             $elementName = $cachedData['element_name'];
-            $widgets = Widget::collection();
-            foreach ($widgets as $widget) {
-                if ($widget['type'] === 'datatable' &&
-                    (isset($widget['name']) && $widget['name'] === $elementName) &&
-                    (isset($widget['setup']) && $widget['setup'] instanceof \Closure)) {
-                    $widget['setup']($crud, $entry);
+        
+        $widgets = Widget::collection();
 
-                    return true;
-                }
+        foreach ($widgets as $widget) {
+            if ($widget['type'] === 'datatable' &&
+                (isset($widget['name']) && $widget['name'] === $elementName) &&
+                (isset($widget['setup']) && $widget['setup'] instanceof \Closure)) {
+                $instance = new self($cachedData['controller']);
+
+                $instance->applySetupClosure($crud, $cachedData['controller'], $widget['setup'], $entry);
             }
+        }
 
             return false;
         } catch (\Exception $e) {
