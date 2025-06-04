@@ -52,6 +52,7 @@ class Datatable extends Component
                 $parentCrud->controller,
                 $parentCrud->getCurrentOperation()
             );
+
             return $parentCrud->getCurrentEntry();
         }
 
@@ -129,17 +130,18 @@ class Datatable extends Component
                     (isset($widget['name']) && $widget['name'] === $elementName) &&
                     (isset($widget['setup']) && $widget['setup'] instanceof \Closure)) {
                     $widget['setup']($crud, $entry);
+
                     return true;
                 }
             }
 
             return false;
-            
         } catch (\Exception $e) {
             \Log::error('Error applying cached datatable config: '.$e->getMessage(), [
                 'exception' => $e,
             ]);
         }
+
         return false;
     }
 
@@ -147,7 +149,7 @@ class Datatable extends Component
     {
         $parentCrud = CrudManager::setupCrudPanel($parentController);
 
-        foreach($operations as $operation) {
+        foreach ($operations as $operation) {
             $parentCrud->initialized = false;
             CrudManager::setupCrudPanel($parentController, $operation);
         }

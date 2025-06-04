@@ -60,7 +60,7 @@ final class CrudPanelManager
         $this->initializedOperations[$controller][] = $operation;
     }
 
-    public function getInitializedOperations (string $controller): array
+    public function getInitializedOperations(string $controller): array
     {
         return $this->initializedOperations[$controller] ?? [];
     }

@@ -59,7 +59,7 @@ class CrudController extends Controller implements CrudControllerContract
             get_class($this),
             $crudPanel->getCurrentOperation()
         );
-        
+
         if (! $crudPanel->isInitialized()) {
             $crudPanel->initialized = true;
 
