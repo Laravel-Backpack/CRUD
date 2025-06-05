@@ -87,8 +87,11 @@ final class CrudPanelManager
      * @param  string  $controller  The controller class name
      * @param  string  $operation  The operation name (e.g., 'list', 'create', 'update')
      */
-    public function storeInitializedOperation(string $controller, string $operation): void
+    public function storeInitializedOperation(string $controller, ?string $operation): void
     {
+        if(! $operation) {
+            return;
+        }
         $this->initializedOperations[$controller][] = $operation;
     }
 
