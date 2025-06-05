@@ -483,12 +483,12 @@ function setupTableUI(tableId, config) {
     if (config.subheading) {
         $(`#${tableId}_info`).hide();
     } else {
-        $("#datatable_info_stack").html($(`#${tableId}_info`)).css('display','inline-flex').addClass('animated fadeIn');
+        $(`#datatable_info_stack_${tableId}`).html($(`#${tableId}_info`)).css('display','inline-flex').addClass('animated fadeIn');
     }
 
     if (config.resetButton !== false) {
         var crudTableResetButton = `<a href="${config.urlStart}" class="ml-1 ms-1" id="${tableId}_reset_button">Reset</a>`;
-        $('#datatable_info_stack').append(crudTableResetButton);
+        $(`#datatable_info_stack_${tableId}`).append(crudTableResetButton);
 
         // when clicking in reset button we clear the localStorage for datatables
         $(`#${tableId}_reset_button`).on('click', function() {
