@@ -89,7 +89,7 @@ final class CrudPanelManager
      */
     public function storeInitializedOperation(string $controller, ?string $operation): void
     {
-        if(! $operation) {
+        if (! $operation) {
             return;
         }
         $this->initializedOperations[$controller][] = $operation;
