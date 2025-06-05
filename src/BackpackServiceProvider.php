@@ -6,7 +6,6 @@ use Backpack\Basset\Facades\Basset;
 use Backpack\CRUD\app\Http\Middleware\EnsureEmailVerification;
 use Backpack\CRUD\app\Http\Middleware\ThrottlePasswordRecovery;
 use Backpack\CRUD\app\Library\Database\DatabaseSchema;
-use Backpack\CRUD\app\Library\Datatable\Datatable;
 use Backpack\CRUD\app\Library\Uploaders\Support\UploadersRepository;
 use Illuminate\Contracts\Debug\ExceptionHandler;
 use Illuminate\Routing\Router;
@@ -63,7 +62,6 @@ class BackpackServiceProvider extends ServiceProvider
         $this->sendUsageStats();
 
         Basset::addViewPath(realpath(__DIR__.'/resources/views'));
-        Blade::component('datatable', Datatable::class);
     }
 
     /**
@@ -79,6 +77,7 @@ class BackpackServiceProvider extends ServiceProvider
         $this->loadViewsWithFallbacks('crud');
         $this->loadViewsWithFallbacks('ui', 'backpack.ui');
         $this->loadViewNamespace('widgets', 'backpack.ui::widgets');
+
         $this->loadViewComponents();
 
         $this->registerBackpackErrorViews();

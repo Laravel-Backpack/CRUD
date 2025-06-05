@@ -25,7 +25,7 @@
     {{-- THE ACTUAL CONTENT --}}
     <div class="{{ $crud->getListContentClass() }}">
 
-      <x-datatable :controller="$controller" :crud="$crud" />
+      <x-backpack::datatable :controller="$controller" :crud="$crud" />
 
     </div>
 

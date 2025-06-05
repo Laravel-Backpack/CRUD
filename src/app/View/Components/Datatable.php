@@ -1,6 +1,6 @@
 <?php
 
-namespace Backpack\CRUD\app\Library\Datatable;
+namespace Backpack\CRUD\app\View\Components;
 
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanel;
 use Backpack\CRUD\app\Library\Widget;
@@ -177,7 +177,7 @@ class Datatable extends Component
 
     public function render()
     {
-        return view('crud::datatable.datatable', [
+        return view('crud::components.datatable.datatable', [
             'crud' => $this->crud,
             'modifiesUrl' => $this->modifiesUrl,
             'tableId' => $this->tableId,
