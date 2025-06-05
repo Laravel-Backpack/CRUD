@@ -8,7 +8,7 @@ use Backpack\CRUD\app\Library\CrudPanel\CrudPanel;
 use Illuminate\Support\Facades\Facade;
 
 /**
- * CrudPanelManager - Central registry and factory for CRUD panels
+ * CrudPanelManager - Central registry and factory for CRUD panels.
  *
  * This class manages multiple CrudPanel instances across different controllers.
  * It acts as a singleton registry that:
@@ -32,7 +32,7 @@ final class CrudPanelManager
     private ?string $currentlyActiveCrudController = null;
 
     /**
-     * Get or create a CrudPanel instance for the given controller
+     * Get or create a CrudPanel instance for the given controller.
      */
     public function getCrudPanel(CrudControllerContract|string $controller): CrudPanel
     {
@@ -50,10 +50,10 @@ final class CrudPanelManager
     }
 
     /**
-     * Setup and initialize a CrudPanel for the given controller and operation
+     * Setup and initialize a CrudPanel for the given controller and operation.
      *
-     * @param string $controller The controller class name
-     * @param string|null $operation The operation to set (defaults to 'list')
+     * @param  string  $controller  The controller class name
+     * @param  string|null  $operation  The operation to set (defaults to 'list')
      * @return CrudPanel The initialized CrudPanel instance
      */
     public function setupCrudPanel(string $controller, ?string $operation = null): CrudPanel
@@ -82,10 +82,10 @@ final class CrudPanelManager
     }
 
     /**
-     * Record that an operation has been initialized for a controller
+     * Record that an operation has been initialized for a controller.
      *
-     * @param string $controller The controller class name
-     * @param string $operation The operation name (e.g., 'list', 'create', 'update')
+     * @param  string  $controller  The controller class name
+     * @param  string  $operation  The operation name (e.g., 'list', 'create', 'update')
      */
     public function storeInitializedOperation(string $controller, string $operation): void
     {
@@ -93,9 +93,9 @@ final class CrudPanelManager
     }
 
     /**
-     * Get the list of operations that have been initialized for a controller
+     * Get the list of operations that have been initialized for a controller.
      *
-     * @param string $controller The controller class name
+     * @param  string  $controller  The controller class name
      * @return array<string> Array of initialized operation names
      */
     public function getInitializedOperations(string $controller): array
@@ -104,7 +104,7 @@ final class CrudPanelManager
     }
 
     /**
-     * Store a CrudPanel instance for a specific controller
+     * Store a CrudPanel instance for a specific controller.
      */
     public function storeCrudPanel(string $controller, CrudPanel $crud): void
     {
@@ -112,7 +112,7 @@ final class CrudPanelManager
     }
 
     /**
-     * Check if a CrudPanel exists for the given controller
+     * Check if a CrudPanel exists for the given controller.
      */
     public function hasCrudPanel(string $controller): bool
     {
@@ -120,9 +120,9 @@ final class CrudPanelManager
     }
 
     /**
-     * Get the active CrudPanel for a controller, with fallback logic
+     * Get the active CrudPanel for a controller, with fallback logic.
      *
-     * @param string $controller The controller class name
+     * @param  string  $controller  The controller class name
      * @return CrudPanel The CrudPanel instance, creating one if necessary
      */
     public function getActiveCrudPanel(string $controller): CrudPanel
@@ -135,7 +135,7 @@ final class CrudPanelManager
     }
 
     /**
-     * Get the parent (first registered) controller class name
+     * Get the parent (first registered) controller class name.
      *
      * @return string|null The parent controller class name or null if none exists
      */
@@ -149,9 +149,9 @@ final class CrudPanelManager
     }
 
     /**
-     * Set the currently active controller and clear the CRUD facade cache
+     * Set the currently active controller and clear the CRUD facade cache.
      *
-     * @param string $controller The controller class name to set as active
+     * @param  string  $controller  The controller class name to set as active
      */
     public function setActiveController(string $controller): void
     {
@@ -160,7 +160,7 @@ final class CrudPanelManager
     }
 
     /**
-     * Get the currently active controller class name
+     * Get the currently active controller class name.
      *
      * @return string|null The active controller class name or null if none is set
      */
@@ -170,7 +170,7 @@ final class CrudPanelManager
     }
 
     /**
-     * Clear the currently active controller
+     * Clear the currently active controller.
      */
     public function unsetActiveController(): void
     {
@@ -178,7 +178,7 @@ final class CrudPanelManager
     }
 
     /**
-     * Intelligently identify and return the appropriate CrudPanel based on context
+     * Intelligently identify and return the appropriate CrudPanel based on context.
      *
      * This method uses multiple strategies to find the correct CrudPanel:
      * 1. Use the currently active controller if set
@@ -226,7 +226,7 @@ final class CrudPanelManager
     }
 
     /**
-     * Get all registered CrudPanel instances
+     * Get all registered CrudPanel instances.
      *
      * @return array<string, CrudPanel> Array of CrudPanel instances indexed by controller class name
      */
