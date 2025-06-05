@@ -139,7 +139,7 @@
 @endsection
 
 @section('after_scripts')
-  @include('crud::datatable.datatables_logic', ['tableId' => $tableId])
+  @include('crud::datatable.datatable_logic', ['tableId' => $tableId])
   @include('crud::inc.export_buttons')
   @include('crud::inc.details_row_logic')
 
