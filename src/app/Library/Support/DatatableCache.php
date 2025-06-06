@@ -3,8 +3,8 @@
 namespace Backpack\CRUD\app\Library\Support;
 
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanel;
-use Backpack\CRUD\CrudManager;
 use Backpack\CRUD\app\Library\Widget;
+use Backpack\CRUD\CrudManager;
 
 class DatatableCache extends SetupCache
 {
@@ -13,29 +13,29 @@ class DatatableCache extends SetupCache
         $this->cachePrefix = 'datatable_config_';
         $this->cacheDuration = 60; // 1 hour
     }
-    
+
     /**
      * Get the instance of DatatableCache.
      */
     public static function instance(): self
     {
         static $instance = null;
-        
+
         if ($instance === null) {
             $instance = new static();
         }
-        
+
         return $instance;
     }
-    
+
     /**
      * Cache setup closure for a datatable component.
-     * 
-     * @param string $tableId The table ID to use as cache key
-     * @param string $controllerClass The controller class
-     * @param \Closure|null $setup The setup closure
-     * @param string|null $name The element name
-     * @param CrudPanel $crud The CRUD panel instance to update with datatable_id
+     *
+     * @param  string  $tableId  The table ID to use as cache key
+     * @param  string  $controllerClass  The controller class
+     * @param  \Closure|null  $setup  The setup closure
+     * @param  string|null  $name  The element name
+     * @param  CrudPanel  $crud  The CRUD panel instance to update with datatable_id
      * @return bool Whether the operation was successful
      */
     public function cacheForComponent(string $tableId, string $controllerClass, ?\Closure $setup = null, ?string $name = null, ?CrudPanel $crud = null): bool
@@ -50,7 +50,7 @@ class DatatableCache extends SetupCache
         if ($parentCrud && $parentCrud->getCurrentEntry()) {
             $parentEntry = $parentCrud->getCurrentEntry();
             $parentController = $parentCrud->controller;
-            
+
             // Store in cache
             $this->store(
                 $tableId,
@@ -70,11 +70,11 @@ class DatatableCache extends SetupCache
 
         return false;
     }
-    
+
     /**
      * Apply cached setup to a CRUD instance using the request's datatable_id.
-     * 
-     * @param CrudPanel $crud The CRUD panel instance
+     *
+     * @param  CrudPanel  $crud  The CRUD panel instance
      * @return bool Whether the operation was successful
      */
     public function applyFromRequest(CrudPanel $crud): bool
@@ -83,19 +83,20 @@ class DatatableCache extends SetupCache
 
         if (! $tableId) {
             \Log::debug('Missing datatable_id in request parameters');
+
             return false;
         }
 
         return $this->apply($tableId, $crud);
     }
-    
+
     /**
      * Apply a setup closure to a CrudPanel instance.
-     * 
-     * @param CrudPanel $crud The CRUD panel instance
-     * @param string $controllerClass The controller class
-     * @param \Closure $setupClosure The setup closure
-     * @param mixed $entry The entry to pass to the setup closure
+     *
+     * @param  CrudPanel  $crud  The CRUD panel instance
+     * @param  string  $controllerClass  The controller class
+     * @param  \Closure  $setupClosure  The setup closure
+     * @param  mixed  $entry  The entry to pass to the setup closure
      * @return bool Whether the operation was successful
      */
     public function applySetupClosure(CrudPanel $crud, string $controllerClass, \Closure $setupClosure, $entry = null): bool
@@ -118,20 +119,20 @@ class DatatableCache extends SetupCache
             CrudManager::unsetActiveController();
         }
     }
-    
+
     /**
      * Prepare datatable data for storage in the cache.
-     * 
-     * @param string $controllerClass The controller class
-     * @param string $parentController The parent controller
-     * @param mixed $parentEntry The parent entry
-     * @param string|null $elementName The element name
+     *
+     * @param  string  $controllerClass  The controller class
+     * @param  string  $parentController  The parent controller
+     * @param  mixed  $parentEntry  The parent entry
+     * @param  string|null  $elementName  The element name
      * @return array The data to be cached
      */
     protected function prepareDataForStorage(...$args): array
     {
         [$controllerClass, $parentController, $parentEntry, $elementName] = $args;
-        
+
         return [
             'controller' => $controllerClass,
             'parentController' => $parentController,
@@ -140,18 +141,18 @@ class DatatableCache extends SetupCache
             'operations' => CrudManager::getInitializedOperations($parentController),
         ];
     }
-    
+
     /**
      * Apply data from the cache to configure a datatable.
-     * 
-     * @param array $cachedData The cached data
-     * @param CrudPanel $crud The CRUD panel instance
+     *
+     * @param  array  $cachedData  The cached data
+     * @param  CrudPanel  $crud  The CRUD panel instance
      * @return bool Whether the operation was successful
      */
     protected function applyFromCache($cachedData, ...$args): bool
     {
         [$crud] = $args;
-        
+
         try {
             // Initialize operations for the parent controller
             $this->initializeOperations($cachedData['parentController'], $cachedData['operations']);
@@ -165,7 +166,6 @@ class DatatableCache extends SetupCache
                 if ($widget['type'] === 'datatable' &&
                     (isset($widget['name']) && $widget['name'] === $elementName) &&
                     (isset($widget['setup']) && $widget['setup'] instanceof \Closure)) {
-                    
                     $this->applySetupClosure($crud, $cachedData['controller'], $widget['setup'], $entry);
                     $found = true;
                     break;
@@ -174,13 +174,14 @@ class DatatableCache extends SetupCache
 
             return $found;
         } catch (\Exception $e) {
-            \Log::error('Error applying cached datatable config: ' . $e->getMessage(), [
+            \Log::error('Error applying cached datatable config: '.$e->getMessage(), [
                 'exception' => $e,
             ]);
+
             return false;
         }
     }
-    
+
     /**
      * Initialize operations for a parent controller.
      */

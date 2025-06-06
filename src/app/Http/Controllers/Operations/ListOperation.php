@@ -3,8 +3,8 @@
 namespace Backpack\CRUD\app\Http\Controllers\Operations;
 
 use Backpack\CRUD\app\Library\CrudPanel\Hooks\Facades\LifecycleHook;
-use Illuminate\Support\Facades\Route;
 use Backpack\CRUD\app\Library\Support\DatatableCache;
+use Illuminate\Support\Facades\Route;
 
 trait ListOperation
 {
@@ -130,7 +130,7 @@ trait ListOperation
 
     /**
      * Apply the cached datatable setup configuration directly using DatatableCache.
-     * 
+     *
      * @return bool Whether the cached setup was successfully applied
      */
     protected function applyCachedDatatableSetup()
