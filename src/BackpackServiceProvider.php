@@ -77,6 +77,7 @@ class BackpackServiceProvider extends ServiceProvider
         $this->loadViewsWithFallbacks('crud');
         $this->loadViewsWithFallbacks('ui', 'backpack.ui');
         $this->loadViewNamespace('widgets', 'backpack.ui::widgets');
+        ViewNamespaces::addFor('widgets', "crud::widgets");
 
         $this->loadViewComponents();
 
