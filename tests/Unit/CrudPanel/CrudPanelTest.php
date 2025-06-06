@@ -14,8 +14,7 @@ class CrudPanelTest extends BaseCrudPanel
     public function testSetModelFromModelClass()
     {
         $this->crudPanel->setModel(TestModel::class);
-
-        $this->assertEquals($this->model, $this->crudPanel->model);
+        $this->assertEquals($this->model, get_class($this->crudPanel->model));
         $this->assertInstanceOf(TestModel::class, $this->crudPanel->model);
         $this->assertInstanceOf(Builder::class, $this->crudPanel->query);
     }
@@ -26,7 +25,7 @@ class CrudPanelTest extends BaseCrudPanel
 
         $this->crudPanel->setModel($modelClassName);
 
-        $this->assertEquals($this->model, $this->crudPanel->model);
+        $this->assertEquals($this->model, get_class($this->crudPanel->model));
         $this->assertInstanceOf($modelClassName, $this->crudPanel->model);
         $this->assertInstanceOf(Builder::class, $this->crudPanel->query);
     }

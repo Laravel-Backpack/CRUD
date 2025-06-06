@@ -61,6 +61,7 @@ trait ListOperation
 
         $this->data['crud'] = $this->crud;
         $this->data['title'] = $this->crud->getTitle() ?? mb_ucfirst($this->crud->entity_name_plural);
+        $this->data['controller'] = get_class($this);
 
         // load the view from /resources/views/vendor/backpack/crud/ if it exists, otherwise load the one in the package
         return view($this->crud->getListView(), $this->data);
@@ -74,6 +75,10 @@ trait ListOperation
     public function search()
     {
         $this->crud->hasAccessOrFail('list');
+
+        // If there's a config closure in the cache for this CRUD, run that configuration closure.
+        // This is done in order to allow the developer to configure the datatable component.
+        \Backpack\CRUD\app\View\Components\Datatable::applyCachedSetupClosure($this->crud);
 
         $this->crud->applyUnappliedFilters();
 
@@ -105,10 +110,10 @@ trait ListOperation
         $this->crud->applyDatatableOrder();
 
         $entries = $this->crud->getEntries();
-
+        $requestTotalEntryCount = request()->get('totalEntryCount') ? (int) request()->get('totalEntryCount') : null;
         // if show entry count is disabled we use the "simplePagination" technique to move between pages.
         if ($this->crud->getOperationSetting('showEntryCount')) {
-            $totalEntryCount = (int) (request()->get('totalEntryCount') ?: $this->crud->getTotalQueryCount());
+            $totalEntryCount = (int) ($requestTotalEntryCount ?: $this->crud->getTotalQueryCount());
             $filteredEntryCount = $this->crud->getFilteredQueryCount() ?? $totalEntryCount;
         } else {
             $totalEntryCount = $length;

@@ -5,7 +5,6 @@ namespace Backpack\CRUD;
 use Backpack\Basset\Facades\Basset;
 use Backpack\CRUD\app\Http\Middleware\EnsureEmailVerification;
 use Backpack\CRUD\app\Http\Middleware\ThrottlePasswordRecovery;
-use Backpack\CRUD\app\Library\CrudPanel\CrudPanel;
 use Backpack\CRUD\app\Library\Database\DatabaseSchema;
 use Backpack\CRUD\app\Library\Uploaders\Support\UploadersRepository;
 use Illuminate\Contracts\Debug\ExceptionHandler;
@@ -78,13 +77,18 @@ class BackpackServiceProvider extends ServiceProvider
         $this->loadViewsWithFallbacks('crud');
         $this->loadViewsWithFallbacks('ui', 'backpack.ui');
         $this->loadViewNamespace('widgets', 'backpack.ui::widgets');
+        ViewNamespaces::addFor('widgets', 'crud::widgets');
+
         $this->loadViewComponents();
 
         $this->registerBackpackErrorViews();
 
-        // Bind the CrudPanel object to Laravel's service container
-        $this->app->scoped('crud', function ($app) {
-            return new CrudPanel();
+        $this->app->bind('crud', function ($app) {
+            return CrudManager::identifyCrudPanel();
+        });
+
+        $this->app->scoped('CrudManager', function ($app) {
+            return new CrudPanelManager();
         });
 
         $this->app->scoped('DatabaseSchema', function ($app) {
@@ -181,7 +185,7 @@ class BackpackServiceProvider extends ServiceProvider
     /**
      * Define the routes for the application.
      *
-     * @param  \Illuminate\Routing\Router  $router
+     * @param  Router  $router
      * @return void
      */
     public function setupRoutes(Router $router)
@@ -200,7 +204,7 @@ class BackpackServiceProvider extends ServiceProvider
     /**
      * Load custom routes file.
      *
-     * @param  \Illuminate\Routing\Router  $router
+     * @param  Router  $router
      * @return void
      */
     public function setupCustomRoutes(Router $router)
@@ -333,7 +337,7 @@ class BackpackServiceProvider extends ServiceProvider
      */
     public function provides()
     {
-        return ['crud', 'widgets', 'BackpackViewNamespaces', 'DatabaseSchema', 'UploadersRepository'];
+        return ['widgets', 'BackpackViewNamespaces', 'DatabaseSchema', 'UploadersRepository', 'CrudManager'];
     }
 
     private function registerBackpackErrorViews()

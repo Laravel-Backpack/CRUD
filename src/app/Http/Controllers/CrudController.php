@@ -2,8 +2,11 @@
 
 namespace Backpack\CRUD\app\Http\Controllers;
 
+use Backpack\CRUD\app\Http\Controllers\Contracts\CrudControllerContract;
 use Backpack\CRUD\app\Library\Attributes\DeprecatedIgnoreOnRuntime;
+use Backpack\CRUD\app\Library\CrudPanel\CrudPanel;
 use Backpack\CRUD\app\Library\CrudPanel\Hooks\Facades\LifecycleHook;
+use Backpack\CRUD\CrudManager;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Routing\Controller;
@@ -12,23 +15,17 @@ use Illuminate\Support\Str;
 /**
  * Class CrudController.
  *
- * @property-read \Backpack\CRUD\app\Library\CrudPanel\CrudPanel $crud
+ * @property-read CrudPanel $crud
  * @property array $data
  */
-class CrudController extends Controller
+class CrudController extends Controller implements CrudControllerContract
 {
     use DispatchesJobs, ValidatesRequests;
-
-    public $crud;
 
     public $data = [];
 
     public function __construct()
     {
-        if ($this->crud) {
-            return;
-        }
-
         // ---------------------------
         // Create the CrudPanel object
         // ---------------------------
@@ -38,22 +35,49 @@ class CrudController extends Controller
         // It's done inside a middleware closure in order to have
         // the complete request inside the CrudPanel object.
         $this->middleware(function ($request, $next) {
-            $this->crud = app('crud');
+            if (! CrudManager::hasCrudPanel(get_class($this))) {
+                $this->initializeCrudPanel($request);
 
-            $this->crud->setRequest($request);
+                return $next($request);
+            }
 
-            LifecycleHook::trigger('crud:before_setup_defaults', [$this]);
-            $this->setupDefaults();
-            LifecycleHook::trigger('crud:after_setup_defaults', [$this]);
+            $this->setupCrudController();
 
-            LifecycleHook::trigger('crud:before_setup', [$this]);
-            $this->setup();
-            LifecycleHook::trigger('crud:after_setup', [$this]);
-
-            $this->setupConfigurationForCurrentOperation();
+            CrudManager::getCrudPanel($this)->setRequest($request);
 
             return $next($request);
         });
+    }
+
+    public function initializeCrudPanel($request, $crudPanel = null): void
+    {
+        $crudPanel ??= CrudManager::getCrudPanel($this);
+
+        $crudPanel = $crudPanel->initialize(get_class($this), $request);
+
+        CrudManager::storeInitializedOperation(
+            get_class($this),
+            $crudPanel->getCurrentOperation()
+        );
+
+        if (! $crudPanel->isInitialized()) {
+            $crudPanel->initialized = true;
+
+            $this->setupCrudController($crudPanel->getCurrentOperation());
+        }
+
+        CrudManager::storeCrudPanel(get_class($this), $crudPanel);
+    }
+
+    private function setupCrudController($operation = null)
+    {
+        LifecycleHook::trigger('crud:before_setup_defaults', [$this]);
+        $this->setupDefaults();
+        LifecycleHook::trigger('crud:after_setup_defaults', [$this]);
+        LifecycleHook::trigger('crud:before_setup', [$this]);
+        $this->setup();
+        LifecycleHook::trigger('crud:after_setup', [$this]);
+        $this->setupConfigurationForCurrentOperation($operation);
     }
 
     /**
@@ -91,7 +115,6 @@ class CrudController extends Controller
     protected function setupDefaults()
     {
         preg_match_all('/(?<=^|;)setup([^;]+?)Defaults(;|$)/', implode(';', get_class_methods($this)), $matches);
-
         if (count($matches[1])) {
             foreach ($matches[1] as $methodName) {
                 $this->{'setup'.$methodName.'Defaults'}();
@@ -105,13 +128,12 @@ class CrudController extends Controller
      * Allow developers to insert default settings by creating a method
      * that looks like setupOperationNameOperation (aka setupXxxOperation).
      */
-    protected function setupConfigurationForCurrentOperation()
+    protected function setupConfigurationForCurrentOperation(?string $operation = null)
     {
-        $operationName = $this->crud->getCurrentOperation();
+        $operationName = $operation ?? $this->crud->getCurrentOperation();
         if (! $operationName) {
             return;
         }
-
         $setupClassName = 'setup'.Str::studly($operationName).'Operation';
 
         /*
@@ -127,7 +149,6 @@ class CrudController extends Controller
         LifecycleHook::trigger($operationName.':before_setup', [$this]);
 
         $this->crud->applyConfigurationFromSettings($operationName);
-
         /*
          * THEN, run the corresponding setupXxxOperation if it exists.
          */
@@ -136,5 +157,14 @@ class CrudController extends Controller
         }
 
         LifecycleHook::trigger($operationName.':after_setup', [$this]);
+    }
+
+    public function __get($name)
+    {
+        if ($name === 'crud') {
+            return CrudManager::getActiveCrudPanel(get_class($this));
+        }
+
+        return $this->{$name};
     }
 }
