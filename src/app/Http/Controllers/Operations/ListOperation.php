@@ -3,6 +3,7 @@
 namespace Backpack\CRUD\app\Http\Controllers\Operations;
 
 use Backpack\CRUD\app\Library\CrudPanel\Hooks\Facades\LifecycleHook;
+use Backpack\CRUD\app\Library\Support\DatatableCache;
 use Illuminate\Support\Facades\Route;
 
 trait ListOperation
@@ -78,7 +79,7 @@ trait ListOperation
 
         // If there's a config closure in the cache for this CRUD, run that configuration closure.
         // This is done in order to allow the developer to configure the datatable component.
-        \Backpack\CRUD\app\View\Components\Datatable::applyCachedSetupClosure($this->crud);
+        DatatableCache::applyFromRequest($this->crud);
 
         $this->crud->applyUnappliedFilters();
 
