@@ -135,7 +135,7 @@ trait ListOperation
      */
     protected function applyCachedDatatableSetup()
     {
-        return DatatableCache::instance()->applyFromRequest($this->crud);
+        return DatatableCache::applyFromRequest($this->crud);
     }
 
     /**

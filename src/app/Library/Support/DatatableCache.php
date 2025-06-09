@@ -15,20 +15,6 @@ class DatatableCache extends SetupCache
     }
 
     /**
-     * Get the instance of DatatableCache.
-     */
-    public static function instance(): self
-    {
-        static $instance = null;
-
-        if ($instance === null) {
-            $instance = new static();
-        }
-
-        return $instance;
-    }
-
-    /**
      * Cache setup closure for a datatable component.
      *
      * @param  string  $tableId  The table ID to use as cache key
@@ -71,14 +57,34 @@ class DatatableCache extends SetupCache
         return false;
     }
 
+    public static function applyAndStoreSetupClosure(
+        string $tableId,
+        string $controllerClass,
+        \Closure $setupClosure,
+        ?string $name = null,
+        ?CrudPanel $crud = null,
+        $parentEntry = null
+    ): bool {
+        $instance = new self();
+        // Cache the setup closure for the datatable component
+        if ($instance->applySetupClosure($crud, $controllerClass, $setupClosure, $parentEntry)) {
+            // Apply the setup closure to the CrudPanel instance
+            return $instance->cacheForComponent($tableId, $controllerClass, $setupClosure, $name, $crud);
+        }
+
+        return false;
+    }
+
     /**
      * Apply cached setup to a CRUD instance using the request's datatable_id.
      *
      * @param  CrudPanel  $crud  The CRUD panel instance
      * @return bool Whether the operation was successful
      */
-    public function applyFromRequest(CrudPanel $crud): bool
+    public static function applyFromRequest(CrudPanel $crud): bool
     {
+        $instance = new self();
+        // Check if the request has a datatable_id parameter
         $tableId = request('datatable_id');
 
         if (! $tableId) {
@@ -87,7 +93,7 @@ class DatatableCache extends SetupCache
             return false;
         }
 
-        return $this->apply($tableId, $crud);
+        return $instance->apply($tableId, $crud);
     }
 
     /**

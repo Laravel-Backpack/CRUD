@@ -27,11 +27,15 @@ class Datatable extends Component
 
         if ($this->setup) {
             // Apply the configuration using DatatableCache
-            $cache = DatatableCache::instance();
-            $cache->applySetupClosure($this->crud, $this->controller, $this->setup, $this->getParentCrudEntry());
+            DatatableCache::applyAndStoreSetupClosure(
+                $this->tableId,
+                $this->controller,
+                $this->setup,
+                $this->name,
+                $this->crud,
+                $this->getParentCrudEntry()
+            );
 
-            // Cache the setup for later use
-            $cache->cacheForComponent($this->tableId, $this->controller, $this->setup, $this->name, $this->crud);
         }
 
         if (! $this->crud->has('list.datatablesUrl')) {
