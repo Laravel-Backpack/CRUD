@@ -6,7 +6,7 @@ use Backpack\CRUD\app\Library\CrudPanel\CrudPanel;
 use Backpack\CRUD\app\Library\Widget;
 use Backpack\CRUD\CrudManager;
 
-class DatatableCache extends SetupCache
+final class DatatableCache extends SetupCache
 {
     public function __construct()
     {
