@@ -79,7 +79,7 @@ trait ListOperation
 
         // If there's a config closure in the cache for this CRUD, run that configuration closure.
         // This is done in order to allow the developer to configure the datatable component.
-        $this->applyCachedDatatableSetup();
+        DatatableCache::applyFromRequest($this->crud);
 
         $this->crud->applyUnappliedFilters();
 
@@ -126,16 +126,6 @@ trait ListOperation
         $this->crud->setOperationSetting('totalEntryCount', $totalEntryCount);
 
         return $this->crud->getEntriesAsJsonForDatatables($entries, $totalEntryCount, $filteredEntryCount, $start);
-    }
-
-    /**
-     * Apply the cached datatable setup configuration directly using DatatableCache.
-     *
-     * @return bool Whether the cached setup was successfully applied
-     */
-    protected function applyCachedDatatableSetup()
-    {
-        return DatatableCache::applyFromRequest($this->crud);
     }
 
     /**
