@@ -35,7 +35,6 @@ class Datatable extends Component
                 $this->crud,
                 $this->getParentCrudEntry()
             );
-
         }
 
         if (! $this->crud->has('list.datatablesUrl')) {
