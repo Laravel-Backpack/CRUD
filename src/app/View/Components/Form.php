@@ -1,0 +1,46 @@
+<?php
+
+namespace Backpack\CRUD\app\View\Components;
+
+use Backpack\CRUD\CrudManager;
+use Illuminate\View\Component;
+
+class Form extends Component
+{
+    public $crud;
+
+    /**
+     * Create a new component instance.
+     *
+     * @param string $controller The CRUD controller class name
+     * @param string $operation The operation to use (create, update, etc.)
+     * @param string|null $action Custom form action URL
+     * @param string $method Form method (post, put, etc.)
+     */
+    public function __construct(
+        public string $controller,
+        public string $operation = 'create',
+        public ?string $formAction = null,
+        public string $formMethod = 'post'
+    ) {
+        // Get CRUD panel instance from the controller
+        $this->crud = CrudManager::setupCrudPanel($controller, $operation);
+        $this->operation = $operation;
+        $this->formAction = $action ?? url($this->crud->route);
+    }
+
+    /**
+     * Get the view / contents that represent the component.
+     *
+     * @return \Illuminate\Contracts\View\View|\Closure|string
+     */
+    public function render()
+    {
+        return view('crud::components.form.form', [
+            'crud' => $this->crud,
+            'operation' => $this->operation,
+            'formAction' => $this->formAction,
+            'formMethod' => $this->formMethod,
+        ]);
+    }
+}

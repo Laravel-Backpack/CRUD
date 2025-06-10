@@ -15,19 +15,19 @@
 
 {{-- Define blade stacks so css and js can be pushed from the fields to these sections. --}}
 
-@section('after_styles')
+@push('after_styles')
 
     {{-- CRUD FORM CONTENT - crud_fields_styles stack --}}
     @stack('crud_fields_styles')
 
-@endsection
+@endpush
 
-@section('after_scripts')
+@push('after_scripts')
 
     {{-- CRUD FORM CONTENT - crud_fields_scripts stack --}}
     @stack('crud_fields_scripts')
 
-    <script>
+<script>
     function initializeFieldsWithJavascript(container) {
       var selector;
       if (container instanceof jQuery) {
@@ -172,14 +172,15 @@
         @else
             focusField = getFirstFocusableField($('form'));
         @endif
+        if(focusField.length !== 0) {
+          const fieldOffset = focusField.offset().top;
+          const scrollTolerance = $(window).height() / 2;
 
-        const fieldOffset = focusField.offset().top;
-        const scrollTolerance = $(window).height() / 2;
+          triggerFocusOnFirstInputField(focusField);
 
-        triggerFocusOnFirstInputField(focusField);
-
-        if( fieldOffset > scrollTolerance ){
-            $('html, body').animate({scrollTop: (fieldOffset - 30)});
+          if( fieldOffset > scrollTolerance ){
+              $('html, body').animate({scrollTop: (fieldOffset - 30)});
+          }
         }
       @endif
 
@@ -245,4 +246,4 @@
     </script>
 
     @include('crud::inc.form_fields_script')
-@endsection
+@endpush
