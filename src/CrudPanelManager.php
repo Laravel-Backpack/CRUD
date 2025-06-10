@@ -107,7 +107,7 @@ final class CrudPanelManager
         return $this->initializedOperations[$controller] ?? [];
     }
 
-    /** 
+    /**
      * Check if a specific operation has been initialized for a controller.
      */
     public function isOperationInitialized(string $controller, string $operation): bool

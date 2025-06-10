@@ -12,10 +12,10 @@ class Form extends Component
     /**
      * Create a new component instance.
      *
-     * @param string $controller The CRUD controller class name
-     * @param string $operation The operation to use (create, update, etc.)
-     * @param string|null $action Custom form action URL
-     * @param string $method Form method (post, put, etc.)
+     * @param  string  $controller  The CRUD controller class name
+     * @param  string  $operation  The operation to use (create, update, etc.)
+     * @param  string|null  $action  Custom form action URL
+     * @param  string  $method  Form method (post, put, etc.)
      */
     public function __construct(
         public string $controller,
