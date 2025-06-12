@@ -812,10 +812,6 @@ div.dt-scroll-body {
     margin-bottom: 0;
 }
 
-.dt-buttons {
-    margin-bottom: 8px;
-}
-
 /* Adjust table headers */
 .dataTable thead th {
     font-size: 0.70em;
@@ -823,7 +819,7 @@ div.dt-scroll-body {
 }
 
 /* Make export and column visibility buttons smaller */
-.dataTables_wrapper .dt-buttons .btn {
+.dt-container .dt-buttons .btn-group .btn {
     padding: 0.25rem 0.5rem;
     font-size: 0.875rem;
 }

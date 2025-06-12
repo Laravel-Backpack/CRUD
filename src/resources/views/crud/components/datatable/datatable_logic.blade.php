@@ -305,10 +305,23 @@ window.crud.initializeTable = function(tableId, customConfig = {}) {
                   "colvis": "{{ trans('backpack::crud.export.column_visibility') }}"
               },
           },
-        dom:
-            "<'row hidden'<'col-sm-6'i><'col-sm-6 d-print-none'f>>" +
-            "<'table-content row'<'col-sm-12'tr>>" +
-            "<'table-footer row mt-2 d-print-none align-items-center '<'col-sm-12 col-md-4'l><'col-sm-0 col-md-4 text-center'B><'col-sm-12 col-md-4 'p>>",
+        layout: {
+            topStart: null,
+            topEnd: null,
+            bottomEnd: null,
+            bottomStart: null,
+            bottom: [
+                'pageLength',
+                {
+                    buttons: config.exportButtons ? window.crud.exportButtonsConfig : []
+                },
+                {
+                    paging: {
+                        firstLast: false,
+                    }
+                }
+            ]
+        },
         buttons: []
     };
     
@@ -406,7 +419,7 @@ window.crud.initializeTable = function(tableId, customConfig = {}) {
     
     // Configure export buttons if present
     if (config.exportButtons) {
-        dataTableConfig.buttons = window.crud.exportButtonsConfig;
+        dataTableConfig.layout.bottom.buttons = window.crud.exportButtonsConfig;
     }
     
     
@@ -526,8 +539,6 @@ function setupTableUI(tableId, config) {
         }
     });
     window.dispatchEvent(event);
-    // move the bottom buttons before pagination
-    $(`#bottom_buttons_${tableId}`).insertBefore($(`#${tableId}_wrapper .row:last-child`));
 }
 
 // Function to set up table event handlers
