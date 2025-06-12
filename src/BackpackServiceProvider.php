@@ -11,6 +11,7 @@ use Illuminate\Contracts\Debug\ExceptionHandler;
 use Illuminate\Routing\Router;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Illuminate\View\Compilers\BladeCompiler;
@@ -80,6 +81,7 @@ class BackpackServiceProvider extends ServiceProvider
         ViewNamespaces::addFor('widgets', 'crud::widgets');
 
         $this->loadViewComponents();
+        $this->registerDynamicBladeComponents();
 
         $this->registerBackpackErrorViews();
 
@@ -320,6 +322,38 @@ class BackpackServiceProvider extends ServiceProvider
         $this->app->afterResolving(BladeCompiler::class, function () {
             Blade::componentNamespace('Backpack\\CRUD\\app\\View\\Components', 'backpack');
         });
+    }
+
+    /**
+     * Register dynamic Blade components from the Components directory.
+     *
+     * Any Blade component classes that are in that directory will be registered
+     * as dynamic components with the 'bp-{component-name}' prefix.
+     */
+    private function registerDynamicBladeComponents()
+    {
+        $path = __DIR__.'/app/View/Components';
+        $namespace = 'Backpack\\CRUD\\app\\View\\Components';
+
+        if (! is_dir($path)) {
+            return;
+        }
+
+        foreach (File::allFiles($path) as $file) {
+            $relativePath = str_replace(
+                ['/', '.php'],
+                ['\\', ''],
+                Str::after($file->getRealPath(), realpath($path).DIRECTORY_SEPARATOR)
+            );
+
+            $class = $namespace.'\\'.$relativePath;
+
+            // Check if the class exists and is a subclass of Illuminate\View\Component
+            // This ensures that only valid Blade components are registered.
+            if (class_exists($class) && is_subclass_of($class, \Illuminate\View\Component::class)) {
+                Blade::component('bp-'.Str::kebab(class_basename($class)), $class);
+            }
+        }
     }
 
     /**
