@@ -308,17 +308,20 @@ window.crud.initializeTable = function(tableId, customConfig = {}) {
         layout: {
             topStart: null,
             topEnd: null,
-            bottomStart: 'pageLength',
-            bottomEnd: {
-                paging: {
-                    firstLast: false,
+            bottomEnd: null,
+            bottomStart: null,
+            bottom: [
+                'pageLength',
+                {
+                    buttons: config.exportButtons ? window.crud.exportButtonsConfig : []
+                },
+                {
+                    paging: {
+                        firstLast: false,
+                    }
                 }
-            },
-            bottom: {
-            info: false
-            }
+            ]
         },
-        
         buttons: []
     };
     
@@ -416,7 +419,7 @@ window.crud.initializeTable = function(tableId, customConfig = {}) {
     
     // Configure export buttons if present
     if (config.exportButtons) {
-        dataTableConfig.buttons = window.crud.exportButtonsConfig;
+        dataTableConfig.layout.bottom.buttons = window.crud.exportButtonsConfig;
     }
     
     
@@ -536,8 +539,6 @@ function setupTableUI(tableId, config) {
         }
     });
     window.dispatchEvent(event);
-    // move the bottom buttons before pagination
-    $(`#bottom_buttons_${tableId}`).insertBefore($(`#${tableId}_wrapper .row:last-child`));
 }
 
 // Function to set up table event handlers
