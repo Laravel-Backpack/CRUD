@@ -332,7 +332,7 @@ class BackpackServiceProvider extends ServiceProvider
      */
     private function registerDynamicBladeComponents()
     {
-        $path = __DIR__ . '/app/View/Components';
+        $path = __DIR__.'/app/View/Components';
         $namespace = 'Backpack\\CRUD\\app\\View\\Components';
 
         if (! is_dir($path)) {
@@ -343,10 +343,10 @@ class BackpackServiceProvider extends ServiceProvider
             $relativePath = str_replace(
                 ['/', '.php'],
                 ['\\', ''],
-                Str::after($file->getRealPath(), realpath($path) . DIRECTORY_SEPARATOR)
+                Str::after($file->getRealPath(), realpath($path).DIRECTORY_SEPARATOR)
             );
 
-            $class = $namespace . '\\' . $relativePath;
+            $class = $namespace.'\\'.$relativePath;
 
             // Check if the class exists and is a subclass of Illuminate\View\Component
             // This ensures that only valid Blade components are registered.
