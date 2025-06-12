@@ -305,10 +305,20 @@ window.crud.initializeTable = function(tableId, customConfig = {}) {
                   "colvis": "{{ trans('backpack::crud.export.column_visibility') }}"
               },
           },
-        dom:
-            "<'row hidden'<'col-sm-6'i><'col-sm-6 d-print-none'f>>" +
-            "<'table-content row'<'col-sm-12'tr>>" +
-            "<'table-footer row mt-2 d-print-none align-items-center '<'col-sm-12 col-md-4'l><'col-sm-0 col-md-4 text-center'B><'col-sm-12 col-md-4 'p>>",
+        layout: {
+            topStart: null,
+            topEnd: null,
+            bottomStart: 'pageLength',
+            bottomEnd: {
+                paging: {
+                    firstLast: false,
+                }
+            },
+            bottom: {
+            info: false
+            }
+        },
+        
         buttons: []
     };
     
