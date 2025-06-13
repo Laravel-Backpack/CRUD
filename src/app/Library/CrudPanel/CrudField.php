@@ -299,7 +299,7 @@ class CrudField
      * ->addMorphOption('App\Models\Model', 'label', ['data_source' => backpack_url('smt')]).
      *
      * @param  string  $key  - the morph option key, usually a \Model\Class or a string for the morphMap
-     * @param  string|null  $label  - the displayed text for this option
+     * @param  ?string  $label  - the displayed text for this option
      * @param  array  $options  - options for the corresponding morphable_id field (usually ajax options)
      * @return self
      *
