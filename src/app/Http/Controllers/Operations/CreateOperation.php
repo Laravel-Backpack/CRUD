@@ -27,12 +27,6 @@ trait CreateOperation
             'uses' => $controller.'@store',
             'operation' => 'create',
         ]);
-
-        Route::get($segment.'/create-form', [
-            'as' => $routeName.'.create-form',
-            'uses' => $controller.'@createForm',
-            'operation' => 'create',
-        ]);
     }
 
     /**
@@ -66,7 +60,9 @@ trait CreateOperation
         $this->data['title'] = $this->crud->getTitle() ?? trans('backpack::crud.add').' '.$this->crud->entity_name;
 
         // load the view from /resources/views/vendor/backpack/crud/ if it exists, otherwise load the one in the package
-        return view($this->crud->getCreateView(), $this->data);
+        return  request()->ajax() ? 
+            view('crud::components.form.form_ajax_view', $this->data) :
+            view($this->crud->getCreateView(), $this->data);
     }
 
     public function createForm()

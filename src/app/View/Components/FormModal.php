@@ -17,14 +17,15 @@ class FormModal extends Form
      */
     public function __construct(
         public string $controller,
+        public string $id = 'backpack-form',
         public string $operation = 'create',
+        public string $formRouteOperation = 'create',
         public ?string $action = null,
         public string $method = 'post',
-        public string $buttonText = 'Open Form',
         public string $modalTitle = 'Form',
-        public string $buttonClass = 'btn btn-primary'
+        public string $modalClasses = "modal-dialog modal-lg"
     ) {
-        parent::__construct($controller, $operation, $action, $method);
+        parent::__construct($controller, $id, $operation, $action, $method);
     }
 
     /**
@@ -36,12 +37,13 @@ class FormModal extends Form
     {
         return view('crud::components.form.modal_form', [
             'crud' => $this->crud,
+            'id' => $this->id,
             'operation' => $this->operation,
-            'formAction' => $this->formAction,
-            'formMethod' => $this->formMethod,
-            'buttonText' => $this->buttonText,
+            'formRouteOperation' => $this->formRouteOperation,
+            'action' => $this->action,
+            'method' => $this->method,
             'modalTitle' => $this->modalTitle,
-            'buttonClass' => $this->buttonClass,
+            'modalClasses' => $this->modalClasses,
         ]);
     }
 }

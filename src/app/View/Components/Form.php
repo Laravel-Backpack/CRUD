@@ -19,14 +19,15 @@ class Form extends Component
      */
     public function __construct(
         public string $controller,
+        public string $id = 'backpack-form',
         public string $operation = 'create',
-        public ?string $formAction = null,
-        public string $formMethod = 'post'
+        public ?string $action = null,
+        public string $method = 'post'
     ) {
         // Get CRUD panel instance from the controller
         $this->crud = CrudManager::setupCrudPanel($controller, $operation);
         $this->operation = $operation;
-        $this->formAction = $action ?? url($this->crud->route);
+        $this->action = $action ?? url($this->crud->route);
     }
 
     /**
@@ -38,9 +39,11 @@ class Form extends Component
     {
         return view('crud::components.form.form', [
             'crud' => $this->crud,
+            'saveAction' => $this->crud->getSaveAction(),
+            'id' => $this->id,
             'operation' => $this->operation,
-            'formAction' => $this->formAction,
-            'formMethod' => $this->formMethod,
+            'action' => $this->action,
+            'method' => $this->method,
         ]);
     }
 }
