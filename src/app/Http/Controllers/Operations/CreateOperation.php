@@ -60,7 +60,30 @@ trait CreateOperation
         $this->data['title'] = $this->crud->getTitle() ?? trans('backpack::crud.add').' '.$this->crud->entity_name;
 
         // load the view from /resources/views/vendor/backpack/crud/ if it exists, otherwise load the one in the package
-        return view($this->crud->getCreateView(), $this->data);
+        return  request()->ajax() ?
+            view('crud::components.form.form_ajax_view', $this->data) :
+            view($this->crud->getCreateView(), $this->data);
+    }
+
+    public function createForm()
+    {
+        $this->crud->hasAccessOrFail('create');
+
+        // if the request isn't an AJAX request, return a 404
+        if (! request()->ajax()) {
+            abort(404);
+        }
+
+        return view(
+            $this->crud->getFirstFieldView('form.create_form'),
+            [
+                'fields' => $this->crud->getCreateFields(),
+                'action' => 'create',
+                'crud' => $this->crud,
+                'modalClass' => request()->get('modal_class'),
+                'parentLoadedAssets' => request()->get('parent_loaded_assets'),
+            ]
+        );
     }
 
     /**
