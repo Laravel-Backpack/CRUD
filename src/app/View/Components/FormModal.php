@@ -23,7 +23,7 @@ class FormModal extends Form
         public ?string $action = null,
         public string $method = 'post',
         public string $modalTitle = 'Form',
-        public string $modalClasses = "modal-dialog modal-lg"
+        public string $modalClasses = 'modal-dialog modal-lg'
     ) {
         parent::__construct($controller, $id, $operation, $action, $method);
     }
