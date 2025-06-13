@@ -30,7 +30,7 @@
 @endpush
 
 @push('after_scripts')
-@bassetBlock('form-modal-initialization')
+@bassetBlock('form-modal-initialization.js')
 
 <script>
 (function() {
@@ -84,7 +84,57 @@
                 formContainer.innerHTML = html;
                 formContainer.dataset.loaded = 'true';
                 
-                // Initialize the form fields after loading
+                // Handle any scripts that came with the response
+                const scriptElements = formContainer.querySelectorAll('script');
+                const scriptsToLoad = [];
+                
+                scriptElements.forEach(scriptElement => {
+                    if (scriptElement.src) {
+                        // For external scripts with src attribute
+                        const srcUrl = scriptElement.src;
+                        
+                        // Only load the script if it's not already loaded
+                        if (!document.querySelector(`script[src="${srcUrl}"]`)) {
+                            scriptsToLoad.push(new Promise((resolve, reject) => {
+                                const newScript = document.createElement('script');
+                                
+                                // Copy all attributes from the original script
+                                Array.from(scriptElement.attributes).forEach(attr => {
+                                    newScript.setAttribute(attr.name, attr.value);
+                                });
+                                
+                                // Set up load and error handlers
+                                newScript.onload = resolve;
+                                newScript.onerror = reject;
+                                
+                                // Append to document to start loading
+                                document.head.appendChild(newScript);
+                            }));
+                        }
+                        
+                        // Remove the original script tag
+                        scriptElement.parentNode.removeChild(scriptElement);
+                    } else {
+                        // For inline scripts
+                        const newScript = document.createElement('script');
+                        
+                        // Copy all attributes from the original script
+                        Array.from(scriptElement.attributes).forEach(attr => {
+                            newScript.setAttribute(attr.name, attr.value);
+                        });
+                        
+                        // Copy the content
+                        newScript.textContent = scriptElement.textContent;
+                        
+                        // Replace the original script tag with the new one to force execution
+                        scriptElement.parentNode.replaceChild(newScript, scriptElement);
+                    }
+                });
+    
+        // Wait for all external scripts to load before continuing
+        Promise.all(scriptsToLoad)
+            .then(() => {
+                // Initialize the form fields after all scripts are loaded
                 if (typeof initializeFieldsWithJavascript === 'function') {
                     console.log('initializing the fields');
                     try {
@@ -92,18 +142,20 @@
                     } catch (e) {
                         console.error('Error initializing form fields:', e);
                     }
+                } else {
+                    console.warn('initializeFieldsWithJavascript function is not defined.');
                 }
                 submitButton.disabled = false;
             })
             .catch(error => {
-                console.error('Error loading form:', error);
-                formContainer.innerHTML = '<div class="alert alert-danger">Failed to load form</div>';
+                console.error('Error loading external scripts:', error);
                 submitButton.disabled = false;
             });
-        } else {
-            submitButton.disabled = false;
-        }
+        
+        });
     }
+}
+
     
     // Handle form submission
     function submitModalForm(controllerId, formContainer, submitButton) {

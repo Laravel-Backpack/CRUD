@@ -1,4 +1,3 @@
-
  <form method="post"
         action="{{ url($crud->route) }}"
         onsubmit="return false"
@@ -7,21 +6,10 @@
         @endif
 >
 {!! csrf_field() !!}
-<input type="hidden" name="_http_referrer" value="{{ old('_http_referrer') ?? \URL::previous() ?? url($crud->route) }}">
-
-{{-- See if we're using tabs --}}
-@if ($crud->tabsEnabled() && count($crud->getTabs()))
-    @include('crud::inc.show_tabbed_fields')
-    <input type="hidden" name="_current_tab" value="{{ Str::slug($crud->getTabs()[0]) }}" />
-@else
-  <div class="card">
-    <div class="card-body row">
-      @include('crud::inc.show_fields', ['fields' => $crud->fields()])
-    </div>
-  </div>
-@endif
-
+@include('crud::form_content', ['fields' => $crud->fields(), 'action' => 'create', 'inlineCreate' => true])
+<div class="d-none" id="parentLoadedAssets">{{ json_encode(Basset::loaded()) }}</div>
  </form>
+ 
 
 @foreach (app('widgets')->toArray() as $currentWidget)
 @php
@@ -31,3 +19,8 @@
         @include($currentWidget->getFinalViewPath(), ['widget' => $currentWidget->toArray()])
     @endif
 @endforeach
+
+@stack('crud_fields_styles')
+@stack('crud_fields_scripts')
+@stack('after_styles')
+@stack('after_scripts')
