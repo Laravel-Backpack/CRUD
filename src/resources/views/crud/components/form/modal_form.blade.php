@@ -44,63 +44,75 @@
 @if (!request()->ajax()) @endpush @endif
 @push('after_scripts') @if (request()->ajax()) @endpush @endif
 <script>
-    // Find all modal templates and initialize them
+    (function() {
+        // Initialize modals immediately when the script runs
+        initializeAllModals();
+        // Also listen for DataTable draw events which might add new modals
+        document.addEventListener('draw.dt', initializeAllModals);
+    })();
+function initializeAllModals() {
+    // First, track all initialized modals by their unique ID to avoid duplicates
+    const initializedModals = new Set();
+    
     document.querySelectorAll('[id^="modalTemplate"]').forEach(modalTemplate => {
-        if (!modalTemplate.hasAttribute('data-initialized')) {
-            console.log('initializing modal template:', modalTemplate.id);
-            modalTemplate.setAttribute('data-initialized', 'true');
-
-            // Extract controller hash from the ID
-            const controllerId = modalTemplate.id.replace('modalTemplate', '');
-            
-            
-            // Get the actual modal element
-            const modalEl = modalTemplate.querySelector('.modal');
-            if(!modalEl) {
-                console.warn(`No modal found in template with ID ${modalTemplate.id}`);
-                return;
-            }
+        // Extract controller hash from the ID
+        const controllerId = modalTemplate.id.replace('modalTemplate', '');
+        const modalEl = modalTemplate.querySelector('.modal');
+        if(!modalEl) {
+            console.warn(`No modal found in template with ID ${modalTemplate.id}`);
+            return;
+        }
         
-            if (!modalEl) return;
-            
-            // Get other elements
-            const formContainer = document.getElementById(`modal-form-container${controllerId}`);
-            const submitButton = document.getElementById(`submitForm${controllerId}`);
-            if (!formContainer || !submitButton) {
-                console.warn(`Missing form elements for controller ID ${controllerId}`);
-                return;
-            }
-            // Make modal template visible (but modal stays hidden until triggered)
-            modalTemplate.classList.remove('d-none');
-
-            /// Store the handler functions on the elements themselves to reference later
-        modalEl._loadHandler = function() {
-            loadModalForm(controllerId, modalEl, formContainer, submitButton);
-        };
-
-        submitButton._saveHandler = function() {
-            submitModalForm(controllerId, formContainer, submitButton, modalEl);
-        };
-
-        // Clean up any existing event listeners
-        modalEl.removeEventListener('shown.bs.modal', modalEl._loadHandler);
-        submitButton.removeEventListener('click', submitButton._saveHandler);
-
-        // Add the new event listeners
-        modalEl.addEventListener('shown.bs.modal', modalEl._loadHandler);
-        submitButton.addEventListener('click', submitButton._saveHandler); 
-        }else{
-            // find all the elements with the same controllerId and delete the others
-            const controllerId = modalTemplate.id.replace('modalTemplate', '');
-            document.querySelectorAll(`[id^="modalTemplate${controllerId}"]`).forEach(el => {
-                if (el !== modalTemplate) {
-                    console.log('removing duplicate modal template:', el.id);
-                    el.remove();
-                }
-            });
-
+        const modalId = modalEl.id;
+        
+        // Create a unique key for this modal
+        const modalKey = `${controllerId}-${modalId}`;
+        
+        // Skip if we've already processed an identical modal in this batch
+        if (initializedModals.has(modalKey)) {
+            console.log('Skipping already processed modal:', modalTemplate.id);
+            modalTemplate.remove(); // Remove duplicate
+            return;
+        }
+        
+        initializedModals.add(modalKey);
+        
+        // Get other elements
+        const formContainer = document.getElementById(`modal-form-container${controllerId}`);
+        const submitButton = document.getElementById(`submitForm${controllerId}`);
+        if (!formContainer || !submitButton) {
+            console.warn(`Missing form elements for controller ID ${controllerId}`);
+            return;
+        }
+        
+        // Make modal template visible (but modal stays hidden until triggered)
+        modalTemplate.classList.remove('d-none');
+        
+        // Only set up the event handlers if they don't exist yet
+        if (!modalEl._loadHandler) {
+            modalEl._loadHandler = function() {
+                loadModalForm(controllerId, modalEl, formContainer, submitButton);
+            };
+            modalEl.addEventListener('shown.bs.modal', modalEl._loadHandler);
+        }
+        
+        if (!submitButton._saveHandler) {
+            submitButton._saveHandler = function() {
+                submitModalForm(controllerId, formContainer, submitButton, modalEl);
+            };
+            submitButton.addEventListener('click', submitButton._saveHandler);
+        }
+        
+        // Mark as initialized
+        modalTemplate.setAttribute('data-initialized', 'true');
+        console.log('Modal initialized:', modalTemplate.id);
+        
+        // Initialize Bootstrap modal if it hasn't been initialized yet
+        if (typeof bootstrap !== 'undefined' && !bootstrap.Modal.getInstance(modalEl)) {
+            new bootstrap.Modal(modalEl);
         }
     });
+}
     
     // Load form contents via AJAX
     function loadModalForm(controllerId, modalEl, formContainer, submitButton) {
