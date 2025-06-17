@@ -15,7 +15,7 @@
                         <h5 class="modal-title" id="formModalLabel{{ md5($controller.$id) }}">{{ $modalTitle }}</h5>
                         <button type="button" class="btn-close close" data-dismiss="modal" data-bs-dismiss="modal" aria-label="Close"></button>
                    </div>
-                    <div class="modal-body">
+                    <div class="modal-body bg-light">
                         <div id="modal-form-errors{{ md5($controller.$id) }}" class="alert alert-danger d-none">
                             <ul id="modal-form-errors-list{{ md5($controller.$id) }}"></ul>
                         </div>
