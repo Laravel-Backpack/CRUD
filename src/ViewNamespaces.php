@@ -99,12 +99,12 @@ class ViewNamespaces
      * @param  string|null  $fallbackViewPath  (eg. 'crud::columns.text')
      * @return array
      */
-    public static function getViewPathsWithFallbackFor(string $domain, string $viewName, string $fallbackViewPath = null)
+    public static function getViewPathsWithFallbackFor(string $domain, string $viewName, ?string $fallbackViewPath = null)
     {
         $paths = self::getViewPathsFor($domain, $viewName);
 
         // Add fallback if provided and not already in the list
-        if ($fallbackViewPath && !in_array($fallbackViewPath, $paths)) {
+        if ($fallbackViewPath && ! in_array($fallbackViewPath, $paths)) {
             $paths[] = $fallbackViewPath;
         }
 
