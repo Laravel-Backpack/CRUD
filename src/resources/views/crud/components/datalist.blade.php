@@ -10,7 +10,7 @@
             </td>
         </tr>
         @endforeach
-        @if($crud->buttons()->where('stack', 'line')->count() && ($displayActionsColumn ?? true))
+        @if($crud && $crud->buttons()->where('stack', 'line')->count() && ($displayActionsColumn ?? true))
         <tr>
             <td>
                 <strong>{{ trans('backpack::crud.actions') }}</strong>

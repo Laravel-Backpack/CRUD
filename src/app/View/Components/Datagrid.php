@@ -14,7 +14,7 @@ class Datagrid extends Component
     /**
      * Create a new component instance.
      */
-    public function __construct($columns, $entry, $crud, $displayActionsColumn = true)
+    public function __construct($columns, $entry, $crud = null, $displayActionsColumn = true)
     {
         $this->columns = $columns;
         $this->entry = $entry;
