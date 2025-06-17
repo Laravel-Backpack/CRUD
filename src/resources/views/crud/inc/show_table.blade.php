@@ -3,5 +3,5 @@
     :columns="$columns ?? $crud->columns()"
     :entry="$entry"
     :crud="$crud"
-    :display-actions-column="$displayActionsColumn ?? true"
+    :display-buttons="$displayActionsColumn ?? true"
 />

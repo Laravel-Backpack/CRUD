@@ -6,20 +6,20 @@ use Illuminate\View\Component;
 
 class Datalist extends Component
 {
-    public $columns;
     public $entry;
     public $crud;
-    public $displayActionsColumn;
+    public $columns;
+    public $displayButtons;
 
     /**
      * Create a new component instance.
      */
-    public function __construct($columns, $entry, $crud = null, $displayActionsColumn = true)
+    public function __construct($entry, $crud = null, $columns = [], $displayButtons = true)
     {
-        $this->columns = $columns;
+        $this->columns = $columns ?? $crud?->columns() ?? [];
         $this->entry = $entry;
         $this->crud = $crud;
-        $this->displayActionsColumn = $displayActionsColumn;
+        $this->displayButtons = $displayButtons;
     }
 
     /**
