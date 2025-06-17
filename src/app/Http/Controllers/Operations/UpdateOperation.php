@@ -61,7 +61,7 @@ trait UpdateOperation
      * @param  int  $id
      * @return \Illuminate\Contracts\View\View
      */
-    public function edit($id, $view = true)
+    public function edit($id)
     {
         $this->crud->hasAccessOrFail('update');
 
@@ -83,7 +83,7 @@ trait UpdateOperation
 
         // load the view from /resources/views/vendor/backpack/crud/ if it exists, otherwise load the one in the package
         return  request()->ajax() ?
-            view('crud::form_ajax_view', $this->data) :
+            view('crud::components.form.form_ajax_view', $this->data) :
             view($this->crud->getEditView(), $this->data);
     }
 

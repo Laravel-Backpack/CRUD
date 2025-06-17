@@ -1,4 +1,4 @@
-<input type="hidden" name="_http_referrer" value={{ session('referrer_url_override') ?? old('_http_referrer') ?? \URL::previous() ?? url($crud->route) }}>
+<input type="hidden" name="_http_referrer" value="{{ session('referrer_url_override') ?? old('_http_referrer') ?? \URL::previous() ?? url($crud->route) }}">
 
 {{-- See if we're using tabs --}}
 @if ($crud->tabsEnabled() && count($crud->getTabs()))
@@ -94,9 +94,10 @@
     });
 
     jQuery('document').ready(function($){
-
       // trigger the javascript for all fields that have their js defined in a separate method
+      @if(! isset($initFields) || $initFields !== false)
       initializeFieldsWithJavascript('form');
+      @endif
 
       // Retrieves the current form data
       function getFormData() {

@@ -11,9 +11,10 @@ class FormModal extends Form
      * @param  string  $operation  The operation to use (create, update, etc.)
      * @param  string|null  $action  Custom form action URL
      * @param  string  $method  Form method (post, put, etc.)
-     * @param  string  $buttonText  Text to display on the button that opens the modal
      * @param  string  $modalTitle  Title for the modal
-     * @param  string  $buttonClass  CSS classes for the button
+     * @param  string  $modalClasses  CSS classes for the modal dialog
+     * @param  string  $formRouteOperation  The operation to use for the form route (defaults to 'create')
+     * @param  string  $id  The ID for the form element (defaults to 'backpack-form')
      */
     public function __construct(
         public string $controller,
@@ -23,7 +24,8 @@ class FormModal extends Form
         public ?string $action = null,
         public string $method = 'post',
         public string $modalTitle = 'Form',
-        public string $modalClasses = 'modal-dialog modal-lg'
+        public string $modalClasses = 'modal-dialog modal-lg',
+        public bool $refreshDatatable = false,
     ) {
         parent::__construct($controller, $id, $operation, $action, $method);
     }
@@ -40,6 +42,8 @@ class FormModal extends Form
             'id' => $this->id,
             'operation' => $this->operation,
             'formRouteOperation' => $this->formRouteOperation,
+            'hasUploadFields' => $this->hasUploadFields,
+            'refreshDatatable' => $this->refreshDatatable,
             'action' => $this->action,
             'method' => $this->method,
             'modalTitle' => $this->modalTitle,

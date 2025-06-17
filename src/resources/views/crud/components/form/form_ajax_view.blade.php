@@ -1,12 +1,11 @@
+@php
+\Alert::flush();
+@endphp 
  <form method="post"
-        action="{{ url($crud->route) }}"
-        onsubmit="return false"
-        @if ($crud->hasUploadFields('create'))
-        enctype="multipart/form-data"
-        @endif
+        action="#"
 >
 {!! csrf_field() !!}
-@include('crud::form_content', ['fields' => $crud->fields(), 'action' => 'create', 'inlineCreate' => true])
+@include('crud::form_content', ['fields' => $crud->fields(), 'action' => 'edit', 'inlineCreate' => true, 'initFields' => false])
 <div class="d-none" id="parentLoadedAssets">{{ json_encode(Basset::loaded()) }}</div>
  </form>
  
@@ -20,7 +19,6 @@
     @endif
 @endforeach
 
-@stack('crud_fields_styles')
-@stack('crud_fields_scripts')
+
 @stack('after_styles')
 @stack('after_scripts')

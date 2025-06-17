@@ -1,18 +1,32 @@
     {{-- Modal HTML (initially hidden from DOM) --}}
-    @push('after_scripts')
-    <div class="d-none" id="modalTemplate{{ md5($controller) }}">
-        <div class="modal fade" id="{{$id}}" tabindex="-1" role="dialog" aria-labelledby="formModalLabel{{ md5($controller) }}" aria-hidden="true">
+    @php
+        if(isset($formRouteOperation)) {
+            if(!\Str::isUrl($formRouteOperation)) {
+                $formRouteOperation = url($crud->route . '/' . $formRouteOperation);
+            }
+        }
+    @endphp
+@push('after_scripts') @if (request()->ajax()) @endpush @endif
+    <div class="d-none" id="modalTemplate{{ md5($controller.$id) }}">
+        <div class="modal fade" id="{{$id}}" tabindex="-1" role="dialog" data-bs-backdrop="static" data-backdrop="static" aria-labelledby="formModalLabel{{ md5($controller.$id) }}" aria-hidden="true">
             <div class="{{$modalClasses}}" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="formModalLabel{{ md5($controller) }}">{{ $modalTitle }}</h5>
+                        <h5 class="modal-title" id="formModalLabel{{ md5($controller.$id) }}">{{ $modalTitle }}</h5>
                         <button type="button" class="btn-close close" data-dismiss="modal" data-bs-dismiss="modal" aria-label="Close"></button>
                    </div>
                     <div class="modal-body">
-                        <div id="modal-form-errors{{ md5($controller) }}" class="alert alert-danger d-none">
-                            <ul id="modal-form-errors-list{{ md5($controller) }}"></ul>
+                        <div id="modal-form-errors{{ md5($controller.$id) }}" class="alert alert-danger d-none">
+                            <ul id="modal-form-errors-list{{ md5($controller.$id) }}"></ul>
                         </div>
-                        <div id="modal-form-container{{ md5($controller) }}" data-form-load-route="{{ url($crud->route . '/'.$formRouteOperation) }}">
+                        <div 
+                            id="modal-form-container{{ md5($controller.$id) }}" 
+                            data-form-load-route="{{ $formRouteOperation }}"
+                            data-form-action="{{ $action }}"
+                            data-form-method="{{ $method }}"
+                            data-has-upload-fields="{{ $hasUploadFields ? 'true' : 'false' }}"
+                            data-refresh-datatable="{{ $refreshDatatable ? 'true' : 'false' }}"
+                            >
                             <div class="text-center">
                                 <i class="fa fa-spinner fa-spin fa-2x"></i>
                                 <p>Loading form...</p>
@@ -21,52 +35,76 @@
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-dismiss="modal" data-bs-dismiss="modal">Close</button>
-                        <button type="button" class="btn btn-primary" id="submitForm{{ md5($controller) }}">Save</button>
+                        <button type="button" class="btn btn-primary" id="submitForm{{ md5($controller.$id) }}">Save</button>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-@endpush
-
-@push('after_scripts')
-@bassetBlock('form-modal-initialization.js')
-
+@if (!request()->ajax()) @endpush @endif
+@push('after_scripts') @if (request()->ajax()) @endpush @endif
 <script>
-(function() {
-    // This script initializes all modal forms on the page
-    document.addEventListener('DOMContentLoaded', function() {
-        // Find all modal templates and initialize them
-        document.querySelectorAll('[id^="modalTemplate"]').forEach(modalTemplate => {
+    // Find all modal templates and initialize them
+    document.querySelectorAll('[id^="modalTemplate"]').forEach(modalTemplate => {
+        if (!modalTemplate.hasAttribute('data-initialized')) {
+            console.log('initializing modal template:', modalTemplate.id);
+            modalTemplate.setAttribute('data-initialized', 'true');
+
             // Extract controller hash from the ID
             const controllerId = modalTemplate.id.replace('modalTemplate', '');
             
+            
             // Get the actual modal element
             const modalEl = modalTemplate.querySelector('.modal');
+            if(!modalEl) {
+                console.warn(`No modal found in template with ID ${modalTemplate.id}`);
+                return;
+            }
+        
             if (!modalEl) return;
             
             // Get other elements
             const formContainer = document.getElementById(`modal-form-container${controllerId}`);
             const submitButton = document.getElementById(`submitForm${controllerId}`);
-            
-            if (!formContainer || !submitButton) return;
-            
+            if (!formContainer || !submitButton) {
+                console.warn(`Missing form elements for controller ID ${controllerId}`);
+                return;
+            }
             // Make modal template visible (but modal stays hidden until triggered)
             modalTemplate.classList.remove('d-none');
-            
-            // Set up event handlers
-            modalEl.addEventListener('shown.bs.modal', function() {
-                loadModalForm(controllerId, modalEl, formContainer, submitButton);
+
+            /// Store the handler functions on the elements themselves to reference later
+        modalEl._loadHandler = function() {
+            loadModalForm(controllerId, modalEl, formContainer, submitButton);
+        };
+
+        submitButton._saveHandler = function() {
+            submitModalForm(controllerId, formContainer, submitButton, modalEl);
+        };
+
+        // Clean up any existing event listeners
+        modalEl.removeEventListener('shown.bs.modal', modalEl._loadHandler);
+        submitButton.removeEventListener('click', submitButton._saveHandler);
+
+        // Add the new event listeners
+        modalEl.addEventListener('shown.bs.modal', modalEl._loadHandler);
+        submitButton.addEventListener('click', submitButton._saveHandler); 
+        }else{
+            // find all the elements with the same controllerId and delete the others
+            const controllerId = modalTemplate.id.replace('modalTemplate', '');
+            document.querySelectorAll(`[id^="modalTemplate${controllerId}"]`).forEach(el => {
+                if (el !== modalTemplate) {
+                    console.log('removing duplicate modal template:', el.id);
+                    el.remove();
+                }
             });
-            
-            submitButton.addEventListener('click', function() {
-                submitModalForm(controllerId, formContainer, submitButton);
-            });
-        });
+
+        }
     });
     
     // Load form contents via AJAX
     function loadModalForm(controllerId, modalEl, formContainer, submitButton) {
+
         submitButton.disabled = true;
         
         if (formContainer && !formContainer.dataset.loaded) {
@@ -81,13 +119,29 @@
             })
             .then(response => response.text())
             .then(html => {
+                if (!html) {
+                    console.error(`No HTML content returned for controller ID ${controllerId}`);
+                    return;
+                }
+
+                // add the enctype to the form if it has upload fields
+                if (formContainer.dataset.hasUploadFields === 'true') {
+                    html = html.replace(/<form /, '<form enctype="multipart/form-data" ');
+                }
+
+                // Replace form action in the HTML
+                const formAction = formContainer.dataset.formAction || '';
+                html = html.replace(/<form(\s+[^>]*?)(?:action="[^"]*")?([^>]*?)>/, (match, before, after) => {
+                    return `<form${before} action="${formAction}"${after}>`;
+                });
+
                 formContainer.innerHTML = html;
                 formContainer.dataset.loaded = 'true';
                 
                 // Handle any scripts that came with the response
                 const scriptElements = formContainer.querySelectorAll('script');
                 const scriptsToLoad = [];
-                
+
                 scriptElements.forEach(scriptElement => {
                     if (scriptElement.src) {
                         // For external scripts with src attribute
@@ -125,9 +179,12 @@
                         
                         // Copy the content
                         newScript.textContent = scriptElement.textContent;
-                        
-                        // Replace the original script tag with the new one to force execution
-                        scriptElement.parentNode.replaceChild(newScript, scriptElement);
+
+                        try {
+                            document.head.appendChild(newScript);
+                        }catch (e) {
+                            console.warn('Error appending inline script:', e);
+                        }
                     }
                 });
     
@@ -136,29 +193,24 @@
             .then(() => {
                 // Initialize the form fields after all scripts are loaded
                 if (typeof initializeFieldsWithJavascript === 'function') {
-                    console.log('initializing the fields');
                     try {
                         initializeFieldsWithJavascript(modalEl);
                     } catch (e) {
                         console.error('Error initializing form fields:', e);
                     }
-                } else {
-                    console.warn('initializeFieldsWithJavascript function is not defined.');
-                }
+                } 
                 submitButton.disabled = false;
             })
             .catch(error => {
-                console.error('Error loading external scripts:', error);
                 submitButton.disabled = false;
             });
         
         });
     }
 }
-
-    
     // Handle form submission
-    function submitModalForm(controllerId, formContainer, submitButton) {
+    function submitModalForm(controllerId, formContainer, submitButton, modalEl) {
+        console.log('Submitting form for controller ID:', controllerId);
         const form = formContainer.querySelector('form');
         if (!form) {
             console.error('Form not found in modal');
@@ -167,7 +219,7 @@
         
         const errorsContainer = document.getElementById(`modal-form-errors${controllerId}`);
         const errorsList = document.getElementById(`modal-form-errors-list${controllerId}`);
-        
+
         // Clear previous errors
         errorsContainer.classList.add('d-none');
         errorsList.innerHTML = '';
@@ -175,14 +227,20 @@
         form.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
         
         submitButton.disabled = true;
-        
+
+        const formData = new FormData(form);
+        // change the form data _method to the one defined in the container
+        if (formContainer.dataset.formMethod) {
+            formData.set('_method', formContainer.dataset.formMethod);
+        }
+
         // Submit form via AJAX
         fetch(form.action, {
-            method: form.method,
-            body: new FormData(form),
+            method: 'POST',
+            body: formData,
             headers: {
                 'X-Requested-With': 'XMLHttpRequest',
-                'Accept': 'application/json' 
+                'Accept': 'application/json',
             }
         })
         .then(response => {
@@ -202,7 +260,6 @@
                 
                 // Try to close the modal
                 try {
-                    const modalEl = document.querySelector(`#modalTemplate${controllerId} .modal`);
                     const bsModal = bootstrap.Modal.getInstance(modalEl);
                     if (bsModal) {
                         bsModal.hide();
@@ -220,23 +277,34 @@
                 document.dispatchEvent(new CustomEvent('FormModalSaved', {
                     detail: { controllerId: controllerId, response: result.data }
                 }));
-                
-                // Reload the table if it exists
-                setTimeout(function() {
-                    if (window.crud && window.crud.table) {
-                        try {
-                            window.crud.table.ajax.reload();
-                        } catch (e) {
-                            console.warn('Could not reload table using ajax.reload()', e);
+
+                    // Reload the datatable if developer asked for it
+                    if(formContainer.dataset.refreshDatatable === 'true') {
+                        setTimeout(function() {
                             try {
-                                window.crud.table.draw(false);
-                            } catch (e2) {
-                                console.warn('Could not reload table using draw()', e2);
+                                // Find closest DataTable
+                                const triggerButton = document.querySelector(`[data-target="#${modalEl.id}"]`);
+                                const closestTable = triggerButton ? triggerButton.closest('.dataTable') : null;    
+                                if (closestTable && closestTable.id) {
+                                    // Access the DataTable instance using the DataTables API
+                                    const dataTable = window.DataTable.tables({ visible: true, api: true }).filter(
+                                        table => table.getAttribute('id') === closestTable.id
+                                    );
+                                    if (dataTable) {
+                                        dataTable.ajax.reload();
+                                    }
+                                }
+                            } catch (e) {
+                                try {
+                                    // Fallback approach if first method fails
+                                    if (typeof table !== 'undefined') {
+                                        table.draw(false);
+                                    }
+                                } catch (e2) { }
                             }
-                        }
-                    }
-                }, 100);
-            } else if (result.status === 422) {
+                        }, 100);
+                    }    
+                } else if (result.status === 422) {
                 // Validation errors
                 errorsContainer.classList.remove('d-none');
                 
@@ -279,7 +347,5 @@
             submitButton.disabled = false;
         });
     }
-})();
 </script>
-@endBassetBlock
-@endpush
+@if (!request()->ajax()) @endpush @endif
