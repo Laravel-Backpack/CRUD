@@ -8,7 +8,7 @@
         </div>
     @endforeach
 
-    @if($crud && $crud->buttons()->where('stack', 'line')->count() && ($displayActionsColumn ?? true))
+    @if($crud && $crud->buttons()->where('stack', 'line')->count() && $displayActionsColumn)
         <div class="datagrid-item">
             <div class="datagrid-title">{{ trans('backpack::crud.actions') }}</div>
             <div class="datagrid-content">
