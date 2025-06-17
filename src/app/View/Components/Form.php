@@ -27,13 +27,13 @@ class Form extends Component
 
     ) {
         // Get CRUD panel instance from the controller
-        if(CrudManager::hasCrudPanel($controller)) {
+        if (CrudManager::hasCrudPanel($controller)) {
             $previousOperation = CrudManager::getCrudPanel($controller)->getOperation();
         }
 
         $this->crud = CrudManager::setupCrudPanel($controller, $operation);
-        
-        if(isset(($previousOperation))) {
+
+        if (isset($previousOperation)) {
             $this->crud->setOperation($previousOperation);
         }
 
