@@ -23,8 +23,8 @@ class FormModal extends Form
         public string $formRouteOperation = 'create',
         public ?string $action = null,
         public string $method = 'post',
-        public string $modalTitle = 'Form',
-        public string $modalClasses = 'modal-dialog modal-lg',
+        public string $title = 'Form',
+        public string $classes = 'modal-dialog modal-lg',
         public bool $refreshDatatable = false,
     ) {
         parent::__construct($controller, $id, $operation, $action, $method);
@@ -37,7 +37,7 @@ class FormModal extends Form
      */
     public function render()
     {
-        return view('crud::components.form.modal_form', [
+        return view('crud::components.form.modal', [
             'crud' => $this->crud,
             'id' => $this->id,
             'operation' => $this->operation,
@@ -46,8 +46,8 @@ class FormModal extends Form
             'refreshDatatable' => $this->refreshDatatable,
             'action' => $this->action,
             'method' => $this->method,
-            'modalTitle' => $this->modalTitle,
-            'modalClasses' => $this->modalClasses,
+            'title' => $this->title,
+            'classes' => $this->classes,
         ]);
     }
 }
