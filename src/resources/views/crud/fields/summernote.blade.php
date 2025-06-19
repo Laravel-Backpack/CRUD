@@ -41,6 +41,10 @@
         .note-editor.note-frame .note-status-output, .note-editor.note-airframe .note-status-output {
                 height: auto;
         }
+        /* Ensure Summernote's modal elements don't interfere with our modals */
+        .note-modal {
+            z-index: 1060 !important; /* Higher than Bootstrap's default modal z-index */
+        }
     </style>
     @endBassetBlock
 @endpush

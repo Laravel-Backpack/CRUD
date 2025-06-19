@@ -6,6 +6,7 @@
      * javascript manipulations, and makes it easy to do custom stuff
      * too, by exposing the main components (name, wrapper, input).
      */
+    if (typeof CrudField === 'undefined') {
     class CrudField {
         constructor(name) {
             this.name = name;
@@ -186,7 +187,7 @@
     window.crud = {
         ...window.crud,
 
-        action: "{{ $action ?? "" }}",
+        action: "{{ $action ?? '' }}",
 
         // Subfields callbacks holder
         subfieldsCallbacks: [],
@@ -197,4 +198,5 @@
         // Create all fields from a given name list
         fields: names => names.map(window.crud.field),
     };
+}
 </script>

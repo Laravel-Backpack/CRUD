@@ -1,5 +1,8 @@
 {{-- Show the inputs --}}
 @foreach ($fields as $field)
-    @include($crud->getFirstFieldView($field['type'], $field['view_namespace'] ?? false), $field)
+    @include($crud->getFirstFieldView($field['type'], $field['view_namespace'] ?? false), [
+        'field' => $field,
+        'inlineCreate' => $inlineCreate ?? false,
+    ])
 @endforeach
 

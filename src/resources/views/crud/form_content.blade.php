@@ -1,4 +1,4 @@
-<input type="hidden" name="_http_referrer" value={{ session('referrer_url_override') ?? old('_http_referrer') ?? \URL::previous() ?? url($crud->route) }}>
+<input type="hidden" name="_http_referrer" value="{{ session('referrer_url_override') ?? old('_http_referrer') ?? \URL::previous() ?? url($crud->route) }}">
 
 {{-- See if we're using tabs --}}
 @if ($crud->tabsEnabled() && count($crud->getTabs()))
@@ -15,19 +15,19 @@
 
 {{-- Define blade stacks so css and js can be pushed from the fields to these sections. --}}
 
-@section('after_styles')
+@push('after_styles')
 
     {{-- CRUD FORM CONTENT - crud_fields_styles stack --}}
     @stack('crud_fields_styles')
 
-@endsection
+@endpush
 
-@section('after_scripts')
+@push('after_scripts')
 
     {{-- CRUD FORM CONTENT - crud_fields_scripts stack --}}
     @stack('crud_fields_scripts')
 
-    <script>
+<script>
     function initializeFieldsWithJavascript(container) {
       var selector;
       if (container instanceof jQuery) {
@@ -94,9 +94,10 @@
     });
 
     jQuery('document').ready(function($){
-
       // trigger the javascript for all fields that have their js defined in a separate method
+      @if(! isset($initFields) || $initFields !== false)
       initializeFieldsWithJavascript('form');
+      @endif
 
       // Retrieves the current form data
       function getFormData() {
@@ -172,14 +173,15 @@
         @else
             focusField = getFirstFocusableField($('form'));
         @endif
+        if(focusField.length !== 0) {
+          const fieldOffset = focusField.offset().top;
+          const scrollTolerance = $(window).height() / 2;
 
-        const fieldOffset = focusField.offset().top;
-        const scrollTolerance = $(window).height() / 2;
+          triggerFocusOnFirstInputField(focusField);
 
-        triggerFocusOnFirstInputField(focusField);
-
-        if( fieldOffset > scrollTolerance ){
-            $('html, body').animate({scrollTop: (fieldOffset - 30)});
+          if( fieldOffset > scrollTolerance ){
+              $('html, body').animate({scrollTop: (fieldOffset - 30)});
+          }
         }
       @endif
 
@@ -245,4 +247,4 @@
     </script>
 
     @include('crud::inc.form_fields_script')
-@endsection
+@endpush
