@@ -2,13 +2,10 @@
 
 namespace Backpack\CRUD\app\View\Components;
 
-use Backpack\CRUD\CrudManager;
-use Illuminate\View\Component;
-use Illuminate\Support\Collection;
-use Illuminate\Database\Eloquent\Model;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanel;
 use Backpack\CRUD\CrudManager;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Collection;
 use Illuminate\View\Component;
 
 abstract class ShowComponent extends Component
