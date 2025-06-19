@@ -298,7 +298,7 @@ class CrudButton implements Arrayable
      * @param  CrudPanel|null  $crud  The CrudPanel object, if not passed it will be retrieved from the service container.
      * @return \Illuminate\Contracts\View\View
      */
-    public function getHtml($entry = null, $crud = null)
+    public function getHtml($entry = null, ?CrudPanel $crud = null)
     {
         $button = $this;
         $crud = $crud ?? $this->crud();

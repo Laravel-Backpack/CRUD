@@ -89,4 +89,25 @@ class ViewNamespaces
             return $item.'.'.$viewName;
         }, self::getFor($domain));
     }
+
+    /**
+     * Get view paths for a domain and view name with fallback support.
+     * This is useful for @includeFirst() calls that need a guaranteed fallback.
+     *
+     * @param  string  $domain  (eg. fields, filters, buttons, columns)
+     * @param  string  $viewName  (eg. text, select, checkbox)
+     * @param  string|null  $fallbackViewPath  (eg. 'crud::columns.text')
+     * @return array
+     */
+    public static function getViewPathsWithFallbackFor(string $domain, string $viewName, ?string $fallbackViewPath = null)
+    {
+        $paths = self::getViewPathsFor($domain, $viewName);
+
+        // Add fallback if provided and not already in the list
+        if ($fallbackViewPath && ! in_array($fallbackViewPath, $paths)) {
+            $paths[] = $fallbackViewPath;
+        }
+
+        return $paths;
+    }
 }

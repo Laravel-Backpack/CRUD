@@ -8,8 +8,6 @@
     <div class="card">
         @include('crud::inc.show_table', ['columns' => $columnsWithoutTab, 'displayActionsColumn' => false])
     </div>
-@else
-    @include('crud::inc.show_table', ['columns' => $columnsWithoutTab])
 @endif
 
 <div class="tab-container {{ $horizontalTabs ? '' : 'container'}} mb-2">
