@@ -8,7 +8,7 @@
         </div>
     @endforeach
 
-    @if($displayButtons ?? $crud && $crud->buttons()->where('stack', 'line')->count())
+    @if($displayButtons && $crud && $crud->buttons()->where('stack', 'line')->count())
         <div class="bp-datagrid-item size-12">
             <div class="bp-datagrid-title">{{ trans('backpack::crud.actions') }}</div>
             <div class="bp-datagrid-content">
