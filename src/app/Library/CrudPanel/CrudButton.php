@@ -297,10 +297,10 @@ class CrudButton implements Arrayable
      * @param  object|null  $entry  The eloquent Model for the current entry or null if no current entry.
      * @return \Illuminate\Contracts\View\View
      */
-    public function getHtml($entry = null)
+    public function getHtml($entry = null, ?CrudPanel $crud = null)
     {
         $button = $this;
-        $crud = $this->crud();
+        $crud = $crud ?? $this->crud();
 
         if ($this->type == 'model_function') {
             if (is_null($entry)) {

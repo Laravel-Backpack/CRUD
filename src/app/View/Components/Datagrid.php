@@ -2,36 +2,13 @@
 
 namespace Backpack\CRUD\app\View\Components;
 
-use Illuminate\View\Component;
-
-class Datagrid extends Component
+class Datagrid extends ShowComponent
 {
-    public $entry;
-    public $crud;
-    public $columns;
-    public $displayButtons;
-
     /**
-     * Create a new component instance.
+     * Get the view name for the component.
      */
-    public function __construct($entry, $crud = null, $columns = [], $displayButtons = true)
+    protected function getViewName(): string
     {
-        $this->columns = $columns ?? $crud?->columns() ?? [];
-        $this->entry = $entry;
-        $this->crud = $crud;
-        $this->displayButtons = $displayButtons;
-    }
-
-    /**
-     * Get the view / contents that represent the component.
-     */
-    public function render()
-    {
-        // if no columns are set, don't load any view
-        if (empty($this->columns)) {
-            return '';
-        }
-
-        return view('crud::components.datagrid');
+        return 'crud::components.datagrid';
     }
 }
