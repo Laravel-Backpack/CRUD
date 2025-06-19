@@ -18,7 +18,6 @@ class Datatable extends Component
         private ?\Closure $setup = null,
         private ?string $name = null,
     ) {
-        
         // Set active controller for proper context
         CrudManager::setActiveController($controller);
 
