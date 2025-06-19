@@ -2,10 +2,10 @@
 
 namespace Backpack\CRUD\app\View\Components;
 
-use Backpack\CRUD\CrudManager;
-use Illuminate\View\Component;
-use Illuminate\Database\Eloquent\Model;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanel;
+use Backpack\CRUD\CrudManager;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\View\Component;
 
 abstract class ShowComponent extends Component
 {
@@ -30,10 +30,10 @@ abstract class ShowComponent extends Component
      * This method initializes the CrudPanel and sets the active controller.
      * It also applies any setup closure provided.
      */
-    protected function setPropertiesFromController() : void
+    protected function setPropertiesFromController(): void
     {
         // If no CrudController is provided, do nothing
-        if (!$this->controller) {
+        if (! $this->controller) {
             return;
         }
 
@@ -45,14 +45,14 @@ abstract class ShowComponent extends Component
 
         // If a setup closure is provided, apply it
         if ($this->setup) {
-            if (!empty($columns)) {
-                throw new \Exception('You cannot define both setup closure and columns for a ' . class_basename(static::class) . ' component.');
+            if (! empty($columns)) {
+                throw new \Exception('You cannot define both setup closure and columns for a '.class_basename(static::class).' component.');
             }
 
             ($this->setup)($this->crud, $this->entry);
         }
 
-        $this->columns = !empty($columns) ? $columns : $this->crud?->getOperationSetting('columns', $this->operation) ?? [];
+        $this->columns = ! empty($columns) ? $columns : $this->crud?->getOperationSetting('columns', $this->operation) ?? [];
 
         // Reset the active controller
         CrudManager::unsetActiveController();
