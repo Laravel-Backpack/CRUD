@@ -4,6 +4,7 @@ namespace Backpack\CRUD\app\View\Components;
 
 use Backpack\CRUD\CrudManager;
 use Illuminate\View\Component;
+use Illuminate\Support\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanel;
 
@@ -18,7 +19,7 @@ abstract class ShowComponent extends Component
         public ?string $operation = 'show',
         public ?\Closure $setup = null,
         public ?CrudPanel $crud = null,
-        public array $columns = [],
+        public array|Collection $columns = [],
         public bool $displayButtons = true
     ) {
         $this->setPropertiesFromController();
