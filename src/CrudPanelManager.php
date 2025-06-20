@@ -69,7 +69,9 @@ final class CrudPanelManager
         $crud->setOperation($operation);
 
         $primaryControllerRequest = $this->cruds[array_key_first($this->cruds)]->getRequest();
-        if (! $crud->isInitialized()) {
+        if (! $crud->isInitialized() || ! $this->isOperationInitialized($controller::class, $operation)) {
+            self::setActiveController($controller::class);
+            $crud->initialized = false;
             self::setActiveController($controller::class);
             $controller->initializeCrudPanel($primaryControllerRequest, $crud);
             self::unsetActiveController();
@@ -79,6 +81,14 @@ final class CrudPanelManager
         }
 
         return $this->cruds[$controller::class];
+    }
+
+    /**
+     * Check if a specific operation has been initialized for a controller.
+     */
+    public function isOperationInitialized(string $controller, string $operation): bool
+    {
+        return in_array($operation, $this->getInitializedOperations($controller), true);
     }
 
     /**

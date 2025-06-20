@@ -15,14 +15,14 @@
 
 {{-- Define blade stacks so css and js can be pushed from the fields to these sections. --}}
 
-@section('after_styles')
+@push('after_styles')
 
     {{-- CRUD FORM CONTENT - crud_fields_styles stack --}}
     @stack('crud_fields_styles')
 
-@endsection
+@endpush
 
-@section('after_scripts')
+@push('after_scripts')
 
     {{-- CRUD FORM CONTENT - crud_fields_scripts stack --}}
     @stack('crud_fields_scripts')
@@ -245,4 +245,4 @@
     </script>
 
     @include('crud::inc.form_fields_script')
-@endsection
+@endpush
