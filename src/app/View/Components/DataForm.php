@@ -5,7 +5,7 @@ namespace Backpack\CRUD\app\View\Components;
 use Backpack\CRUD\CrudManager;
 use Illuminate\View\Component;
 
-class DataForm extends Component
+class Dataform extends Component
 {
     public $crud;
 
@@ -49,7 +49,7 @@ class DataForm extends Component
      */
     public function render()
     {
-        return view('crud::components.form.form', [
+        return view('crud::components.dataform.form', [
             'crud' => $this->crud,
             'saveAction' => $this->crud->getSaveAction(),
             'id' => $this->id,
