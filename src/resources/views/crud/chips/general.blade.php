@@ -1,14 +1,21 @@
 @php
+    // the main text showing in the chip
     $text = $text ?? null;
     $title = $title ?? null;
-    $target = $target ?? "_self";
+
+    // the URL for the main text and image (if any)
     $url = $url ?? null;
-    $details = $details ?? [];
+    $target = $target ?? "_self";
+
+    // the image (if any)
     $image = $image ?? null;
     $showImage = isset($showImage) ? $showImage : !empty($image);
+
+    // the details that show up on the second row (if any)
+    $details = $details ?? [];
 @endphp
 
-<div class="row align-items-center">
+<div class="row align-items-center bp-chip">
     @if ($showImage)
         <div class="col-auto">
             <div class="d-block">
