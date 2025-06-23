@@ -13,8 +13,10 @@
             @formMethod($method)
         @endif
 
+        <input type="hidden" name="_form_id" value="{{ $id }}">
+
         {{-- Include the form fields --}}
-        @include('crud::form_content', ['fields' => $crud->fields(), 'action' => $operation])
+        @include('crud::form_content', ['fields' => $crud->fields(), 'action' => $operation, 'id' => $id])
 
         {{-- This makes sure that all field assets are loaded. --}}
         <div class="d-none" id="parentLoadedAssets">{{ json_encode(Basset::loaded()) }}</div>

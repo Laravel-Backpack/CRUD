@@ -187,7 +187,10 @@
       @if ($crud->inlineErrorsEnabled() && session()->get('errors'))
 
         window.errors = {!! json_encode(session()->get('errors')->getBags()) !!};
+        var submittedFormId = "{{ old('_form_id') }}";
+        var currentFormId = '{{ $id }}';
 
+        if (!submittedFormId || submittedFormId === currentFormId) {
         $.each(errors, function(bag, errorMessages){
           $.each(errorMessages,  function (inputName, messages) {
             var normalizedProperty = inputName.split('.').map(function(item, index){
@@ -231,6 +234,7 @@
             });
         });
       });
+    }
       @endif
 
       $("a[data-bs-toggle='tab']").click(function(){

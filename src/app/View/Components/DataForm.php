@@ -40,6 +40,7 @@ class Dataform extends Component
         $this->operation = $operation;
         $this->action = $action ?? url($this->crud->route);
         $this->hasUploadFields = $this->crud->hasUploadFields($operation);
+        $this->id = $id.md5($this->action.$this->operation.$this->method.$this->controller);
     }
 
     /**

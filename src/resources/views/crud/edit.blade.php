@@ -28,7 +28,7 @@
 	<div class="{{ $crud->getEditContentClass() }}">
 		{{-- Default box --}}
 
-		@include('crud::inc.grouped_errors')
+		@include('crud::inc.grouped_errors', ['id' => $id])
 
 		  <form method="post"
 		  		action="{{ url($crud->route.'/'.$entry->getKey()) }}"
@@ -43,7 +43,7 @@
 
 			{{-- load the view from the application if it exists, otherwise load the one in the package --}}
 			@if(view()->exists('vendor.backpack.crud.form_content'))
-				@include('vendor.backpack.crud.form_content', ['fields' => $crud->fields(), 'action' => 'edit'])
+				@include('vendor.backpack.crud.form_content', ['fields' => $crud->fields(), 'action' => 'edit', 'id' => $id])
 			@else
 				@include('crud::form_content', ['fields' => $crud->fields(), 'action' => 'edit'])
 			@endif
