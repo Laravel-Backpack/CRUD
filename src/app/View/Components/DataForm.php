@@ -24,6 +24,7 @@ class Dataform extends Component
         public ?string $action = null,
         public string $method = 'post',
         public bool $hasUploadFields = false,
+        public $entry = null,
 
     ) {
         // Get CRUD panel instance from the controller
@@ -37,9 +38,16 @@ class Dataform extends Component
             $this->crud->setOperation($previousOperation);
         }
 
-        $this->operation = $operation;
-        $this->action = $action ?? url($this->crud->route);
-        $this->hasUploadFields = $this->crud->hasUploadFields($operation);
+
+        if ($this->entry && $this->operation === 'update') {
+            $this->action = $action ?? url($this->crud->route.'/'.$this->entry->getKey());
+            $this->method = 'put';
+            $this->crud->entry = $this->entry;
+            $this->crud->setOperationSetting('fields', $this->crud->getUpdateFields());
+        } else {
+            $this->action = $action ?? url($this->crud->route);
+        }
+        $this->hasUploadFields = $this->crud->hasUploadFields($operation, $this->entry?->getKey());
         $this->id = $id.md5($this->action.$this->operation.$this->method.$this->controller);
     }
 
@@ -57,6 +65,8 @@ class Dataform extends Component
             'operation' => $this->operation,
             'action' => $this->action,
             'method' => $this->method,
+            'hasUploadFields' => $this->hasUploadFields,
+            'entry' => $this->entry,
         ]);
     }
 }

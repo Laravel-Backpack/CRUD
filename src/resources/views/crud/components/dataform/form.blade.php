@@ -1,20 +1,22 @@
 <div class="backpack-form">
-    @include('crud::inc.grouped_errors')
+    @include('crud::inc.grouped_errors', ['id' => $id])
 
-    <form method="{{ $method }}"
+
+    <form method="post"
         action="{{ $action }}"
         id="{{ $id }}"
-        @if ($crud->hasUploadFields($operation))
+        @if($hasUploadFields)
         enctype="multipart/form-data"
         @endif
     >
         {!! csrf_field() !!}
-        @if($method !== 'post')
-            @formMethod($method)
-        @endif
+        
+        
 
         <input type="hidden" name="_form_id" value="{{ $id }}">
-
+        @if($method !== 'post')
+            @method($method)
+        @endif
         {{-- Include the form fields --}}
         @include('crud::form_content', ['fields' => $crud->fields(), 'action' => $operation, 'id' => $id])
 
