@@ -38,7 +38,6 @@ class Dataform extends Component
             $this->crud->setOperation($previousOperation);
         }
 
-
         if ($this->entry && $this->operation === 'update') {
             $this->action = $action ?? url($this->crud->route.'/'.$this->entry->getKey());
             $this->method = 'put';
