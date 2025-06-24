@@ -2,7 +2,9 @@
 
 namespace Backpack\CRUD\app\View\Components;
 
+use Backpack\CRUD\app\Library\CrudPanel\CrudPanel;
 use Backpack\CRUD\CrudManager;
+use Closure;
 use Illuminate\View\Component;
 
 class Dataform extends Component
@@ -25,19 +27,14 @@ class Dataform extends Component
         public string $method = 'post',
         public bool $hasUploadFields = false,
         public $entry = null,
+        public ?Closure $setup = null,
 
-    ) {
+    ) {        
         // Get CRUD panel instance from the controller
-        if (CrudManager::hasCrudPanel($controller)) {
-            $previousOperation = CrudManager::getCrudPanel($controller)->getOperation();
-        }
+        CrudManager::setActiveController($controller);
 
         $this->crud = CrudManager::setupCrudPanel($controller, $operation);
-
-        if (isset($previousOperation)) {
-            $this->crud->setOperation($previousOperation);
-        }
-
+        //dd($this->crud);
         if ($this->entry && $this->operation === 'update') {
             $this->action = $action ?? url($this->crud->route.'/'.$this->entry->getKey());
             $this->method = 'put';
@@ -48,6 +45,37 @@ class Dataform extends Component
         }
         $this->hasUploadFields = $this->crud->hasUploadFields($operation, $this->entry?->getKey());
         $this->id = $id.md5($this->action.$this->operation.$this->method.$this->controller);
+         if ($this->setup) {
+            $this->applySetupClosure();
+        }
+
+        CrudManager::unsetActiveController();
+        
+    }
+
+    public function applySetupClosure(): bool
+    {
+        $originalSetup = $this->setup;
+        $controllerClass = $this->controller;
+        $crud = $this->crud;
+        $entry = $this->entry;
+
+        $modifiedSetup = function ($crud, $entry) use ($originalSetup, $controllerClass) {
+            CrudManager::setActiveController($controllerClass);
+
+            // Run the original closure
+            return ($originalSetup)($crud, $entry);
+        };
+
+        try {
+            // Execute the modified closure
+            ($modifiedSetup)($crud, $entry);
+
+            return true;
+        } finally {
+            // Clean up
+            CrudManager::unsetActiveController();
+        }
     }
 
     /**
