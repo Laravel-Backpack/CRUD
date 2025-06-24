@@ -5,13 +5,10 @@
     <form method="post"
         action="{{ $action }}"
         id="{{ $id }}"
-        @if($hasUploadFields)
-        enctype="multipart/form-data"
-        @endif
+        @if(!empty($name)) name="{{ $name }}" @endif
+        @if($hasUploadFields) enctype="multipart/form-data" @endif
     >
         {!! csrf_field() !!}
-        
-        
 
         <input type="hidden" name="_form_id" value="{{ $id }}">
         @if($method !== 'post')

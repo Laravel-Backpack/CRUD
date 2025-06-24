@@ -20,7 +20,8 @@ class Dataform extends Component
      */
     public function __construct(
         public string $controller,
-        public string $id = 'backpack-form',
+        private string $id = 'backpack-form-',
+        public string $name = '',
         public string $operation = 'create',
         public ?string $action = null,
         public string $method = 'post',
@@ -33,7 +34,7 @@ class Dataform extends Component
         CrudManager::setActiveController($controller);
 
         $this->crud = CrudManager::setupCrudPanel($controller, $operation);
-        //dd($this->crud);
+
         if ($this->entry && $this->operation === 'update') {
             $this->action = $action ?? url($this->crud->route.'/'.$this->entry->getKey());
             $this->method = 'put';
@@ -87,6 +88,7 @@ class Dataform extends Component
             'crud' => $this->crud,
             'saveAction' => $this->crud->getSaveAction(),
             'id' => $this->id,
+            'name' => $this->name,
             'operation' => $this->operation,
             'action' => $this->action,
             'method' => $this->method,
