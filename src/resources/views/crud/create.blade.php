@@ -33,7 +33,7 @@
 	<div class="{{ $crud->getCreateContentClass() }}">
 		{{-- Default box --}}
 
-		@include('crud::inc.grouped_errors', ['id' => $id])
+		@include('crud::inc.grouped_errors', ['id' => $id ?? null])
 
 		  <form method="post"
 		  		action="{{ url($crud->route) }}"
