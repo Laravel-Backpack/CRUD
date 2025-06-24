@@ -1,4 +1,4 @@
-<div id="saveActions" class="form-group my-3">
+<div class="saveActions form-group my-3">
     @if(isset($saveAction['active']) && !is_null($saveAction['active']['value']))
     
         <input type="hidden" name="_save_action" value="{{ $saveAction['active']['value'] }}">
@@ -14,7 +14,7 @@
                     <span class="la la-save" role="presentation" aria-hidden="true"></span> &nbsp;
                     <span data-value="{{ $saveAction['active']['value'] }}">{{ $saveAction['active']['label'] }}</span>
                 </button>
-                <button id="bpSaveButtonsGroup" type="button" class="btn btn-success text-white dropdown-toggle dropdown-toggle-split" data-toggle="dropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                <button type="button" class="bpSaveButtonsGroup btn btn-success text-white dropdown-toggle dropdown-toggle-split" data-toggle="dropdown" data-bs-toggle="dropdown" aria-expanded="false">
                     <span class="d-none visually-hidden">Toggle Dropdown</span>
                 </button>
                 <ul class="dropdown-menu" aria-labelledby="bpSaveButtonsGroup">
@@ -53,7 +53,7 @@
         // the condition checks if `reportValidity` is defined in the form (browser compatibility)
         if (form[0].reportValidity) {
             // hide the save actions drop down if open
-            $('#saveActions').find('.dropdown-menu').removeClass('show');
+            form.find('.dropdown-menu').removeClass('show');
             // validate and display form errors
             form[0].reportValidity();
         }
@@ -75,39 +75,43 @@
 
     // make all submit buttons trigger HTML5 validation
     jQuery(document).ready(function($) {
-
-        var selector = $('#bpSaveButtonsGroup').next();
-        var form = $(selector).closest('form');
-        var saveActionField = $('[name="_save_action"]');
-        var $defaultSubmitButton = $(form).find(':submit');
-        // this is the main submit button, the default save action.
-        $($defaultSubmitButton).on('click', function(e) {
-            e.preventDefault();
-            $saveAction = $(this).children('span').eq(1);
-            // if form is valid just submit it
-            if(checkFormValidity(form)) {
-                saveActionField.val( $saveAction.attr('data-value') );
-                form[0].requestSubmit();
-            }else{
-                // navigate to the tab where the first error happens
-                changeTabIfNeededAndDisplayErrors(form);
-            }
-        });
-
-        //this is for the anchors AKA other non-default save actions.
-        $(selector).find('button').each(function() {
-            $(this).click(function(e) {
-                //we check if form is valid
-                if (checkFormValidity(form)) {
-                    //if everything is validated we proceed with the submission
-                    var saveAction = $(this).data('value');
-                    saveActionField.val( saveAction );
+        // Find all save actions buttons and attach handlers to each one individually
+        $('.saveActions').each(function() {
+            var saveActionsContainer = $(this);
+            var form = saveActionsContainer.closest('form');
+            var saveActionField = form.find('[name="_save_action"]');
+            var defaultSubmitButton = form.find(':submit').first();
+            
+            // Handle the main submit button (default save action)
+            defaultSubmitButton.on('click', function(e) {
+                e.preventDefault();
+                var $saveAction = $(this).find('span:last');
+                
+                // if form is valid just submit it
+                if(checkFormValidity(form)) {
+                    saveActionField.val($saveAction.attr('data-value'));
                     form[0].requestSubmit();
-                }else{
+                } else {
                     // navigate to the tab where the first error happens
                     changeTabIfNeededAndDisplayErrors(form);
                 }
-                e.stopPropagation();
+            });
+
+            // Handle the dropdown save actions
+            saveActionsContainer.find('.dropdown-item').each(function() {
+                $(this).click(function(e) {
+                    // we check if form is valid
+                    if (checkFormValidity(form)) {
+                        // if everything is validated we proceed with the submission
+                        var saveAction = $(this).data('value');
+                        saveActionField.val(saveAction);
+                        form[0].requestSubmit();
+                    } else {
+                        // navigate to the tab where the first error happens
+                        changeTabIfNeededAndDisplayErrors(form);
+                    }
+                    e.stopPropagation();
+                });
             });
         });
     });
@@ -122,20 +126,20 @@
             text: "{!! trans('backpack::crud.delete_confirm') !!}",
             icon: "warning",
             buttons: {
-		  	cancel: {
-				text: "{!! trans('backpack::crud.cancel') !!}",
-				value: null,
-				visible: true,
-				className: "bg-secondary",
-				closeModal: true,
-			},
-			delete: {
-				text: "{!! trans('backpack::crud.delete') !!}",
-				value: true,
-				visible: true,
-				className: "bg-danger",
-				},
-			},
+          	cancel: {
+                text: "{!! trans('backpack::crud.cancel') !!}",
+                value: null,
+                visible: true,
+                className: "bg-secondary",
+                closeModal: true,
+            },
+            delete: {
+                text: "{!! trans('backpack::crud.delete') !!}",
+                value: true,
+                visible: true,
+                className: "bg-danger",
+                },
+            },
             dangerMode: true,
         }).then((value) => {
             if (value) {

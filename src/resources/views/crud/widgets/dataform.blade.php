@@ -10,7 +10,7 @@
       {!! $widget['content']['body'] ?? '' !!}
 
       <div class="card-wrapper form-widget-wrapper">
-        <x-backpack::data-form :controller="$widget['controller']" />
+        <x-backpack::dataform :controller="$widget['controller']" :operation="$widget['operation']" :entry="$widget['entry'] ?? null"  />
       </div>
 
     </div>
