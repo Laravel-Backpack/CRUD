@@ -369,21 +369,6 @@ if (! function_exists('old_empty_or_null')) {
             }
         }
 
-        // Check if we have a form ID in the old inputs to determine if this is form-specific
-        $submittedFormId = data_get($old_inputs, '_form_id');
-
-        if ($submittedFormId) {
-            // Check if we're currently rendering a DataForm with a specific ID
-            // Use Laravel's service container to get the current form context
-            $currentFormId = app()->bound('backpack.current_form_id') ? app('backpack.current_form_id') : null;
-
-            // If we can determine the current form ID and it doesn't match the submitted form ID,
-            // don't return old values to prevent bleeding across forms
-            if ($currentFormId && $currentFormId !== $submittedFormId) {
-                return null;
-            }
-        }
-
         // if the input name is present in the old inputs we need to return earlier and not in a coalescing chain
         // otherwise `null` aka empty will not pass the condition and the field value would be returned.
         if (\Illuminate\Support\Arr::has($old_inputs, $key)) {
