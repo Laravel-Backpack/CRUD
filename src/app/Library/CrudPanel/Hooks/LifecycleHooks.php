@@ -22,14 +22,14 @@ final class LifecycleHooks
     {
         $hooks = is_array($hooks) ? $hooks : [$hooks];
         $controller = CrudManager::getActiveController() ?? CrudManager::getParentController();
-        
-        if(! isset($controller)) {
+
+        if (! isset($controller)) {
             return; // No active controller, nothing to trigger
         }
         foreach ($hooks as $hook) {
             // Create a unique identifier for this controller+hook combination
-            $hookId = is_string($controller) ? $controller : $controller::class . '::' . $hook;
-            
+            $hookId = is_string($controller) ? $controller : $controller::class.'::'.$hook;
+
             // Skip if this hook has already been executed
             if (isset($this->executedHooks[$hookId])) {
                 continue;
@@ -41,7 +41,7 @@ final class LifecycleHooks
                         $callback(...$parameters);
                     }
                 }
-                
+
                 $this->executedHooks[$hookId] = true;
             }
         }
