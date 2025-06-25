@@ -17,7 +17,7 @@ class Dataform extends Component
      * @param  string  $operation  The operation to use (create, update, etc.)
      * @param  string|null  $action  Custom form action URL
      * @param  string  $method  Form method (post, put, etc.)
-     */    
+     */
     public function __construct(
         public string $controller,
         private string $id = 'backpack-form-',
@@ -45,15 +45,15 @@ class Dataform extends Component
             $this->crud->setOperationSetting('fields', $this->crud->getUpdateFields());
         } else {
             $this->action = $action ?? url($this->crud->route);
-        }        
+        }
         $this->hasUploadFields = $this->crud->hasUploadFields($operation, $this->entry?->getKey());
         $this->id = $id.md5($this->action.$this->operation.$this->method.$this->controller);
-        
+
         if ($this->setup) {
             $this->applySetupClosure();
         }
 
-        CrudManager::unsetActiveController();    
+        CrudManager::unsetActiveController();
     }
 
     public function applySetupClosure(): bool
@@ -79,16 +79,18 @@ class Dataform extends Component
             // Clean up
             CrudManager::unsetActiveController();
         }
-    }    /**
+    }
+
+    /**
      * Get the view / contents that represent the component.
      *
      * @return \Illuminate\Contracts\View\View|\Closure|string
-     */    
+     */
     public function render()
     {
         // Store the current form ID in the service container for form-aware old() helper
         app()->instance('backpack.current_form_id', $this->id);
-        
+
         return view('crud::components.dataform.form', [
             'crud' => $this->crud,
             'saveAction' => $this->crud->getSaveAction(),
