@@ -7,6 +7,7 @@ use Backpack\CRUD\CrudManager;
 final class LifecycleHooks
 {
     public array $hooks = [];
+    private array $executedHooks = [];
 
     public function hookInto(string|array $hooks, callable $callback): void
     {
@@ -21,14 +22,27 @@ final class LifecycleHooks
     {
         $hooks = is_array($hooks) ? $hooks : [$hooks];
         $controller = CrudManager::getActiveController() ?? CrudManager::getParentController();
-
+        
+        if(! isset($controller)) {
+            return; // No active controller, nothing to trigger
+        }
         foreach ($hooks as $hook) {
+            // Create a unique identifier for this controller+hook combination
+            $hookId = is_string($controller) ? $controller : $controller::class . '::' . $hook;
+            
+            // Skip if this hook has already been executed
+            if (isset($this->executedHooks[$hookId])) {
+                continue;
+            }
+
             if (isset($this->hooks[$controller][$hook])) {
                 foreach ($this->hooks[$controller][$hook] as $callback) {
                     if ($callback instanceof \Closure) {
                         $callback(...$parameters);
                     }
                 }
+                
+                $this->executedHooks[$hookId] = true;
             }
         }
     }
