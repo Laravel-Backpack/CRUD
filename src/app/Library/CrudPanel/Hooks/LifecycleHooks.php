@@ -22,7 +22,7 @@ final class LifecycleHooks
     {
         $hooks = is_array($hooks) ? $hooks : [$hooks];
         $controller = CrudManager::getActiveController() ?? CrudManager::getParentController();
-        
+
         foreach ($hooks as $hook) {
             // Create a unique identifier for this controller+hook combination
             $hookId = is_null($controller) ? '' : (is_string($controller) ? $controller : $controller::class.'::'.$hook);
