@@ -36,7 +36,7 @@
     ],
     "require": {
         "laravel/framework": "^12",
-        "backpack/basset": "^2.0.0-alpha",
+        "backpack/basset": "^2.0.0-beta",
         "creativeorange/gravatar": "^1.0",
         "prologue/alerts": "^1.0",
         "doctrine/dbal": "^4.0",
