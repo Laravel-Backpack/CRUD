@@ -22,7 +22,7 @@ class CheckIfAdmin
      * does not have a '/home' route, use something you've built for your users
      * (again - users, not admins).
      *
-     * @param  \Illuminate\Contracts\Auth\Authenticatable|null  $user
+     * @param  ?\Illuminate\Contracts\Auth\Authenticatable  $user
      * @return bool
      */
     private function checkIfUserIsAdmin($user)

@@ -294,7 +294,7 @@ class CrudButton implements Arrayable
      * Get the end result that should be displayed to the user.
      * The HTML itself of the button.
      *
-     * @param  object|null  $entry  The eloquent Model for the current entry or null if no current entry.
+     * @param  ?object  $entry  The eloquent Model for the current entry or null if no current entry.
      * @return \Illuminate\Contracts\View\View
      */
     public function getHtml($entry = null, ?CrudPanel $crud = null)
