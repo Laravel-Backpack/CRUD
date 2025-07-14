@@ -89,6 +89,23 @@ return [
         '503' => 'Serverul este în întreținere sau supraîncărcat.',
     ],
 
+    'error_page' => [
+        'title' => 'Eroare :error',
+        'button' => 'Du-mă acasă',
+        'message_4xx' => 'Vă rugăm să <a :href_back>vă întoarceți</a> sau să reveniți la <a :href_homepage>pagina noastră principală</a>.',
+        'message_500' => 'A apărut o eroare internă de server. Dacă eroarea persistă, vă rugăm să contactați echipa de dezvoltare.',
+        'message_503' => 'Serverul este supraîncărcat sau în întreținere. Vă rugăm să încercați din nou mai târziu.',
+        '400' => 'Cerere greșită.',
+        '401' => 'Acțiune neautorizată.',
+        '403' => 'Interzis.',
+        '404' => 'Pagina nu a fost găsită.',
+        '405' => 'Metodă nepermisă.',
+        '408' => 'Timeout cerere.',
+        '429' => 'Prea multe cereri.',
+        '500' => 'Nu ești tu, sunt eu.',
+        '503' => 'Serverul este în întreținere sau supraîncărcat.',
+    ],
+
     'password_reset' => [
         'greeting' => 'Salutare!',
         'subject' => 'Resetarea parolei dvs',
