@@ -34,7 +34,7 @@
 	<div class="">
 	@if ($crud->model->translationEnabled())
 		<div class="row">
-			<div class="col-md-12 mb-2">
+			<div class="col-md-12 mb-2" bp-section="show-operation-language-dropdown">
 				{{-- Change translation button group --}}
 				<div class="btn-group float-right">
 				<button type="button" class="btn btn-sm btn-primary dropdown-toggle" data-toggle="dropdown" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
