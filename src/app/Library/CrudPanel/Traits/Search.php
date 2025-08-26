@@ -68,7 +68,19 @@ trait Search
                 case 'email':
                 case 'text':
                 case 'textarea':
-                    $query->orWhere($this->getColumnWithTableNamePrefixed($query, $column['name']), $searchOperator, '%'.$searchTerm.'%');
+                case 'url':
+                case 'summernote':
+                case 'wysiwyg':
+                    // Check if the column is translatable
+                    if (method_exists($this->model, 'translationEnabled') &&
+                        $this->model->translationEnabled() &&
+                        $this->model->isTranslatableAttribute($column['name']) &&
+                        $this->isJsonColumnType($column['name'])
+                    ) {
+                        $query->orWhere($this->getColumnWithTableNamePrefixed($query, $column['name'].'->'.app()->getLocale()), $searchOperator, '%'.$searchTerm.'%');
+                    } else {
+                        $query->orWhere($this->getColumnWithTableNamePrefixed($query, $column['name']), $searchOperator, '%'.$searchTerm.'%');
+                    }
                     break;
 
                 case 'date':
@@ -79,7 +91,16 @@ trait Search
                         break;
                     }
 
-                    $query->orWhereDate($this->getColumnWithTableNamePrefixed($query, $column['name']), Carbon::parse($searchTerm));
+                    // Check if the column is translatable
+                    if (method_exists($this->model, 'translationEnabled') &&
+                        $this->model->translationEnabled() &&
+                        $this->model->isTranslatableAttribute($column['name']) &&
+                        $this->isJsonColumnType($column['name'])
+                    ) {
+                        $query->orWhereDate($this->getColumnWithTableNamePrefixed($query, $column['name'].'->'.app()->getLocale()), Carbon::parse($searchTerm));
+                    } else {
+                        $query->orWhereDate($this->getColumnWithTableNamePrefixed($query, $column['name']), Carbon::parse($searchTerm));
+                    }
                     break;
 
                 case 'select':
