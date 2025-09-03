@@ -70,7 +70,6 @@ trait Search
                 case 'textarea':
                 case 'url':
                 case 'summernote':
-                case 'wysiwyg':
                     // Check if the column is translatable
                     if (method_exists($this->model, 'translationEnabled') &&
                         $this->model->translationEnabled() &&
