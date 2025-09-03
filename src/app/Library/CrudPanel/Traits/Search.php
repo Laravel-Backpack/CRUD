@@ -453,16 +453,16 @@ trait Search
         $currentLocale = app()->getLocale();
         $fallbackLocale = config('app.fallback_locale');
         $availableLocales = array_keys(config('backpack.crud.locales', []));
-        
+
         $searchLocales = array_unique(array_filter([
             $currentLocale,
             $fallbackLocale,
-            ...$availableLocales
+            ...$availableLocales,
         ]));
 
         $columnType = $this->model->getColumnType($searchColumn);
         $isJsonColumn = $this->isJsonColumnType($searchColumn);
-        
+
         $query->orWhere(function ($subQuery) use ($searchColumn, $searchTerm, $searchOperator, $searchLocales, $isJsonColumn) {
             $this->applyLocaleSearchConditions($subQuery, $searchColumn, $searchTerm, $searchOperator, $searchLocales, $isJsonColumn);
         });
@@ -481,22 +481,22 @@ trait Search
         $currentLocale = app()->getLocale();
         $fallbackLocale = config('app.fallback_locale');
         $availableLocales = array_keys(config('backpack.crud.locales', []));
-        
+
         $searchLocales = array_unique(array_filter([
             $currentLocale,
             $fallbackLocale,
-            ...$availableLocales
+            ...$availableLocales,
         ]));
 
         $isJsonColumn = $this->isJsonColumnType($searchColumn);
         $parsedDate = Carbon::parse($searchTerm);
-        
+
         $query->orWhere(function ($subQuery) use ($searchColumn, $parsedDate, $searchLocales, $isJsonColumn) {
             $isFirst = true;
             foreach ($searchLocales as $locale) {
                 $localeOperation = $isFirst ? 'where' : 'orWhere';
                 $isFirst = false;
-                
+
                 if ($isJsonColumn) {
                     $subQuery->$localeOperation(function ($localeQuery) use ($searchColumn, $locale, $parsedDate) {
                         $localeQuery->whereNotNull("{$searchColumn}->{$locale}")
@@ -506,8 +506,8 @@ trait Search
                     // For non-JSON columns storing date as string in serialized data
                     $subQuery->$localeOperation(function ($localeQuery) use ($searchColumn, $locale, $parsedDate) {
                         $dateString = $parsedDate->format('Y-m-d');
-                        $localeQuery->whereRaw("LOWER({$searchColumn}) LIKE LOWER(?)", ['%"' . $locale . '":"' . $dateString . '%"%'])
-                                   ->orWhereRaw("LOWER({$searchColumn}) LIKE LOWER(?)", ['%s:' . strlen($locale) . ':"' . $locale . '"%' . $dateString . '%']);
+                        $localeQuery->whereRaw("LOWER({$searchColumn}) LIKE LOWER(?)", ['%"'.$locale.'":"'.$dateString.'%"%'])
+                                   ->orWhereRaw("LOWER({$searchColumn}) LIKE LOWER(?)", ['%s:'.strlen($locale).':"'.$locale.'"%'.$dateString.'%']);
                     });
                 }
             }
@@ -531,7 +531,7 @@ trait Search
         foreach ($searchLocales as $locale) {
             $localeOperation = $isFirst ? 'where' : 'orWhere';
             $isFirst = false;
-            
+
             if ($searchOperator === 'LIKE' || strtolower($searchOperator) === 'like') {
                 $query->$localeOperation(function ($localeQuery) use ($searchColumn, $locale, $searchTerm, $isJsonColumn) {
                     $this->applyLocaleSearch($localeQuery, $searchColumn, $locale, $searchTerm, $isJsonColumn);
@@ -543,7 +543,7 @@ trait Search
                                    ->where("{$searchColumn}->{$locale}", $searchOperator, $searchTerm);
                     } else {
                         // For non-JSON columns, we need to search within the serialized/JSON string
-                        $localeQuery->whereRaw("LOWER({$searchColumn}) LIKE LOWER(?)", ['%"' . $locale . '":"' . $searchTerm . '"%']);
+                        $localeQuery->whereRaw("LOWER({$searchColumn}) LIKE LOWER(?)", ['%"'.$locale.'":"'.$searchTerm.'"%']);
                     }
                 });
             }
@@ -565,15 +565,15 @@ trait Search
         if ($isJsonColumn) {
             // Use proper JSON functions for JSON columns with case-insensitive search
             $query->whereRaw("JSON_EXTRACT({$searchColumn}, '$.{$locale}') IS NOT NULL")
-                  ->whereRaw("LOWER(JSON_UNQUOTE(JSON_EXTRACT({$searchColumn}, '$.{$locale}'))) LIKE LOWER(?)", ['%' . $searchTerm . '%']);
+                  ->whereRaw("LOWER(JSON_UNQUOTE(JSON_EXTRACT({$searchColumn}, '$.{$locale}'))) LIKE LOWER(?)", ['%'.$searchTerm.'%']);
         } else {
             // For text columns storing JSON as string, search within the serialized data
             // This handles both PHP serialized arrays and JSON strings with case-insensitive search
             $query->where(function ($subQuery) use ($searchColumn, $locale, $searchTerm) {
                 // Search for JSON format: "locale":"value" (case-insensitive)
-                $subQuery->whereRaw("LOWER({$searchColumn}) LIKE LOWER(?)", ['%"' . $locale . '":"%' . $searchTerm . '%"%'])
+                $subQuery->whereRaw("LOWER({$searchColumn}) LIKE LOWER(?)", ['%"'.$locale.'":"%'.$searchTerm.'%"%'])
                          // Also search for PHP serialized format (case-insensitive)
-                         ->orWhereRaw("LOWER({$searchColumn}) LIKE LOWER(?)", ['%s:' . strlen($locale) . ':"' . $locale . '"%' . $searchTerm . '%']);
+                         ->orWhereRaw("LOWER({$searchColumn}) LIKE LOWER(?)", ['%s:'.strlen($locale).':"'.$locale.'"%'.$searchTerm.'%']);
             });
         }
     }
