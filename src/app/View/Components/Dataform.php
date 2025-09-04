@@ -30,7 +30,6 @@ class Dataform extends Component
         public $entry = null,
         public ?Closure $setup = null,
         public bool $focusOnFirstField = false,
-
     ) {
         // Get CRUD panel instance from the controller
         CrudManager::setActiveController($controller);

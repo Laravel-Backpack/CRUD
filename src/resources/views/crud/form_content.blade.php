@@ -1,4 +1,4 @@
-<input type="hidden" name="_http_referrer" value={{ session('referrer_url_override') ?? old('_http_referrer') ?? \URL::previous() ?? url($crud->route) }}>
+<input type="hidden" name="_http_referrer" value="{{ session('referrer_url_override') ?? old('_http_referrer') ?? \URL::previous() ?? url($crud->route) }}">
 <input type="hidden" name="_form_id" value="{{ $id ?? 'crudForm' }}">
 
 {{-- See if we're using tabs --}}
@@ -100,8 +100,9 @@
 
     jQuery('document').ready(function($){
 
-      // trigger the javascript for all fields that have their js defined in a separate method
-      initializeFieldsWithJavascript('form');
+      @if(! isset($initFields) || $initFields !== false)
+        initializeFieldsWithJavascript('form');
+      @endif
 
       // Retrieves the current form data
       function getFormData() {
@@ -215,14 +216,15 @@
         @else
             focusField = getFirstFocusableField($('form'));
         @endif
+        if(focusField.length !== 0) {
+          const fieldOffset = focusField.offset().top;
+          const scrollTolerance = $(window).height() / 2;
 
-        const fieldOffset = focusField.offset().top;
-        const scrollTolerance = $(window).height() / 2;
+          triggerFocusOnFirstInputField(focusField);
 
-        triggerFocusOnFirstInputField(focusField);
-
-        if( fieldOffset > scrollTolerance ){
-            $('html, body').animate({scrollTop: (fieldOffset - 30)});
+          if( fieldOffset > scrollTolerance ){
+              $('html, body').animate({scrollTop: (fieldOffset - 30)});
+          }
         }
       @endif
 
