@@ -613,6 +613,12 @@ function setupTableEvents(tableId, config) {
 
     // on DataTable draw event run all functions in the queue
     $(`#${tableId}`).on('draw.dt', function() {
+        
+        document.getElementById(tableId).querySelectorAll('[id^="modalTemplate"]').forEach(function(modal) {
+            const newModal = modal.cloneNode(true);
+            document.body.appendChild(newModal);
+            modal.remove();
+        });
         // in datatables 2.0.3 the implementation was changed to use `replaceChildren`, for that reason scripts 
         // that came with the response are no longer executed, like the delete button script or any other ajax 
         // button created by the developer. For that reason, we move them to the end of the body
