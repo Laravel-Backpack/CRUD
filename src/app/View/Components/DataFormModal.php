@@ -1,6 +1,7 @@
 <?php
 
 namespace Backpack\CRUD\app\View\Components;
+
 use Closure;
 
 class FormModal extends DataForm
@@ -12,7 +13,7 @@ class FormModal extends DataForm
      * @param  string  $operation  The operation to use (create, update, etc.)
      * @param  string|null  $action  Custom form action URL
      * @param  string  $method  Form method (post, put, etc.)
-     * @param  bool $hasUploadFields  Whether the form has upload fields
+     * @param  bool  $hasUploadFields  Whether the form has upload fields
      * @param  mixed|null  $entry  The model instance for update operations
      * @param  Closure|null  $setup  A closure to customize the CRUD panel
      * @param  string  $formRouteOperation  The operation to use for the form route (defaults to 'create')
