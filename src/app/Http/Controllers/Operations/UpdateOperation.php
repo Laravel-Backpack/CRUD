@@ -82,11 +82,10 @@ trait UpdateOperation
         $this->data['id'] = $id;
 
         // load the view from /resources/views/vendor/backpack/crud/ if it exists, otherwise load the one in the package
-       return  request()->ajax() ?
-            view('crud::components.dataform.ajax_response', $this->data) :
-            view($this->crud->getEditView(), $this->data);
+        return  request()->ajax() ?
+             view('crud::components.dataform.ajax_response', $this->data) :
+             view($this->crud->getEditView(), $this->data);
     }
-
 
     /**
      * Update the specified resource in the database.
