@@ -2,6 +2,7 @@
     --table-row-hover: #f2f1ff;
     --select2-selected-item-background: #7c69ef;
     --select2-selected-item-color: #fff;
+    --btn-close-bg: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23000000'%3e%3cpath d='M.293.293a1 1 0 0 1 1.414 0L8 6.586 14.293.293a1 1 0 1 1 1.414 1.414L9.414 8l6.293 6.293a1 1 0 0 1-1.414 1.414L8 9.414l-6.293 6.293a1 1 0 0 1-1.414-1.414L6.586 8 .293 1.707a1 1 0 0 1 0-1.414z'/%3e%3c/svg%3e");
 }
 
 .sidebar .nav-dropdown-items .nav-dropdown {
@@ -254,7 +255,9 @@ div[id$="_wrapper"] .dt-processing {
 .modal .details-control {
     display: none;
 }
-
+.modal .btn-close, .modal .close {
+    background: transparent var(--btn-close-bg) center / .75rem auto no-repeat;
+}
 .dtr-bs-modal .modal-body {
     padding: 0;
 }

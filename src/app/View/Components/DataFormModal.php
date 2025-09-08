@@ -4,7 +4,7 @@ namespace Backpack\CRUD\app\View\Components;
 
 use Closure;
 
-class FormModal extends DataForm
+class DataformModal extends DataForm
 {
     /**
      * Create a new component instance.
@@ -27,6 +27,7 @@ class FormModal extends DataForm
         public string $controller,
         public string $id = 'backpack-form',
         public string $operation = 'create',
+        public string $name = '',
         public string $formRouteOperation = 'create',
         public ?string $action = null,
         public string $method = 'post',
@@ -38,7 +39,7 @@ class FormModal extends DataForm
         public string $classes = 'modal-dialog modal-lg',
         public bool $refreshDatatable = false,
     ) {
-        parent::__construct($controller, $id, $operation, $action, $method);
+        parent::__construct($controller, $id, $name, $operation, $action, $method, $hasUploadFields, $entry, $setup, $focusOnFirstField);
     }
 
     /**

@@ -1,11 +1,11 @@
-    {{-- Modal HTML (initially hidden from DOM) --}}
-    @php
-        if(isset($formRouteOperation)) {
-            if(!\Str::isUrl($formRouteOperation)) {
-                $formRouteOperation = url($crud->route . '/' . $formRouteOperation);
-            }
+{{-- Modal HTML (initially hidden from DOM) --}}
+@php
+    if(isset($formRouteOperation)) {
+        if(!\Str::isUrl($formRouteOperation)) {
+            $formRouteOperation = url($crud->route . '/' . $formRouteOperation);
         }
-    @endphp
+    }
+@endphp
 @push('after_scripts') @if (request()->ajax()) @endpush @endif
     <div class="d-none" id="modalTemplate{{ md5($controller.$id) }}">
         <div class="modal fade" id="{{$id}}" tabindex="-1" role="dialog" data-bs-backdrop="static" data-backdrop="static" aria-labelledby="formModalLabel{{ md5($controller.$id) }}" aria-hidden="true">
