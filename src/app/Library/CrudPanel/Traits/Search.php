@@ -276,13 +276,13 @@ trait Search
         }
 
         // add the bulk actions checkbox to the first column - but only if we have columns
-        if ($this->getOperationSetting('bulkActions') && !empty($row_items)) {
+        if ($this->getOperationSetting('bulkActions') && ! empty($row_items)) {
             $bulk_actions_checkbox = \View::make('crud::columns.inc.bulk_actions_checkbox', ['entry' => $entry])->render();
             $row_items[0] = $bulk_actions_checkbox.$row_items[0];
         }
 
         // add the details_row button to the first column - but only if we have columns
-        if ($this->getOperationSetting('detailsRow') && !empty($row_items)) {
+        if ($this->getOperationSetting('detailsRow') && ! empty($row_items)) {
             $details_row_button = \View::make('crud::columns.inc.details_row_button')
                                            ->with('crud', $this)
                                            ->with('entry', $entry)
@@ -291,7 +291,7 @@ trait Search
             $row_items[0] = $details_row_button.$row_items[0];
         }
 
-        if ($this->getResponsiveTable() && !empty($row_items)) {
+        if ($this->getResponsiveTable() && ! empty($row_items)) {
             $responsiveTableTrigger = '<div class="dtr-control d-none cursor-pointer"></div>';
             $row_items[0] = $responsiveTableTrigger.$row_items[0];
         }
