@@ -1,7 +1,6 @@
 <div class="backpack-form">
     @include('crud::inc.grouped_errors', ['id' => $id])
 
-
     <form method="post"
         action="{{ $action }}"
         id="{{ $id }}"

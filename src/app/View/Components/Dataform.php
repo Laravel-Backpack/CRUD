@@ -5,6 +5,7 @@ namespace Backpack\CRUD\app\View\Components;
 use Backpack\CRUD\CrudManager;
 use Closure;
 use Illuminate\View\Component;
+use Illuminate\Support\Facades\Log;
 
 class Dataform extends Component
 {
@@ -35,6 +36,7 @@ class Dataform extends Component
         CrudManager::setActiveController($controller);
 
         $this->crud = CrudManager::setupCrudPanel($controller, $operation);
+        
 
         $this->crud->setAutoFocusOnFirstField($this->focusOnFirstField);
 

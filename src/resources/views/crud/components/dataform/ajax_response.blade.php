@@ -21,4 +21,5 @@
 
 
 @stack('after_styles')
+@stack('before_scripts')
 @stack('after_scripts')

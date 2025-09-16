@@ -140,7 +140,8 @@ window.crud.responsiveToggle = window.crud.defaultTableConfig.responsiveToggle;
 window.crud.executeFunctionByName = window.crud.defaultTableConfig.executeFunctionByName;
 window.crud.updateUrl = window.crud.defaultTableConfig.updateUrl;
 
-window.crud.initializeTable = function(tableId, customConfig = {}) {       
+window.crud.initializeTable = function(tableId, customConfig = {}) {
+    // Create a table-specific configuration
     if (!window.crud.tableConfigs[tableId]) {
         window.crud.tableConfigs[tableId] = {};
         
@@ -342,16 +343,54 @@ window.crud.initializeTable = function(tableId, customConfig = {}) {
                 target: '.dtr-control',
                 renderer: function(api, rowIdx, columns) {
                     var data = $.map(columns, function(col, i) {
+                        // Safety check for column index
+                        if (!col || col.columnIndex === undefined || col.columnIndex === null) {
+                            return '';
+                        }
+                        
+                        // Check if column is explicitly disabled for modal
+                        var isModalDisabled = false;
+                        
+                        try {
+                            var headerCell = table.column(col.columnIndex).header();
+                            isModalDisabled = $(headerCell).data('visible-in-modal') === false || $(headerCell).data('visible-in-modal') === 'false';
+                        } catch (e) {
+                            // Column header not accessible - default to showing the column
+                            isModalDisabled = false;
+                        }
+                        
+                        // Skip columns that are explicitly disabled for modal
+                        if (isModalDisabled) {
+                            return '';
+                        }
+                        
                         // Use the table instance from the API
                         var table = api.table().context[0].oInstance;
                         var tableId = table.attr('id');
-                        var columnHeading = window.crud.tables[tableId].columns().header()[col.columnIndex];
+                        
+                        // Check if we're in a modal context
+                        if (table.closest('.modal').length > 0) {
+                            return '';
+                        }
+                        
+                        var columnHeading;
+                        if (window.crud?.tables?.[tableId]?.columns) {
+                            columnHeading = window.crud.tables[tableId].columns().header()[col.columnIndex];
+                        } else {
+                            // Fallback: get column heading directly from table header
+                            columnHeading = table.find('thead th').eq(col.columnIndex)[0];
+                        }
                         
                         if ($(columnHeading).attr('data-visible-in-modal') == 'false') {
                             return '';
                         }
 
-                        if (col.data.indexOf('crud_bulk_actions_checkbox') !== -1) {
+                        // Skip if col is null or doesn't have required properties
+                        if (!col || col.columnIndex === undefined) {
+                            return '';
+                        }
+
+                        if (col.data && typeof col.data === 'string' && col.data.indexOf('crud_bulk_actions_checkbox') !== -1) {
                             col.data = col.data.replace('crud_bulk_actions_checkbox', 'crud_bulk_actions_checkbox d-none');
                         }
 
@@ -371,8 +410,8 @@ window.crud.initializeTable = function(tableId, customConfig = {}) {
                         }
 
                         return '<tr data-dt-row="'+col.rowIndex+'" data-dt-column="'+col.columnIndex+'">'+
-                                '<td style="vertical-align:top; border:none;"><strong>'+colTitle+':'+'<strong></td> '+
-                                '<td style="padding-left:10px;padding-bottom:10px; border:none;">'+col.data+'</td>'+
+                                '<td style="vertical-align:top; border:none;"><strong>'+colTitle+':'+'</strong></td> '+
+                                '<td style="padding-left:10px;padding-bottom:10px; border:none;">'+(col.data || '')+'</td>'+
                                 '</tr>';
                     }).join('');
 
@@ -393,6 +432,10 @@ window.crud.initializeTable = function(tableId, customConfig = {}) {
             // Get the table ID from the settings
             var tableId = settings.sTableId;
             var table = window.crud.tables[tableId];
+            
+            if (!table || typeof table.columns !== 'function') {
+                return;
+            }
             
             data.columns.forEach(function(item, index) {
                 var columnHeading = table.columns().header()[index];
@@ -444,6 +487,10 @@ window.crud.initializeTable = function(tableId, customConfig = {}) {
                 d.totalEntryCount = tableElement.getAttribute('data-total-entry-count') || false;
                 d.datatable_id = tableId;
                 return d;
+            },
+            "dataSrc": function(json) {
+                
+                return json.data;
             }
         };
     }
@@ -503,6 +550,11 @@ jQuery(document).ready(function($) {
     $('.crud-table').each(function() {
         const tableId = $(this).attr('id');
         if (!tableId) return;
+        
+        // Skip tables inside modals
+        if ($(this).closest('.modal').length > 0) {
+            return;
+        }
         
         if ($.fn.DataTable.isDataTable('#' + tableId)) {
             return;
@@ -614,24 +666,72 @@ function setupTableEvents(tableId, config) {
     // on DataTable draw event run all functions in the queue
     $(`#${tableId}`).on('draw.dt', function() {
         
-        document.getElementById(tableId).querySelectorAll('[id^="modalTemplate"]').forEach(function(modal) {
+        // Ensure initializeAllModals function is available before we try to call it
+        if (typeof window.initializeAllModals === 'undefined') {
+            window.initializeAllModals = function() {
+                // This is a basic fallback that will be replaced by the full implementation
+                // when the modal script loads
+            };
+        }
+        
+        const modalTemplatesInTable = document.getElementById(tableId).querySelectorAll('[id^="modalTemplate"]');
+        
+        modalTemplatesInTable.forEach(function(modal, index) {
             const newModal = modal.cloneNode(true);
             document.body.appendChild(newModal);
             modal.remove();
         });
+        
+        // After moving modals, check what's now in the DOM
+        const allModalTemplates = document.querySelectorAll('[id^="modalTemplate"]');
+        
+        // After moving modals, trigger initialization if the function exists
+        if (typeof window.initializeAllModals === 'function') {
+            window.initializeAllModals();
+        } else {
+            console.warn('window.initializeAllModals function not found');
+        }
         // in datatables 2.0.3 the implementation was changed to use `replaceChildren`, for that reason scripts 
         // that came with the response are no longer executed, like the delete button script or any other ajax 
         // button created by the developer. For that reason, we move them to the end of the body
         // ensuring they are re-evaluated on each draw event.
-        document.getElementById(tableId).querySelectorAll('script').forEach(function(script) {
-            const scriptsToLoad = [];
-                    if (script.src) {
-                        // For external scripts with src attribute
-                        const srcUrl = script.src;
+        try {
+            const tableElement = document.getElementById(tableId);
+            if (tableElement) {
+                document.getElementById(tableId).querySelectorAll('script').forEach(function(script) {
+                    const scriptsToLoad = [];
+                            if (script.src) {
+                                // For external scripts with src attribute
+                                const srcUrl = script.src;
 
-                        // Only load the script if it's not already loaded
-                        if (!document.querySelector(`script[src="${srcUrl}"]`)) {
-                            scriptsToLoad.push(new Promise((resolve, reject) => {
+                                // Only load the script if it's not already loaded
+                                if (!document.querySelector(`script[src="${srcUrl}"]`)) {
+                                    scriptsToLoad.push(new Promise((resolve, reject) => {
+                                        const newScript = document.createElement('script');
+
+                                        // Copy all attributes from the original script
+                                        Array.from(script.attributes).forEach(attr => {
+                                            newScript.setAttribute(attr.name, attr.value);
+                                        });
+
+                                        // Set up load and error handlers
+                                        newScript.onload = resolve;
+                                        newScript.onerror = reject;
+
+                                        // Append to document to start loading
+                                        try {
+                                            document.head.appendChild(newScript);
+                                        } catch (e) {
+                                            console.warn('Error appending external script:', e);
+                                            reject(e);
+                                        }
+                                    }));
+                                }
+
+                                // Remove the original script tag
+                                script.parentNode.removeChild(script);
+                            } else {
+                                // For inline scripts
                                 const newScript = document.createElement('script');
 
                                 // Copy all attributes from the original script
@@ -639,37 +739,23 @@ function setupTableEvents(tableId, config) {
                                     newScript.setAttribute(attr.name, attr.value);
                                 });
 
-                                // Set up load and error handlers
-                                newScript.onload = resolve;
-                                newScript.onerror = reject;
+                                // Copy the content
+                                newScript.textContent = script.textContent;
 
-                                // Append to document to start loading
-                                document.head.appendChild(newScript);
-                            }));
-                        }
-
-                        // Remove the original script tag
-                        script.parentNode.removeChild(script);
-                    } else {
-                        // For inline scripts
-                        const newScript = document.createElement('script');
-
-                        // Copy all attributes from the original script
-                        Array.from(script.attributes).forEach(attr => {
-                            newScript.setAttribute(attr.name, attr.value);
-                        });
-
-                        // Copy the content
-                        newScript.textContent = script.textContent;
-
-                        try {
-                            document.head.appendChild(newScript);
-                        }catch (e) {
-                            console.warn('Error appending inline script:', e);
-                        }
-                    }
-                
-        });
+                                try {
+                                    document.head.appendChild(newScript);
+                                }catch (e) {
+                                    console.warn('Error appending inline script:', e);
+                                }
+                            }
+                        
+                });
+            } else {
+                console.warn('Table element not found:', tableId);
+            }
+        } catch (e) {
+            console.warn('Error processing scripts for table:', tableId, e);
+        }
 
         // Run table-specific functions and pass the tableId
         // to the function

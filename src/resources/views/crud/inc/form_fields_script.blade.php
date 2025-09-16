@@ -190,7 +190,7 @@
         action: "{{ $action ?? '' }}",
 
         // Subfields callbacks holder
-        subfieldsCallbacks: [],
+        subfieldsCallbacks: {},
 
         // Create a field from a given name
         field: name => new CrudField(name),

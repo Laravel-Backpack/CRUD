@@ -66,14 +66,36 @@ final class CrudPanelManager
 
         // Use provided operation or default to 'list'
         $operation = $operation ?? 'list';
-        $crud->setOperation($operation);
-
+        
+        $shouldIsolate = $this->shouldIsolateOperation($controller::class, $operation);
+        
         $primaryControllerRequest = $this->cruds[array_key_first($this->cruds)]->getRequest();
+        
+        // Check if we need to initialize this specific operation
         if (! $crud->isInitialized() || ! $this->isOperationInitialized($controller::class, $operation)) {
             self::setActiveController($controller::class);
-            $crud->initialized = false;
-            self::setActiveController($controller::class);
-            $controller->initializeCrudPanel($primaryControllerRequest, $crud);
+            
+            // If the panel isn't initialized at all, do full initialization
+            if (! $crud->isInitialized()) {
+                // Set the operation for full initialization
+                $crud->setOperation($operation);
+                $crud->initialized = false;
+                $controller->initializeCrudPanel($primaryControllerRequest, $crud);
+            } else {
+                // Panel is initialized, just setup this specific operation
+                // Use operation isolation for non-primary operations
+                if ($shouldIsolate) {
+                    $this->setupIsolatedOperation($controller, $operation, $crud);
+                } else {
+                    // Set the operation for standard setup
+                    $crud->setOperation($operation);
+                    $this->setupSpecificOperation($controller, $operation, $crud);
+                }
+            }
+            
+            // Mark this operation as initialized
+            $this->storeInitializedOperation($controller::class, $operation);
+            
             self::unsetActiveController();
             $crud = $this->cruds[$controller::class];
 
@@ -81,6 +103,131 @@ final class CrudPanelManager
         }
 
         return $this->cruds[$controller::class];
+    }
+
+    /**
+     * Determine if an operation should be isolated to prevent state interference.
+     * 
+     * @param string $controller
+     * @param string $operation
+     * @return bool
+     */
+    private function shouldIsolateOperation(string $controller, string $operation): bool
+    {
+        $currentCrud = $this->cruds[$controller] ?? null;
+        if (!$currentCrud) {
+            return false;
+        }
+        
+        $currentOperation = $currentCrud->getOperation();
+        
+        // Always isolate when switching between different operations
+        // This prevents any operation from interfering with another operation's state
+        if ($currentOperation && $currentOperation !== $operation) {
+            return true;
+        }
+        
+        return false;
+    }
+
+    /**
+     * Setup an operation in isolation without affecting the main CRUD panel state.
+     * This creates a temporary context for operation setup without state interference.
+     *
+     * @param  object  $controller  The controller instance
+     * @param  string  $operation  The operation to setup
+     * @param  CrudPanel  $crud  The CRUD panel instance
+     */
+    private function setupIsolatedOperation($controller, string $operation, CrudPanel $crud): void
+    {
+        // Store the complete current state with detailed logging
+        $originalOperation = $crud->getOperation();
+        $originalSettings = $crud->settings();
+        $originalButtons = $crud->getOperationSetting('buttons') ?? collect();
+        $originalColumns = $crud->columns(); // Use the direct method, not operation setting
+        $originalFields = $crud->getOperationSetting('fields') ?? [];
+        $originalRoute = $crud->route ?? null;
+        $originalEntityName = $crud->entity_name ?? null;
+        $originalEntityNamePlural = $crud->entity_name_plural ?? null;
+        
+        // Store operation settings
+        $originalOperationSettings = $crud->get($originalOperation) ?? [];
+
+        // Temporarily setup the requested operation
+        $crud->setOperation($operation);
+        
+        // Use the controller's own method to setup the operation properly
+        $reflection = new \ReflectionClass($controller);
+        $method = $reflection->getMethod('setupConfigurationForCurrentOperation');
+        $method->setAccessible(true);
+        $method->invoke($controller, $operation);
+        
+        // Completely restore the original state
+        $crud->setOperation($originalOperation);
+        
+        // CRITICAL: Properly restore columns by clearing and re-adding them
+        // This is essential to preserve list operation columns
+        $crud->removeAllColumns();
+        foreach ($originalColumns as $column) {
+            $crud->addColumn($column);
+        }
+        
+        // Restore all original settings one by one, but skip complex objects
+        foreach ($originalSettings as $key => $value) {
+            try {
+                // Skip complex objects that Laravel generates dynamically
+                if (is_object($value) && (
+                    $value instanceof \Illuminate\Routing\UrlGenerator ||
+                    $value instanceof \Illuminate\Http\Request ||
+                    $value instanceof \Illuminate\Contracts\Foundation\Application ||
+                    $value instanceof \Closure ||
+                    method_exists($value, '__toString') === false
+                )) {
+                    continue;
+                }
+                
+                $crud->set($key, $value);
+            } catch (\Exception $e) {
+                // Silently continue with restoration
+            }
+        }
+        
+        // Restore original operation settings completely
+        $crud->set($originalOperation, $originalOperationSettings);
+        
+        // Specifically restore critical state
+        $crud->setOperationSetting('buttons', $originalButtons);
+        $crud->setOperationSetting('fields', $originalFields);
+        
+        // Restore core properties if they were changed
+        if ($originalRoute !== null) {
+            $crud->route = $originalRoute;
+        }
+        if ($originalEntityName !== null) {
+            $crud->entity_name = $originalEntityName;
+        }
+        if ($originalEntityNamePlural !== null) {
+            $crud->entity_name_plural = $originalEntityNamePlural;
+        }
+    }
+
+    /**
+     * Setup a specific operation without reinitializing the entire CRUD panel.
+     *
+     * @param  object  $controller  The controller instance
+     * @param  string  $operation  The operation to setup
+     * @param  CrudPanel  $crud  The CRUD panel instance
+     */
+    private function setupSpecificOperation($controller, string $operation, CrudPanel $crud): void
+    {
+        // Setup the specific operation using the existing CrudController infrastructure
+        $crud->setOperation($operation);
+        
+        // Use the controller's own method to setup the operation properly
+        $reflection = new \ReflectionClass($controller);
+        $method = $reflection->getMethod('setupConfigurationForCurrentOperation');
+        $method->setAccessible(true);
+        $method->invoke($controller, $operation);
     }
 
     /**

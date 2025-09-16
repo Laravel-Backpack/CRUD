@@ -4,7 +4,7 @@ namespace Backpack\CRUD\app\Library\CrudPanel\Traits;
 
 use Backpack\CRUD\ViewNamespaces;
 use Carbon\Carbon;
-use Validator;
+use Illuminate\Support\Facades\Validator;
 
 trait Search
 {
@@ -275,14 +275,14 @@ trait Search
                                 ->render();
         }
 
-        // add the bulk actions checkbox to the first column
-        if ($this->getOperationSetting('bulkActions')) {
+        // add the bulk actions checkbox to the first column - but only if we have columns
+        if ($this->getOperationSetting('bulkActions') && !empty($row_items)) {
             $bulk_actions_checkbox = \View::make('crud::columns.inc.bulk_actions_checkbox', ['entry' => $entry])->render();
             $row_items[0] = $bulk_actions_checkbox.$row_items[0];
         }
 
-        // add the details_row button to the first column
-        if ($this->getOperationSetting('detailsRow')) {
+        // add the details_row button to the first column - but only if we have columns
+        if ($this->getOperationSetting('detailsRow') && !empty($row_items)) {
             $details_row_button = \View::make('crud::columns.inc.details_row_button')
                                            ->with('crud', $this)
                                            ->with('entry', $entry)
@@ -291,7 +291,7 @@ trait Search
             $row_items[0] = $details_row_button.$row_items[0];
         }
 
-        if ($this->getResponsiveTable()) {
+        if ($this->getResponsiveTable() && !empty($row_items)) {
             $responsiveTableTrigger = '<div class="dtr-control d-none cursor-pointer"></div>';
             $row_items[0] = $responsiveTableTrigger.$row_items[0];
         }
@@ -398,16 +398,18 @@ trait Search
     {
         $rows = [];
 
-        foreach ($entries as $row) {
+        foreach ($entries as $index => $row) {
             $rows[] = $this->getRowViews($row, $startIndex === false ? false : ++$startIndex);
         }
 
-        return [
+        $result = [
             'draw' => (isset($this->getRequest()['draw']) ? (int) $this->getRequest()['draw'] : 0),
             'recordsTotal' => $totalRows,
             'recordsFiltered' => $filteredRows,
             'data' => $rows,
         ];
+
+        return $result;
     }
 
     /**

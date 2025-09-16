@@ -44,17 +44,52 @@
 @if (!request()->ajax()) @endpush @endif
 @push('after_scripts') @if (request()->ajax()) @endpush @endif
 <script>
-    !(function() {
-    // Initialize modals immediately when the script runs
-    initializeAllModals();
-    // Also listen for DataTable draw events which might add new modals
-    document.addEventListener('draw.dt', initializeAllModals);
-})();
-    function initializeAllModals() {
-    // First, track all initialized modals by their unique ID to avoid duplicates
-    const initializedModals = new Set();
-    
-    document.querySelectorAll('[id^="modalTemplate"]').forEach(modalTemplate => {
+    // Ensure initializeAllModals is available immediately
+    if (typeof window.initializeAllModals === 'undefined') {
+        window.initializeAllModals = function() {
+            // This will be replaced by the full implementation below
+        };
+    }
+
+    // Make initializeAllModals available globally
+    window.initializeAllModals = function() {
+
+        // First, track all initialized modals by their unique ID to avoid duplicates
+        const initializedModals = new Set();
+        
+        // Check for modal templates
+        const modalTemplates = document.querySelectorAll('[id^="modalTemplate"]');
+        
+        // Check for modal buttons (support both Bootstrap 4 and 5 attributes)
+        const modalButtons = document.querySelectorAll('[data-bs-target], [data-target]');
+        
+        modalButtons.forEach((button, index) => {
+            const target = button.getAttribute('data-bs-target') || button.getAttribute('data-target');
+        });
+        
+        // Also check specifically for update modal buttons (support both attributes)
+        const updateButtons = document.querySelectorAll('[data-bs-target*="update_modal"], [data-target*="update_modal"]');
+        
+        // Check what's in the table rows specifically (look for any CRUD table)
+        const tableRows = document.querySelectorAll('table.crud-table tbody tr, [id^="crudTable"] tbody tr');
+        
+        tableRows.forEach((row, index) => {
+            const buttonsInRow = row.querySelectorAll('[data-bs-target*="modal"], [data-target*="modal"]');
+            const updateButtonsInRow = row.querySelectorAll('[data-bs-target*="update_modal"], [data-target*="update_modal"]');
+            const modalTemplatesInRow = row.querySelectorAll('[id^="modalTemplate"]');
+            
+            if (modalTemplatesInRow.length > 0) {
+                modalTemplatesInRow.forEach((template, tIndex) => {
+                });
+            }
+        });
+        
+        // Check all elements with class containing modal
+        const allModalElements = document.querySelectorAll('[id*="modal"]');
+        allModalElements.forEach((el, index) => {
+            if (index < 10) { // Log first 10 to avoid spam
+            }
+        });    modalTemplates.forEach(modalTemplate => {
         // Extract controller hash from the ID
         const controllerId = modalTemplate.id.replace('modalTemplate', '');
         const modalEl = modalTemplate.querySelector('.modal');
@@ -91,6 +126,7 @@
         // Only set up the event handlers if they don't exist yet
         if (!modalEl._loadHandler) {
             modalEl._loadHandler = function() {
+                
                 loadModalForm(controllerId, modalEl, formContainer, submitButton, scrollPosition);
             };
             modalEl.addEventListener('shown.bs.modal', modalEl._loadHandler);
@@ -128,10 +164,26 @@ function loadModalForm(controllerId, modalEl, formContainer, submitButton, scrol
                 'X-Requested-With': 'XMLHttpRequest'
             }
         })
-        .then(response => response.text())
+        .then(response => {
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            return response.text();
+        })
+        .then(data => {
+            formContainer.innerHTML = data;
+            formContainer.dataset.loaded = 'true';
+            
+            // Check if form loaded properly
+            const loadedForm = formContainer.querySelector('form');
+            if (loadedForm) {
+                // Form loaded successfully
+            }
+            return response.text();
+        })
         .then(html => {
             if (!html) {
-                console.error(`No HTML content returned for controller ID ${controllerId}`);
                 return;
             }
 
@@ -209,7 +261,7 @@ function loadModalForm(controllerId, modalEl, formContainer, submitButton, scrol
                     } catch (e) {
                         console.error('Error initializing form fields:', e);
                     }
-                } 
+                }
                 submitButton.disabled = false;
             })
             .catch(error => {
@@ -226,10 +278,9 @@ function loadModalForm(controllerId, modalEl, formContainer, submitButton, scrol
 function submitModalForm(controllerId, formContainer, submitButton, modalEl) {
     const form = formContainer.querySelector('form');
     if (!form) {
-        console.error('Form not found in modal');
         return; 
     }
-    
+
     const errorsContainer = document.getElementById(`modal-form-errors${controllerId}`);
     const errorsList = document.getElementById(`modal-form-errors-list${controllerId}`);
 
@@ -264,6 +315,7 @@ function submitModalForm(controllerId, formContainer, submitButton, modalEl) {
     })
     .then(result => {
         if (result.ok) {
+            
             // Success
             new Noty({
                 type: 'success',
@@ -295,25 +347,53 @@ function submitModalForm(controllerId, formContainer, submitButton, modalEl) {
             if(formContainer.dataset.refreshDatatable === 'true') {
                 setTimeout(function() {
                     try {
-                        // Find closest DataTable
-                        const triggerButton = document.querySelector(`[data-target="#${modalEl.id}"]`);
-                        const closestTable = triggerButton ? triggerButton.closest('.dataTable') : null;    
+                        // Find the modal trigger button using both old and new Bootstrap attributes
+                        const triggerButton = document.querySelector(`[data-bs-target="#${modalEl.id}"], [data-target="#${modalEl.id}"]`);
+                        
+                        // Find the closest table or use any CRUD table on the page
+                        let closestTable = triggerButton ? triggerButton.closest('table.crud-table, [id^="crudTable"]') : null;
+                        
+                        // If no closest table found, try to find any CRUD table on the page
+                        if (!closestTable) {
+                            closestTable = document.querySelector('table.crud-table, [id^="crudTable"]');
+                        }
+                        
                         if (closestTable && closestTable.id) {
-                            // Access the DataTable instance using the DataTables API
-                            const dataTable = window.DataTable.tables({ visible: true, api: true }).filter(
-                                table => table.getAttribute('id') === closestTable.id
-                            );
-                            if (dataTable) {
-                                dataTable.ajax.reload();
+                            // Try to get the DataTable instance for this specific table
+                            const tableId = closestTable.id;
+                            
+                            // Check if we have a global crud.tables object with this table
+                            if (window.crud && window.crud.tables && window.crud.tables[tableId]) {
+                                window.crud.tables[tableId].ajax.reload(null, false);
+                                return;
+                            }
+                            
+                            // Fallback: try to find the DataTable instance using jQuery
+                            if (typeof $ !== 'undefined' && $.fn.DataTable) {
+                                const dataTable = $(`#${tableId}`).DataTable();
+                                if (dataTable) {
+                                    dataTable.ajax.reload(null, false);
+                                    return;
+                                }
+                            }
+                            
+                            // Another fallback: use the DataTables API directly
+                            if (typeof DataTable !== 'undefined') {
+                                const dataTable = new DataTable(`#${tableId}`);
+                                if (dataTable) {
+                                    dataTable.ajax.reload();
+                                }
                             }
                         }
                     } catch (e) {
                         try {
-                            // Fallback approach if first method fails
+                            // Final fallback: try any global table variable
                             if (typeof table !== 'undefined') {
                                 table.draw(false);
                             }
-                        } catch (e2) { }
+                        } catch (e2) { 
+                            console.warn('Could not refresh datatable:', e2);
+                        }
                     }
                 }, 100);
             }    
@@ -360,5 +440,36 @@ function submitModalForm(controllerId, formContainer, submitButton, modalEl) {
         submitButton.disabled = false;
     });
 }
+
+    // Initialize modals when the script loads
+    $(document).ready(function() {
+        
+        initializeAllModals();
+        
+        // Listen for proper DataTables draw events on any table
+        $(document).on('draw.dt', function(e, settings) {
+            
+            setTimeout(initializeAllModals, 100); // Small delay to ensure DOM is updated
+        });
+        
+        // Also listen for other common events that might indicate table updates
+        $(document).on('responsive-resize.dt responsive-display.dt', function(e, settings) {
+            setTimeout(initializeAllModals, 50);
+        });
+        
+        // Handle AJAX content updates
+        $(document).on('DOMNodeInserted', function(e) {
+            // Only trigger for significant DOM changes
+            if (e.target.nodeType === 1 && (
+                e.target.classList.contains('modal') ||
+                e.target.querySelector && e.target.querySelector('.modal') ||
+                e.target.classList.contains('crud-table') ||
+                e.target.querySelector && e.target.querySelector('.crud-table')
+            )) {
+                setTimeout(initializeAllModals, 50);
+            }
+        });
+    });
+    
     </script>
 @if (!request()->ajax()) @endpush @endif
