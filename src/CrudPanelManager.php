@@ -140,18 +140,16 @@ final class CrudPanelManager
      */
     private function setupIsolatedOperation($controller, string $operation, CrudPanel $crud): void
     {
-        // Store the complete current state with detailed logging
+        // Store the complete current state
         $originalOperation = $crud->getOperation();
         $originalSettings = $crud->settings();
-        $originalButtons = $crud->getOperationSetting('buttons') ?? collect();
         $originalColumns = $crud->columns(); // Use the direct method, not operation setting
-        $originalFields = $crud->getOperationSetting('fields') ?? [];
         $originalRoute = $crud->route ?? null;
         $originalEntityName = $crud->entity_name ?? null;
         $originalEntityNamePlural = $crud->entity_name_plural ?? null;
         
-        // Store operation settings
-        $originalOperationSettings = $crud->get($originalOperation) ?? [];
+        // Store operation-specific settings generically
+        $originalOperationSettings = $this->extractOperationSettings($crud, $originalOperation);
 
         // Temporarily setup the requested operation
         $crud->setOperation($operation);
@@ -192,12 +190,8 @@ final class CrudPanelManager
             }
         }
         
-        // Restore original operation settings completely
-        $crud->set($originalOperation, $originalOperationSettings);
-        
-        // Specifically restore critical state
-        $crud->setOperationSetting('buttons', $originalButtons);
-        $crud->setOperationSetting('fields', $originalFields);
+        // Restore operation-specific settings generically
+        $this->restoreOperationSettings($crud, $originalOperation, $originalOperationSettings);
         
         // Restore core properties if they were changed
         if ($originalRoute !== null) {
@@ -208,6 +202,57 @@ final class CrudPanelManager
         }
         if ($originalEntityNamePlural !== null) {
             $crud->entity_name_plural = $originalEntityNamePlural;
+        }
+    }
+
+    /**
+     * Extract all settings for a specific operation.
+     *
+     * @param  CrudPanel  $crud  The CRUD panel instance
+     * @param  string  $operation  The operation name
+     * @return array  Array of operation-specific settings
+     */
+    private function extractOperationSettings(CrudPanel $crud, string $operation): array
+    {
+        $settings = $crud->settings();
+        $operationSettings = [];
+        $operationPrefix = $operation . '.';
+        
+        foreach ($settings as $key => $value) {
+            if (str_starts_with($key, $operationPrefix)) {
+                $operationSettings[$key] = $value;
+            }
+        }
+        
+        return $operationSettings;
+    }
+
+    /**
+     * Restore all settings for a specific operation.
+     *
+     * @param  CrudPanel  $crud  The CRUD panel instance
+     * @param  string  $operation  The operation name
+     * @param  array  $operationSettings  The settings to restore
+     */
+    private function restoreOperationSettings(CrudPanel $crud, string $operation, array $operationSettings): void
+    {
+        foreach ($operationSettings as $key => $value) {
+            try {
+                // Skip complex objects that Laravel generates dynamically
+                if (is_object($value) && (
+                    $value instanceof \Illuminate\Routing\UrlGenerator ||
+                    $value instanceof \Illuminate\Http\Request ||
+                    $value instanceof \Illuminate\Contracts\Foundation\Application ||
+                    $value instanceof \Closure ||
+                    method_exists($value, '__toString') === false
+                )) {
+                    continue;
+                }
+                
+                $crud->set($key, $value);
+            } catch (\Exception $e) {
+                // Silently continue with restoration
+            }
         }
     }
 
