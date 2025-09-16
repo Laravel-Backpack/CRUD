@@ -60,36 +60,7 @@
         // Check for modal templates
         const modalTemplates = document.querySelectorAll('[id^="modalTemplate"]');
         
-        // Check for modal buttons (support both Bootstrap 4 and 5 attributes)
-        const modalButtons = document.querySelectorAll('[data-bs-target], [data-target]');
-        
-        modalButtons.forEach((button, index) => {
-            const target = button.getAttribute('data-bs-target') || button.getAttribute('data-target');
-        });
-        
-        // Also check specifically for update modal buttons (support both attributes)
-        const updateButtons = document.querySelectorAll('[data-bs-target*="update_modal"], [data-target*="update_modal"]');
-        
-        // Check what's in the table rows specifically (look for any CRUD table)
-        const tableRows = document.querySelectorAll('table.crud-table tbody tr, [id^="crudTable"] tbody tr');
-        
-        tableRows.forEach((row, index) => {
-            const buttonsInRow = row.querySelectorAll('[data-bs-target*="modal"], [data-target*="modal"]');
-            const updateButtonsInRow = row.querySelectorAll('[data-bs-target*="update_modal"], [data-target*="update_modal"]');
-            const modalTemplatesInRow = row.querySelectorAll('[id^="modalTemplate"]');
-            
-            if (modalTemplatesInRow.length > 0) {
-                modalTemplatesInRow.forEach((template, tIndex) => {
-                });
-            }
-        });
-        
-        // Check all elements with class containing modal
-        const allModalElements = document.querySelectorAll('[id*="modal"]');
-        allModalElements.forEach((el, index) => {
-            if (index < 10) { // Log first 10 to avoid spam
-            }
-        });    modalTemplates.forEach(modalTemplate => {
+        modalTemplates.forEach(modalTemplate => {
         // Extract controller hash from the ID
         const controllerId = modalTemplate.id.replace('modalTemplate', '');
         const modalEl = modalTemplate.querySelector('.modal');
@@ -347,15 +318,20 @@ function submitModalForm(controllerId, formContainer, submitButton, modalEl) {
             if(formContainer.dataset.refreshDatatable === 'true') {
                 setTimeout(function() {
                     try {
-                        // Find the modal trigger button using both old and new Bootstrap attributes
-                        const triggerButton = document.querySelector(`[data-bs-target="#${modalEl.id}"], [data-target="#${modalEl.id}"]`);
+                        // Find all possible modal trigger buttons using both old and new Bootstrap attributes
+                        const triggerButtons = document.querySelectorAll(`[data-bs-target="#${modalEl.id}"], [data-target="#${modalEl.id}"]`);
                         
-                        // Find the closest table or use any CRUD table on the page
-                        let closestTable = triggerButton ? triggerButton.closest('table.crud-table, [id^="crudTable"]') : null;
+                        // Find the closest table from any trigger button
+                        let closestTable = null;
+                        triggerButtons.forEach(button => {
+                            if (!closestTable) {
+                                closestTable = button.closest('table.crud-table, [id^="crudTable"], table[id*="Table"], .dataTables_wrapper table');
+                            }
+                        });
                         
-                        // If no closest table found, try to find any CRUD table on the page
+                        // If no closest table found, try to find any CRUD or DataTable on the page
                         if (!closestTable) {
-                            closestTable = document.querySelector('table.crud-table, [id^="crudTable"]');
+                            closestTable = document.querySelector('table.crud-table, [id^="crudTable"], table[id*="Table"], .dataTables_wrapper table, table.dataTable');
                         }
                         
                         if (closestTable && closestTable.id) {
@@ -464,7 +440,9 @@ function submitModalForm(controllerId, formContainer, submitButton, modalEl) {
                 e.target.classList.contains('modal') ||
                 e.target.querySelector && e.target.querySelector('.modal') ||
                 e.target.classList.contains('crud-table') ||
-                e.target.querySelector && e.target.querySelector('.crud-table')
+                e.target.querySelector && e.target.querySelector('table') ||
+                e.target.id && e.target.id.toLowerCase().includes('modal') ||
+                e.target.id && e.target.id.toLowerCase().includes('table')
             )) {
                 setTimeout(initializeAllModals, 50);
             }
