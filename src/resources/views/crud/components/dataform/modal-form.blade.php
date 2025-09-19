@@ -151,10 +151,11 @@ function loadModalForm(controllerId, modalEl, formContainer, submitButton, scrol
             if (loadedForm) {
                 // Form loaded successfully
             }
-            return response.text();
-        })
-        .then(html => {
+            
+            // Process the loaded HTML
+            let html = data;
             if (!html) {
+                submitButton.disabled = false;
                 return;
             }
 
