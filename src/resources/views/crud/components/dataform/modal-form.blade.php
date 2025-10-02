@@ -6,9 +6,11 @@
         }
     }
 @endphp
+@push('after_styles') @if (request()->ajax()) @endpush @endif
+@if (!request()->ajax()) @endpush @endif
 @push('after_scripts') @if (request()->ajax()) @endpush @endif
     <div class="d-none" id="modalTemplate{{ md5($controller.$id) }}">
-        <div class="modal fade" id="{{$id}}" tabindex="-1" role="dialog" data-bs-backdrop="static" data-backdrop="static" aria-labelledby="formModalLabel{{ md5($controller.$id) }}" aria-hidden="true">
+        <div class="modal modal-blur fade" id="{{$id}}" tabindex="0" role="dialog" data-bs-backdrop="static" data-backdrop="static" aria-labelledby="formModalLabel{{ md5($controller.$id) }}" aria-hidden="true">
             <div class="{{$classes}}" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
@@ -44,11 +46,40 @@
 @if (!request()->ajax()) @endpush @endif
 @push('after_scripts') @if (request()->ajax()) @endpush @endif
 <script>
-    // Ensure initializeAllModals is available immediately
-    if (typeof window.initializeAllModals === 'undefined') {
-        window.initializeAllModals = function() {
-            // This will be replaced by the full implementation below
+    // Define initializeFieldsWithJavascript globally BEFORE modal content loads
+    if (typeof window.initializeFieldsWithJavascript === 'undefined') {
+        window.initializeFieldsWithJavascript = function(container) {
+            var selector;
+            if (container instanceof jQuery) {
+                selector = container;
+            } else {
+                selector = $(container);
+            }
+            
+            selector.find("[data-init-function]").not("[data-initialized=true]").each(function () {
+                var element = $(this);
+                var functionName = element.data('init-function');
+
+                if (typeof window[functionName] === "function") {
+                    window[functionName](element);
+                    // mark the element as initialized, so that its function is never called again
+                    element.attr('data-initialized', 'true');
+                }
+            });
         };
+    }
+
+    if (!window._select2FocusFixInstalled) {
+        document.addEventListener('focusin', function(e) {
+            // Allow focus on Select2 elements even when modal is open
+            if (e.target.classList.contains('select2-search__field') ||
+                e.target.closest('.select2-container') ||
+                e.target.closest('.select2-dropdown')) {
+                e.stopImmediatePropagation();
+            }
+        }, true);
+        
+        window._select2FocusFixInstalled = true;
     }
 
     // Make initializeAllModals available globally
@@ -230,10 +261,38 @@ function loadModalForm(controllerId, modalEl, formContainer, submitButton, scrol
                 if (typeof initializeFieldsWithJavascript === 'function') {
                     try {
                         initializeFieldsWithJavascript(modalEl);
+                        
+                        $(modalEl).find('select[data-field-is-inline="true"]').on('select2:open', function(e) {
+                            const $field = $(this);
+                            
+                            setTimeout(function() {
+                                const $container = $field.next('.select2-container--open');
+                                
+                                const $dropdown = $('.select2-dropdown:visible').last();
+                                
+                                if ($dropdown.length && $container.length) {
+                                    const containerRect = $container[0].getBoundingClientRect();
+                                    
+                                    $dropdown.css({
+                                        'position': 'fixed',
+                                        'top': (containerRect.bottom) + 'px',
+                                        'left': containerRect.left + 'px',
+                                        'width': containerRect.width + 'px',
+                                        'z-index': 9999
+                                    });
+                                    
+                                    const $searchInput = $dropdown.find('.select2-search__field');
+                                    if ($searchInput.length) {
+                                        $searchInput.focus();
+                                    }
+                                }
+                            }, 1);
+                        });
                     } catch (e) {
                         console.error('Error initializing form fields:', e);
                     }
                 }
+                
                 submitButton.disabled = false;
             })
             .catch(error => {
@@ -345,7 +404,6 @@ function submitModalForm(controllerId, formContainer, submitButton, modalEl) {
                                 return;
                             }
                             
-                            // Fallback: try to find the DataTable instance using jQuery
                             if (typeof $ !== 'undefined' && $.fn.DataTable) {
                                 const dataTable = $(`#${tableId}`).DataTable();
                                 if (dataTable) {
@@ -354,7 +412,6 @@ function submitModalForm(controllerId, formContainer, submitButton, modalEl) {
                                 }
                             }
                             
-                            // Another fallback: use the DataTables API directly
                             if (typeof DataTable !== 'undefined') {
                                 const dataTable = new DataTable(`#${tableId}`);
                                 if (dataTable) {
@@ -423,13 +480,11 @@ function submitModalForm(controllerId, formContainer, submitButton, modalEl) {
         
         initializeAllModals();
         
-        // Listen for proper DataTables draw events on any table
         $(document).on('draw.dt', function(e, settings) {
             
-            setTimeout(initializeAllModals, 100); // Small delay to ensure DOM is updated
+            setTimeout(initializeAllModals, 100); 
         });
         
-        // Also listen for other common events that might indicate table updates
         $(document).on('responsive-resize.dt responsive-display.dt', function(e, settings) {
             setTimeout(initializeAllModals, 50);
         });
