@@ -57,7 +57,7 @@ trait UpdateOperation
         LifecycleHook::hookInto(['list:after_setup', 'show:after_setup'], function () {
             // Check if modal form is enabled and replace the button if needed
             $useModalForm = $this->crud->get('update.updateButtonWithModalForm') ?? config('backpack.operations.update.updateButtonWithModalForm', false);
-            
+
             if ($useModalForm) {
                 $this->crud->removeButton('update');
                 $this->crud->addButton('line', 'update', 'view', 'crud::buttons.update_modal_form', 'end');

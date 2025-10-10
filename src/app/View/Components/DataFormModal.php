@@ -46,20 +46,20 @@ class DataformModal extends DataForm
         $tempCrud = \Backpack\CRUD\CrudManager::setupCrudPanel($controller, $operation);
         $action = $this->action ?? url($tempCrud->route);
         \Backpack\CRUD\CrudManager::unsetActiveController();
-        
+
         // Generate the SAME hashed form ID that the DataForm component uses
-        $this->hashedFormId = $this->id . md5($action . $this->operation . 'post' . $this->controller);
-        
+        $this->hashedFormId = $this->id.md5($action.$this->operation.'post'.$this->controller);
+
         // Cache the setup closure if provided (for retrieval during AJAX request)
         if ($this->setup instanceof \Closure) {
             $this->cacheSetupClosure();
         }
-        
+
         parent::__construct($controller, $id, $name, $operation, $action, $method, $hasUploadFields, $entry, $setup, $focusOnFirstField);
-    
-        if($this->entry && $this->operation === 'update') {
+
+        if ($this->entry && $this->operation === 'update') {
             $this->formRouteOperation = url($this->crud->route.'/'.$this->entry->getKey().'/edit');
-        }    
+        }
     }
 
     /**
@@ -70,7 +70,7 @@ class DataformModal extends DataForm
         // Create a temporary CRUD instance to apply and cache the setup
         \Backpack\CRUD\CrudManager::setActiveController($this->controller);
         $tempCrud = \Backpack\CRUD\CrudManager::setupCrudPanel($this->controller, $this->operation);
-        
+
         // Apply and cache the setup closure using the HASHED ID
         \Backpack\CRUD\app\Library\Support\DataformCache::applyAndStoreSetupClosure(
             $this->hashedFormId,  // Use the hashed ID that matches what DataForm component generates
@@ -80,7 +80,7 @@ class DataformModal extends DataForm
             $tempCrud,
             null
         );
-        
+
         \Backpack\CRUD\CrudManager::unsetActiveController();
     }
 

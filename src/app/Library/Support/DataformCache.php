@@ -3,7 +3,6 @@
 namespace Backpack\CRUD\app\Library\Support;
 
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanel;
-use Backpack\CRUD\app\Library\Widget;
 use Backpack\CRUD\CrudManager;
 
 final class DataformCache extends SetupCache
@@ -32,7 +31,7 @@ final class DataformCache extends SetupCache
 
         $cruds = CrudManager::getCrudPanels();
         $parentCrud = reset($cruds);
-        
+
         $parentEntry = null;
         $parentController = null;
 
@@ -49,9 +48,9 @@ final class DataformCache extends SetupCache
             $parentEntry,
             $name
         );
-        
+
         // Store the field configuration in Laravel cache (persists across requests)
-        \Cache::put($this->cachePrefix . $formId . '_fields', $fieldsConfig, now()->addMinutes($this->cacheDuration));
+        \Cache::put($this->cachePrefix.$formId.'_fields', $fieldsConfig, now()->addMinutes($this->cacheDuration));
 
         // Set the form_id in the CRUD panel if provided
         if ($crud) {
@@ -77,10 +76,10 @@ final class DataformCache extends SetupCache
             foreach ($crud->fields() as $fieldName => $field) {
                 $fieldsAfterSetup[$fieldName] = $field;
             }
-            
+
             // Cache the field configuration (not the closure, since it won't persist across requests)
             $cached = $instance->cacheForComponent($formId, $controllerClass, $fieldsAfterSetup, $name, $crud);
-            
+
             return $cached;
         }
 
@@ -173,27 +172,27 @@ final class DataformCache extends SetupCache
 
         try {
             // Initialize operations for the parent controller (if it exists)
-            if (!empty($cachedData['parentController'])) {
+            if (! empty($cachedData['parentController'])) {
                 $this->initializeOperations($cachedData['parentController'], $cachedData['operations']);
             }
             $entry = $cachedData['parent_entry'] ?? null;
-            
+
             // Get the form_id from the cached data
             $formId = $crud->get('form.form_id') ?? request()->input('_form_id');
 
             // Retrieve the field configuration from Laravel cache
             if ($formId) {
-                $fieldsConfig = \Cache::get($this->cachePrefix . $formId . '_fields');
-                
+                $fieldsConfig = \Cache::get($this->cachePrefix.$formId.'_fields');
+
                 if ($fieldsConfig && is_array($fieldsConfig)) {
                     // Clear all existing fields
                     $crud->setOperationSetting('fields', []);
-                    
+
                     // Restore the cached field configuration
                     foreach ($fieldsConfig as $fieldName => $field) {
                         $crud->addField($field);
                     }
-                    
+
                     return true;
                 }
             }

@@ -47,7 +47,7 @@ trait CreateOperation
         LifecycleHook::hookInto('list:after_setup', function () {
             // Check if modal form is enabled and replace the button if needed
             $useModalForm = $this->crud->get('create.createButtonWithModalForm') ?? config('backpack.operations.create.createButtonWithModalForm', false);
-            
+
             if ($useModalForm) {
                 $this->crud->removeButton('create');
                 $this->crud->addButton('top', 'create', 'view', 'crud::buttons.create_modal_form', 'beginning');
