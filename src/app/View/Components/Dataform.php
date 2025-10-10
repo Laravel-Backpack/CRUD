@@ -2,6 +2,7 @@
 
 namespace Backpack\CRUD\app\View\Components;
 
+use Backpack\CRUD\app\Library\Support\DataformCache;
 use Backpack\CRUD\CrudManager;
 use Closure;
 use Illuminate\View\Component;
@@ -37,7 +38,6 @@ class Dataform extends Component
         $this->crud = CrudManager::setupCrudPanel($controller, $operation);
 
         $this->crud->setAutoFocusOnFirstField($this->focusOnFirstField);
-
         if ($this->entry && $this->operation === 'update') {
             $this->action = $action ?? url($this->crud->route.'/'.$this->entry->getKey());
             $this->method = 'put';
@@ -50,35 +50,36 @@ class Dataform extends Component
         $this->id = $id.md5($this->action.$this->operation.$this->method.$this->controller);
 
         if ($this->setup) {
-            $this->applySetupClosure();
+            // Apply the configuration using DataformCache
+            DataformCache::applyAndStoreSetupClosure(
+                $this->id,
+                $this->controller,
+                $this->setup,
+                $this->name,
+                $this->crud,
+                $this->getParentCrudEntry()
+            );
         }
 
+        // Reset the active controller
         CrudManager::unsetActiveController();
     }
 
-    public function applySetupClosure(): bool
+    private function getParentCrudEntry()
     {
-        $originalSetup = $this->setup;
-        $controllerClass = $this->controller;
-        $crud = $this->crud;
-        $entry = $this->entry;
+        $cruds = CrudManager::getCrudPanels();
+        $parentCrud = reset($cruds);
 
-        $modifiedSetup = function ($crud, $entry) use ($originalSetup, $controllerClass) {
-            CrudManager::setActiveController($controllerClass);
+        if ($parentCrud && $parentCrud->getCurrentEntry()) {
+            CrudManager::storeInitializedOperation(
+                $parentCrud->controller,
+                $parentCrud->getCurrentOperation()
+            );
 
-            // Run the original closure
-            return ($originalSetup)($crud, $entry);
-        };
-
-        try {
-            // Execute the modified closure
-            ($modifiedSetup)($crud, $entry);
-
-            return true;
-        } finally {
-            // Clean up
-            CrudManager::unsetActiveController();
+            return $parentCrud->getCurrentEntry();
         }
+
+        return null;
     }
 
     /**

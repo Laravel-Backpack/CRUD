@@ -53,6 +53,16 @@ trait UpdateOperation
         LifecycleHook::hookInto(['list:before_setup', 'show:before_setup'], function () {
             $this->crud->addButton('line', 'update', 'view', 'crud::buttons.update', 'end');
         });
+
+        LifecycleHook::hookInto(['list:after_setup', 'show:after_setup'], function () {
+            // Check if modal form is enabled and replace the button if needed
+            $useModalForm = $this->crud->get('update.updateButtonWithModalForm') ?? config('backpack.operations.update.updateButtonWithModalForm', false);
+            
+            if ($useModalForm) {
+                $this->crud->removeButton('update');
+                $this->crud->addButton('line', 'update', 'view', 'crud::buttons.update_modal_form', 'end');
+            }
+        });
     }
 
     /**
@@ -67,6 +77,11 @@ trait UpdateOperation
 
         // get entry ID from Request (makes sure its the last ID for nested resources)
         $id = $this->crud->getCurrentEntryId() ?? $id;
+
+        // Apply cached form setup if this is an AJAX request from a modal
+        if (request()->ajax() && request()->has('_form_id')) {
+            \Backpack\CRUD\app\Library\Support\DataformCache::applyFromRequest($this->crud);
+        }
 
         // register any Model Events defined on fields
         $this->crud->registerFieldEvents();

@@ -43,6 +43,16 @@ trait CreateOperation
         LifecycleHook::hookInto('list:before_setup', function () {
             $this->crud->addButton('top', 'create', 'view', 'crud::buttons.create');
         });
+
+        LifecycleHook::hookInto('list:after_setup', function () {
+            // Check if modal form is enabled and replace the button if needed
+            $useModalForm = $this->crud->get('create.createButtonWithModalForm') ?? config('backpack.operations.create.createButtonWithModalForm', false);
+            
+            if ($useModalForm) {
+                $this->crud->removeButton('create');
+                $this->crud->addButton('top', 'create', 'view', 'crud::buttons.create_modal_form', 'beginning');
+            }
+        });
     }
 
     /**
@@ -54,12 +64,17 @@ trait CreateOperation
     {
         $this->crud->hasAccessOrFail('create');
 
+        // Apply cached form setup if this is an AJAX request from a modal
+        if (request()->ajax() && request()->has('_form_id')) {
+            \Backpack\CRUD\app\Library\Support\DataformCache::applyFromRequest($this->crud);
+        }
+
         // prepare the fields you need to show
         $this->data['crud'] = $this->crud;
         $this->data['saveAction'] = $this->crud->getSaveAction();
         $this->data['title'] = $this->crud->getTitle() ?? trans('backpack::crud.add').' '.$this->crud->entity_name;
 
-        // load the view from /resources/views/vendor/backpack/crud/ if it exists, otherwise load the one in the package
+        // return the ajax response for modal forms, or the normal view for normal requests
         return  request()->ajax() ?
             view('crud::components.dataform.ajax_response', $this->data) :
             view($this->crud->getCreateView(), $this->data);
