@@ -22,7 +22,7 @@ class Datatable extends Component
         CrudManager::setActiveController($controller);
 
         $this->crud ??= CrudManager::setupCrudPanel($controller, 'list');
-        
+
         if ($this->crud->getOperation() !== 'list') {
             $this->crud->setOperation('list');
         }
