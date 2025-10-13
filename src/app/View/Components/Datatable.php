@@ -22,11 +22,14 @@ class Datatable extends Component
         CrudManager::setActiveController($controller);
 
         $this->crud ??= CrudManager::setupCrudPanel($controller, 'list');
+        
+        if ($this->crud->getOperation() !== 'list') {
+            $this->crud->setOperation('list');
+        }
 
         $this->tableId = $this->generateTableId();
 
-        if ($this->setup) {
-            // Apply the configuration using DatatableCache
+        if ($this->setup) {            // Apply the configuration using DatatableCache
             DatatableCache::applyAndStoreSetupClosure(
                 $this->tableId,
                 $this->controller,
@@ -38,7 +41,12 @@ class Datatable extends Component
         }
 
         if (! $this->crud->has('list.datatablesUrl')) {
-            $this->crud->set('list.datatablesUrl', $this->crud->getRoute());
+            $route = $this->crud->getRoute();
+            // If route is not set, generate it from the controller
+            if (empty($route)) {
+                $route = action([$this->controller, 'index']);
+            }
+            $this->crud->set('list.datatablesUrl', $route);
         }
 
         // Reset the active controller
@@ -77,6 +85,7 @@ class Datatable extends Component
             'crud' => $this->crud,
             'modifiesUrl' => $this->modifiesUrl,
             'tableId' => $this->tableId,
+            'datatablesUrl' => url($this->crud->get('list.datatablesUrl')),
         ]);
     }
 }

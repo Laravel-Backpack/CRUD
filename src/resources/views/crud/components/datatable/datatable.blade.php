@@ -33,7 +33,7 @@
   @include('crud::inc.filters_navbar', ['componentId' => $tableId])
 @endif
 <div class="{{ backpack_theme_config('classes.tableWrapper') }}">
-<table
+  <table
       id="{{ $tableId }}"
       class="{{ backpack_theme_config('classes.table') ?? 'table table-striped table-hover nowrap rounded card-table table-vcenter card d-table shadow-xs border-xs' }} crud-table"
       data-responsive-table="{{ (int) $crud->getOperationSetting('responsiveTable') }}"
@@ -42,7 +42,7 @@
       data-has-line-buttons-as-dropdown="{{ (int) $crud->getOperationSetting('lineButtonsAsDropdown') }}"
       data-line-buttons-as-dropdown-minimum="{{ (int) $crud->getOperationSetting('lineButtonsAsDropdownMinimum') }}"
       data-line-buttons-as-dropdown-show-before-dropdown="{{ (int) $crud->getOperationSetting('lineButtonsAsDropdownShowBefore') }}"
-      data-url-start="{{ url($crud->getOperationSetting('datatablesUrl')) }}"
+      data-url-start="{{ $datatablesUrl }}"
       data-responsive-table="{{ $crud->getResponsiveTable() ? 'true' : 'false' }}"
       data-persistent-table="{{ $crud->getPersistentTable() ? 'true' : 'false' }}"
       data-persistent-table-slug="{{ Str::slug($crud->getOperationSetting('datatablesUrl')) }}"

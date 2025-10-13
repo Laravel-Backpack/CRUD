@@ -102,6 +102,10 @@ final class CrudPanelManager
             return $this->cruds[$controller::class];
         }
 
+        if ($crud->getOperation() !== $operation) {
+            $crud->setOperation($operation);
+        }
+
         return $this->cruds[$controller::class];
     }
 
