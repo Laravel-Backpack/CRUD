@@ -276,11 +276,11 @@ trait Read
     public function addCustomPageLengthToPageLengthMenu()
     {
         $pageLengthMenu = $this->getOperationSetting('pageLengthMenu');
-        
+
         if (is_null($pageLengthMenu)) {
             return;
         }
-        
+
         $values = $pageLengthMenu[0];
         $labels = $pageLengthMenu[1];
 

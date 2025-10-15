@@ -45,13 +45,13 @@ class Dataform extends Component implements IsolatesOperationSetup
         CrudManager::setActiveController($controller);
 
         $this->crud = CrudManager::setupCrudPanel($controller, $operation);
-        
+
         if ($this->crud->getOperation() !== $operation) {
             $this->crud->setOperation($operation);
         }
 
         $this->crud->setAutoFocusOnFirstField($this->focusOnFirstField);
-        
+
         if ($this->entry && $this->operation === 'update') {
             $this->action = $action ?? url($this->crud->route.'/'.$this->entry->getKey());
             $this->method = 'put';
@@ -60,7 +60,7 @@ class Dataform extends Component implements IsolatesOperationSetup
         } else {
             $this->action = $action ?? url($this->crud->route);
         }
-        
+
         $this->hasUploadFields = $this->crud->hasUploadFields($operation, $this->entry?->getKey());
         $this->id = $id.md5($this->action.$this->operation.$this->method.$this->controller);
 
