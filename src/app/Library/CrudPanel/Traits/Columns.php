@@ -21,9 +21,7 @@ trait Columns
     public function columns()
     {
         return $this->getOperationSetting('columns') ?? [];
-    }
-
-    /**
+    }    /**
      * Add a bunch of column names and their details to the CRUD object.
      *
      * @param  array|string  $columns

@@ -2,14 +2,23 @@
 
 namespace Backpack\CRUD\app\View\Components;
 
-use Backpack\CRUD\app\Library\Support\DataformCache;
+use Backpack\CRUD\app\View\Components\Contracts\IsolatesOperationSetup;
 use Backpack\CRUD\CrudManager;
 use Closure;
 use Illuminate\View\Component;
 
-class Dataform extends Component
+class Dataform extends Component implements IsolatesOperationSetup
 {
     public $crud;
+
+    /**
+     * Standalone forms do NOT isolate their operation setup.
+     * They are allowed to permanently switch operations.
+     */
+    public function shouldIsolateOperationSetup(): bool
+    {
+        return false;
+    }
 
     /**
      * Create a new component instance.
@@ -56,15 +65,8 @@ class Dataform extends Component
         $this->id = $id.md5($this->action.$this->operation.$this->method.$this->controller);
 
         if ($this->setup) {
-            // Apply the configuration using DataformCache
-            DataformCache::applyAndStoreSetupClosure(
-                $this->id,
-                $this->controller,
-                $this->setup,
-                $this->name,
-                $this->crud,
-                $this->getParentCrudEntry()
-            );
+            $parentEntry = $this->getParentCrudEntry();
+            call_user_func($this->setup, $this->crud, $parentEntry);
         }
 
         // Reset the active controller

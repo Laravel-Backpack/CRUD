@@ -2,7 +2,7 @@
 @php
     if(isset($formRouteOperation)) {
         if(!\Str::isUrl($formRouteOperation)) {
-            $formRouteOperation = url($crud->route . '/' . $formRouteOperation);
+            $formRouteOperation = url($route . '/' . $formRouteOperation);
         }
     }
 @endphp

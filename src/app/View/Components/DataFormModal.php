@@ -2,10 +2,19 @@
 
 namespace Backpack\CRUD\app\View\Components;
 
+use Backpack\CRUD\app\View\Components\Contracts\IsolatesOperationSetup;
 use Closure;
 
-class DataformModal extends DataForm
+class DataformModal extends DataForm implements IsolatesOperationSetup
 {
+    /**
+     * Modal forms ALWAYS isolate their operation setup.
+     * This prevents them from affecting the parent view's operation state.
+     */
+    public function shouldIsolateOperationSetup(): bool
+    {
+        return true;
+    }
     /**
      * Create a new component instance.
      *
@@ -27,6 +36,7 @@ class DataformModal extends DataForm
 
     public function __construct(
         public string $controller,
+        public ?string $route = null, // Accept route as an optional parameter
         public string $id = 'backpack-form',
         public string $operation = 'create',
         public string $name = '',
@@ -41,11 +51,17 @@ class DataformModal extends DataForm
         public string $classes = 'modal-dialog modal-lg',
         public bool $refreshDatatable = false,
     ) {
-        // Temporarily set up CRUD panel to get the route for hashed form ID generation
-        \Backpack\CRUD\CrudManager::setActiveController($controller);
-        $tempCrud = \Backpack\CRUD\CrudManager::setupCrudPanel($controller, $operation);
-        $action = $this->action ?? url($tempCrud->route);
-        \Backpack\CRUD\CrudManager::unsetActiveController();
+        // If route is not provided (e.g., when rendering via AJAX), get it from CRUD panel
+        if ($this->route === null) {
+            \Backpack\CRUD\CrudManager::setActiveController($controller);
+            $tempCrud = \Backpack\CRUD\CrudManager::setupCrudPanel($controller, $operation);
+            $this->route = $tempCrud->route;
+            \Backpack\CRUD\CrudManager::unsetActiveController();
+        }
+
+        // Use the provided/resolved route instead of calling setupCrudPanel on every render
+        // This avoids operation switching during page load when route is provided
+        $action = $this->action ?? url($this->route);
 
         // Generate the SAME hashed form ID that the DataForm component uses
         $this->hashedFormId = $this->id.md5($action.$this->operation.'post'.$this->controller);
@@ -55,10 +71,11 @@ class DataformModal extends DataForm
             $this->cacheSetupClosure();
         }
 
-        parent::__construct($controller, $id, $name, $operation, $action, $method, $hasUploadFields, $entry, $setup, $focusOnFirstField);
+        // DO NOT call parent::__construct() because we don't want to initialize
+        // the CRUD panel on page load - the form will be loaded via AJAX
 
         if ($this->entry && $this->operation === 'update') {
-            $this->formRouteOperation = url($this->crud->route.'/'.$this->entry->getKey().'/edit');
+            $this->formRouteOperation = url($action.'/'.$this->entry->getKey().'/edit');
         }
     }
 
@@ -91,8 +108,9 @@ class DataformModal extends DataForm
      */
     public function render()
     {
+        // We don't need $crud here because the modal loads the form via AJAX
+        // The CRUD panel will be initialized when the AJAX request is made
         return view('crud::components.dataform.modal-form', [
-            'crud' => $this->crud,
             'id' => $this->id,
             'operation' => $this->operation,
             'formRouteOperation' => $this->formRouteOperation,
@@ -104,6 +122,7 @@ class DataformModal extends DataForm
             'classes' => $this->classes,
             'hashedFormId' => $this->hashedFormId,
             'controller' => $this->controller,
+            'route' => $this->route, // Pass the route for building URLs in the template
         ]);
     }
 }

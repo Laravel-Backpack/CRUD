@@ -71,6 +71,20 @@ final class CrudPanelManager
 
         $primaryControllerRequest = $this->cruds[array_key_first($this->cruds)]->getRequest();
 
+        if ($crud->isInitialized() && $crud->getOperation() !== $operation && !$shouldIsolate) {
+            self::setActiveController($controller::class);
+
+            $crud->setOperation($operation);
+            $this->setupSpecificOperation($controller, $operation, $crud);
+
+            // Mark this operation as initialized
+            $this->storeInitializedOperation($controller::class, $operation);
+
+            self::unsetActiveController();
+
+            return $this->cruds[$controller::class];
+        }
+
         // Check if we need to initialize this specific operation
         if (! $crud->isInitialized() || ! $this->isOperationInitialized($controller::class, $operation)) {
             self::setActiveController($controller::class);
@@ -102,10 +116,8 @@ final class CrudPanelManager
             return $this->cruds[$controller::class];
         }
 
-        if ($crud->getOperation() !== $operation) {
-            $crud->setOperation($operation);
-        }
-
+        // If we reach here, the panel and operation are both initialized
+        // and the operation matches what was requested, so just return it
         return $this->cruds[$controller::class];
     }
 
@@ -124,14 +136,27 @@ final class CrudPanelManager
         }
 
         $currentOperation = $currentCrud->getOperation();
-
-        // Always isolate when switching between different operations
-        // This prevents any operation from interfering with another operation's state
-        if ($currentOperation && $currentOperation !== $operation) {
-            return true;
+        
+        // If operations don't differ, no need to isolate
+        if (!$currentOperation || $currentOperation === $operation) {
+            return false;
         }
 
-        return false;
+        // Check backtrace for components implementing IsolatesOperationSetup
+        $backtrace = debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT, 10);
+        
+        foreach ($backtrace as $trace) {
+            if (isset($trace['object'])) {
+                $object = $trace['object'];
+                
+                // If we find a component that implements the interface, use its declared behavior
+                if ($object instanceof \Backpack\CRUD\app\View\Components\Contracts\IsolatesOperationSetup) {
+                    return $object->shouldIsolateOperationSetup();
+                }
+            }
+        }
+
+        return true;
     }
 
     /**
@@ -271,6 +296,8 @@ final class CrudPanelManager
     {
         // Setup the specific operation using the existing CrudController infrastructure
         $crud->setOperation($operation);
+
+        $controller->setup();
 
         // Use the controller's own method to setup the operation properly
         $reflection = new \ReflectionClass($controller);

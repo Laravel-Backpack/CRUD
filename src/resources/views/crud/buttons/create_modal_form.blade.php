@@ -21,6 +21,7 @@
         operation="create"
         id="createModal{{ md5($controllerClass.'create') }}"
         :title="trans('backpack::crud.add') . ' ' . $crud->entity_name"
+        :route="$crud->route"
         refresh-datatable="true"
     />
 @endif
