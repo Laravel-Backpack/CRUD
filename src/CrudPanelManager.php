@@ -71,7 +71,7 @@ final class CrudPanelManager
 
         $primaryControllerRequest = $this->cruds[array_key_first($this->cruds)]->getRequest();
 
-        if ($crud->isInitialized() && $crud->getOperation() !== $operation && !$shouldIsolate) {
+        if ($crud->isInitialized() && $crud->getOperation() !== $operation && ! $shouldIsolate) {
             self::setActiveController($controller::class);
 
             $crud->setOperation($operation);
@@ -136,19 +136,19 @@ final class CrudPanelManager
         }
 
         $currentOperation = $currentCrud->getOperation();
-        
+
         // If operations don't differ, no need to isolate
-        if (!$currentOperation || $currentOperation === $operation) {
+        if (! $currentOperation || $currentOperation === $operation) {
             return false;
         }
 
         // Check backtrace for components implementing IsolatesOperationSetup
         $backtrace = debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT, 10);
-        
+
         foreach ($backtrace as $trace) {
             if (isset($trace['object'])) {
                 $object = $trace['object'];
-                
+
                 // If we find a component that implements the interface, use its declared behavior
                 if ($object instanceof \Backpack\CRUD\app\View\Components\Contracts\IsolatesOperationSetup) {
                     return $object->shouldIsolateOperationSetup();
