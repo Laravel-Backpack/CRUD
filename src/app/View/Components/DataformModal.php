@@ -15,6 +15,7 @@ class DataformModal extends DataForm implements IsolatesOperationSetup
     {
         return true;
     }
+
     /**
      * Create a new component instance.
      *
