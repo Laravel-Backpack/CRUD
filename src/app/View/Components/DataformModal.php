@@ -69,8 +69,8 @@ class DataformModal extends Dataform implements IsolatesOperationSetup
     protected function cacheSetupClosure(): void
     {
         // Create a temporary CRUD instance to apply and cache the setup
-    \Backpack\CRUD\CrudManager::setActiveController($this->controller);
-    $tempCrud = \Backpack\CRUD\CrudManager::setupCrudPanel($this->controller, $this->formOperation);
+        \Backpack\CRUD\CrudManager::setActiveController($this->controller);
+        $tempCrud = \Backpack\CRUD\CrudManager::setupCrudPanel($this->controller, $this->formOperation);
 
         // Apply and cache the setup closure using the HASHED ID
         \Backpack\CRUD\app\Library\Support\DataformCache::applyAndStoreSetupClosure(
