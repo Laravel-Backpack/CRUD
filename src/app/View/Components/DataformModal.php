@@ -22,11 +22,11 @@ class DataformModal extends Dataform implements IsolatesOperationSetup
         public string $controller,
         public ?string $route = null,
         public string $id = 'backpack-form',
-        public string $operation = 'create',
+        public string $formOperation = 'create',
         public string $name = '',
-        public string $formRouteOperation = 'create',
-        public ?string $action = null,
-        public string $method = 'post',
+        public string $formUrl = 'create',
+        public ?string $formAction = null,
+        public string $formMethod = 'post',
         public bool $hasUploadFields = false,
         public $entry = null,
         public ?Closure $setup = null,
@@ -38,15 +38,16 @@ class DataformModal extends Dataform implements IsolatesOperationSetup
         // If route is not provided (e.g., when rendering via AJAX), get it from CRUD panel
         if ($this->route === null) {
             \Backpack\CRUD\CrudManager::setActiveController($controller);
-            $tempCrud = \Backpack\CRUD\CrudManager::setupCrudPanel($controller, $operation);
+            $tempCrud = \Backpack\CRUD\CrudManager::setupCrudPanel($controller, $this->formOperation);
             $this->route = $tempCrud->route;
             \Backpack\CRUD\CrudManager::unsetActiveController();
         }
 
-        $this->action = $this->action ?? url($this->route);
+        // keep backwards compatible behavior for resolving route when not provided
+        $this->formAction = $this->formAction ?? url($this->route);
 
         // Generate the SAME hashed form ID that the Dataform component uses
-        $this->hashedFormId = $this->id.md5($action.$this->operation.'post'.$this->controller);
+        $this->hashedFormId = $this->id.md5($this->formAction.$this->formOperation.'post'.$this->controller);
 
         // Cache the setup closure if provided (for retrieval during AJAX request)
         if ($this->setup instanceof \Closure) {
@@ -56,9 +57,9 @@ class DataformModal extends Dataform implements IsolatesOperationSetup
         // DO NOT call parent::__construct() because we don't want to initialize
         // the CRUD panel on page load - the form will be loaded via AJAX
 
-        if ($this->entry && $this->operation === 'update') {
+        if ($this->entry && $this->formOperation === 'update') {
             // Use the resolved action (base route) to build the edit URL for the entry
-            $this->formRouteOperation = url($this->action.'/'.$this->entry->getKey().'/edit');
+            $this->formUrl = url($this->formAction.'/'.$this->entry->getKey().'/edit');
         }
     }
 
@@ -68,8 +69,8 @@ class DataformModal extends Dataform implements IsolatesOperationSetup
     protected function cacheSetupClosure(): void
     {
         // Create a temporary CRUD instance to apply and cache the setup
-        \Backpack\CRUD\CrudManager::setActiveController($this->controller);
-        $tempCrud = \Backpack\CRUD\CrudManager::setupCrudPanel($this->controller, $this->operation);
+    \Backpack\CRUD\CrudManager::setActiveController($this->controller);
+    $tempCrud = \Backpack\CRUD\CrudManager::setupCrudPanel($this->controller, $this->formOperation);
 
         // Apply and cache the setup closure using the HASHED ID
         \Backpack\CRUD\app\Library\Support\DataformCache::applyAndStoreSetupClosure(
@@ -95,12 +96,12 @@ class DataformModal extends Dataform implements IsolatesOperationSetup
         // The CRUD panel will be initialized when the AJAX request is made
         return view('crud::components.dataform.modal-form', [
             'id' => $this->id,
-            'operation' => $this->operation,
-            'formRouteOperation' => $this->formRouteOperation,
+            'formOperation' => $this->formOperation,
+            'formUrl' => $this->formUrl,
             'hasUploadFields' => $this->hasUploadFields,
             'refreshDatatable' => $this->refreshDatatable,
-            'action' => $this->action,
-            'method' => $this->method,
+            'formAction' => $this->formAction,
+            'formMethod' => $this->formMethod,
             'title' => $this->title,
             'classes' => $this->classes,
             'hashedFormId' => $this->hashedFormId,

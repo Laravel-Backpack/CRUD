@@ -1,3 +1,4 @@
+@verbatim
 if (typeof window.initializeFieldsWithJavascript === 'undefined') {
     window.initializeFieldsWithJavascript = function(container) {
         var selector;

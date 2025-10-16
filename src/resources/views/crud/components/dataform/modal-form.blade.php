@@ -17,9 +17,9 @@
                         </div>
                         <div 
                             id="modal-form-container{{ md5($controller.$id) }}" 
-                            data-form-load-route="{{ isset($formRouteOperation) ? (\Str::isUrl($formRouteOperation) ? $formRouteOperation : url($route . '/' . $formRouteOperation)) : '' }}"
-                            data-form-action="{{ $action }}"
-                            data-form-method="{{ $method }}"
+                            data-form-load-route="{{ isset($formUrl) ? (\Str::isUrl($formUrl) ? $formUrl : url($route . '/' . $formUrl)) : '' }}"
+                            data-form-action="{{ $formAction }}"
+                            data-form-method="{{ $formMethod }}"
                             data-has-upload-fields="{{ $hasUploadFields ? 'true' : 'false' }}"
                             data-refresh-datatable="{{ $refreshDatatable ? 'true' : 'false' }}"
                             >

@@ -1,6 +1,11 @@
 {{-- html5 color input --}}
 @php
 $value = old_empty_or_null($field['name'], '') ??  $field['value'] ?? $field['default'] ?? '';
+// HTML5 color input requires a valid hex color format (#rrggbb)
+// If the value is empty or invalid, default to black (#000000)
+if (empty($value) || !preg_match('/^#[0-9a-f]{6}$/i', $value)) {
+    $value = $field['default'] ?? '#000000';
+}
 @endphp
 
 
@@ -58,6 +63,16 @@ $value = old_empty_or_null($field['name'], '') ??  $field['value'] ?? $field['de
         function bpFieldInitColorElement(element) {
             let inputText = element[0];
             let inputColor = inputText.nextElementSibling.querySelector('input');
+
+            // Ensure color input has a valid value (HTML5 requires #rrggbb format)
+            if (!inputColor.value || !inputColor.value.match(/^#[0-9a-f]{6}$/i)) {
+                inputColor.value = '#000000';
+            }
+            
+            // Ensure text input matches color input
+            if (!inputText.value || !inputText.value.match(/^#[0-9a-f]{6}$/i)) {
+                inputText.value = inputColor.value;
+            }
 
             inputText.addEventListener('input', () => inputText.value = inputColor.value = '#' + inputText.value.replace(/[^\da-f]/gi, '').toLowerCase());
             inputColor.addEventListener('input', () => inputText.value = inputColor.value);

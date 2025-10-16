@@ -33,9 +33,9 @@ class Dataform extends Component implements IsolatesOperationSetup
         public string $controller,
         private string $id = 'backpack-form-',
         public string $name = '',
-        public string $operation = 'create',
-        public ?string $action = null,
-        public string $method = 'post',
+        public string $formOperation = 'create',
+        public ?string $formAction = null,
+        public string $formMethod = 'post',
         public bool $hasUploadFields = false,
         public $entry = null,
         public ?Closure $setup = null,
@@ -44,25 +44,25 @@ class Dataform extends Component implements IsolatesOperationSetup
         // Get CRUD panel instance from the controller
         CrudManager::setActiveController($controller);
 
-        $this->crud = CrudManager::setupCrudPanel($controller, $operation);
+        $this->crud = CrudManager::setupCrudPanel($controller, $this->formOperation);
 
-        if ($this->crud->getOperation() !== $operation) {
-            $this->crud->setOperation($operation);
+        if ($this->crud->getOperation() !== $this->formOperation) {
+            $this->crud->setOperation($this->formOperation);
         }
 
         $this->crud->setAutoFocusOnFirstField($this->focusOnFirstField);
 
-        if ($this->entry && $this->operation === 'update') {
-            $this->action = $action ?? url($this->crud->route.'/'.$this->entry->getKey());
-            $this->method = 'put';
+        if ($this->entry && $this->formOperation === 'update') {
+            $this->formAction = $formAction ?? url($this->crud->route.'/'.$this->entry->getKey());
+            $this->formMethod = 'put';
             $this->crud->entry = $this->entry;
             $this->crud->setOperationSetting('fields', $this->crud->getUpdateFields());
         } else {
-            $this->action = $action ?? url($this->crud->route);
+            $this->formAction = $formAction ?? url($this->crud->route);
         }
 
-        $this->hasUploadFields = $this->crud->hasUploadFields($operation, $this->entry?->getKey());
-        $this->id = $id.md5($this->action.$this->operation.$this->method.$this->controller);
+        $this->hasUploadFields = $this->crud->hasUploadFields($this->formOperation, $this->entry?->getKey());
+        $this->id = $id.md5($this->formAction.$this->formOperation.$this->formMethod.$this->controller);
 
         if ($this->setup) {
             $parentEntry = $this->getParentCrudEntry();
@@ -105,9 +105,9 @@ class Dataform extends Component implements IsolatesOperationSetup
             'saveAction' => $this->crud->getSaveAction(),
             'id' => $this->id,
             'name' => $this->name,
-            'operation' => $this->operation,
-            'action' => $this->action,
-            'method' => $this->method,
+            'formOperation' => $this->formOperation,
+            'formAction' => $this->formAction,
+            'formMethod' => $this->formMethod,
             'hasUploadFields' => $this->hasUploadFields,
             'entry' => $this->entry,
         ]);

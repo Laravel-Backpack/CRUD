@@ -2,18 +2,17 @@
     @include('crud::inc.grouped_errors', ['id' => $id])
 
     <form method="post"
-        action="{{ $action }}"
+        action="{{ $formAction }}"
         id="{{ $id }}"
         @if(!empty($name)) name="{{ $name }}" @endif
         @if($hasUploadFields) enctype="multipart/form-data" @endif
     >
         {!! csrf_field() !!}
-
-        @if($method !== 'post')
-            @method($method)
+        @if($formMethod !== 'post')
+            @method($formMethod)
         @endif
         {{-- Include the form fields --}}
-        @include('crud::form_content', ['fields' => $crud->fields(), 'action' => $operation, 'id' => $id])
+        @include('crud::form_content', ['fields' => $crud->fields(), 'action' => $formOperation, 'id' => $id])
 
         {{-- This makes sure that all field assets are loaded. --}}
         <div class="d-none" id="parentLoadedAssets">{{ json_encode(Basset::loaded()) }}</div>
