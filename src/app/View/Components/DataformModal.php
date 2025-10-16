@@ -43,10 +43,10 @@ class DataformModal extends Dataform implements IsolatesOperationSetup
             \Backpack\CRUD\CrudManager::unsetActiveController();
         }
 
-    $this->action = $this->action ?? url($this->route);
+        $this->action = $this->action ?? url($this->route);
 
-    // Generate the SAME hashed form ID that the Dataform component uses
-    $this->hashedFormId = $this->id.md5($action.$this->operation.'post'.$this->controller);
+        // Generate the SAME hashed form ID that the Dataform component uses
+        $this->hashedFormId = $this->id.md5($action.$this->operation.'post'.$this->controller);
 
         // Cache the setup closure if provided (for retrieval during AJAX request)
         if ($this->setup instanceof \Closure) {
