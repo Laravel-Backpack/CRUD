@@ -1,5 +1,5 @@
 <input type="hidden" name="_http_referrer" value="{{ old('_http_referrer') ?? \URL::previous() ?? url($crud->route) }}">
-<input type="hidden" name="_form_id" value="{{ $id ?? 'crudForm' }}">
+<input type="hidden" name="_modal_form_id" value="{{ $id ?? 'crudForm' }}">
 
 {{-- See if we're using tabs --}}
 @if ($crud->tabsEnabled() && count($crud->getTabs()))

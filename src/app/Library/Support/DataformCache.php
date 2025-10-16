@@ -70,7 +70,7 @@ final class DataformCache extends SetupCache
     ): bool {
         $instance = new self();
         // Apply the setup closure to the CrudPanel instance
-        if ($instance->applySetupClosure($crud, $controllerClass, $setupClosure, $parentEntry)) {
+        if ($instance->applyClosure($crud, $controllerClass, $setupClosure, $parentEntry)) {
             // Capture the resulting field configuration after setup
             $fieldsAfterSetup = [];
             foreach ($crud->fields() as $fieldName => $field) {
@@ -92,11 +92,11 @@ final class DataformCache extends SetupCache
      * @param  CrudPanel  $crud  The CRUD panel instance
      * @return bool Whether the operation was successful
      */
-    public static function applyFromRequest(CrudPanel $crud): bool
+    public static function applySetupClosure(CrudPanel $crud): bool
     {
         $instance = new self();
-        // Check if the request has a _form_id parameter
-        $formId = request('_form_id');
+        // Check if the request has a _modal_form_id parameter
+        $formId = request('_modal_form_id');
 
         if (! $formId) {
             return false;
@@ -114,7 +114,7 @@ final class DataformCache extends SetupCache
      * @param  mixed  $entry  The entry to pass to the setup closure
      * @return bool Whether the operation was successful
      */
-    public function applySetupClosure(CrudPanel $crud, string $controllerClass, \Closure $setupClosure, $entry = null): bool
+    private function applyClosure(CrudPanel $crud, string $controllerClass, \Closure $setupClosure, $entry = null): bool
     {
         $originalSetup = $setupClosure;
         $modifiedSetup = function ($crud, $entry) use ($originalSetup, $controllerClass) {

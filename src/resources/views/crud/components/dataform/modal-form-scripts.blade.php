@@ -1,43 +1,5 @@
 <script>
-    if (typeof window.initializeFieldsWithJavascript === 'undefined') {
-        window.initializeFieldsWithJavascript = function(container) {
-            var selector;
-            if (container instanceof jQuery) {
-                selector = container;
-            } else {
-                selector = $(container);
-            }
-            
-            var fieldsToInit = selector.find("[data-init-function]").not("[data-initialized=true]");
-            
-            fieldsToInit.each(function () {
-                var element = $(this);
-                var functionName = element.data('init-function');
-
-                if (typeof window[functionName] === "function") {
-                    try {
-                        window[functionName](element);
-                        element.attr('data-initialized', 'true');
-                    } catch (error) {
-                        element.attr('data-initialized', 'true');
-                        console.error('[FieldInit] Error initializing field with function ' + functionName + ':', error);
-                    }
-                }
-            });
-        };
-    }
-
-    if (!window._select2FocusFixInstalled) {
-        document.addEventListener('focusin', function(e) {
-            if (e.target.classList.contains('select2-search__field') ||
-                e.target.closest('.select2-container') ||
-                e.target.closest('.select2-dropdown')) {
-                e.stopImmediatePropagation();
-            }
-        }, true);
-        
-        window._select2FocusFixInstalled = true;
-    }
+    @include('crud::components.dataform.common_js')
 
     if (!window._modalObservers) {
         window._modalObservers = new Map();
@@ -282,7 +244,7 @@ function loadModalForm(controllerId, modalEl, formContainer, submitButton) {
         const hashedFormId = modalEl.dataset.hashedFormId;
         
         const url = new URL(formUrl, window.location.origin);
-        url.searchParams.append('_form_id', hashedFormId);
+        url.searchParams.append('_modal_form_id', hashedFormId);
 
         fetch(url.toString(), {
             method: 'GET',

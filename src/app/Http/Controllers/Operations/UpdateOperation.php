@@ -60,7 +60,7 @@ trait UpdateOperation
 
             if ($useModalForm) {
                 $this->crud->removeButton('update');
-                $this->crud->addButton('line', 'update', 'view', 'crud::buttons.update_modal_form', 'end');
+                $this->crud->addButton('line', 'update', 'view', 'crud::buttons.update_in_modal', 'end');
             }
         });
     }
@@ -79,8 +79,8 @@ trait UpdateOperation
         $id = $this->crud->getCurrentEntryId() ?? $id;
 
         // Apply cached form setup if this is an AJAX request from a modal
-        if (request()->ajax() && request()->has('_form_id')) {
-            \Backpack\CRUD\app\Library\Support\DataformCache::applyFromRequest($this->crud);
+        if (request()->ajax() && request()->has('_modal_form_id')) {
+            \Backpack\CRUD\app\Library\Support\DataformCache::applySetupClosure($this->crud);
         }
 
         // register any Model Events defined on fields
@@ -97,7 +97,7 @@ trait UpdateOperation
         $this->data['id'] = $id;
 
         // load the view from /resources/views/vendor/backpack/crud/ if it exists, otherwise load the one in the package
-        return  request()->ajax() ?
+        return  request()->ajax() && request()->has('_modal_form_id') ?
              view('crud::components.dataform.ajax_response', $this->data) :
              view($this->crud->getEditView(), $this->data);
     }

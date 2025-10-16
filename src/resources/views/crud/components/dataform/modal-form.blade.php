@@ -1,11 +1,5 @@
 {{-- Modal HTML (initially hidden from DOM) --}}
-@php
-    if(isset($formRouteOperation)) {
-        if(!\Str::isUrl($formRouteOperation)) {
-            $formRouteOperation = url($route . '/' . $formRouteOperation);
-        }
-    }
-@endphp
+{{-- compute form load route inline where used --}}
 @push('after_styles') @if (request()->ajax()) @endpush @endif
 @if (!request()->ajax()) @endpush @endif
 @push('after_scripts') @if (request()->ajax()) @endpush @endif
@@ -23,7 +17,7 @@
                         </div>
                         <div 
                             id="modal-form-container{{ md5($controller.$id) }}" 
-                            data-form-load-route="{{ $formRouteOperation }}"
+                            data-form-load-route="{{ isset($formRouteOperation) ? (\Str::isUrl($formRouteOperation) ? $formRouteOperation : url($route . '/' . $formRouteOperation)) : '' }}"
                             data-form-action="{{ $action }}"
                             data-form-method="{{ $method }}"
                             data-has-upload-fields="{{ $hasUploadFields ? 'true' : 'false' }}"

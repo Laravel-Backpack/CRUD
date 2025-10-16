@@ -5,7 +5,7 @@ namespace Backpack\CRUD\app\View\Components;
 use Backpack\CRUD\app\View\Components\Contracts\IsolatesOperationSetup;
 use Closure;
 
-class DataformModal extends DataForm implements IsolatesOperationSetup
+class DataformModal extends Dataform implements IsolatesOperationSetup
 {
     /**
      * Modal forms ALWAYS isolate their operation setup.
@@ -16,28 +16,11 @@ class DataformModal extends DataForm implements IsolatesOperationSetup
         return true;
     }
 
-    /**
-     * Create a new component instance.
-     *
-     * @param  string  $controller  The CRUD controller class name
-     * @param  string  $operation  The operation to use (create, update, etc.)
-     * @param  string|null  $action  Custom form action URL
-     * @param  string  $method  Form method (post, put, etc.)
-     * @param  bool  $hasUploadFields  Whether the form has upload fields
-     * @param  mixed|null  $entry  The model instance for update operations
-     * @param  Closure|null  $setup  A closure to customize the CRUD panel
-     * @param  string  $formRouteOperation  The operation to use for the form route (defaults to 'create')
-     * @param  string  $id  The ID for the form element (defaults to 'backpack-form')
-     * @param  bool  $focusOnFirstField  Whether to focus on the first field when form loads
-     * @param  string  $title  The title of the modal
-     * @param  string  $classes  CSS classes for the modal dialog
-     * @param  bool  $refreshDatatable  Whether to refresh the datatable after form submission
-     */
     public string $hashedFormId;
 
     public function __construct(
         public string $controller,
-        public ?string $route = null, // Accept route as an optional parameter
+        public ?string $route = null,
         public string $id = 'backpack-form',
         public string $operation = 'create',
         public string $name = '',
@@ -60,12 +43,10 @@ class DataformModal extends DataForm implements IsolatesOperationSetup
             \Backpack\CRUD\CrudManager::unsetActiveController();
         }
 
-        // Use the provided/resolved route instead of calling setupCrudPanel on every render
-        // This avoids operation switching during page load when route is provided
-        $action = $this->action ?? url($this->route);
+    $this->action = $this->action ?? url($this->route);
 
-        // Generate the SAME hashed form ID that the DataForm component uses
-        $this->hashedFormId = $this->id.md5($action.$this->operation.'post'.$this->controller);
+    // Generate the SAME hashed form ID that the Dataform component uses
+    $this->hashedFormId = $this->id.md5($action.$this->operation.'post'.$this->controller);
 
         // Cache the setup closure if provided (for retrieval during AJAX request)
         if ($this->setup instanceof \Closure) {
@@ -76,7 +57,8 @@ class DataformModal extends DataForm implements IsolatesOperationSetup
         // the CRUD panel on page load - the form will be loaded via AJAX
 
         if ($this->entry && $this->operation === 'update') {
-            $this->formRouteOperation = url($action.'/'.$this->entry->getKey().'/edit');
+            // Use the resolved action (base route) to build the edit URL for the entry
+            $this->formRouteOperation = url($this->action.'/'.$this->entry->getKey().'/edit');
         }
     }
 
@@ -91,7 +73,7 @@ class DataformModal extends DataForm implements IsolatesOperationSetup
 
         // Apply and cache the setup closure using the HASHED ID
         \Backpack\CRUD\app\Library\Support\DataformCache::applyAndStoreSetupClosure(
-            $this->hashedFormId,  // Use the hashed ID that matches what DataForm component generates
+            $this->hashedFormId,  // Use the hashed ID that matches what Dataform component generates
             $this->controller,
             $this->setup,
             null,

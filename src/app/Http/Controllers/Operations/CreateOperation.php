@@ -50,7 +50,7 @@ trait CreateOperation
 
             if ($useModalForm) {
                 $this->crud->removeButton('create');
-                $this->crud->addButton('top', 'create', 'view', 'crud::buttons.create_modal_form', 'beginning');
+                $this->crud->addButton('top', 'create', 'view', 'crud::buttons.create_in_modal', 'beginning');
             }
         });
     }
@@ -65,8 +65,8 @@ trait CreateOperation
         $this->crud->hasAccessOrFail('create');
 
         // Apply cached form setup if this is an AJAX request from a modal
-        if (request()->ajax() && request()->has('_form_id')) {
-            \Backpack\CRUD\app\Library\Support\DataformCache::applyFromRequest($this->crud);
+        if (request()->ajax() && request()->has('_modal_form_id')) {
+            \Backpack\CRUD\app\Library\Support\DataformCache::applySetupClosure($this->crud);
         }
 
         // prepare the fields you need to show
@@ -75,7 +75,7 @@ trait CreateOperation
         $this->data['title'] = $this->crud->getTitle() ?? trans('backpack::crud.add').' '.$this->crud->entity_name;
 
         // return the ajax response for modal forms, or the normal view for normal requests
-        return  request()->ajax() ?
+        return  request()->ajax() && request()->has('_modal_form_id') ?
             view('crud::components.dataform.ajax_response', $this->data) :
             view($this->crud->getCreateView(), $this->data);
     }
