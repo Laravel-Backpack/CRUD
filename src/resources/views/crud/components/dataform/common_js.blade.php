@@ -84,4 +84,41 @@ $(document).on('select2:open', () => {
     setTimeout(() => document.querySelector('.select2-container--open .select2-search__field').focus(), 100);
 });
 
+// When Select2 opens inside a repeatable row that is itself inside a modal,
+// add a specific class to the open container so CSS/positioning logic can target it.
+// Also remove the class on close.
+$(document).on('select2:open', function(e) {
+    // The event target will be the original select element
+    try {
+        var $select = $(e.target);
+        var $repeatable = $select.closest('.repeatable-element');
+        var $modal = $select.closest('.modal');
+
+        if ($repeatable.length && $modal.length) {
+            // Wait briefly for Select2 to render the dropdown container
+            setTimeout(function() {
+                var $openContainer = $('.select2-container--open');
+                $openContainer.addClass('select2-in-modal-repeatable');
+            }, 0);
+        }
+    } catch (err) {
+        // fail silently
+    }
+});
+
+$(document).on('select2:close', function(e) {
+    try {
+        var $select = $(e.target);
+        var $repeatable = $select.closest('.repeatable-element');
+        var $modal = $select.closest('.modal');
+
+        if ($repeatable.length && $modal.length) {
+            // remove the class from any open containers
+            $('.select2-container--open').removeClass('select2-in-modal-repeatable');
+        }
+    } catch (err) {
+        // fail silently
+    }
+});
+
 @endverbatim

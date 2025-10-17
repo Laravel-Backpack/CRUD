@@ -126,17 +126,9 @@ div[id$="_wrapper"] .dt-processing {
 
 /* Ensure Select2 dropdowns are visible and properly positioned in all contexts */
 /* Bootstrap modals use z-index 1050-1055, so Select2 needs to be higher */
-.select2-container--open .select2-dropdown,
-.select2-dropdown {
+.select2-in-modal-repeatable .select2-dropdown {
     z-index: 1060 !important;
     position: fixed !important;
-}
-
-/* When Select2 is inside a modal, use absolute positioning to follow scroll */
-.modal .select2-container--open .select2-dropdown,
-.modal .select2-dropdown {
-    z-index: 1060 !important;
-    position: absolute !important;
 }
 
 .navbar-filters {
