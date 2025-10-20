@@ -69,6 +69,65 @@
     }
 
     /**
+     * Prevent infinite focus loops when third-party overlays (like Colorbox)
+     * attempt to grab focus while a Bootstrap modal is open. 
+     */
+    (function installFocusGuard() {
+        if (window._backpackFocusGuardInstalled) return;
+        window._backpackFocusGuardInstalled = true;
+
+        // Keep a short-lived map of recently-handled targets to avoid rapid re-entrancy
+        const recentFocusTargets = new WeakMap();
+        const REENTRANCY_WINDOW_MS = 50;
+
+        document.addEventListener('focusin', function (e) {
+            try {
+                // If there's no Bootstrap modal shown, do nothing.
+                const openModal = document.querySelector('.modal.show');
+                if (!openModal) return;
+
+                const target = e.target;
+
+                // If the focus is inside the open modal, allow it.
+                if (openModal.contains(target)) return;
+
+                // If the event is user-initiated, allow it.
+                if (e.isTrusted) return;
+
+                // If we've recently handled focus for this target, bail out to prevent loops
+                const last = recentFocusTargets.get(target) || 0;
+                const now = Date.now();
+                if (now - last < REENTRANCY_WINDOW_MS) {
+                    if (typeof e.stopImmediatePropagation === 'function') e.stopImmediatePropagation();
+                    if (typeof e.preventDefault === 'function') e.preventDefault();
+                    return;
+                }
+
+                // Mark this target as handled for a short window
+                recentFocusTargets.set(target, now);
+
+                // Stop other listeners from handling this focusin to avoid re-entrant focus loops
+                if (typeof e.stopImmediatePropagation === 'function') {
+                    e.stopImmediatePropagation();
+                }
+
+                // restore focus to a sensible element inside the modal
+                setTimeout(function () {
+                    const restore = openModal.querySelector('[autofocus], input, select, textarea, button, [tabindex]:not([tabindex="-1"])');
+                    if (restore && typeof restore.focus === 'function') {
+                        try { restore.focus(); } catch (err) { /* ignore */ }
+                    } else {
+                        // fallback: focus the modal itself
+                        try { openModal.focus(); } catch (err) { /* ignore */ }
+                    }
+                }, 0);
+            } catch (err) {
+                // ignore any errors from the guard
+            }
+        }, true); // capture phase so we can stop propagation before bubble handlers
+    })();
+
+    /**
      * Set up MutationObserver for repeatable fields in a specific modal
      * Watches for new rows and initializes their fields automatically
      */
