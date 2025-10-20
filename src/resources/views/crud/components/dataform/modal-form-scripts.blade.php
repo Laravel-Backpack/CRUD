@@ -79,6 +79,21 @@
         // Keep a short-lived map of recently-handled targets to avoid rapid re-entrancy
         const recentFocusTargets = new WeakMap();
         const REENTRANCY_WINDOW_MS = 50;
+        // When the page becomes visible again, some libraries fire programmatic
+        // focus events immediately. Suppress those for a short window.
+        let suppressFocusAfterVisibility = false;
+        const VISIBILITY_SUPPRESSION_MS = 200;
+
+        document.addEventListener('visibilitychange', function () {
+            if (document.visibilityState === 'visible') {
+                // Only suppress if a modal is currently open.
+                const anyOpenModal = !!document.querySelector('.modal.show');
+                if (!anyOpenModal) return;
+
+                suppressFocusAfterVisibility = true;
+                setTimeout(function () { suppressFocusAfterVisibility = false; }, VISIBILITY_SUPPRESSION_MS);
+            }
+        });
 
         document.addEventListener('focusin', function (e) {
             try {
@@ -91,8 +106,11 @@
                 // If the focus is inside the open modal, allow it.
                 if (openModal.contains(target)) return;
 
-                // If the event is user-initiated, allow it.
-                if (e.isTrusted) return;
+                if (suppressFocusAfterVisibility) {
+                    if (typeof e.stopImmediatePropagation === 'function') e.stopImmediatePropagation();
+                    if (typeof e.preventDefault === 'function') e.preventDefault();
+                    return;
+                }
 
                 // If we've recently handled focus for this target, bail out to prevent loops
                 const last = recentFocusTargets.get(target) || 0;
@@ -103,22 +121,39 @@
                     return;
                 }
 
+                if (!window._backpackFocusGuardLock) {
+                    window._backpackFocusGuardLock = false;
+                }
+
+                if (window._backpackFocusGuardLock) {
+                    // another handler is already restoring focus; bail out
+                    if (typeof e.stopImmediatePropagation === 'function') e.stopImmediatePropagation();
+                    if (typeof e.preventDefault === 'function') e.preventDefault();
+                    return;
+                }
+
                 // Mark this target as handled for a short window
                 recentFocusTargets.set(target, now);
 
-                // Stop other listeners from handling this focusin to avoid re-entrant focus loops
+                // Acquire lock and stop other listeners from handling this focusin to avoid re-entrant focus loops
+                window._backpackFocusGuardLock = true;
                 if (typeof e.stopImmediatePropagation === 'function') {
                     e.stopImmediatePropagation();
                 }
 
                 // restore focus to a sensible element inside the modal
                 setTimeout(function () {
-                    const restore = openModal.querySelector('[autofocus], input, select, textarea, button, [tabindex]:not([tabindex="-1"])');
-                    if (restore && typeof restore.focus === 'function') {
-                        try { restore.focus(); } catch (err) { /* ignore */ }
-                    } else {
-                        // fallback: focus the modal itself
-                        try { openModal.focus(); } catch (err) { /* ignore */ }
+                    try {
+                        const restore = openModal.querySelector('[autofocus], input, select, textarea, button, [tabindex]:not([tabindex="-1"])');
+                        if (restore && typeof restore.focus === 'function') {
+                            try { restore.focus(); } catch (err) { /* ignore */ }
+                        } else {
+                            // fallback: focus the modal itself
+                            try { openModal.focus(); } catch (err) { /* ignore */ }
+                        }
+                    } finally {
+                        // release the lock shortly after restoring focus
+                        setTimeout(function () { window._backpackFocusGuardLock = false; }, Math.max(REENTRANCY_WINDOW_MS, 50));
                     }
                 }, 0);
             } catch (err) {
