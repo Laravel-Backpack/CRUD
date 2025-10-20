@@ -45,22 +45,6 @@ class DataformModal extends Dataform implements IsolatesOperationSetup
 
         // keep backwards compatible behavior for resolving route when not provided
         $this->formAction = $this->formAction ?? url($this->route);
-
-        // Generate the SAME hashed form ID that the Dataform component uses
-        $this->hashedFormId = $this->id.md5($this->formAction.$this->formOperation.'post'.$this->controller);
-
-        // Cache the setup closure if provided (for retrieval during AJAX request)
-        if ($this->setup instanceof \Closure) {
-            $this->cacheSetupClosure();
-        }
-
-        // DO NOT call parent::__construct() because we don't want to initialize
-        // the CRUD panel on page load - the form will be loaded via AJAX
-
-        if ($this->entry && $this->formOperation === 'update') {
-            // Use the resolved action (base route) to build the edit URL for the entry
-            $this->formUrl = url($this->formAction.'/'.$this->entry->getKey().'/edit');
-        }
     }
 
     /**
@@ -77,9 +61,9 @@ class DataformModal extends Dataform implements IsolatesOperationSetup
             $this->hashedFormId,  // Use the hashed ID that matches what Dataform component generates
             $this->controller,
             $this->setup,
-            null,
+            $this->name,
             $tempCrud,
-            null
+            $this->entry
         );
 
         \Backpack\CRUD\CrudManager::unsetActiveController();
@@ -92,12 +76,24 @@ class DataformModal extends Dataform implements IsolatesOperationSetup
      */
     public function render()
     {
-        // We don't need $crud here because the modal loads the form via AJAX
-        // The CRUD panel will be initialized when the AJAX request is made
+
+        $this->hashedFormId = $this->id.md5($this->formAction.$this->formOperation.'post'.$this->controller);
+
+       
+        if ($this->entry) {
+            $this->formUrl = $this->formUrl ?? url($this->route.'/'.$this->entry->getKey().'/edit');
+        }
+
+        // Cache the setup closure if provided (for retrieval during AJAX request)
+        if ($this->setup instanceof \Closure) {
+            $this->cacheSetupClosure();
+        }
+
         return view('crud::components.dataform.modal-form', [
             'id' => $this->id,
             'formOperation' => $this->formOperation,
             'formUrl' => $this->formUrl,
+            'entry' => $this->entry,
             'hasUploadFields' => $this->hasUploadFields,
             'refreshDatatable' => $this->refreshDatatable,
             'formAction' => $this->formAction,

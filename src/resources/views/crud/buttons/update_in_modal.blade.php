@@ -40,7 +40,7 @@
     {{-- Include the modal form component --}}
     <x-backpack::dataform-modal
         :controller="$controllerClass"
-        operation="update"
+        formOperation="update"
         :entry="$entry"
         id="updateModal{{ md5($controllerClass.'update'.$entry->getKey()) }}"
         :title="trans('backpack::crud.edit') . ' ' . $crud->entity_name"

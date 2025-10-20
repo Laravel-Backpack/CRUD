@@ -14,7 +14,7 @@ foreach($loadedAssets as $asset) {
         action="#"
 >
 {!! csrf_field() !!}
-@include('crud::components.dataform.form_content', ['fields' => $crud->fields(), 'action' => 'edit', 'inlineCreate' => true, 'initFields' => false, 'id' => request('_form_id')])
+@include('crud::components.dataform.form_content', ['fields' => $crud->fields(), 'action' => 'edit', 'inlineCreate' => true, 'initFields' => false, 'id' => (request('_modal_form_id') ?? request('_form_id'))])
         {{-- This makes sure that all field assets are loaded. --}}
 <div class="d-none" id="parentLoadedAssets">{{ json_encode(Basset::loaded()) }}</div>
  </form>

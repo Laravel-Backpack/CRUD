@@ -4,6 +4,7 @@ namespace Backpack\CRUD\app\Library\Support;
 
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanel;
 use Backpack\CRUD\CrudManager;
+use Illuminate\Support\Facades\Cache;
 
 final class DataformCache extends SetupCache
 {
@@ -40,7 +41,6 @@ final class DataformCache extends SetupCache
             $parentController = $parentCrud->controller;
         }
 
-        // Store metadata in cache (even without parent entry for standalone modal forms)
         $this->store(
             $formId,
             $controllerClass,
@@ -49,15 +49,14 @@ final class DataformCache extends SetupCache
             $name
         );
 
-        // Store the field configuration in Laravel cache (persists across requests)
-        \Cache::put($this->cachePrefix.$formId.'_fields', $fieldsConfig, now()->addMinutes($this->cacheDuration));
+        Cache::put($this->cachePrefix.$formId.'_fields', $fieldsConfig, now()->addMinutes($this->cacheDuration));
 
-        // Set the form_id in the CRUD panel if provided
-        if ($crud) {
-            $crud->set('form.form_id', $formId);
-        }
+            // Set the form_id in the CRUD panel if provided
+            if ($crud) {
+                $crud->set('form.form_id', $formId);
+            }
 
-        return true;
+            return true;
     }
 
     public static function applyAndStoreSetupClosure(
@@ -97,7 +96,6 @@ final class DataformCache extends SetupCache
         $instance = new self();
         // Check if the request has a _modal_form_id parameter
         $formId = request('_modal_form_id');
-
         if (! $formId) {
             return false;
         }
@@ -177,12 +175,14 @@ final class DataformCache extends SetupCache
             }
             $entry = $cachedData['parent_entry'] ?? null;
 
-            // Get the form_id from the cached data
-            $formId = $crud->get('form.form_id') ?? request()->input('_form_id');
+            if ($entry) {
+                $crud->entry = $entry;
+            }
 
-            // Retrieve the field configuration from Laravel cache
+            $formId = $crud->get('form.form_id') ?? request()->input('_modal_form_id') ?? request()->input('_form_id');
+
             if ($formId) {
-                $fieldsConfig = \Cache::get($this->cachePrefix.$formId.'_fields');
+                $fieldsConfig = Cache::get($this->cachePrefix.$formId.'_fields');
 
                 if ($fieldsConfig && is_array($fieldsConfig)) {
                     // Clear all existing fields
@@ -192,11 +192,9 @@ final class DataformCache extends SetupCache
                     foreach ($fieldsConfig as $fieldName => $field) {
                         $crud->addField($field);
                     }
-
                     return true;
                 }
             }
-
             return false;
         } catch (\Exception $e) {
             return false;

@@ -17,7 +17,15 @@
                         </div>
                         <div 
                             id="modal-form-container{{ md5($controller.$id) }}" 
-                            data-form-load-route="{{ isset($formUrl) ? (\Str::isUrl($formUrl) ? $formUrl : url($route . '/' . $formUrl)) : '' }}"
+                            @php
+                                $computedFormLoadRoute = '';
+                                if (isset($entry) && $entry) {
+                                    $computedFormLoadRoute = url($route . '/' . $entry->getKey() . '/edit');
+                                } else {
+                                    $computedFormLoadRoute = isset($formUrl) ? (\Str::isUrl($formUrl) ? $formUrl : url($route . '/' . $formUrl)) : '';
+                                }
+                            @endphp
+                            data-form-load-route="{{ $computedFormLoadRoute }}"
                             data-form-action="{{ $formAction }}"
                             data-form-method="{{ $formMethod }}"
                             data-has-upload-fields="{{ $hasUploadFields ? 'true' : 'false' }}"

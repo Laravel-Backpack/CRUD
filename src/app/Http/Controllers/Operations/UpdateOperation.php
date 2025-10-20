@@ -89,7 +89,17 @@ trait UpdateOperation
         // get the info for that entry
         $this->data['entry'] = $this->crud->getEntryWithLocale($id);
 
-        $this->crud->setOperationSetting('fields', $this->crud->getUpdateFields());
+        // Attempt to apply cached modal setup first (this will restore
+        // fields and entry if the request included _modal_form_id). If
+        // no cached setup applied, fall back to the regular update fields.
+        $appliedFromCache = false;
+        if (request()->ajax() && request()->has('_modal_form_id')) {
+            $appliedFromCache = \Backpack\CRUD\app\Library\Support\DataformCache::applySetupClosure($this->crud);
+        }
+
+        if (! $appliedFromCache) {
+            $this->crud->setOperationSetting('fields', $this->crud->getUpdateFields());
+        }
 
         $this->data['crud'] = $this->crud;
         $this->data['saveAction'] = $this->crud->getSaveAction();

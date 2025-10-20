@@ -18,7 +18,7 @@
     {{-- Include the modal form component --}}
     <x-backpack::dataform-modal
         :controller="$controllerClass"
-        operation="create"
+        formOperation="create"
         id="createModal{{ md5($controllerClass.'create') }}"
         :title="trans('backpack::crud.add') . ' ' . $crud->entity_name"
         :route="$crud->route"

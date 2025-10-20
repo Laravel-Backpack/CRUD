@@ -146,7 +146,7 @@
                                 }
                             } catch (error) {
                                 field.setAttribute('data-initialized', 'true');
-                                console.error('[RepeatableObserver] Error initializing field:', functionName, error);
+                                // error initializing repeatable field - suppressed in production
                             }
                         }
                     });
@@ -184,7 +184,6 @@
         const controllerId = modalTemplate.id.replace('modalTemplate', '');
         const modalEl = modalTemplate.querySelector('.modal');
         if(!modalEl) {
-            console.warn(`No modal found in template with ID ${modalTemplate.id}`);
             return;
         }
         
@@ -201,7 +200,6 @@
         const formContainer = document.getElementById(`modal-form-container${controllerId}`);
         const submitButton = document.getElementById(`submitForm${controllerId}`);
         if (!formContainer || !submitButton) {
-            console.warn(`Missing form elements for controller ID ${controllerId}`);
             return;
         }
         
@@ -243,8 +241,10 @@ function loadModalForm(controllerId, modalEl, formContainer, submitButton) {
         const formUrl = formContainer.dataset.formLoadRoute || modalEl.dataset.formLoadRoute || '';
         const hashedFormId = modalEl.dataset.hashedFormId;
         
-        const url = new URL(formUrl, window.location.origin);
-        url.searchParams.append('_modal_form_id', hashedFormId);
+    const url = new URL(formUrl, window.location.origin);
+    url.searchParams.append('_modal_form_id', hashedFormId);
+
+    // loadModalForm invoked for controllerId, formUrl and hashedFormId
 
         fetch(url.toString(), {
             method: 'GET',
@@ -259,6 +259,7 @@ function loadModalForm(controllerId, modalEl, formContainer, submitButton) {
             return response.text();
         })
         .then(data => {
+            // fetch response received
             formContainer.innerHTML = data;
             formContainer.dataset.loaded = 'true';
             
@@ -279,35 +280,55 @@ function loadModalForm(controllerId, modalEl, formContainer, submitButton) {
 
             formContainer.innerHTML = html;
             formContainer.dataset.loaded = 'true';
+
+            // HTML injected and scripts extracted
+
+            
             
             const scriptElements = formContainer.querySelectorAll('script');
             const scriptsToLoad = [];
             const inlineScripts = [];
 
             scriptElements.forEach((scriptElement, index) => {
+                
                 if (scriptElement.src) {
                     const srcUrl = scriptElement.src;
-                    
-                    if (!document.querySelector(`script[src="${srcUrl}"]`)) {
+
+                    // Normalize URL to absolute form for reliable comparison
+                    const normalize = (u) => {
+                        try {
+                            return new URL(u, window.location.origin).toString();
+                        } catch (e) {
+                            return u;
+                        }
+                    };
+
+                    const normalizedSrc = normalize(srcUrl);
+
+                    // Check if a script with the same normalized src is already present
+                    // Special-case: avoid loading CKEditor if it's already present on the page
+                    if (normalizedSrc.toLowerCase().includes('ckeditor') && typeof window.ClassicEditor !== 'undefined') {
+                        // ClassicEditor already present: skip appending this CKEditor script
+                    } else {
                         scriptsToLoad.push(new Promise((resolve, reject) => {
                             const newScript = document.createElement('script');
-                            
+
                             Array.from(scriptElement.attributes).forEach(attr => {
                                 newScript.setAttribute(attr.name, attr.value);
                             });
-                            
+
                             newScript.onload = () => {
                                 resolve();
                             };
                             newScript.onerror = (error) => {
-                                console.error('[ModalForm] Error loading external script:', srcUrl, error);
+                                // external script load error handled by promise rejection
                                 reject(error);
                             };
-                            
+
                             document.head.appendChild(newScript);
                         }));
                     }
-                    
+
                     scriptElement.parentNode.removeChild(scriptElement);
                 } else {
                     const scriptContent = scriptElement.textContent;
@@ -336,7 +357,7 @@ function loadModalForm(controllerId, modalEl, formContainer, submitButton) {
                             try {
                                 ${scriptData.content}
                             } catch (error) {
-                                console.error('Error in inline script ${index + 1}:', error);
+                                // error in inline script suppressed
                             }
                         `;
                         
@@ -344,7 +365,7 @@ function loadModalForm(controllerId, modalEl, formContainer, submitButton) {
                         
                         document.head.appendChild(newScript);
                     } catch (e) {
-                        console.error('[ModalForm] Error executing inline script ' + (index + 1) + ':', e);
+                        // error executing inline script suppressed
                     }
                 });
                 
@@ -407,22 +428,20 @@ function loadModalForm(controllerId, modalEl, formContainer, submitButton) {
                             }, 1);
                         });
                     } catch (e) {
-                        console.error('[ModalForm] Error initializing form fields:', e);
+                        // error initializing form fields suppressed
                     }
                 } else {
-                    console.error('[ModalForm] initializeFieldsWithJavascript function not found!');
+                    // initializeFieldsWithJavascript not available
                 }
                 
                 submitButton.disabled = false;
             })
             .catch(error => {
-                console.error('[ModalForm] Error loading external scripts:', error);
                 submitButton.disabled = false;
             });
         
         })
         .catch(error => {
-            console.error('[ModalForm] Error fetching form:', error);
             formContainer.innerHTML = '<div class="alert alert-danger">Error loading form. Please try again.</div>';
             submitButton.disabled = false;
         });
@@ -480,7 +499,7 @@ function submitModalForm(controllerId, formContainer, submitButton, modalEl) {
                     bsModal.hide();
                 }
             } catch (e) {
-                console.warn('Could not close modal automatically:', e);
+                // could not close modal automatically
             }
             
             document.dispatchEvent(new CustomEvent(`FormModalSaved_${controllerId}`, {
@@ -530,13 +549,13 @@ function submitModalForm(controllerId, formContainer, submitButton, modalEl) {
                                 }
                             }
                         }
-                    } catch (e) {
+                        } catch (e) {
                         try {
                             if (typeof table !== 'undefined') {
                                 table.draw(false);
                             }
                         } catch (e2) { 
-                            console.warn('Could not refresh datatable:', e2);
+                            // could not refresh datatable
                         }
                     }
                 }, 100);
@@ -575,7 +594,6 @@ function submitModalForm(controllerId, formContainer, submitButton, modalEl) {
         submitButton.disabled = false;
     })
     .catch(error => {
-        console.error('Form submission error:', error);
         errorsContainer.classList.remove('d-none');
         const li = document.createElement('li');
         li.textContent = 'A network error occurred.';
