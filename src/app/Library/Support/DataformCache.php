@@ -51,12 +51,12 @@ final class DataformCache extends SetupCache
 
         Cache::put($this->cachePrefix.$formId.'_fields', $fieldsConfig, now()->addMinutes($this->cacheDuration));
 
-            // Set the form_id in the CRUD panel if provided
-            if ($crud) {
-                $crud->set('form.form_id', $formId);
-            }
+        // Set the form_id in the CRUD panel if provided
+        if ($crud) {
+            $crud->set('form.form_id', $formId);
+        }
 
-            return true;
+        return true;
     }
 
     public static function applyAndStoreSetupClosure(
@@ -192,9 +192,11 @@ final class DataformCache extends SetupCache
                     foreach ($fieldsConfig as $fieldName => $field) {
                         $crud->addField($field);
                     }
+
                     return true;
                 }
             }
+
             return false;
         } catch (\Exception $e) {
             return false;

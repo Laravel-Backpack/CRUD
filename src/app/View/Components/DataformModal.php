@@ -76,10 +76,8 @@ class DataformModal extends Dataform implements IsolatesOperationSetup
      */
     public function render()
     {
-
         $this->hashedFormId = $this->id.md5($this->formAction.$this->formOperation.'post'.$this->controller);
 
-       
         if ($this->entry) {
             $this->formUrl = $this->formUrl ?? url($this->route.'/'.$this->entry->getKey().'/edit');
         }
