@@ -32,7 +32,8 @@
 
 <div class="tab-container {{ $horizontalTabs ? '' : 'container'}} mb-2">
 
-    <div class="nav-tabs-custom {{ $horizontalTabs ? '' : 'row'}}" id="form_tabs">
+    @php $formIdSuffix = $id ?? 'crudForm'; @endphp
+    <div class="nav-tabs-custom {{ $horizontalTabs ? '' : 'row'}}" id="form_tabs" data-form-id="{{ $formIdSuffix }}">
         <ul class="nav {{ $horizontalTabs ? 'nav-tabs' : 'flex-column nav-pills'}} {{ $horizontalTabs ? '' : 'col-md-3' }}" role="tablist">
             @foreach ($crud->getTabs() as $k => $tab)
             @php
@@ -42,14 +43,14 @@
                 }
             @endphp
                 <li role="presentation" class="nav-item">
-                    <a href="#tab_{{ $tabSlug }}"
-                        aria-controls="tab_{{ $tabSlug }}"
+                    <a href="#tab_{{ $tabSlug }}_{{ $formIdSuffix }}"
+                        aria-controls="tab_{{ $tabSlug }}_{{ $formIdSuffix }}"
                         role="tab"
                         data-toggle="tab" {{-- tab indicator for Bootstrap v4 --}}
                         tab_name="{{ $tabSlug }}" {{-- tab name for Bootstrap v4 --}}
                         data-name="{{ $tabSlug }}" {{-- tab name for Bootstrap v5 --}}
                         data-bs-toggle="tab" {{-- tab name for Bootstrap v5 --}}
-                        class="nav-link text-decoration-none {{ isset($tabWithError) && $tabWithError ? ($tab == $tabWithError ? 'active' : '') : ($k == 0 ? 'active' : '') }}"
+            class="nav-link text-decoration-none {{ isset($tabWithError) && $tabWithError ? ($tab == $tabWithError ? 'active' : '') : ($k == 0 ? 'active' : '') }}"
                         >{{ $tab }}</a>
                 </li>
             @endforeach
@@ -64,7 +65,7 @@
                     $tabSlug = $k;
                 }
             @endphp
-            <div role="tabpanel" class="tab-pane {{ isset($tabWithError) && $tabWithError ? ($tabLabel == $tabWithError ? ' active' : '') : ($k == 0 ? ' active' : '') }}" id="tab_{{ $tabSlug }}">
+            <div role="tabpanel" class="tab-pane {{ isset($tabWithError) && $tabWithError ? ($tabLabel == $tabWithError ? ' active' : '') : ($k == 0 ? ' active' : '') }}" id="tab_{{ $tabSlug }}_{{ $formIdSuffix }}">
 
                 <div class="row">
                     @include('crud::inc.show_fields', ['fields' => $crud->getTabItems($tabLabel, 'fields')])

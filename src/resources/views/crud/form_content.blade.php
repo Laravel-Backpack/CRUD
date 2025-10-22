@@ -145,10 +145,20 @@
           @endphp
             focusFieldTab = '{{ Str::slug($focusFieldTab) }}';
 
-            // if focus is not 'null' navigate to that tab before focusing.
-            if(focusFieldTab !== 'null'){
-              $('#form_tabs a[tab_name="'+focusFieldTab+'"]').tab('show');
-            }
+                // if focus is not 'null' navigate to that tab before focusing.
+                if(focusFieldTab !== 'null'){
+                  try {
+                    // find the form id stored in the hidden input within this form instance
+                    const currentFormEl = focusField.closest('form');
+                    const formIdInput = currentFormEl ? currentFormEl.querySelector('input[name="_form_id"]') : null;
+                    const theFormId = formIdInput ? formIdInput.value : ('{{ $id ?? 'crudForm' }}');
+                    const selector = `#form_tabs[data-form-id="${theFormId}"] a[tab_name="${focusFieldTab}"]`;
+                    $(selector).tab('show');
+                  } catch (e) {
+                    // fallback to global selector
+                    $('#form_tabs a[tab_name="'+focusFieldTab+'"]').tab('show');
+                  }
+                }
             focusField = $('[name="{{ $focusFieldName }}"]').eq(0);
         @else
             focusField = getFirstFocusableField($('form'));
@@ -195,6 +205,7 @@
                 @if ($crud->tabsEnabled())
                 var tab_container = $(container).closest('[role="tabpanel"]');
                 if (tab_container.length) {
+                  // ensure tab id includes form id suffix if present
                   firstErrorTab = tab_container.attr('id');
                 }
                 @endif
@@ -226,8 +237,12 @@
 
                   // highlight its parent tab
                   @if ($crud->tabsEnabled())
-                  var tab_id = $(container).closest('[role="tabpanel"]').attr('id');
-                  $("#form_tabs [aria-controls="+tab_id+"]").addClass('text-danger');
+          var tab_id = $(container).closest('[role="tabpanel"]').attr('id');
+          try {
+            $('#form_tabs[data-form-id="' + (typeof currentFormId !== 'undefined' ? currentFormId : '{{ $id }}') + '"] [aria-controls="'+tab_id+'"]').addClass('text-danger');
+          } catch (e) {
+            $("#form_tabs [aria-controls="+tab_id+"]").addClass('text-danger');
+          }
                   @endif
               });
             });
@@ -238,7 +253,12 @@
             @if ($crud->tabsEnabled())
             // Switch to the tab containing the first error if needed
             if (firstErrorTab) {
-              $('.nav a[href="#' + firstErrorTab + '"]').tab('show');
+              try {
+                  var selector = '#form_tabs[data-form-id="' + (typeof currentFormId !== 'undefined' ? currentFormId : '{{ $id }}') + '"] .nav a[href="#' + firstErrorTab + '"]';
+                  $(selector).tab('show');
+              } catch (e) {
+                  $('.nav a[href="#' + firstErrorTab + '"]').tab('show');
+              }
             }
             @endif
             

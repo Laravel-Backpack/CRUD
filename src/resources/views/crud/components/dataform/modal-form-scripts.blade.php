@@ -328,7 +328,7 @@
     });
 }
     
-function loadModalForm(controllerId, modalEl, formContainer, submitButton) {
+    function loadModalForm(controllerId, modalEl, formContainer, submitButton) {
     submitButton.disabled = true;
     
     if (formContainer && !formContainer.dataset.loaded) {
@@ -383,6 +383,73 @@ function loadModalForm(controllerId, modalEl, formContainer, submitButton) {
             const scriptsToLoad = [];
             const inlineScripts = [];
 
+            // helper: watch for a script that timed out and re-run initialization when it finally loads
+            if (!window._modalLateWatchers) window._modalLateWatchers = new Map();
+            const scheduleLateScriptWatcher = (normalizedSrc, modalEl) => {
+                try {
+                    if (window._modalLateWatchers.has(normalizedSrc)) return;
+                } catch (e) {}
+
+                let attempts = 0;
+                const maxAttempts = 5; 
+                const checkIntervalMs = 500;
+
+                const id = setInterval(() => {
+                    attempts++;
+                    try {
+                        const found = Array.from(document.querySelectorAll('script[src]')).find(s => {
+                            try { return normalize(s.getAttribute('src')) === normalizedSrc; } catch (e) { return false; }
+                        });
+
+                        if (found) {
+                            // attach events
+                            try {
+                                const doInit = () => {
+                                    try {
+                                        try {
+                                            if (modalEl && modalEl.querySelectorAll) {
+                                                modalEl.querySelectorAll('[data-initialized]').forEach(el => {
+                                                    try { el.removeAttribute('data-initialized'); } catch (e) {}
+                                                });
+                                            }
+                                        } catch (e) {}
+
+                                        if (typeof initializeFieldsWithJavascript === 'function') {
+                                            initializeFieldsWithJavascript(modalEl);
+                                            setTimeout(() => {
+                                                try { $(modalEl).find('select.select2-hidden-accessible').each(function() { fixSelect2InModal($(this)); }); } catch (e) {}
+                                            }, 50);
+                                        }
+                                    } catch (e) {}
+                                };
+
+                                if (found.readyState && (found.readyState === 'loaded' || found.readyState === 'complete')) {
+                                    doInit();
+                                } else {
+                                    found.addEventListener('load', () => {
+                                        doInit();
+                                    }, { once: true });
+                                }
+                            } catch (e) {}
+
+                            clearInterval(id);
+                            try { window._modalLateWatchers.delete(normalizedSrc); } catch (e) {}
+                            return;
+                        }
+                    } catch (e) {}
+
+                    if (attempts >= maxAttempts) {
+                        clearInterval(id);
+                        try { window._modalLateWatchers.delete(normalizedSrc); } catch (e) {}
+                    }
+                }, checkIntervalMs);
+
+                try { window._modalLateWatchers.set(normalizedSrc, id); } catch (e) {}
+            };
+
+            // track normalized srcs seen in this response to avoid processing the same external
+            // script multiple times if the AJAX response contained duplicate <script src=...> tags.
+            const seenResponseSrcs = new Set();
             scriptElements.forEach((scriptElement, index) => {
                 
                 if (scriptElement.src) {
@@ -399,31 +466,232 @@ function loadModalForm(controllerId, modalEl, formContainer, submitButton) {
 
                     const normalizedSrc = normalize(srcUrl);
 
-                    // Check if a script with the same normalized src is already present
-                    // Special-case: avoid loading CKEditor if it's already present on the page
-                    if (normalizedSrc.toLowerCase().includes('ckeditor') && typeof window.ClassicEditor !== 'undefined') {
-                        // ClassicEditor already present: skip appending this CKEditor script
-                    } else {
-                        scriptsToLoad.push(new Promise((resolve, reject) => {
-                            const newScript = document.createElement('script');
+                    // If the same src appears multiple times in the AJAX response, skip duplicates.
+                    if (seenResponseSrcs.has(normalizedSrc)) {
+                        try { scriptElement.parentNode && scriptElement.parentNode.removeChild(scriptElement); } catch (e) {}
+                        return; // continue to next scriptElement
+                    }
+                    seenResponseSrcs.add(normalizedSrc);
 
-                            Array.from(scriptElement.attributes).forEach(attr => {
-                                newScript.setAttribute(attr.name, attr.value);
-                            });
+                    const WITH_SCRIPT_TIMEOUT_MS = (window._modalScriptLoaderTimeout && typeof window._modalScriptLoaderTimeout === 'number') ? window._modalScriptLoaderTimeout : 1000;
 
-                            newScript.onload = () => {
-                                resolve();
-                            };
-                            newScript.onerror = (error) => {
-                                // external script load error handled by promise rejection
-                                reject(error);
-                            };
+                    // helper to re-run initialization when a managed promise resolves
+                    const attemptReinitOnPromise = (p, modalEl) => {
+                        try {
+                            if (!p || typeof p.then !== 'function') return;
+                            if (p._reinitAttached) return;
+                            p._reinitAttached = true;
+                            p.then(() => {
+                                try {
+                                    if (modalEl && modalEl.dataset && modalEl.dataset.modalInitIncomplete === 'true') {
+                                        try { modalEl.removeAttribute && modalEl.removeAttribute('data-modal-init-incomplete'); } catch (e) {}
+                                        try {
+                                            if (typeof initializeFieldsWithJavascript === 'function') {
+                                                initializeFieldsWithJavascript(modalEl);
+                                                setTimeout(() => {
+                                                    try { $(modalEl).find('select.select2-hidden-accessible').each(function() { fixSelect2InModal($(this)); }); } catch (e) {}
+                                                }, 50);
+                                            }
+                                        } catch (e) {}
+                                    }
+                                } catch (e) {}
+                            }, () => {});
+                        } catch (e) {}
+                    };
 
-                            document.head.appendChild(newScript);
-                        }));
+                    const wrapPromiseWithTimeout = (p) => Promise.race([p, new Promise(res => setTimeout(() => {
+                        try {
+                            try { if (modalEl && modalEl.dataset) modalEl.dataset.modalInitIncomplete = 'true'; } catch (ee) {}
+
+                            // If the passed promise is not a managed promise (we can't attach to it), fall back to polling watcher.
+                            try {
+                                if (!p || !p._modalManaged) {
+                                    scheduleLateScriptWatcher(normalizedSrc, modalEl);
+                                }
+                            } catch (e) {}
+                        } catch (e) {}
+                        try { if (window._modalScriptLoaderStats) window._modalScriptLoaderStats.timeouts = (window._modalScriptLoaderStats.timeouts || 0) + 1; } catch (e) {}
+                        res();
+                    }, WITH_SCRIPT_TIMEOUT_MS))]);
+
+                    try {
+                        // ensure global maps exist for promises and injection locks
+                        if (!window._modalScriptLoaderPromises) window._modalScriptLoaderPromises = new Map();
+                        if (!window._modalScriptInjecting) window._modalScriptInjecting = new Map();
+
+                        // enumerate existing script tags and filter out those inside modals
+                        let existingScripts = Array.from(document.querySelectorAll('script[src]'));
+                        existingScripts = existingScripts.filter(s => {
+                            try { return !s.closest || !s.closest('.modal'); } catch (e) { return true; }
+                        });
+
+                        const matches = existingScripts.filter(s => {
+                            try { return normalize(s.getAttribute('src')) === normalizedSrc; } catch (e) { return s.getAttribute('src') === srcUrl; }
+                        });
+
+                            if (matches.length) {
+                                
+
+                                try {
+                                    // If any matching script is already loaded, skip injecting a duplicate.
+                                    const alreadyLoaded = matches.some(s => {
+                                        try {
+                                            return (s.getAttribute && s.getAttribute('data-modal-loaded') === 'true') || (s.readyState && (s.readyState === 'loaded' || s.readyState === 'complete'));
+                                        } catch (e) { return false; }
+                                    });
+
+                                    if (alreadyLoaded) {
+                                        scriptsToLoad.push(Promise.resolve());
+                                        try { scriptElement.parentNode.removeChild(scriptElement); } catch (e) {}
+                                        return; // continue to next scriptElement
+                                    }
+
+                                    // Reuse existing promise if one is attached to any matching script
+                                    let existingPromise = null;
+                                    for (const s of matches) {
+                                        try { if (s.__modalLoadPromise) { existingPromise = s.__modalLoadPromise; break; } } catch (e) {}
+                                    }
+
+                                    if (existingPromise) {
+                                        try { if (!window._modalScriptLoaderStats) window._modalScriptLoaderStats = {timeouts:0,reused:0,inFlight:0,waitingMarked:0}; window._modalScriptLoaderStats.reused++; } catch (e) {}
+                                        try { existingPromise._modalManaged = true; } catch (e) {}
+                                        try { attemptReinitOnPromise(existingPromise, modalEl); } catch (e) {}
+                                        scriptsToLoad.push(wrapPromiseWithTimeout(existingPromise));
+                                        try { scriptElement.parentNode.removeChild(scriptElement); } catch (e) {}
+                                        return; // continue to next scriptElement
+                                    }
+
+                                    // If another loader already started injecting or waiting for this src, reuse that promise
+                                    if (window._modalScriptInjecting.has(normalizedSrc)) {
+                                        const inFlight = window._modalScriptInjecting.get(normalizedSrc);
+                                        try { if (!inFlight._modalManaged) try { inFlight._modalManaged = true; } catch (e) {} } catch (e) {}
+                                        try { attemptReinitOnPromise(inFlight, modalEl); } catch (e) {}
+                                        scriptsToLoad.push(wrapPromiseWithTimeout(inFlight));
+                                        try { scriptElement.parentNode.removeChild(scriptElement); } catch (e) {}
+                                        return;
+                                    }
+
+                                    // Attach a promise to the first existing script and wait for it (and mark it immediately)
+                                    const existing = matches[0];
+                                    const waitForExisting = new Promise((res, rej) => {
+                                        try {
+                                            if (existing.readyState && (existing.readyState === 'loaded' || existing.readyState === 'complete')) {
+                                                res();
+                                                return;
+                                            }
+                                        } catch (e) {}
+
+                                        existing.addEventListener('load', () => res(), { once: true });
+                                        existing.addEventListener('error', (err) => rej(err), { once: true });
+                                    });
+
+                                    try {
+                                        // mark the existing element as managed so later diagnostics and timeouts see it as ours
+                                        try { existing.setAttribute && existing.setAttribute('data-modal-waiting', 'true'); } catch (e) {}
+                                        try { existing.setAttribute && existing.setAttribute('data-modal-src', normalizedSrc); } catch (e) {}
+                                        try { if (!window._modalScriptLoaderStats) window._modalScriptLoaderStats = {timeouts:0,reused:0,inFlight:0,waitingMarked:0}; window._modalScriptLoaderStats.waitingMarked++; } catch (e) {}
+
+                                        window._modalScriptLoaderPromises.set(normalizedSrc, waitForExisting);
+                                        try { existing.__modalLoadPromise = waitForExisting; } catch (e) {}
+                                        // mark as 'injecting' so concurrent runs reuse this promise
+                                        try { window._modalScriptInjecting.set(normalizedSrc, waitForExisting); } catch (e) {}
+                                        try { waitForExisting._modalManaged = true; } catch (e) {}
+                                        try { attemptReinitOnPromise(waitForExisting, modalEl); } catch (e) {}
+                                        // once settled, remove the injecting lock
+                                        waitForExisting.finally(() => {
+                                            try { window._modalScriptInjecting.delete(normalizedSrc); } catch (e) {}
+                                            try { existing.removeAttribute && existing.removeAttribute('data-modal-waiting'); } catch (e) {}
+                                        });
+                                    } catch (e) {
+                                        // ignore
+                                    }
+
+                                    
+                                    scriptsToLoad.push(wrapPromiseWithTimeout(waitForExisting));
+                                    try { scriptElement.parentNode.removeChild(scriptElement); } catch (e) {}
+                                    return; // continue to next scriptElement
+                                } catch (e) {
+                                    // If reuse fails for any reason, fall back to injecting below
+                                }
+                            } else {
+                                
+                            }
+                    } catch (e) {
+                        // ignore debug failures
                     }
 
-                    scriptElement.parentNode.removeChild(scriptElement);
+                    scriptsToLoad.push(new Promise((resolve, reject) => {
+                        const newScript = document.createElement('script');
+
+                        // If another loader started injecting this src between our checks, reuse its promise instead
+                        if (window._modalScriptInjecting && window._modalScriptInjecting.has(normalizedSrc)) {
+                            try {
+                                const inFlight = window._modalScriptInjecting.get(normalizedSrc);
+                                scriptsToLoad.push(inFlight);
+                                try { scriptElement.parentNode.removeChild(scriptElement); } catch (e) {}
+                                resolve();
+                                return;
+                            } catch (e) {}
+                        }
+
+                        let injectionResolve, injectionReject;
+                        const injectionPromise = new Promise((res, rej) => { injectionResolve = res; injectionReject = rej; });
+                        try { window._modalScriptInjecting.set(normalizedSrc, injectionPromise); } catch (e) {}
+                        try { injectionPromise._modalManaged = true; } catch (e) {}
+                        try { attemptReinitOnPromise(injectionPromise, modalEl); } catch (e) {}
+
+                        // carry over attributes from original script element
+                        const copiedAttrs = [];
+                        Array.from(scriptElement.attributes).forEach(attr => {
+                            try { newScript.setAttribute(attr.name, attr.value); } catch (e) {}
+                            copiedAttrs.push({ name: attr.name, value: attr.value });
+                        });
+                        
+
+                        // mark scripts injected
+                        try { newScript.setAttribute('data-modal-injected', 'true'); } catch (e) {}
+                        try { newScript.setAttribute('data-modal-src', normalizedSrc); } catch (e) {}
+
+                        newScript.onload = () => {
+                            try { newScript.setAttribute('data-modal-loaded', 'true'); } catch (e) {}
+                            try { injectionResolve(); } catch (e) {}
+                            try { window._modalScriptLoaderPromises.set(normalizedSrc, Promise.resolve()); } catch (e) {}
+                            try { window._modalScriptInjecting.delete(normalizedSrc); } catch (e) {}
+                            resolve();
+                        };
+                        newScript.onerror = (error) => {
+                            try { newScript.setAttribute('data-modal-error', 'true'); } catch (e) {}
+                            try { injectionReject(error); } catch (e) {}
+                            try { window._modalScriptInjecting.delete(normalizedSrc); } catch (e) {}
+                            reject(error);
+                        };
+
+                        try {
+                            if (!window._modalScriptLoaderPromises) window._modalScriptLoaderPromises = new Map();
+                            const pRef = { promise: null };
+                            pRef.promise = new Promise((res, rej) => {
+                                newScript.addEventListener('load', () => res(), { once: true });
+                                newScript.addEventListener('error', (err) => rej(err), { once: true });
+                            });
+                                newScript.__modalLoadPromise = pRef.promise;
+                                try { pRef.promise._modalManaged = true; } catch (e) {}
+                                try { attemptReinitOnPromise(pRef.promise, modalEl); } catch (e) {}
+                                window._modalScriptLoaderPromises.set(normalizedSrc, pRef.promise);
+                        } catch (e) {
+                            // ignore
+                        }
+
+                        document.head.appendChild(newScript);
+                        try {
+                        } catch (e) {}
+                    }));
+             
+
+                        try {
+                        scriptElement.parentNode.removeChild(scriptElement);
+                    } catch (e) {
+                        // ignore
+                    }
                 } else {
                     const scriptContent = scriptElement.textContent;
                     
@@ -433,7 +701,9 @@ function loadModalForm(controllerId, modalEl, formContainer, submitButton) {
                     };
                     inlineScripts.push(scriptData);
                     
-                    scriptElement.parentNode.removeChild(scriptElement);
+                    try {
+                        scriptElement.parentNode.removeChild(scriptElement);
+                    } catch (e) {}
                 }
             });
     
@@ -447,17 +717,10 @@ function loadModalForm(controllerId, modalEl, formContainer, submitButton) {
                             newScript.setAttribute(attr.name, attr.value);
                         });
                         
-                        const wrappedContent = `
-                            try {
-                                ${scriptData.content}
-                            } catch (error) {
-                                // error in inline script suppressed
-                            }
-                        `;
-                        
-                        newScript.textContent = wrappedContent;
-                        
-                        document.head.appendChild(newScript);
+                        const execScript = document.createElement('script');
+                        scriptData.attributes.forEach(attr => execScript.setAttribute(attr.name, attr.value));
+                        execScript.textContent = scriptData.content;
+                        document.head.appendChild(execScript);
                     } catch (e) {
                         // error executing inline script suppressed
                     }
@@ -466,6 +729,32 @@ function loadModalForm(controllerId, modalEl, formContainer, submitButton) {
                 if (typeof initializeFieldsWithJavascript === 'function') {
                     try {
                         initializeFieldsWithJavascript(modalEl);
+
+                        try {
+                            const initElements = modalEl.querySelectorAll('[data-init-function]');
+                            initElements.forEach((el, i) => {
+                                try {
+                                    const initName = el.getAttribute('data-init-function');
+                                    const initFunc = window[initName];
+                                    // Skip if element already initialized by initializeFieldsWithJavascript or previous run
+                                    if (el.getAttribute('data-initialized') === 'true') {
+                                        // already initialized
+                                    } else if (typeof initFunc === 'function') {
+                                        try {
+                                            initFunc($(el));
+                                            el.setAttribute('data-initialized', 'true');
+                                        } catch (err) {
+                                            // mark as initialized to avoid repeated failing attempts
+                                            el.setAttribute('data-initialized', 'true');
+                                        }
+                                    }
+                                } catch (err) {
+                                    // ignore errors when processing init elements
+                                }
+                            });
+                        } catch (err) {
+                            // ignore
+                        }
                         
                         $(modalEl).find('select.select2-hidden-accessible').each(function() {
                             fixSelect2InModal($(this));
