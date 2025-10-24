@@ -10,7 +10,17 @@
       {!! $widget['content']['body'] ?? '' !!}
 
       <div class="card-wrapper form-widget-wrapper">
-        <x-backpack::dataform :controller="$widget['controller']" :operation="$widget['operation']" :entry="$widget['entry'] ?? null"  />
+        <x-backpack::dataform 
+        :controller="$widget['controller']" 
+        :formOperation="$widget['formOperation']" 
+        :entry="$widget['entry'] ?? null"
+        :setup="$widget['setup'] ?? null"
+        :formUrl="$widget['formUrl'] ?? null"
+        :formAction="$widget['formAction'] ?? null"
+        :formMethod="$widget['formMethod'] ?? null"
+        :focusOnFirstField="$widget['focusOnFirstField'] ?? false"
+        :hasUploadFields="$widget['hasUploadFields'] ?? false"
+        />
       </div>
 
     </div>

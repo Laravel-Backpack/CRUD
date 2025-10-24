@@ -10,6 +10,7 @@ use Illuminate\View\Component;
 class Dataform extends Component implements IsolatesOperationSetup
 {
     public $crud;
+    
 
     /**
      * Standalone forms do NOT isolate their operation setup.
@@ -32,10 +33,10 @@ class Dataform extends Component implements IsolatesOperationSetup
     public function __construct(
         public string $controller,
         private string $id = 'backpack-form-',
-        public string $name = '',
         public string $formOperation = 'create',
+        public ?string $formUrl = null,
         public ?string $formAction = null,
-        public string $formMethod = 'post',
+        public ?string $formMethod = 'post',
         public bool $hasUploadFields = false,
         public $entry = null,
         public ?Closure $setup = null,
@@ -57,8 +58,10 @@ class Dataform extends Component implements IsolatesOperationSetup
             $this->formMethod = 'put';
             $this->crud->entry = $this->entry;
             $this->crud->setOperationSetting('fields', $this->crud->getUpdateFields());
+            $this->formUrl = url($this->crud->route.'/'.$this->entry->getKey().'/edit');
         } else {
             $this->formAction = $formAction ?? url($this->crud->route);
+            $this->formUrl = url($this->crud->route.'/create');
         }
 
         $this->hasUploadFields = $this->crud->hasUploadFields($this->formOperation, $this->entry?->getKey());
@@ -104,7 +107,6 @@ class Dataform extends Component implements IsolatesOperationSetup
             'crud' => $this->crud,
             'saveAction' => $this->crud->getSaveAction(),
             'id' => $this->id,
-            'name' => $this->name,
             'formOperation' => $this->formOperation,
             'formAction' => $this->formAction,
             'formMethod' => $this->formMethod,

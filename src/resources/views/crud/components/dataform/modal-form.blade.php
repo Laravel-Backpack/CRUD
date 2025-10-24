@@ -1,5 +1,4 @@
 {{-- Modal HTML (initially hidden from DOM) --}}
-{{-- compute form load route inline where used --}}
 @push('after_styles') @if (request()->ajax()) @endpush @endif
 @if (!request()->ajax()) @endpush @endif
 @push('after_scripts') @if (request()->ajax()) @endpush @endif
@@ -17,15 +16,7 @@
                         </div>
                         <div 
                             id="modal-form-container{{ md5($controller.$id) }}" 
-                            @php
-                                $computedFormLoadRoute = '';
-                                if (isset($entry) && $entry) {
-                                    $computedFormLoadRoute = url($route . '/' . $entry->getKey() . '/edit');
-                                } else {
-                                    $computedFormLoadRoute = isset($formUrl) ? (\Str::isUrl($formUrl) ? $formUrl : url($route . '/' . $formUrl)) : '';
-                                }
-                            @endphp
-                            data-form-load-route="{{ $computedFormLoadRoute }}"
+                            data-form-load-route="{{ $formUrl ?? '' }}"
                             data-form-action="{{ $formAction }}"
                             data-form-method="{{ $formMethod }}"
                             data-has-upload-fields="{{ $hasUploadFields ? 'true' : 'false' }}"
@@ -49,3 +40,6 @@
 @push('after_scripts') @if (request()->ajax()) @endpush @endif
     @include('crud::components.dataform.modal-form-scripts')
 @if (!request()->ajax()) @endpush @endif
+
+@push('after_scripts')
+@endpush

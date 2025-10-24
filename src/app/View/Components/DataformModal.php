@@ -20,13 +20,11 @@ class DataformModal extends Dataform implements IsolatesOperationSetup
 
     public function __construct(
         public string $controller,
-        public ?string $route = null,
         public string $id = 'backpack-form',
         public string $formOperation = 'create',
-        public string $name = '',
-        public string $formUrl = 'create',
+        public ?string $formUrl = null,
         public ?string $formAction = null,
-        public string $formMethod = 'post',
+        public ?string $formMethod = null,
         public bool $hasUploadFields = false,
         public $entry = null,
         public ?Closure $setup = null,
@@ -35,16 +33,9 @@ class DataformModal extends Dataform implements IsolatesOperationSetup
         public string $classes = 'modal-dialog modal-lg',
         public bool $refreshDatatable = false,
     ) {
-        // If route is not provided (e.g., when rendering via AJAX), get it from CRUD panel
-        if ($this->route === null) {
-            \Backpack\CRUD\CrudManager::setActiveController($controller);
-            $tempCrud = \Backpack\CRUD\CrudManager::setupCrudPanel($controller, $this->formOperation);
-            $this->route = $tempCrud->route;
-            \Backpack\CRUD\CrudManager::unsetActiveController();
-        }
-
-        // keep backwards compatible behavior for resolving route when not provided
-        $this->formAction = $this->formAction ?? url($this->route);
+        \Backpack\CRUD\CrudManager::setActiveController($controller);
+        $this->crud = \Backpack\CRUD\CrudManager::setupCrudPanel($controller, $this->formOperation);
+        \Backpack\CRUD\CrudManager::unsetActiveController();
     }
 
     /**
@@ -61,7 +52,6 @@ class DataformModal extends Dataform implements IsolatesOperationSetup
             $this->hashedFormId,  // Use the hashed ID that matches what Dataform component generates
             $this->controller,
             $this->setup,
-            $this->name,
             $tempCrud,
             $this->entry
         );
@@ -77,9 +67,14 @@ class DataformModal extends Dataform implements IsolatesOperationSetup
     public function render()
     {
         $this->hashedFormId = $this->id.md5($this->formAction.$this->formOperation.'post'.$this->controller);
+        
+        if (empty($this->formUrl)) {
+            $this->formUrl = isset($this->entry) ? url($this->crud->route.'/'.$this->entry->getKey().'/edit') : url($this->crud->route.'/create');
+        }
 
-        if ($this->entry) {
-            $this->formUrl = $this->formUrl ?? url($this->route.'/'.$this->entry->getKey().'/edit');
+        if (empty($this->formAction)) {
+            $this->formAction = isset($this->entry) ? url($this->crud->route.'/'.$this->entry->getKey()) : url($this->crud->route);
+            $this->formMethod = $this->formMethod ?? (isset($this->entry) ? 'put' : 'post');
         }
 
         // Cache the setup closure if provided (for retrieval during AJAX request)
@@ -100,7 +95,6 @@ class DataformModal extends Dataform implements IsolatesOperationSetup
             'classes' => $this->classes,
             'hashedFormId' => $this->hashedFormId,
             'controller' => $this->controller,
-            'route' => $this->route, // Pass the route for building URLs in the template
         ]);
     }
 }

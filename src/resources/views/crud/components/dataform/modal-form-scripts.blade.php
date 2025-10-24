@@ -379,7 +379,106 @@
 
             
             
-            const scriptElements = formContainer.querySelectorAll('script');
+            const scriptElementsNodeList = formContainer.querySelectorAll('script');
+            const scriptElements = Array.from(scriptElementsNodeList || []);
+            const normalize = (u) => { try { return new URL(u, window.location.origin).toString(); } catch (e) { return u; } };
+            let orderedArray = null;
+            let orderedSet = null;
+          
+            try {
+                if ((!orderedArray || !orderedArray.length) && Array.isArray(scriptElements) && scriptElements.length) {
+
+                    const scriptsWithOrder = [];
+                    scriptElements.forEach(s => {
+                        try {
+                            if (!s || !s.src) return;
+                            if (s.hasAttribute && s.hasAttribute('loading-order')) {
+                                const raw = s.getAttribute('loading-order');
+                                const num = Number(raw);
+                                if (!Number.isNaN(num)) {
+                                    scriptsWithOrder.push({ src: normalize(s.src), order: num });
+                                }
+                            }  
+                        } catch (e) {}
+                    });
+
+                    if (scriptsWithOrder.length > 0) {
+                        // sort by numeric order then by appearance to be stable
+                        scriptsWithOrder.sort((a, b) => a.order - b.order);
+                        const seen = new Set();
+                        const ordered = [];
+                        scriptsWithOrder.forEach(s => { if (!seen.has(s.src)) { seen.add(s.src); ordered.push(s.src); } });
+                        if (ordered.length > 0) {
+                            orderedArray = ordered.slice();
+                            orderedSet = new Set(orderedArray);
+                        }
+                    }
+                }
+            } catch (e) {}
+
+            try {
+                if ((!orderedArray || !orderedArray.length) && Array.isArray(scriptElements) && scriptElements.length) {
+                    const externalScripts = scriptElements.filter(s => s && s.src).map(s => normalize(s.src));
+                    // Only treat as an ordered group when we have more than one external script
+                    if (externalScripts.length > 1) {
+                        // Deduplicate while preserving order
+                        const seen = new Set();
+                        const deduped = [];
+                        externalScripts.forEach(u => { if (!seen.has(u)) { seen.add(u); deduped.push(u); } });
+                        if (deduped.length > 1) {
+                            orderedArray = deduped.slice();
+                            orderedSet = new Set(orderedArray);
+                        }
+                    }
+                }
+            } catch (e) {}
+
+            const getOrderedIndex = (normalizedSrc) => {
+                if (!normalizedSrc || !orderedArray) return -1;
+                try {
+                    for (let i = 0; i < orderedArray.length; i++) {
+                        const o = orderedArray[i];
+                        if (!o) continue;
+                        if (normalizedSrc === o) return i;
+                    }
+
+                    const parts = normalizedSrc.split('/').filter(Boolean);
+                    const srcSuffix = parts.slice(-5).join('/');
+                    for (let i = 0; i < orderedArray.length; i++) {
+                        const o = orderedArray[i];
+                        if (!o) continue;
+                        if (o.endsWith(srcSuffix) || normalizedSrc.indexOf(o) !== -1 || o.indexOf(srcSuffix) !== -1) {
+                            return i;
+                        }
+                    }
+                } catch (e) {}
+                return -1;
+            };
+
+            if (orderedArray && Array.isArray(orderedArray) && orderedArray.length) {
+                try {
+                    const orderedSuffixes = orderedArray.map(u => {
+                        try {
+                            const parts = u.split('/').filter(Boolean);
+                            return parts.slice(-5).join('/');
+                        } catch (e) { return u; }
+                    });
+
+                    scriptElements.sort((a, b) => {
+                        const aSrc = a.src ? normalize(a.src) : null;
+                        const bSrc = b.src ? normalize(b.src) : null;
+                        const aIndex = aSrc ? getOrderedIndex(aSrc) : -1;
+                        const bIndex = bSrc ? getOrderedIndex(bSrc) : -1;
+                        if (aIndex !== -1 || bIndex !== -1) {
+                            if (aIndex === -1) return 1;
+                            if (bIndex === -1) return -1;
+                            return aIndex - bIndex;
+                        }
+                        return 0;
+                    });
+                
+                } catch (e) { /* ignore ordering failures and continue */ }
+            }
             const scriptsToLoad = [];
             const inlineScripts = [];
 
@@ -530,8 +629,6 @@
                         });
 
                             if (matches.length) {
-                                
-
                                 try {
                                     // If any matching script is already loaded, skip injecting a duplicate.
                                     const alreadyLoaded = matches.some(s => {
@@ -553,7 +650,6 @@
                                     }
 
                                     if (existingPromise) {
-                                        try { if (!window._modalScriptLoaderStats) window._modalScriptLoaderStats = {timeouts:0,reused:0,inFlight:0,waitingMarked:0}; window._modalScriptLoaderStats.reused++; } catch (e) {}
                                         try { existingPromise._modalManaged = true; } catch (e) {}
                                         try { attemptReinitOnPromise(existingPromise, modalEl); } catch (e) {}
                                         scriptsToLoad.push(wrapPromiseWithTimeout(existingPromise));
@@ -585,26 +681,27 @@
                                         existing.addEventListener('error', (err) => rej(err), { once: true });
                                     });
 
-                                    try {
-                                        // mark the existing element as managed so later diagnostics and timeouts see it as ours
-                                        try { existing.setAttribute && existing.setAttribute('data-modal-waiting', 'true'); } catch (e) {}
-                                        try { existing.setAttribute && existing.setAttribute('data-modal-src', normalizedSrc); } catch (e) {}
-                                        try { if (!window._modalScriptLoaderStats) window._modalScriptLoaderStats = {timeouts:0,reused:0,inFlight:0,waitingMarked:0}; window._modalScriptLoaderStats.waitingMarked++; } catch (e) {}
+                                        try {
+                                            // mark the existing element as managed so later diagnostics and timeouts see it as ours
+                                            try { existing.setAttribute && existing.setAttribute('data-modal-waiting', 'true'); } catch (e) {}
+                                            try { existing.setAttribute && existing.setAttribute('data-modal-src', normalizedSrc); } catch (e) {}
+                                            try { if (!window._modalScriptLoaderStats) window._modalScriptLoaderStats = {timeouts:0,reused:0,inFlight:0,waitingMarked:0}; window._modalScriptLoaderStats.waitingMarked++; } catch (e) {}
 
-                                        window._modalScriptLoaderPromises.set(normalizedSrc, waitForExisting);
-                                        try { existing.__modalLoadPromise = waitForExisting; } catch (e) {}
-                                        // mark as 'injecting' so concurrent runs reuse this promise
-                                        try { window._modalScriptInjecting.set(normalizedSrc, waitForExisting); } catch (e) {}
-                                        try { waitForExisting._modalManaged = true; } catch (e) {}
-                                        try { attemptReinitOnPromise(waitForExisting, modalEl); } catch (e) {}
-                                        // once settled, remove the injecting lock
-                                        waitForExisting.finally(() => {
-                                            try { window._modalScriptInjecting.delete(normalizedSrc); } catch (e) {}
-                                            try { existing.removeAttribute && existing.removeAttribute('data-modal-waiting'); } catch (e) {}
-                                        });
-                                    } catch (e) {
-                                        // ignore
-                                    }
+                                            window._modalScriptLoaderPromises.set(normalizedSrc, waitForExisting);
+                                            try { existing.__modalLoadPromise = waitForExisting; } catch (e) {}
+                                            // mark as 'injecting' so concurrent runs reuse this promise
+                                            try { window._modalScriptInjecting.set(normalizedSrc, waitForExisting); } catch (e) {}
+                                            try { waitForExisting._modalManaged = true; } catch (e) {}
+                                            try { attemptReinitOnPromise(waitForExisting, modalEl); } catch (e) {}
+                                            // once settled, remove the injecting lock
+                                            waitForExisting.finally(() => {
+                                                try { window._modalScriptInjecting.delete(normalizedSrc); } catch (e) {}
+                                                try { existing.removeAttribute && existing.removeAttribute('data-modal-waiting'); } catch (e) {}
+                                            });
+                                            // waiting on existing script element (debug removed)
+                                        } catch (e) {
+                                            // ignore
+                                        }
 
                                     
                                     scriptsToLoad.push(wrapPromiseWithTimeout(waitForExisting));
@@ -651,6 +748,15 @@
                         // mark scripts injected
                         try { newScript.setAttribute('data-modal-injected', 'true'); } catch (e) {}
                         try { newScript.setAttribute('data-modal-src', normalizedSrc); } catch (e) {}
+                        
+                        try {
+                            let shouldForceSync = false;
+                            try {
+                                const idx = getOrderedIndex(normalizedSrc);
+                                if (idx !== -1) shouldForceSync = true;
+                            } catch (e) {}
+                            if (shouldForceSync) { newScript.async = false; newScript.defer = false; }
+                        } catch (e) {}
 
                         newScript.onload = () => {
                             try { newScript.setAttribute('data-modal-loaded', 'true'); } catch (e) {}
@@ -909,40 +1015,47 @@ function submitModalForm(controllerId, formContainer, submitButton, modalEl) {
                             closestTable = document.querySelector('table.crud-table, [id^="crudTable"], table[id*="Table"], .dataTables_wrapper table, table.dataTable');
                         }
                         
-                        if (closestTable && closestTable.id) {
-                            const tableId = closestTable.id;
-                            
+                        let tableId = null;
+                        if (closestTable) {
+                            if (closestTable.nodeName === 'TABLE') {
+                                tableId = closestTable.id || closestTable.getAttribute('id');
+                            } else {
+                                // try to find a table descendant
+                                try {
+                                    const desc = closestTable.querySelector && closestTable.querySelector('table');
+                                    if (desc && desc.id) {
+                                        tableId = desc.id;
+                                    }
+                                } catch (err) {}
+
+                                // if not found, try stripping common DataTables suffixes from the id
+                                if (!tableId && closestTable.id) {
+                                    const cleanedId = closestTable.id.replace(/(_info|_filter|_wrapper|_paginate|_length)$/, '');
+                                    const maybeTable = document.getElementById(cleanedId);
+                                    if (maybeTable && maybeTable.nodeName === 'TABLE') {
+                                        tableId = cleanedId;
+                                    }
+                                }
+
+                                // final fallback: find any table with expected classes/attributes
+                                if (!tableId) {
+                                    const fallback = document.querySelector('table.crud-table, table.dataTable, [id^="crudTable"]');
+                                    if (fallback && fallback.id) tableId = fallback.id;
+                                }
+                            }
+                        }
+
+                        if (tableId) {
                             if (window.crud && window.crud.tables && window.crud.tables[tableId]) {
                                 window.crud.tables[tableId].ajax.reload(null, false);
                                 return;
                             }
-                            
-                            if (typeof $ !== 'undefined' && $.fn.DataTable) {
-                                const dataTable = $(`#${tableId}`).DataTable();
-                                if (dataTable) {
-                                    dataTable.ajax.reload(null, false);
-                                    return;
-                                }
-                            }
-                            
-                            if (typeof DataTable !== 'undefined') {
-                                const dataTable = new DataTable(`#${tableId}`);
-                                if (dataTable) {
-                                    dataTable.ajax.reload();
-                                }
-                            }
                         }
                         } catch (e) {
-                        try {
-                            if (typeof table !== 'undefined') {
-                                table.draw(false);
-                            }
-                        } catch (e2) { 
                             // could not refresh datatable
-                        }
                     }
                 }, 100);
-            }    
+            }
             } else if (result.status === 422) {
             errorsContainer.classList.remove('d-none');
             

@@ -24,7 +24,7 @@ final class DataformCache extends SetupCache
      * @param  CrudPanel  $crud  The CRUD panel instance to update with form_id
      * @return bool Whether the operation was successful
      */
-    public function cacheForComponent(string $formId, string $controllerClass, array $fieldsConfig, ?string $name = null, ?CrudPanel $crud = null): bool
+    public function cacheForComponent(string $formId, string $controllerClass, array $fieldsConfig, ?CrudPanel $crud = null): bool
     {
         if (empty($fieldsConfig)) {
             return false;
@@ -45,8 +45,7 @@ final class DataformCache extends SetupCache
             $formId,
             $controllerClass,
             $parentController,
-            $parentEntry,
-            $name
+            $parentEntry
         );
 
         Cache::put($this->cachePrefix.$formId.'_fields', $fieldsConfig, now()->addMinutes($this->cacheDuration));
@@ -63,7 +62,6 @@ final class DataformCache extends SetupCache
         string $formId,
         string $controllerClass,
         \Closure $setupClosure,
-        ?string $name = null,
         ?CrudPanel $crud = null,
         $parentEntry = null
     ): bool {
@@ -77,7 +75,7 @@ final class DataformCache extends SetupCache
             }
 
             // Cache the field configuration (not the closure, since it won't persist across requests)
-            $cached = $instance->cacheForComponent($formId, $controllerClass, $fieldsAfterSetup, $name, $crud);
+            $cached = $instance->cacheForComponent($formId, $controllerClass, $fieldsAfterSetup, $crud);
 
             return $cached;
         }

@@ -1,6 +1,6 @@
 @if ($crud->hasAccess('update', $entry))
     @php
-        $controllerClass = get_class(app('request')->route()->getController());
+        $controllerClass = $crud->controller ?? get_class(app('request')->route()->getController());
     @endphp
     
     {{-- Update button that opens modal form --}}

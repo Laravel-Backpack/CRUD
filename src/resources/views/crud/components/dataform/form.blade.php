@@ -4,7 +4,6 @@
     <form method="post"
         action="{{ $formAction }}"
         id="{{ $id }}"
-        @if(!empty($name)) name="{{ $name }}" @endif
         @if($hasUploadFields) enctype="multipart/form-data" @endif
     >
         {!! csrf_field() !!}
