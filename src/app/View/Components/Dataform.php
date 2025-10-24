@@ -10,7 +10,6 @@ use Illuminate\View\Component;
 class Dataform extends Component implements IsolatesOperationSetup
 {
     public $crud;
-    
 
     /**
      * Standalone forms do NOT isolate their operation setup.
