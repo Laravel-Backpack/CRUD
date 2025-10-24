@@ -20,7 +20,7 @@ class DataformModal extends Dataform implements IsolatesOperationSetup
 
     public function __construct(
         public string $controller,
-        public string $id = 'backpack-form',
+        public string $formId = 'backpack-form',
         public string $formOperation = 'create',
         public ?string $formUrl = null,
         public ?string $formAction = null,
@@ -66,8 +66,8 @@ class DataformModal extends Dataform implements IsolatesOperationSetup
      */
     public function render()
     {
-        $this->hashedFormId = $this->id.md5($this->formAction.$this->formOperation.'post'.$this->controller);
-
+        $this->hashedFormId = $this->formId.md5($this->formAction.$this->formOperation.'post'.$this->controller);
+        
         if (empty($this->formUrl)) {
             $this->formUrl = isset($this->entry) ? url($this->crud->route.'/'.$this->entry->getKey().'/edit') : url($this->crud->route.'/create');
         }
@@ -83,7 +83,7 @@ class DataformModal extends Dataform implements IsolatesOperationSetup
         }
 
         return view('crud::components.dataform.modal-form', [
-            'id' => $this->id,
+            'formId' => $this->formId,
             'formOperation' => $this->formOperation,
             'formUrl' => $this->formUrl,
             'entry' => $this->entry,

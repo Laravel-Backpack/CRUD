@@ -22,7 +22,7 @@ return [
     'autoFocusOnFirstField' => true,
 
     // when enabled, the create button will open a modal form instead of the create page
-    'createButtonWithModalForm' => false,
+    'createButtonWithModalForm' => true,
 
     // Where do you want to redirect the user by default, save?
     // options: save_and_back, save_and_edit, save_and_new

@@ -31,7 +31,7 @@ class Dataform extends Component implements IsolatesOperationSetup
      */
     public function __construct(
         public string $controller,
-        private string $id = 'backpack-form-',
+        private string $formId = 'backpack-form-',
         public string $formOperation = 'create',
         public ?string $formUrl = null,
         public ?string $formAction = null,
@@ -64,7 +64,7 @@ class Dataform extends Component implements IsolatesOperationSetup
         }
 
         $this->hasUploadFields = $this->crud->hasUploadFields($this->formOperation, $this->entry?->getKey());
-        $this->id = $id.md5($this->formAction.$this->formOperation.$this->formMethod.$this->controller);
+    $this->formId = $formId.md5($this->formAction.$this->formOperation.$this->formMethod.$this->controller);
 
         if ($this->setup) {
             $parentEntry = $this->getParentCrudEntry();
@@ -100,12 +100,12 @@ class Dataform extends Component implements IsolatesOperationSetup
     public function render()
     {
         // Store the current form ID in the service container for form-aware old() helper
-        app()->instance('backpack.current_form_modal_id', $this->id);
+        app()->instance('backpack.current_form_modal_id', $this->formId);
 
         return view('crud::components.dataform.form', [
             'crud' => $this->crud,
             'saveAction' => $this->crud->getSaveAction(),
-            'id' => $this->id,
+            'formId' => $this->formId,
             'formOperation' => $this->formOperation,
             'formAction' => $this->formAction,
             'formMethod' => $this->formMethod,

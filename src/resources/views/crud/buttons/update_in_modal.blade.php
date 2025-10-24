@@ -42,7 +42,7 @@
         :controller="$controllerClass"
         formOperation="update"
         :entry="$entry"
-        id="updateModal{{ md5($controllerClass.'update'.$entry->getKey()) }}"
+        formId="updateModal{{ md5($controllerClass.'update'.$entry->getKey()) }}"
         :title="trans('backpack::crud.edit') . ' ' . $crud->entity_name"
         refresh-datatable="true"
     />
