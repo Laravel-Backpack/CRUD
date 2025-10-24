@@ -64,7 +64,7 @@ class Dataform extends Component implements IsolatesOperationSetup
         }
 
         $this->hasUploadFields = $this->crud->hasUploadFields($this->formOperation, $this->entry?->getKey());
-    $this->formId = $formId.md5($this->formAction.$this->formOperation.$this->formMethod.$this->controller);
+        $this->formId = $formId.md5($this->formAction.$this->formOperation.$this->formMethod.$this->controller);
 
         if ($this->setup) {
             $parentEntry = $this->getParentCrudEntry();
