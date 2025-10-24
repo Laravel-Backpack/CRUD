@@ -58,8 +58,8 @@ final class CrudPanelManager
      */
     public function setupCrudPanel(string $controller, ?string $operation = null): CrudPanel
     {
+        // Resolve potential active controller and ensure we have an instance
         $controller = $this->getActiveController() ?? $controller;
-
         $controller = is_string($controller) ? app($controller) : $controller;
 
         $crud = $this->getCrudPanel($controller);
@@ -69,55 +69,73 @@ final class CrudPanelManager
 
         $shouldIsolate = $this->shouldIsolateOperation($controller::class, $operation);
 
+        // primary controller request is used when doing a full initialization
         $primaryControllerRequest = $this->cruds[array_key_first($this->cruds)]->getRequest();
 
+        // If the panel is already initialized but a different operation is requested
+        // and we don't need to isolate that operation, do a simple setup and return early.
         if ($crud->isInitialized() && $crud->getOperation() !== $operation && ! $shouldIsolate) {
-            self::setActiveController($controller::class);
-
-            $crud->setOperation($operation);
-            $this->setupSpecificOperation($controller, $operation, $crud);
-
-            // Mark this operation as initialized
-            $this->storeInitializedOperation($controller::class, $operation);
-
-            self::unsetActiveController();
-
-            return $this->cruds[$controller::class];
+            return $this->performSimpleOperationSwitch($controller, $operation, $crud);
         }
 
-        // Check if we need to initialize this specific operation
+        // If the panel (or this specific operation) hasn't been initialized yet,
+        // perform the required initialization (full or operation-specific).
         if (! $crud->isInitialized() || ! $this->isOperationInitialized($controller::class, $operation)) {
-            self::setActiveController($controller::class);
-
-            // If the panel isn't initialized at all, do full initialization
-            if (! $crud->isInitialized()) {
-                // Set the operation for full initialization
-                $crud->setOperation($operation);
-                $crud->initialized = false;
-                $controller->initializeCrudPanel($primaryControllerRequest, $crud);
-            } else {
-                // Panel is initialized, just setup this specific operation
-                // Use operation isolation for non-primary operations
-                if ($shouldIsolate) {
-                    $this->setupIsolatedOperation($controller, $operation, $crud);
-                } else {
-                    // Set the operation for standard setup
-                    $crud->setOperation($operation);
-                    $this->setupSpecificOperation($controller, $operation, $crud);
-                }
-            }
-
-            // Mark this operation as initialized
-            $this->storeInitializedOperation($controller::class, $operation);
-
-            self::unsetActiveController();
-            $crud = $this->cruds[$controller::class];
-
-            return $this->cruds[$controller::class];
+            return $this->performInitialization($controller, $operation, $crud, $primaryControllerRequest, $shouldIsolate);
         }
 
-        // If we reach here, the panel and operation are both initialized
-        // and the operation matches what was requested, so just return it
+        // Already initialized and operation matches: nothing to do.
+        return $this->cruds[$controller::class];
+    }
+
+    /**
+     * Perform a lightweight operation switch when the panel is initialized and
+     * isolation is not required.
+     */
+    private function performSimpleOperationSwitch($controller, string $operation, CrudPanel $crud): CrudPanel
+    {
+        self::setActiveController($controller::class);
+
+        $crud->setOperation($operation);
+        $this->setupSpecificOperation($controller, $operation, $crud);
+
+        // Mark this operation as initialized
+        $this->storeInitializedOperation($controller::class, $operation);
+
+        self::unsetActiveController();
+
+        return $this->cruds[$controller::class];
+    }
+
+    /**
+     * Perform full or operation-specific initialization when needed.
+     */
+    private function performInitialization($controller, string $operation, CrudPanel $crud, $primaryControllerRequest, bool $shouldIsolate): CrudPanel
+    {
+        self::setActiveController($controller::class);
+
+        // If the panel isn't initialized at all, do full initialization
+        if (! $crud->isInitialized()) {
+            // Set the operation for full initialization
+            $crud->setOperation($operation);
+            $crud->initialized = false;
+            $controller->initializeCrudPanel($primaryControllerRequest, $crud);
+        } else {
+            // Panel is initialized, just setup this specific operation
+            if ($shouldIsolate) {
+                $this->setupIsolatedOperation($controller, $operation, $crud);
+            } else {
+                // Set the operation for standard setup
+                $crud->setOperation($operation);
+                $this->setupSpecificOperation($controller, $operation, $crud);
+            }
+        }
+
+        // Mark this operation as initialized
+        $this->storeInitializedOperation($controller::class, $operation);
+
+        self::unsetActiveController();
+
         return $this->cruds[$controller::class];
     }
 
