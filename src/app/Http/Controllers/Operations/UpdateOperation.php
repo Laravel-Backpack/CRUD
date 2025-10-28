@@ -53,16 +53,6 @@ trait UpdateOperation
         LifecycleHook::hookInto(['list:before_setup', 'show:before_setup'], function () {
             $this->crud->addButton('line', 'update', 'view', 'crud::buttons.update', 'end');
         });
-
-        LifecycleHook::hookInto(['list:after_setup', 'show:after_setup'], function () {
-            // Check if modal form is enabled and replace the button if needed
-            $useModalForm = $this->crud->get('update.updateButtonWithModalForm') ?? config('backpack.operations.update.updateButtonWithModalForm', false);
-
-            if ($useModalForm) {
-                $this->crud->removeButton('update');
-                $this->crud->addButton('line', 'update', 'view', 'crud::buttons.update_in_modal', 'end');
-            }
-        });
     }
 
     /**
@@ -78,38 +68,21 @@ trait UpdateOperation
         // get entry ID from Request (makes sure its the last ID for nested resources)
         $id = $this->crud->getCurrentEntryId() ?? $id;
 
-        // Apply cached form setup if this is an AJAX request from a modal
-        if (request()->ajax() && request()->has('_modal_form_id')) {
-            \Backpack\CRUD\app\Library\Support\DataformCache::applySetupClosure($this->crud);
-        }
-
         // register any Model Events defined on fields
         $this->crud->registerFieldEvents();
 
         // get the info for that entry
         $this->data['entry'] = $this->crud->getEntryWithLocale($id);
-
-        // Attempt to apply cached modal setup first (this will restore
-        // fields and entry if the request included _modal_form_id). If
-        // no cached setup applied, fall back to the regular update fields.
-        $appliedFromCache = false;
-        if (request()->ajax() && request()->has('_modal_form_id')) {
-            $appliedFromCache = \Backpack\CRUD\app\Library\Support\DataformCache::applySetupClosure($this->crud);
-        }
-
-        if (! $appliedFromCache) {
-            $this->crud->setOperationSetting('fields', $this->crud->getUpdateFields());
-        }
-
+       
+        $this->crud->setOperationSetting('fields', $this->crud->getUpdateFields());
+        
         $this->data['crud'] = $this->crud;
         $this->data['saveAction'] = $this->crud->getSaveAction();
         $this->data['title'] = $this->crud->getTitle() ?? trans('backpack::crud.edit').' '.$this->crud->entity_name;
         $this->data['id'] = $id;
 
         // load the view from /resources/views/vendor/backpack/crud/ if it exists, otherwise load the one in the package
-        return  request()->ajax() && request()->has('_modal_form_id') ?
-             view('crud::components.dataform.ajax_response', $this->data) :
-             view($this->crud->getEditView(), $this->data);
+        return view($this->crud->getEditView(), $this->data);
     }
 
     /**
