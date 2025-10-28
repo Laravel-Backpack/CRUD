@@ -73,9 +73,9 @@ trait UpdateOperation
 
         // get the info for that entry
         $this->data['entry'] = $this->crud->getEntryWithLocale($id);
-       
+
         $this->crud->setOperationSetting('fields', $this->crud->getUpdateFields());
-        
+
         $this->data['crud'] = $this->crud;
         $this->data['saveAction'] = $this->crud->getSaveAction();
         $this->data['title'] = $this->crud->getTitle() ?? trans('backpack::crud.edit').' '.$this->crud->entity_name;
