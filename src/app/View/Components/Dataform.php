@@ -1,6 +1,7 @@
 <?php
 
 namespace Backpack\CRUD\app\View\Components;
+
 use Backpack\CRUD\CrudManager;
 use Closure;
 use Illuminate\View\Component;

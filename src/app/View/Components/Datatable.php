@@ -15,7 +15,6 @@ class Datatable extends Component
      * Datatables do NOT isolate their operation setup.
      * They manage their own operation state independently.
      */
-
     public function __construct(
         private string $controller,
         private ?CrudPanel $crud = null,
