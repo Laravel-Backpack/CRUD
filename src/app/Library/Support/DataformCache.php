@@ -92,8 +92,8 @@ final class DataformCache extends SetupCache
     public static function applySetupClosure(CrudPanel $crud): bool
     {
         $instance = new self();
-        // Check if the request has a _modal_form_id parameter
-        $formId = request('_modal_form_id');
+        // Check if the request has a _form_id parameter
+        $formId = request('_form_id');
         if (! $formId) {
             return false;
         }
@@ -177,7 +177,7 @@ final class DataformCache extends SetupCache
                 $crud->entry = $entry;
             }
 
-            $formId = $crud->get('form.form_id') ?? request()->input('_modal_form_id') ?? request()->input('_form_id');
+            $formId = $crud->get('form.form_id') ?? request()->input('_form_id');
 
             if ($formId) {
                 $fieldsConfig = Cache::get($this->cachePrefix.$formId.'_fields');

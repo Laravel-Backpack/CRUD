@@ -167,9 +167,10 @@ final class CrudPanelManager
             if (isset($trace['object'])) {
                 $object = $trace['object'];
 
-                // If we find a component that implements the interface, use its declared behavior
+                // If we find a component that implements the marker interface,
+                // it signals that the operation setup should be isolated.
                 if ($object instanceof \Backpack\CRUD\app\View\Components\Contracts\IsolatesOperationSetup) {
-                    return $object->shouldIsolateOperationSetup();
+                    return true;
                 }
             }
         }

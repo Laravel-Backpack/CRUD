@@ -1,7 +1,7 @@
 {{-- Show the errors, if any --}}
 @if ($crud->groupedErrorsEnabled() && session()->get('errors'))
     @php
-        $submittedFormId = old('_modal_form_id') ?? 'crudForm';
+    $submittedFormId = old('_form_id') ?? 'crudForm';
         $currentFormId = $formId ?? 'crudForm';
     @endphp
     @if (!$submittedFormId || $submittedFormId === $currentFormId)

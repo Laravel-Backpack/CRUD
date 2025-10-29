@@ -1,24 +1,13 @@
 <?php
 
 namespace Backpack\CRUD\app\View\Components;
-
-use Backpack\CRUD\app\View\Components\Contracts\IsolatesOperationSetup;
 use Backpack\CRUD\CrudManager;
 use Closure;
 use Illuminate\View\Component;
 
-class Dataform extends Component implements IsolatesOperationSetup
+class Dataform extends Component
 {
     public $crud;
-
-    /**
-     * Standalone forms do NOT isolate their operation setup.
-     * They are allowed to permanently switch operations.
-     */
-    public function shouldIsolateOperationSetup(): bool
-    {
-        return false;
-    }
 
     /**
      * Create a new component instance.

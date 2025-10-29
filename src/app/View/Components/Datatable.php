@@ -4,11 +4,10 @@ namespace Backpack\CRUD\app\View\Components;
 
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanel;
 use Backpack\CRUD\app\Library\Support\DatatableCache;
-use Backpack\CRUD\app\View\Components\Contracts\IsolatesOperationSetup;
 use Backpack\CRUD\CrudManager;
 use Illuminate\View\Component;
 
-class Datatable extends Component implements IsolatesOperationSetup
+class Datatable extends Component
 {
     protected string $tableId;
 
@@ -16,10 +15,6 @@ class Datatable extends Component implements IsolatesOperationSetup
      * Datatables do NOT isolate their operation setup.
      * They manage their own operation state independently.
      */
-    public function shouldIsolateOperationSetup(): bool
-    {
-        return false;
-    }
 
     public function __construct(
         private string $controller,
