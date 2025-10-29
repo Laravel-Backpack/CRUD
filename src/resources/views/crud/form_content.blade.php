@@ -1,5 +1,5 @@
 <input type="hidden" name="_http_referrer" value="{{ session('referrer_url_override') ?? old('_http_referrer') ?? \URL::previous() ?? url($crud->route) }}">
-<input type="hidden" name="_form_id" value="{{ $id ?? 'crudForm' }}">
+<input type="hidden" name="_form_id" value="{{ $formId ?? 'crudForm' }}">
 
 {{-- See if we're using tabs --}}
 @if ($crud->tabsEnabled() && count($crud->getTabs()))

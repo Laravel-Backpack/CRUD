@@ -90,7 +90,7 @@ class Dataform extends Component
     public function render()
     {
         // Store the current form ID in the service container for form-aware old() helper
-        app()->instance('backpack.current_form_modal_id', $this->formId);
+        app()->instance('backpack.current_form_id', $this->formId);
 
         return view('crud::components.dataform.form', [
             'crud' => $this->crud,
