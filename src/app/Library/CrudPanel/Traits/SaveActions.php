@@ -313,9 +313,9 @@ trait SaveActions
         $request = $this->getRequest();
         $saveAction = $request->input('_save_action', $this->getFallBackSaveAction());
         $itemId = $itemId ?: $request->input('id');
-    $actions = $this->getOperationSetting('save_actions');
-    $redirectUrl = $this->route;
-    $referrer_url = null;
+        $actions = $this->getOperationSetting('save_actions');
+        $redirectUrl = $this->route;
+        $referrer_url = null;
 
         if (isset($actions[$saveAction])) {
             if ($actions[$saveAction]['redirect'] instanceof \Closure) {
@@ -412,5 +412,4 @@ trait SaveActions
             '_handler' => $action,
         ];
     }
-
 }
