@@ -31,6 +31,7 @@ class Dataform extends Component
         public ?Closure $setup = null,
         public bool $focusOnFirstField = false,
         public bool $formInsideCard = false,
+        public array $saveActions = [],
     ) {
         // Get CRUD panel instance from the controller
         CrudManager::setActiveController($controller);
@@ -42,6 +43,14 @@ class Dataform extends Component
         }
 
         $this->crud->setAutoFocusOnFirstField($this->focusOnFirstField);
+
+        if ($this->crud->getOperationSetting('save_actions') === null) {
+            $this->crud->setupDefaultSaveActions();
+        }
+
+        if (! empty($this->saveActions)) {
+            $this->crud->replaceSaveActions($this->saveActions);
+        }
 
         if ($this->entry && $this->formOperation === 'update') {
             $this->formAction = $formAction ?? url($this->crud->route.'/'.$this->entry->getKey());

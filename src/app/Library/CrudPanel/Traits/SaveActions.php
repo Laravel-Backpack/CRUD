@@ -2,32 +2,33 @@
 
 namespace Backpack\CRUD\app\Library\CrudPanel\Traits;
 
+use Backpack\CRUD\app\Library\CrudPanel\SaveActions\SaveActionInterface;
+use Backpack\CRUD\app\Library\CrudPanel\SaveActions\SaveAndBack;
+use Backpack\CRUD\app\Library\CrudPanel\SaveActions\SaveAndEdit;
+use Backpack\CRUD\app\Library\CrudPanel\SaveActions\SaveAndNew;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Redirect;
+use InvalidArgumentException;
+use Prologue\Alerts\Facades\Alert;
 
 trait SaveActions
 {
     /**
      * Get the developer's preference on what save action is the default one
      * for the current operation.
-     *
-     * @return string
      */
-    public function getSaveActionDefaultForCurrentOperation()
+    public function getSaveActionDefaultForCurrentOperation(): string
     {
         return config('backpack.crud.operations.'.$this->getCurrentOperation().'.defaultSaveAction', 'save_and_back');
     }
 
     /**
      * Get the save action with full fallback until default.
-     *
-     * @return string
      */
-    public function getFallBackSaveAction()
+    public function getFallBackSaveAction(): string
     {
-        //we get the higher order in save actions array. By default it would be `save_and_back`
         $higherAction = $this->getSaveActionByOrder(1);
 
-        //if there is an higher action and that action is not the backpack default higher one `save_and_back` we return it.
         if (! empty($higherAction) && key($higherAction) !== 'save_and_back') {
             return key($higherAction);
         }
@@ -41,45 +42,61 @@ trait SaveActions
 
     /**
      * Gets the save action that has the desired order.
-     *
-     * @param  int  $order
-     * @return array
      */
-    public function getSaveActionByOrder($order)
+    public function getSaveActionByOrder($order): array
     {
         return array_filter($this->getOperationSetting('save_actions') ?? [], function ($arr) use ($order) {
-            return $arr['order'] == $order;
+            return ($arr['order'] ?? null) == $order;
         });
     }
 
     /**
      * Allow the developer to register multiple save actions.
      *
-     * @param  array  $saveActions
-     * @return void
+     * @param  array|SaveActionInterface|string  $saveActions
      */
     public function addSaveActions($saveActions)
     {
-        // count vs count recursive will be different when counting single dimension vs multiple dimension arrays.
-        // count([1,2]) = 2, count([1,[2,3]]) = 2 with recursive it's 3. so if counts are different we have a
-        // multi dimensional array
-        if (count($saveActions) != count($saveActions, COUNT_RECURSIVE)) {
-            foreach ($saveActions as $saveAction) {
-                $this->addSaveAction($saveAction);
+        if ($saveActions instanceof SaveActionInterface || is_string($saveActions)) {
+            $this->addSaveAction($saveActions);
+
+            return;
+        }
+
+        if (! is_array($saveActions)) {
+            throw new InvalidArgumentException('Save actions must be provided as an array, class name, or instance implementing '.SaveActionInterface::class.'.');
+        }
+
+        if (Arr::isAssoc($saveActions)) {
+            $keys = array_keys($saveActions);
+            $definitionKeys = ['name', 'button_text', 'redirect', 'visible', 'referrer_url', 'order'];
+
+            if (array_intersect($keys, $definitionKeys)) {
+                $this->addSaveAction($saveActions);
+
+                return;
             }
+        }
+
+        foreach ($saveActions as $key => $saveAction) {
+            if (is_array($saveAction) && ! isset($saveAction['name']) && is_string($key)) {
+                $saveAction['name'] = $key;
+            }
+
+            $this->addSaveAction($saveAction);
         }
     }
 
     /**
      * Allow developers to register save action into CRUD.
      *
-     * @param  array  $saveAction
-     * @return void
+     * @param  array|SaveActionInterface|string  $saveAction
      */
-    public function addSaveAction(array $saveAction)
+    public function addSaveAction($saveAction)
     {
+        $saveAction = $this->normalizeSaveAction($saveAction);
+
         $orderCounter = $this->getOperationSetting('save_actions') !== null ? (count($this->getOperationSetting('save_actions')) + 1) : 1;
-        //check for some mandatory fields
         $saveAction['name'] ?? abort(500, 'Please define save action name.', ['developer-error-exception']);
         $saveAction['redirect'] = $saveAction['redirect'] ?? fn ($crud, $request, $itemId) => $request->has('_http_referrer') ? $request->get('_http_referrer') : $crud->route;
         $saveAction['visible'] = $saveAction['visible'] ?? true;
@@ -88,7 +105,7 @@ trait SaveActions
 
         $actions = $this->getOperationSetting('save_actions') ?? [];
 
-        if (! in_array($saveAction['name'], $actions)) {
+        if (! array_key_exists($saveAction['name'], $actions)) {
             $actions[$saveAction['name']] = $saveAction;
         }
 
@@ -97,19 +114,15 @@ trait SaveActions
 
     /**
      * Replaces setting order or forces some default.
-     *
-     * @param  string  $saveAction
-     * @param  int  $wantedOrder
-     * @return int
      */
     public function orderSaveAction(string $saveAction, int $wantedOrder)
     {
         $actions = $this->getOperationSetting('save_actions') ?? [];
         if (! empty($actions)) {
-            $replaceOrder = isset($actions[$saveAction]) ? $actions[$saveAction]['order'] : count($actions) + 1;
+            $replaceOrder = isset($actions[$saveAction]['order']) ? $actions[$saveAction]['order'] : count($actions) + 1;
 
             foreach ($actions as $key => $sv) {
-                if ($wantedOrder == $sv['order']) {
+                if (($sv['order'] ?? null) == $wantedOrder) {
                     $actions[$key]['order'] = $replaceOrder;
                 }
                 if ($key == $saveAction) {
@@ -125,26 +138,21 @@ trait SaveActions
     /**
      * Replace the current save actions with the ones provided.
      *
-     * @param  array  $saveActions
-     * @return void
+     * @param  array|SaveActionInterface|string  $saveActions
      */
     public function replaceSaveActions($saveActions)
     {
-        //we reset all save actions
         $this->setOperationSetting('save_actions', []);
 
-        if (count($saveActions) != count($saveActions, COUNT_RECURSIVE)) {
-            $this->addSaveActions($saveActions);
-        } else {
-            $this->addSaveAction($saveActions);
+        if ($saveActions === null || $saveActions === []) {
+            return;
         }
+
+        $this->addSaveActions($saveActions);
     }
 
     /**
      * Alias function of replaceSaveActions() for CRUD consistency.
-     *
-     * @param  array  $saveActions
-     * @return void
      */
     public function setSaveActions($saveActions)
     {
@@ -153,9 +161,6 @@ trait SaveActions
 
     /**
      * Allow the developer to remove multiple save actions from settings.
-     *
-     * @param  array  $saveActions
-     * @return void
      */
     public function removeSaveActions(array $saveActions)
     {
@@ -166,9 +171,6 @@ trait SaveActions
 
     /**
      * Allow the developer to remove a save action from settings.
-     *
-     * @param  string  $saveAction
-     * @return void
      */
     public function removeSaveAction(string $saveAction)
     {
@@ -181,9 +183,6 @@ trait SaveActions
 
     /**
      * Allow the developer to unset all save actions.
-     *
-     * @param  string  $saveAction
-     * @return void
      */
     public function removeAllSaveActions()
     {
@@ -192,9 +191,6 @@ trait SaveActions
 
     /**
      * Allows the developer to set save actions order. It could be ['action1','action2'] or ['action1' => 1, 'action2' => 2].
-     *
-     * @param  array  $saveActions
-     * @return void
      */
     public function orderSaveActions(array $saveActions)
     {
@@ -209,15 +205,13 @@ trait SaveActions
 
     /**
      * Return the ordered save actions to use in the crud panel.
-     *
-     * @return array
      */
     public function getOrderedSaveActions()
     {
         $actions = $this->getOperationSetting('save_actions') ?? [];
 
         uasort($actions, function ($a, $b) {
-            return $a['order'] <=> $b['order'];
+            return ($a['order'] ?? PHP_INT_MAX) <=> ($b['order'] ?? PHP_INT_MAX);
         });
 
         return $actions;
@@ -225,8 +219,6 @@ trait SaveActions
 
     /**
      * Returns the save actions that passed the visible callback.
-     *
-     * @return array
      */
     public function getVisibleSaveActions()
     {
@@ -235,6 +227,8 @@ trait SaveActions
             $visible = $action['visible'];
             if ($visible instanceof \Closure) {
                 $actions[$actionName]['visible'] = $visible($this);
+            } elseif (is_array($visible) && is_callable($visible)) {
+                $actions[$actionName]['visible'] = call_user_func($visible, $this);
             }
         }
 
@@ -245,13 +239,9 @@ trait SaveActions
 
     /**
      * Gets the current save action for this crud.
-     *
-     * @param  array  $saveOptions
-     * @return array
      */
     public function getCurrentSaveAction($saveOptions)
     {
-        //get save action from session if exists, or get the developer defined order
         $saveAction = session($this->getCurrentOperation().'.saveAction', $this->getFallBackSaveAction());
         if (isset($saveOptions[$saveAction])) {
             $currentAction = $saveOptions[$saveAction];
@@ -260,32 +250,31 @@ trait SaveActions
         }
 
         return [
-            'value' => $currentAction['name'],
-            'label' => $currentAction['button_text'],
+            'value' => $currentAction['name'] ?? null,
+            'label' => $currentAction['button_text'] ?? null,
         ];
     }
 
     /**
      * Here we check for save action visibility and prepare the actions array for display.
-     *
-     * @return array
      */
     public function getSaveAction()
     {
-        //get only the save actions that pass visibility callback
         $saveOptions = $this->getVisibleSaveActions();
 
         if (empty($saveOptions)) {
             return [];
         }
 
-        //get the current action
         $saveCurrent = $this->getCurrentSaveAction($saveOptions);
 
-        //get the dropdown options
+        if ($saveCurrent['value'] === null) {
+            return [];
+        }
+
         $dropdownOptions = [];
         foreach ($saveOptions as $key => $option) {
-            if ($option['name'] != $saveCurrent['value']) {
+            if (($option['name'] ?? null) != $saveCurrent['value']) {
                 $dropdownOptions[$option['name']] = $option['button_text'];
             }
         }
@@ -298,9 +287,6 @@ trait SaveActions
 
     /**
      * Change the session variable that remembers what to do after the "Save" action.
-     *
-     * @param  string|null  $forceSaveAction
-     * @return void
      */
     public function setSaveAction($forceSaveAction = null)
     {
@@ -313,7 +299,7 @@ trait SaveActions
             $showBubble &&
             session($this->getCurrentOperation().'.saveAction', 'save_and_back') !== $saveAction
         ) {
-            \Alert::info(trans('backpack::crud.save_action_changed_notification'))->flash();
+            Alert::info(trans('backpack::crud.save_action_changed_notification'))->flash();
         }
 
         session([$this->getCurrentOperation().'.saveAction' => $saveAction]);
@@ -321,32 +307,34 @@ trait SaveActions
 
     /**
      * Redirect to the correct URL, depending on which save action has been selected.
-     *
-     * @param  string  $itemId
-     * @return \Illuminate\Http\JsonResponse|\Illuminate\Http\RedirectResponse
      */
     public function performSaveAction($itemId = null)
     {
         $request = $this->getRequest();
         $saveAction = $request->input('_save_action', $this->getFallBackSaveAction());
         $itemId = $itemId ?: $request->input('id');
-        $actions = $this->getOperationSetting('save_actions');
-        $redirectUrl = $this->route;
+    $actions = $this->getOperationSetting('save_actions');
+    $redirectUrl = $this->route;
+    $referrer_url = null;
 
         if (isset($actions[$saveAction])) {
             if ($actions[$saveAction]['redirect'] instanceof \Closure) {
                 $redirectUrl = $actions[$saveAction]['redirect']($this, $request, $itemId);
+            } elseif (is_array($actions[$saveAction]['redirect']) && is_callable($actions[$saveAction]['redirect'])) {
+                $redirectUrl = call_user_func($actions[$saveAction]['redirect'], $this, $request, $itemId);
             }
 
-            //allow the save action to define default http_referrer (url for the save_and_back button)
             if (isset($actions[$saveAction]['referrer_url'])) {
                 if ($actions[$saveAction]['referrer_url'] instanceof \Closure) {
                     $referrer_url = $actions[$saveAction]['referrer_url']($this, $request, $itemId);
+                } elseif (is_array($actions[$saveAction]['referrer_url']) && is_callable($actions[$saveAction]['referrer_url'])) {
+                    $referrer_url = call_user_func($actions[$saveAction]['referrer_url'], $this, $request, $itemId);
+                } else {
+                    $referrer_url = $actions[$saveAction]['referrer_url'];
                 }
             }
         }
 
-        // if the request is AJAX, return a JSON response
         if ($this->getRequest()->ajax()) {
             return response()->json([
                 'success' => true,
@@ -356,65 +344,73 @@ trait SaveActions
             ]);
         }
 
-        if (isset($referrer_url)) {
+        if ($referrer_url !== null) {
             session()->flash('referrer_url_override', $referrer_url);
         }
 
-        return \Redirect::to($redirectUrl);
+        if ($redirectUrl === null) {
+            $redirectUrl = $this->route ?? url('/');
+        }
+
+        return Redirect::to($redirectUrl);
     }
 
     /**
      * This functions register Backpack default save actions into CRUD.
-     *
-     * @return array
      */
     public function setupDefaultSaveActions()
     {
-        $defaultSaveActions = [
-            [
-                'name' => 'save_and_back',
-                'visible' => function ($crud) {
-                    return $crud->hasAccess('list');
-                },
-                'redirect' => function ($crud, $request, $itemId = null) {
-                    return $request->has('_http_referrer') ? $request->get('_http_referrer') : $crud->route;
-                },
-                'button_text' => trans('backpack::crud.save_action_save_and_back'),
-            ],
-            [
-                'name' => 'save_and_edit',
-                'visible' => function ($crud) {
-                    return $crud->hasAccess('update');
-                },
-                'redirect' => function ($crud, $request, $itemId = null) {
-                    $itemId = $itemId ?: $request->get('id');
-                    $redirectUrl = $crud->route.'/'.$itemId.'/edit';
-                    if ($request->has('_locale')) {
-                        $redirectUrl .= '?_locale='.$request->get('_locale');
-                    }
-                    if ($request->has('_current_tab')) {
-                        $redirectUrl = $redirectUrl.'#'.$request->get('_current_tab');
-                    }
-
-                    return $redirectUrl;
-                },
-                'referrer_url' => function ($crud, $request, $itemId) {
-                    return url($crud->route.'/'.$itemId.'/edit');
-                },
-                'button_text' => trans('backpack::crud.save_action_save_and_edit'),
-            ],
-            [
-                'name' => 'save_and_new',
-                'visible' => function ($crud) {
-                    return $crud->hasAccess('create');
-                },
-                'redirect' => function ($crud, $request, $itemId = null) {
-                    return $this->route.'/create';
-                },
-                'button_text' => trans('backpack::crud.save_action_save_and_new'),
-            ],
-        ];
-
-        $this->addSaveActions($defaultSaveActions);
+        $this->addSaveActions([
+            new SaveAndBack(),
+            new SaveAndEdit(),
+            new SaveAndNew(),
+        ]);
     }
+
+    protected function normalizeSaveAction($saveAction): array
+    {
+        if ($saveAction instanceof SaveActionInterface) {
+            return $this->convertSaveActionInstanceToArray($saveAction);
+        }
+
+        if (is_string($saveAction)) {
+            if (! class_exists($saveAction)) {
+                throw new InvalidArgumentException(sprintf('Save action class [%s] does not exist.', $saveAction));
+            }
+
+            $instance = app()->make($saveAction);
+
+            if (! $instance instanceof SaveActionInterface) {
+                throw new InvalidArgumentException(sprintf('Save action class [%s] must implement %s.', $saveAction, SaveActionInterface::class));
+            }
+
+            return $this->convertSaveActionInstanceToArray($instance);
+        }
+
+        if (! is_array($saveAction)) {
+            throw new InvalidArgumentException('Save action definition must be a class name, array, or SaveActionInterface instance.');
+        }
+
+        if (isset($saveAction['order'])) {
+            $saveAction['order'] = $saveAction['order'] !== null ? (int) $saveAction['order'] : null;
+        }
+
+        return $saveAction;
+    }
+
+    protected function convertSaveActionInstanceToArray(SaveActionInterface $action): array
+    {
+        $order = $action->getOrder();
+
+        return [
+            'name' => $action->getName(),
+            'button_text' => $action->getButtonText(),
+            'visible' => fn ($crud) => $action->isVisible($crud),
+            'redirect' => fn ($crud, $request, $itemId = null) => $action->getRedirectUrl($crud, $request, $itemId),
+            'referrer_url' => fn ($crud, $request, $itemId = null) => $action->getReferrerUrl($crud, $request, $itemId),
+            'order' => $order,
+            '_handler' => $action,
+        ];
+    }
+
 }
