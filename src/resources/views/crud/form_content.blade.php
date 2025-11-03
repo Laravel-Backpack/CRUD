@@ -6,8 +6,8 @@
     @include('crud::inc.show_tabbed_fields')
     <input type="hidden" name="_current_tab" value="{{ Str::slug($crud->getTabs()[0]) }}" />
 @else
-  <div class="{{isset($formInsideCard) && $formInsideCard ? '' : 'card'}}">
-    <div class="{{isset($formInsideCard) && $formInsideCard ? '' : 'card-body'}} row">
+  <div class="{{isset($formInsideCard) && $formInsideCard ? 'card' : ''}}">
+    <div class="{{isset($formInsideCard) && $formInsideCard ? 'card-body' : ''}} row">
       @include('crud::inc.show_fields', ['fields' => $crud->fields()])
     </div>
   </div>
