@@ -3,9 +3,10 @@
 namespace Backpack\CRUD\app\Library\CrudPanel\SaveActions;
 
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanel;
+use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Http\Request;
 
-interface SaveActionInterface
+interface SaveActionInterface extends Arrayable
 {
     public function getName(): string;
 

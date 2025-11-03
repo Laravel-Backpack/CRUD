@@ -40,4 +40,17 @@ abstract class AbstractSaveAction implements SaveActionInterface
     {
         return null;
     }
+
+    public function toArray(): array
+    {
+        return [
+            'name' => $this->getName(),
+            'button_text' => $this->getButtonText(),
+            'visible' => fn (CrudPanel $crud) => $this->isVisible($crud),
+            'redirect' => fn (CrudPanel $crud, Request $request, $itemId = null) => $this->getRedirectUrl($crud, $request, $itemId),
+            'referrer_url' => fn (CrudPanel $crud, Request $request, $itemId = null) => $this->getReferrerUrl($crud, $request, $itemId),
+            'order' => $this->getOrder(),
+            '_handler' => $this,
+        ];
+    }
 }

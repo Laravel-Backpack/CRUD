@@ -103,6 +103,10 @@ trait SaveActions
         $saveAction['button_text'] = $saveAction['button_text'] ?? $saveAction['name'];
         $saveAction['order'] = isset($saveAction['order']) ? $this->orderSaveAction($saveAction['name'], $saveAction['order']) : $orderCounter;
 
+        if (isset($saveAction['_handler']) && $saveAction['_handler'] instanceof SaveActionInterface) {
+            $saveAction['_handler']->setOrder((int) $saveAction['order']);
+        }
+
         $actions = $this->getOperationSetting('save_actions') ?? [];
 
         if (! array_key_exists($saveAction['name'], $actions)) {
@@ -124,9 +128,15 @@ trait SaveActions
             foreach ($actions as $key => $sv) {
                 if (($sv['order'] ?? null) == $wantedOrder) {
                     $actions[$key]['order'] = $replaceOrder;
+                    if (isset($actions[$key]['_handler']) && $actions[$key]['_handler'] instanceof SaveActionInterface) {
+                        $actions[$key]['_handler']->setOrder((int) $replaceOrder);
+                    }
                 }
                 if ($key == $saveAction) {
                     $actions[$key]['order'] = $wantedOrder;
+                    if (isset($actions[$key]['_handler']) && $actions[$key]['_handler'] instanceof SaveActionInterface) {
+                        $actions[$key]['_handler']->setOrder((int) $wantedOrder);
+                    }
                 }
             }
             $this->setOperationSetting('save_actions', $actions);
@@ -370,7 +380,7 @@ trait SaveActions
     protected function normalizeSaveAction($saveAction): array
     {
         if ($saveAction instanceof SaveActionInterface) {
-            return $this->convertSaveActionInstanceToArray($saveAction);
+            return $saveAction->toArray();
         }
 
         if (is_string($saveAction)) {
@@ -384,7 +394,7 @@ trait SaveActions
                 throw new InvalidArgumentException(sprintf('Save action class [%s] must implement %s.', $saveAction, SaveActionInterface::class));
             }
 
-            return $this->convertSaveActionInstanceToArray($instance);
+            return $instance->toArray();
         }
 
         if (! is_array($saveAction)) {
@@ -396,20 +406,5 @@ trait SaveActions
         }
 
         return $saveAction;
-    }
-
-    protected function convertSaveActionInstanceToArray(SaveActionInterface $action): array
-    {
-        $order = $action->getOrder();
-
-        return [
-            'name' => $action->getName(),
-            'button_text' => $action->getButtonText(),
-            'visible' => fn ($crud) => $action->isVisible($crud),
-            'redirect' => fn ($crud, $request, $itemId = null) => $action->getRedirectUrl($crud, $request, $itemId),
-            'referrer_url' => fn ($crud, $request, $itemId = null) => $action->getReferrerUrl($crud, $request, $itemId),
-            'order' => $order,
-            '_handler' => $action,
-        ];
     }
 }
