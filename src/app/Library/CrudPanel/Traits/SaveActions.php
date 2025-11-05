@@ -67,15 +67,10 @@ trait SaveActions
             throw new InvalidArgumentException('Save actions must be provided as an array, class name, or instance implementing '.SaveActionInterface::class.'.');
         }
 
-        if (Arr::isAssoc($saveActions)) {
-            $keys = array_keys($saveActions);
-            $definitionKeys = ['name', 'button_text', 'redirect', 'visible', 'referrer_url', 'order'];
+        if ($this->isSingleSaveActionArray($saveActions)) {
+            $this->addSaveAction($saveActions);
 
-            if (array_intersect($keys, $definitionKeys)) {
-                $this->addSaveAction($saveActions);
-
-                return;
-            }
+            return;
         }
 
         foreach ($saveActions as $key => $saveAction) {
@@ -94,7 +89,7 @@ trait SaveActions
      */
     public function addSaveAction($saveAction)
     {
-        $saveAction = $this->normalizeSaveAction($saveAction);
+    $saveAction = $this->prepareSaveActionDefinition($saveAction);
 
         $orderCounter = $this->getOperationSetting('save_actions') !== null ? (count($this->getOperationSetting('save_actions')) + 1) : 1;
         $saveAction['name'] ?? abort(500, 'Please define save action name.', ['developer-error-exception']);
@@ -377,7 +372,7 @@ trait SaveActions
         ]);
     }
 
-    protected function normalizeSaveAction($saveAction): array
+    protected function prepareSaveActionDefinition($saveAction): array
     {
         if ($saveAction instanceof SaveActionInterface) {
             return $saveAction->toArray();
@@ -406,5 +401,14 @@ trait SaveActions
         }
 
         return $saveAction;
+    }
+
+    protected function isSingleSaveActionArray(array $saveActions): bool
+    {
+        if (! Arr::isAssoc($saveActions)) {
+            return false;
+        }
+
+        return array_key_exists('name', $saveActions);
     }
 }
