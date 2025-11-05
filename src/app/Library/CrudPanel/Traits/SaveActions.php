@@ -89,7 +89,7 @@ trait SaveActions
      */
     public function addSaveAction($saveAction)
     {
-    $saveAction = $this->prepareSaveActionDefinition($saveAction);
+        $saveAction = $this->prepareSaveActionDefinition($saveAction);
 
         $orderCounter = $this->getOperationSetting('save_actions') !== null ? (count($this->getOperationSetting('save_actions')) + 1) : 1;
         $saveAction['name'] ?? abort(500, 'Please define save action name.', ['developer-error-exception']);
