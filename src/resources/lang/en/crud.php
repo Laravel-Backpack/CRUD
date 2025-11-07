@@ -14,7 +14,7 @@ return [
     */
 
     // Forms
-    'save_action_save_and_list' => 'Save and go to list',
+    'save_action_save_and_list' => 'Save and list items',
     'save_action_save_and_new' => 'Save and new item',
     'save_action_save_and_edit' => 'Save and edit this item',
     'save_action_save_and_back' => 'Save and back',
