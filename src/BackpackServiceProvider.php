@@ -28,6 +28,7 @@ class BackpackServiceProvider extends ServiceProvider
         app\Console\Commands\CreateUser::class,
         app\Console\Commands\PublishBackpackMiddleware::class,
         app\Console\Commands\PublishView::class,
+        app\Console\Commands\Upgrade\UpgradeCommand::class,
         app\Console\Commands\Addons\RequireDevTools::class,
         app\Console\Commands\Addons\RequireEditableColumns::class,
         app\Console\Commands\Addons\RequirePro::class,

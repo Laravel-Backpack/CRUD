@@ -1,0 +1,242 @@
+<?php
+
+namespace Backpack\CRUD\app\Console\Commands\Upgrade;
+
+use Backpack\CRUD\app\Console\Commands\Traits\PrettyCommandOutput;
+use Illuminate\Console\Command;
+
+class UpgradeCommand extends Command
+{
+    use PrettyCommandOutput;
+
+    protected $signature = 'backpack:upgrade
+                                {version=7 : Target Backpack version to prepare for.}
+                                {--stop-on-failure : Stop executing once a step fails.}
+                                {--format=cli : Output format (cli, json).}
+                                {--debug : Show debug information for executed processes.}';
+
+    protected $description = 'Run opinionated upgrade checks to help you move between Backpack major versions.';
+
+    public function handle(): int
+    {
+        $format = $this->outputFormat();
+
+        if (! in_array($format, ['cli', 'json'], true)) {
+            $this->errorBlock(sprintf('Unknown output format "%s". Supported formats: cli, json.', $format));
+
+            return Command::INVALID;
+        }
+
+        $version = (string) $this->argument('version');
+        $majorVersion = $this->extractMajorVersion($version);
+
+        $stepClasses = $this->resolveStepsForMajor($majorVersion);
+
+        if (empty($stepClasses)) {
+            $this->errorBlock("No automated checks registered for Backpack v{$majorVersion}.");
+
+            return Command::INVALID;
+        }
+
+        $context = new UpgradeContext($majorVersion);
+
+        $this->infoBlock("Backpack v{$majorVersion} upgrade assistant", 'upgrade');
+
+        $results = [];
+
+        foreach ($stepClasses as $stepClass) {
+            /** @var Step $step */
+            $step = new $stepClass($context);
+
+            $this->progressBlock($step->title());
+
+            try {
+                $result = $step->run();
+            } catch (\Throwable $exception) {
+                $result = StepResult::failure(
+                    $exception->getMessage(),
+                    [
+                        'Step: '.$stepClass,
+                    ]
+                );
+            }
+
+            $this->closeProgressBlock(strtoupper($result->status->label()), $result->status->color());
+
+            $this->printResultDetails($result);
+
+            if ($this->shouldOfferFix($step, $result)) {
+                $applyFix = $this->confirm('  Apply automatic fix?', false);
+
+                if ($applyFix) {
+                    $this->progressBlock('Applying automatic fix');
+                    $fixResult = $step->fix($result);
+                    $this->closeProgressBlock(strtoupper($fixResult->status->label()), $fixResult->status->color());
+                    $this->printResultDetails($fixResult);
+
+                    if (! $fixResult->status->isFailure()) {
+                        $this->progressBlock('Re-running '.$step->title());
+
+                        try {
+                            $result = $step->run();
+                        } catch (\Throwable $exception) {
+                            $result = StepResult::failure(
+                                $exception->getMessage(),
+                                [
+                                    'Step: '.$stepClass,
+                                ]
+                            );
+                        }
+
+                        $this->closeProgressBlock(strtoupper($result->status->label()), $result->status->color());
+                        $this->printResultDetails($result);
+                    }
+                }
+            }
+
+            $results[] = [
+                'step' => $stepClass,
+                'result' => $result,
+            ];
+
+            if ($this->option('stop-on-failure') && $result->status->isFailure()) {
+                break;
+            }
+        }
+
+        return $this->outputSummary($majorVersion, $results);
+    }
+
+    protected function outputSummary(string $majorVersion, array $results): int
+    {
+        $format = $this->outputFormat();
+
+        $hasFailure = collect($results)->contains(function ($entry) {
+            /** @var StepResult $result */
+            $result = $entry['result'];
+
+            return $result->status->isFailure();
+        });
+
+        $warnings = collect($results)->filter(function ($entry) {
+            /** @var StepResult $result */
+            $result = $entry['result'];
+
+            return $result->status === StepStatus::Warning;
+        });
+
+        if ($format === 'json') {
+            $payload = [
+                'version' => $majorVersion,
+                'results' => collect($results)->map(function ($entry) {
+                    /** @var StepResult $result */
+                    $result = $entry['result'];
+
+                    return [
+                        'step' => $entry['step'],
+                        'status' => $result->status->value,
+                        'summary' => $result->summary,
+                        'details' => $result->details,
+                    ];
+                })->values()->all(),
+            ];
+
+            $this->newLine();
+            $this->line(json_encode($payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+
+            return $hasFailure ? Command::FAILURE : Command::SUCCESS;
+        }
+
+        $this->newLine();
+        $this->infoBlock('Summary', 'done');
+
+        $this->note(sprintf('Checked %d upgrade steps.', count($results)), 'gray');
+
+        if ($hasFailure) {
+            $this->note('At least one step reported a failure. Review the messages above before continuing.', 'red', 'red');
+        }
+
+        if ($warnings->isNotEmpty()) {
+            $this->note(sprintf('%d step(s) reported warnings.', $warnings->count()), 'yellow', 'yellow');
+        }
+
+        if (! $hasFailure && $warnings->isEmpty()) {
+            $this->note('All checks passed, you are ready to continue with the manual steps from the upgrade guide.', 'green', 'green');
+        }
+
+        $this->newLine();
+
+        return $hasFailure ? Command::FAILURE : Command::SUCCESS;
+    }
+
+    protected function printResultDetails(StepResult $result): void
+    {
+        $color = match ($result->status) {
+            StepStatus::Passed => 'green',
+            StepStatus::Warning => 'yellow',
+            StepStatus::Failed => 'red',
+            StepStatus::Skipped => 'gray',
+        };
+
+        if ($result->summary !== '') {
+            $this->note($result->summary, $color, $color);
+        }
+
+        foreach ($result->details as $detail) {
+            $this->note($detail, 'gray');
+        }
+
+        $this->newLine();
+    }
+
+    protected function shouldOfferFix(Step $step, StepResult $result): bool
+    {
+        if ($this->outputFormat() === 'json') {
+            return false;
+        }
+
+        if (! $this->input->isInteractive()) {
+            return false;
+        }
+
+        if (! in_array($result->status, [StepStatus::Warning, StepStatus::Failed], true)) {
+            return false;
+        }
+
+        return $step->canFix($result);
+    }
+
+    protected function outputFormat(): string
+    {
+        $format = strtolower((string) $this->option('format'));
+
+        return $format !== '' ? $format : 'cli';
+    }
+
+    protected function resolveStepsForMajor(string $majorVersion): array
+    {
+        return match ($majorVersion) {
+            '7' => [
+                v7\Steps\EnsureLaravelVersionStep::class,
+                v7\Steps\EnsureBackpackCrudRequirementStep::class,
+                v7\Steps\EnsureMinimumStabilityStep::class,
+                v7\Steps\EnsureFirstPartyAddonsAreCompatibleStep::class,
+                v7\Steps\CheckShowOperationComponentStep::class,
+                v7\Steps\CheckOperationConfigFilesStep::class,
+                v7\Steps\CheckThemeTablerConfigStep::class,
+                v7\Steps\DetectDeprecatedWysiwygUsageStep::class,
+                v7\Steps\DetectEditorAddonRequirementsStep::class,
+            ],
+            default => [],
+        };
+    }
+
+    protected function extractMajorVersion(string $version): string
+    {
+        if (preg_match('/^(\d+)/', $version, $matches)) {
+            return $matches[1];
+        }
+
+        return $version;
+    }
+}
