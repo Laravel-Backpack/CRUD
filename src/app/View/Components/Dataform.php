@@ -18,6 +18,7 @@ class Dataform extends Component
      * @param  string|null  $action  Custom form action URL
      * @param  string  $method  Form method (post, put, etc.)
      * @param  bool  $focusOnFirstField  Whether to focus on the first field when form loads
+     * @param  bool|null  $showCancelButton  Override for the CRUD cancel button visibility
      */
     public function __construct(
         public string $controller,
@@ -30,6 +31,7 @@ class Dataform extends Component
         public $entry = null,
         public ?Closure $setup = null,
         public bool $focusOnFirstField = false,
+        public ?bool $showCancelButton = null,
         public bool $formInsideCard = false,
         public array $saveActions = [],
     ) {
@@ -69,6 +71,10 @@ class Dataform extends Component
         if ($this->setup) {
             $parentEntry = $this->getParentCrudEntry();
             call_user_func($this->setup, $this->crud, $parentEntry);
+        }
+
+        if (! is_null($showCancelButton)) {
+            $this->crud->setOperationSetting('showCancelButton', $showCancelButton);
         }
 
         // Reset the active controller
