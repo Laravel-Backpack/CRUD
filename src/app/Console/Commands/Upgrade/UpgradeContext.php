@@ -46,7 +46,7 @@ class UpgradeContext
 
     public function basePath(string $path = ''): string
     {
-        $path = ltrim($path, "/\\");
+        $path = ltrim($path, '/\\');
 
         return $this->normalizePath($this->basePath.($path !== '' ? '/'.$path : ''));
     }
@@ -157,7 +157,7 @@ class UpgradeContext
         return null;
     }
 
-    public function searchTokens(array $tokens, array $directories = null): array
+    public function searchTokens(array $tokens, ?array $directories = null): array
     {
         sort($tokens);
 
