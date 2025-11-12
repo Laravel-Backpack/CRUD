@@ -65,8 +65,8 @@ class EnsureLaravelVersionStep extends Step
         return StepResult::failure(
             'Upgrade Laravel to version 12 before continuing.',
             [
-                "Laravel 12 is allowed by your composer.json constraints, you just need to run composer update to get it.",
-                "Detected Laravel version: {$prettyVersion}"
+                'Laravel 12 is allowed by your composer.json constraints, you just need to run composer update to get it.',
+                "Detected Laravel version: {$prettyVersion}",
             ]
         );
     }
@@ -178,6 +178,6 @@ class EnsureLaravelVersionStep extends Step
             return $normalized;
         }
 
-        return rtrim($normalized, ' ') . ' || ^12.0';
+        return rtrim($normalized, ' ').' || ^12.0';
     }
 }

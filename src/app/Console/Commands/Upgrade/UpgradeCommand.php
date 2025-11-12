@@ -40,13 +40,13 @@ class UpgradeCommand extends Command
         }
 
         $stepClasses = $config->steps();
-            if (empty($stepClasses)) {
+        if (empty($stepClasses)) {
             $this->errorBlock("No automated checks registered for Backpack v{$majorVersion}.");
 
             return Command::INVALID;
         }
 
-            $context = new UpgradeContext($majorVersion, addons: $config->addons());
+        $context = new UpgradeContext($majorVersion, addons: $config->addons());
 
         $this->infoBlock("Backpack v{$majorVersion} upgrade assistant", 'upgrade');
 

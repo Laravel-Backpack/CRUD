@@ -68,10 +68,10 @@ class CheckShowOperationComponentConfigStep extends Step
         $newline = str_contains($contents, "\r\n") ? "\r\n" : "\n";
         $pattern = '/(return\s*\[\s*(?:\r?\n))/';
         $replacement = '$1'
-            . '    // Which component to use for displaying the Show page?'
-            . $newline
-            . "    'component' => 'bp-datagrid', // options: bp-datagrid, bp-datalist, or a custom component alias"
-            . $newline. $newline;
+            .'    // Which component to use for displaying the Show page?'
+            .$newline
+            ."    'component' => 'bp-datagrid', // options: bp-datagrid, bp-datalist, or a custom component alias"
+            .$newline.$newline;
 
         $updatedContents = preg_replace($pattern, $replacement, $contents, 1, $replacements);
 
