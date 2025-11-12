@@ -40,8 +40,8 @@ abstract class Step
     /**
      * Build a preview of items with an optional formatter and overflow message.
      *
-     * @param array<int, mixed> $items
-     * @param callable|null $formatter
+     * @param  array<int, mixed>  $items
+     * @param  callable|null  $formatter
      * @return array<int, string>
      */
     protected function previewList(
