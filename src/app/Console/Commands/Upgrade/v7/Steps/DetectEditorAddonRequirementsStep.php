@@ -55,10 +55,11 @@ class DetectEditorAddonRequirementsStep extends Step
                 continue;
             }
 
-            $details = $this->previewLines(
+            $details = $this->previewList(
                 $paths,
                 10,
-                fn (string $path): string => "- {$keyword} usage: {$path}"
+                fn (string $path): string => "- {$keyword} usage: {$path}",
+                '... %d more occurrence(s) omitted.'
             );
 
             if ($composerConstraint === null) {

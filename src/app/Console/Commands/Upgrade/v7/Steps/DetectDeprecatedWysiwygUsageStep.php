@@ -30,7 +30,7 @@ class DetectDeprecatedWysiwygUsageStep extends Step
             return StepResult::success('No wysiwyg aliases detected.');
         }
 
-        $details = $this->previewLines($paths);
+        $details = $this->previewList($paths);
 
         return StepResult::warning(
             'Replace the wysiwyg field/column with ckeditor or text (the alias was removed).',

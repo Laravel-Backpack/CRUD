@@ -20,6 +20,7 @@ class UpgradeCommandConfig implements UpgradeConfigInterface
             Step\DetectEditorAddonRequirementsStep::class,
             Step\CheckShowOperationViewPublishedStep::class,
             Step\CheckShowOperationComponentConfigStep::class,
+            Step\CheckFileManagerPublishedViewsStep::class,
             Step\CheckListOperationViewPublishedStep::class,
         ];
     }

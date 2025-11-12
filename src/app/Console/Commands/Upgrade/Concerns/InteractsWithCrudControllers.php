@@ -41,29 +41,6 @@ trait InteractsWithCrudControllers
         return $filtered;
     }
 
-    /**
-     * Build a short list of preview lines for the provided paths.
-     */
-    protected function previewLines(array $paths, int $limit = 10, ?callable $formatter = null): array
-    {
-        if (empty($paths)) {
-            return [];
-        }
-
-        $formatter ??= static fn (string $path): string => "- {$path}";
-
-        $preview = array_slice($paths, 0, $limit);
-        $details = array_map($formatter, $preview);
-
-        $remaining = count($paths) - count($preview);
-
-        if ($remaining > 0) {
-            $details[] = sprintf('… %d more occurrence(s) omitted.', $remaining);
-        }
-
-        return $details;
-    }
-
     protected function isCrudControllerPath(string $path): bool
     {
         return str_contains($path, 'CrudController');

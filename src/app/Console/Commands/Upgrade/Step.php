@@ -36,4 +36,34 @@ abstract class Step
     {
         return StepResult::skipped('No automatic fix available.');
     }
+
+    /**
+     * Build a preview of items with an optional formatter and overflow message.
+     *
+     * @param array<int, mixed> $items
+     * @param callable|null $formatter
+     * @return array<int, string>
+     */
+    protected function previewList(
+        array $items,
+        int $limit = 10,
+        ?callable $formatter = null,
+        ?string $overflowMessage = null
+    ): array {
+        if (empty($items)) {
+            return [];
+        }
+
+        $formatter ??= static fn ($item): string => '- '.(string) $item;
+        $preview = array_slice($items, 0, $limit);
+        $details = array_map($formatter, $preview);
+
+        $remaining = count($items) - count($preview);
+
+        if ($remaining > 0) {
+            $details[] = sprintf($overflowMessage ?? '... %d more item(s) omitted.', $remaining);
+        }
+
+        return $details;
+    }
 }
