@@ -1,6 +1,6 @@
 <?php
 
-namespace Backpack\CRUD\app\Console\Commands\Upgrade\v7\Concerns;
+namespace Backpack\CRUD\app\Console\Commands\Upgrade\Concerns;
 
 use Backpack\CRUD\app\Console\Commands\Upgrade\UpgradeContext;
 

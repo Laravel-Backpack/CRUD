@@ -5,7 +5,7 @@ namespace Backpack\CRUD\app\Console\Commands\Upgrade\v7\Steps;
 use Backpack\CRUD\app\Console\Commands\Upgrade\Step;
 use Backpack\CRUD\app\Console\Commands\Upgrade\StepResult;
 use Backpack\CRUD\app\Console\Commands\Upgrade\StepStatus;
-use Backpack\CRUD\app\Console\Commands\Upgrade\v7\Concerns\InteractsWithCrudControllers;
+use Backpack\CRUD\app\Console\Commands\Upgrade\Concerns\InteractsWithCrudControllers;
 
 class DetectEditorAddonRequirementsStep extends Step
 {
