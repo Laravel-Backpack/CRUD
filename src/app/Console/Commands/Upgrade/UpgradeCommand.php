@@ -125,8 +125,7 @@ class UpgradeCommand extends Command
         array $results,
         bool $expectedVersionInstalled = false,
         ?UpgradeConfigInterface $config = null
-    ): int
-    {
+    ): int {
         $format = $this->outputFormat();
 
         $resultsCollection = collect($results);
@@ -321,5 +320,4 @@ class UpgradeCommand extends Command
 
         return true;
     }
-
 }
