@@ -4,6 +4,7 @@ namespace Backpack\CRUD\app\Console\Commands\Upgrade;
 
 use Backpack\CRUD\app\Console\Commands\Traits\PrettyCommandOutput;
 use Illuminate\Console\Command;
+use RuntimeException;
 
 class UpgradeCommand extends Command
 {
@@ -30,15 +31,22 @@ class UpgradeCommand extends Command
         $version = (string) $this->argument('version');
         $majorVersion = $this->extractMajorVersion($version);
 
-        $stepClasses = $this->resolveStepsForMajor($majorVersion);
+        try {
+            $config = $this->resolveConfigForMajor($majorVersion);
+        } catch (RuntimeException $exception) {
+            $this->errorBlock($exception->getMessage());
 
-        if (empty($stepClasses)) {
+            return Command::INVALID;
+        }
+
+        $stepClasses = $config->steps();
+            if (empty($stepClasses)) {
             $this->errorBlock("No automated checks registered for Backpack v{$majorVersion}.");
 
             return Command::INVALID;
         }
 
-        $context = new UpgradeContext($majorVersion);
+            $context = new UpgradeContext($majorVersion, addons: $config->addons());
 
         $this->infoBlock("Backpack v{$majorVersion} upgrade assistant", 'upgrade');
 
@@ -66,7 +74,9 @@ class UpgradeCommand extends Command
             $this->printResultDetails($result);
 
             if ($this->shouldOfferFix($step, $result)) {
-                $applyFix = $this->confirm('  Apply automatic fix?', false);
+                $question = trim($step->fixMessage($result));
+                $question = $question !== '' ? $question : 'Apply automatic fix?';
+                $applyFix = $this->confirm('  '.$question, false);
 
                 if ($applyFix) {
                     $this->progressBlock('Applying automatic fix');
@@ -213,22 +223,40 @@ class UpgradeCommand extends Command
         return $format !== '' ? $format : 'cli';
     }
 
-    protected function resolveStepsForMajor(string $majorVersion): array
+    protected function resolveConfigForMajor(string $majorVersion): UpgradeConfigInterface
     {
-        return match ($majorVersion) {
-            '7' => [
-                v7\Steps\EnsureLaravelVersionStep::class,
-                v7\Steps\EnsureBackpackCrudRequirementStep::class,
-                v7\Steps\EnsureMinimumStabilityStep::class,
-                v7\Steps\EnsureFirstPartyAddonsAreCompatibleStep::class,
-                v7\Steps\CheckShowOperationComponentStep::class,
-                v7\Steps\CheckOperationConfigFilesStep::class,
-                v7\Steps\CheckThemeTablerConfigStep::class,
-                v7\Steps\DetectDeprecatedWysiwygUsageStep::class,
-                v7\Steps\DetectEditorAddonRequirementsStep::class,
-            ],
-            default => [],
-        };
+        $configProviderClass = sprintf('%s\\v%s\\UpgradeCommandConfig', __NAMESPACE__, $majorVersion);
+
+        if (! class_exists($configProviderClass)) {
+            throw new RuntimeException(sprintf(
+                'Missing upgrade config provider for Backpack v%s. Please create %s.',
+                $majorVersion,
+                $configProviderClass
+            ));
+        }
+
+        $provider = $this->laravel
+            ? $this->laravel->make($configProviderClass)
+            : new $configProviderClass();
+
+        if (! $provider instanceof UpgradeConfigInterface) {
+            throw new RuntimeException(sprintf(
+                'Upgrade config provider [%s] must implement %s.',
+                $configProviderClass,
+                UpgradeConfigInterface::class
+            ));
+        }
+
+        $steps = $provider->steps();
+
+        if (! is_array($steps)) {
+            throw new RuntimeException(sprintf(
+                'Upgrade config provider [%s] must return an array of step class names.',
+                $configProviderClass
+            ));
+        }
+
+        return $provider;
     }
 
     protected function extractMajorVersion(string $version): string

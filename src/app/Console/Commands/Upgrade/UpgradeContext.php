@@ -30,18 +30,27 @@ class UpgradeContext
 
     protected array $searchableExtensions = ['php'];
 
+    protected array $addons = [];
+
     public function __construct(
         protected readonly string $targetVersion,
         ?Filesystem $filesystem = null,
-        ?string $basePath = null
+        ?string $basePath = null,
+        array $addons = []
     ) {
         $this->files = $filesystem ?? new Filesystem();
         $this->basePath = $this->normalizePath($basePath ?? $this->defaultBasePath());
+        $this->addons = $addons;
     }
 
     public function targetVersion(): string
     {
         return $this->targetVersion;
+    }
+
+    public function addons(): array
+    {
+        return $this->addons;
     }
 
     public function basePath(string $path = ''): string
@@ -226,6 +235,28 @@ class UpgradeContext
 
             if ($relativePath === 'composer.json') {
                 $this->composerJson = json_decode($contents, true) ?? [];
+            }
+
+            return true;
+        } catch (\Throwable $exception) {
+            return false;
+        }
+    }
+
+    public function deleteFile(string $relativePath): bool
+    {
+        $fullPath = $this->basePath($relativePath);
+
+        try {
+            if (! $this->files->exists($fullPath)) {
+                return true;
+            }
+
+            $this->files->delete($fullPath);
+            unset($this->fileCache[$relativePath]);
+
+            if ($relativePath === 'composer.json') {
+                $this->composerJson = [];
             }
 
             return true;

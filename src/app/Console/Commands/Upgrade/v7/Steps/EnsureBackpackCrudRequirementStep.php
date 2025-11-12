@@ -5,6 +5,7 @@ namespace Backpack\CRUD\app\Console\Commands\Upgrade\v7\Steps;
 use Backpack\CRUD\app\Console\Commands\Upgrade\Step;
 use Backpack\CRUD\app\Console\Commands\Upgrade\StepResult;
 use Backpack\CRUD\app\Console\Commands\Upgrade\StepStatus;
+use Backpack\CRUD\app\Console\Commands\Upgrade\v7\UpgradeCommandConfig;
 
 class EnsureBackpackCrudRequirementStep extends Step
 {
@@ -33,9 +34,11 @@ class EnsureBackpackCrudRequirementStep extends Step
 
         $requiredMajor = $this->extractFirstInteger($constraint);
 
+        $targetConstraint = $this->targetConstraint();
+
         if ($requiredMajor === null || $requiredMajor < 7) {
             return StepResult::failure(
-                'Update composer.json to require backpack/crud:^7.0.0-beta (or newer).',
+                sprintf('Update composer.json to require backpack/crud:%s (or newer).', $targetConstraint),
                 ["Current constraint: {$constraint}"]
             );
         }
@@ -81,9 +84,17 @@ class EnsureBackpackCrudRequirementStep extends Step
         return $requiredMajor === null || $requiredMajor < 7;
     }
 
+    public function fixMessage(StepResult $result): string
+    {
+        return sprintf(
+            'We can update composer.json to require backpack/crud:%s automatically. Apply this change now?',
+            $this->targetConstraint()
+        );
+    }
+
     public function fix(StepResult $result): StepResult
     {
-        $targetConstraint = '^7.0.0-beta';
+        $targetConstraint = $this->targetConstraint();
 
         $section = $this->context()->composerRequirementSection('backpack/crud') ?? 'require';
 
@@ -97,5 +108,10 @@ class EnsureBackpackCrudRequirementStep extends Step
         }
 
         return StepResult::success("Set backpack/crud requirement to {$targetConstraint} in composer.json.");
+    }
+
+    private function targetConstraint(): string
+    {
+        return UpgradeCommandConfig::backpackCrudRequirement();
     }
 }

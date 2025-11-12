@@ -54,6 +54,11 @@ class CheckThemeTablerConfigStep extends Step
         return $result->status === StepStatus::Warning && $this->currentContents !== null && ! empty($this->issues);
     }
 
+    public function fixMessage(StepResult $result): string
+    {
+        return 'We can update config/backpack/theme-tabler.php with the recommended Backpack v7 options automatically. Apply this change?';
+    }
+
     public function fix(StepResult $result): StepResult
     {
         if ($this->currentContents === null) {

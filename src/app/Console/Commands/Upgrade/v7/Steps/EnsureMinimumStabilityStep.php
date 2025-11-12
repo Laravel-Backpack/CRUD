@@ -35,6 +35,11 @@ class EnsureMinimumStabilityStep extends Step
         return $result->status === StepStatus::Failed;
     }
 
+    public function fixMessage(StepResult $result): string
+    {
+        return 'We can set composer.json minimum-stability to beta automatically so Backpack v7 can install. Apply this change?';
+    }
+
     public function fix(StepResult $result): StepResult
     {
         $updated = $this->context()->updateComposerJson(function (array &$composer) {

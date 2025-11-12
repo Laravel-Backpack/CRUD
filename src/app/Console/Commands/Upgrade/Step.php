@@ -27,6 +27,11 @@ abstract class Step
         return false;
     }
 
+    public function fixMessage(StepResult $result): string
+    {
+        return 'Apply automatic fix?';
+    }
+
     public function fix(StepResult $result): StepResult
     {
         return StepResult::skipped('No automatic fix available.');

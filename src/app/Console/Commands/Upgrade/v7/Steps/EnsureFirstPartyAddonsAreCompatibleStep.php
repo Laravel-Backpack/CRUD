@@ -8,26 +8,6 @@ use Backpack\CRUD\app\Console\Commands\Upgrade\StepStatus;
 
 class EnsureFirstPartyAddonsAreCompatibleStep extends Step
 {
-    protected array $recommendations = [
-        'backpack/pro' => '^3.0.0-alpha',
-        'backpack/filemanager' => 'dev-next',
-        'backpack/theme-coreuiv2' => 'dev-next',
-        'backpack/theme-coreuiv4' => 'dev-next',
-        'backpack/theme-tabler' => 'dev-next',
-        'backpack/logmanager' => 'dev-next',
-        'backpack/settings' => 'dev-next',
-        'backpack/newscrud' => 'dev-next',
-        'backpack/permissionmanager' => 'dev-next',
-        'backpack/pagemanager' => 'dev-next',
-        'backpack/menucrud' => 'dev-next',
-        'backpack/backupmanager' => 'dev-next',
-        'backpack/editable-columns' => 'dev-next',
-        'backpack/revise-operation' => 'dev-next',
-        'backpack/medialibrary-uploaders' => 'dev-next',
-        'backpack/devtools' => 'dev-next',
-        'backpack/generators' => 'dev-next',
-    ];
-
     private array $mismatched = [];
 
     public function title(): string
@@ -39,7 +19,7 @@ class EnsureFirstPartyAddonsAreCompatibleStep extends Step
     {
         $this->mismatched = [];
 
-        foreach ($this->recommendations as $package => $expectedConstraint) {
+        foreach ($this->packagesToCheck() as $package => $expectedConstraint) {
             $constraint = $this->context()->composerRequirement($package);
 
             if ($constraint === null) {
@@ -64,6 +44,11 @@ class EnsureFirstPartyAddonsAreCompatibleStep extends Step
             'Update the following Backpack add-ons to their v7 compatible versions.',
             array_map(fn ($item) => sprintf('%s (current: %s, expected: %s)', $item['package'], $item['current'], $item['expected']), $this->mismatched)
         );
+    }
+
+    protected function packagesToCheck(): array
+    {
+        return $this->context()->addons();
     }
 
     protected function matchesExpectedConstraint(string $constraint, string $expected): bool
@@ -94,6 +79,11 @@ class EnsureFirstPartyAddonsAreCompatibleStep extends Step
     public function canFix(StepResult $result): bool
     {
         return $result->status === StepStatus::Warning && ! empty($this->mismatched);
+    }
+
+    public function fixMessage(StepResult $result): string
+    {
+        return 'We can update composer.json to target the recommended Backpack add-on versions for v7 automatically. Apply these changes?';
     }
 
     public function fix(StepResult $result): StepResult
