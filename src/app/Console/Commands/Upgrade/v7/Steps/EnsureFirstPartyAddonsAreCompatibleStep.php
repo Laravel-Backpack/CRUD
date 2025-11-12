@@ -67,15 +67,6 @@ class EnsureFirstPartyAddonsAreCompatibleStep extends Step
         return trim($constraint) === trim($expected);
     }
 
-    protected function extractFirstInteger(string $value): ?int
-    {
-        if (preg_match('/(\d+)/', $value, $matches)) {
-            return (int) $matches[1];
-        }
-
-        return null;
-    }
-
     public function canFix(StepResult $result): bool
     {
         return $result->status === StepStatus::Warning && ! empty($this->mismatched);

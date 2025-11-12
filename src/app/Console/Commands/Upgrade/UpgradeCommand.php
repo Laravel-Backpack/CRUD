@@ -3,12 +3,13 @@
 namespace Backpack\CRUD\app\Console\Commands\Upgrade;
 
 use Backpack\CRUD\app\Console\Commands\Traits\PrettyCommandOutput;
+use Backpack\CRUD\app\Console\Commands\Upgrade\Concerns\ExtractsFirstInteger;
 use Illuminate\Console\Command;
 use RuntimeException;
 
 class UpgradeCommand extends Command
 {
-    use PrettyCommandOutput;
+    use PrettyCommandOutput, ExtractsFirstInteger;
 
     protected $signature = 'backpack:upgrade
                                 {version=7 : Target Backpack version to prepare for.}
@@ -114,21 +115,30 @@ class UpgradeCommand extends Command
             }
         }
 
-        return $this->outputSummary($majorVersion, $results);
+        $expectedVersionInstalled = $this->hasExpectedBackpackVersion($context, $config);
+
+        return $this->outputSummary($majorVersion, $results, $expectedVersionInstalled, $config);
     }
 
-    protected function outputSummary(string $majorVersion, array $results): int
+    protected function outputSummary(
+        string $majorVersion,
+        array $results,
+        bool $expectedVersionInstalled = false,
+        ?UpgradeConfigInterface $config = null
+    ): int
     {
         $format = $this->outputFormat();
 
-        $hasFailure = collect($results)->contains(function ($entry) {
+        $resultsCollection = collect($results);
+
+        $hasFailure = $resultsCollection->contains(function ($entry) {
             /** @var StepResult $result */
             $result = $entry['result'];
 
             return $result->status->isFailure();
         });
 
-        $warnings = collect($results)->filter(function ($entry) {
+        $warnings = $resultsCollection->filter(function ($entry) {
             /** @var StepResult $result */
             $result = $entry['result'];
 
@@ -172,6 +182,20 @@ class UpgradeCommand extends Command
 
         if (! $hasFailure && $warnings->isEmpty()) {
             $this->note('All checks passed, you are ready to continue with the manual steps from the upgrade guide.', 'green', 'green');
+        }
+
+        $postUpgradeCommands = [];
+
+        if ($config !== null) {
+            $postUpgradeCommands = ($config)::postUpgradeCommands();
+        }
+
+        if ($expectedVersionInstalled && ! $hasFailure && ! empty($postUpgradeCommands)) {
+            $this->note("Now that you have v{$majorVersion} installed, don't forget to run the following commands:", 'green', 'green');
+
+            foreach ($postUpgradeCommands as $command) {
+                $this->note($command);
+            }
         }
 
         $this->newLine();
@@ -267,4 +291,35 @@ class UpgradeCommand extends Command
 
         return $version;
     }
+
+    protected function hasExpectedBackpackVersion(UpgradeContext $context, UpgradeConfigInterface $config): bool
+    {
+        $targetConstraint = $config::backpackCrudRequirement();
+        $targetMajor = $this->extractFirstInteger($targetConstraint);
+
+        $composerConstraint = $context->composerRequirement('backpack/crud');
+
+        if ($composerConstraint === null) {
+            return false;
+        }
+
+        $composerMajor = $this->extractFirstInteger($composerConstraint);
+
+        if ($targetMajor !== null && ($composerMajor === null || $composerMajor < $targetMajor)) {
+            return false;
+        }
+
+        $installedMajor = $context->packageMajorVersion('backpack/crud');
+
+        if ($installedMajor === null) {
+            return false;
+        }
+
+        if ($targetMajor !== null && $installedMajor < $targetMajor) {
+            return false;
+        }
+
+        return true;
+    }
+
 }

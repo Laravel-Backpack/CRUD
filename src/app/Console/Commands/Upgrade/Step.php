@@ -2,8 +2,12 @@
 
 namespace Backpack\CRUD\app\Console\Commands\Upgrade;
 
+use Backpack\CRUD\app\Console\Commands\Upgrade\Concerns\ExtractsFirstInteger;
+
 abstract class Step
 {
+    use ExtractsFirstInteger;
+
     public function __construct(protected UpgradeContext $context)
     {
     }

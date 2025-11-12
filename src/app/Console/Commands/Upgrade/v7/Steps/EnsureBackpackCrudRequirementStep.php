@@ -33,10 +33,17 @@ class EnsureBackpackCrudRequirementStep extends Step
         }
 
         $requiredMajor = $this->extractFirstInteger($constraint);
-
         $targetConstraint = $this->targetConstraint();
+        $targetMajor = $this->targetMajor();
 
-        if ($requiredMajor === null || $requiredMajor < 7) {
+        if ($requiredMajor === null) {
+            return StepResult::failure(
+                sprintf('Update composer.json to require backpack/crud:%s (or newer).', $targetConstraint),
+                ["Current constraint: {$constraint}"]
+            );
+        }
+
+        if ($targetMajor !== null && $requiredMajor < $targetMajor) {
             return StepResult::failure(
                 sprintf('Update composer.json to require backpack/crud:%s (or newer).', $targetConstraint),
                 ["Current constraint: {$constraint}"]
@@ -46,23 +53,19 @@ class EnsureBackpackCrudRequirementStep extends Step
         $installedMajor = $this->context()->packageMajorVersion('backpack/crud');
         $installedPretty = $this->context()->installedPackagePrettyVersion('backpack/crud');
 
-        if ($installedMajor !== null && $installedMajor < 7) {
+        $comparisonMajor = $targetMajor ?? $requiredMajor;
+
+        if ($comparisonMajor !== null && $installedMajor !== null && $installedMajor < $comparisonMajor) {
             return StepResult::warning(
-                'Composer requirement is updated, but Backpack v7 is not installed yet. Run composer update.',
+                sprintf(
+                    'Composer requirement is updated, but a Backpack version satisfying %s is not installed yet. Run composer update.',
+                    $targetConstraint
+                ),
                 ["Installed version: {$installedPretty}"]
             );
         }
 
         return StepResult::success("Composer.json requires backpack/crud {$constraint}.");
-    }
-
-    protected function extractFirstInteger(string $value): ?int
-    {
-        if (preg_match('/(\d+)/', $value, $matches)) {
-            return (int) $matches[1];
-        }
-
-        return null;
     }
 
     public function canFix(StepResult $result): bool
@@ -80,8 +83,13 @@ class EnsureBackpackCrudRequirementStep extends Step
         }
 
         $requiredMajor = $this->extractFirstInteger($this->currentConstraint);
+        $targetMajor = $this->targetMajor();
 
-        return $requiredMajor === null || $requiredMajor < 7;
+        if ($targetMajor === null) {
+            return $requiredMajor === null;
+        }
+
+        return $requiredMajor === null || $requiredMajor < $targetMajor;
     }
 
     public function fixMessage(StepResult $result): string
@@ -113,5 +121,16 @@ class EnsureBackpackCrudRequirementStep extends Step
     private function targetConstraint(): string
     {
         return UpgradeCommandConfig::backpackCrudRequirement();
+    }
+
+    private function targetMajor(): ?int
+    {
+        $constraintMajor = $this->extractFirstInteger($this->targetConstraint());
+
+        if ($constraintMajor !== null) {
+            return $constraintMajor;
+        }
+
+        return $this->extractFirstInteger($this->context()->targetVersion());
     }
 }

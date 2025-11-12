@@ -60,4 +60,14 @@ class UpgradeCommandConfig implements UpgradeConfigInterface
     {
         return '^7.0.0-beta';
     }
+
+    public static function postUpgradeCommands(): array
+    {
+        return [
+            'php artisan basset:clear',
+            'php artisan config:clear',
+            'php artisan cache:clear',
+            'php artisan view:clear',
+        ];
+    }
 }
