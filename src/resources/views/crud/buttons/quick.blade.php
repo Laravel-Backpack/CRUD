@@ -25,14 +25,29 @@
     $wrapper['class'] = $wrapper['class'] ?? $defaultClass;
     //if ajax enabled
     $buttonAjaxConfiguration = $button->meta['ajax'] ?? false;
+    $bulkConfiguration = $button->meta['bulk'] ?? false;
     if($buttonAjaxConfiguration) {
         $wrapper['data-route'] = $wrapper['href'];
 		$wrapper['data-method'] = $button->meta['ajax']['method'] ?? 'GET';
         $wrapper['data-refresh-table'] = $button->meta['ajax']['refreshCrudTable'] ?? false;
 
         $wrapper['href'] = 'javascript:void(0)';
-        $wrapper['onclick'] = 'sendQuickButtonAjaxRequest(this)';
-		$wrapper['data-button-type'] = 'quick-ajax';
+
+        // Check if this is a bulk button
+        if($bulkConfiguration) {
+            $wrapper['onclick'] = 'sendQuickBulkButtonAjaxRequest(this)';
+            $wrapper['data-button-type'] = 'quick-bulk-ajax';
+            $wrapper['class'] = $wrapper['class'] . ' bulk-button';
+
+            // Bulk-specific messages
+            $wrapper['data-bulk-no-entries-title'] = $button->meta['bulk']['no_entries_title'] ?? trans('backpack::crud.bulk_no_entries_selected_title');
+            $wrapper['data-bulk-no-entries-message'] = $button->meta['bulk']['no_entries_message'] ?? trans('backpack::crud.bulk_no_entries_selected_message');
+            $wrapper['data-bulk-confirm-title'] = $button->meta['bulk']['confirm_title'] ?? trans('backpack::base.warning');
+            $wrapper['data-bulk-confirm-message'] = $button->meta['bulk']['confirm_message'] ?? trans('backpack::crud.bulk_operation_are_you_sure');
+        } else {
+            $wrapper['onclick'] = 'sendQuickButtonAjaxRequest(this)';
+            $wrapper['data-button-type'] = 'quick-ajax';
+        }
 
         //success message
         $wrapper['data-success-title'] = $button->meta['ajax']['success_title'] ?? trans('backpack::crud.quick_button_ajax_success_title');
@@ -117,6 +132,106 @@
             });
         }
 	}
+
+    if (typeof sendQuickBulkButtonAjaxRequest != 'function') {
+        $("[data-button-type=quick-bulk-ajax]").unbind('click');
+
+        function sendQuickBulkButtonAjaxRequest(button) {
+            // Check if items are selected
+            if (typeof crud.checkedItems === 'undefined' || crud.checkedItems.length == 0) {
+                let noEntriesTitle = $(button).attr('data-bulk-no-entries-title');
+                let noEntriesMessage = $(button).attr('data-bulk-no-entries-message');
+
+                new Noty({
+                    type: "warning",
+                    text: `<strong>${noEntriesTitle}</strong><br/>${noEntriesMessage}`
+                }).show();
+
+                return;
+            }
+
+            let route = $(button).attr('data-route');
+            let confirmTitle = $(button).attr('data-bulk-confirm-title');
+            let confirmMessage = $(button).attr('data-bulk-confirm-message').replace(':number', crud.checkedItems.length);
+
+            const defaultButtonMessage = function(button, type) {
+                let buttonTitle = button.getAttribute(`data-${type}-title`);
+                let buttonMessage = button.getAttribute(`data-${type}-message`);
+                return `<strong>${buttonTitle}</strong><br/>${buttonMessage}`;
+            }
+
+            // Show confirmation dialog
+            swal({
+                title: confirmTitle,
+                text: confirmMessage,
+                icon: "warning",
+                buttons: {
+                    cancel: {
+                        text: "{{ trans('backpack::crud.no') }}",
+                        value: null,
+                        visible: true,
+                        className: "bg-secondary",
+                        closeModal: true,
+                    },
+                    confirm: {
+                        text: "{{ trans('backpack::crud.yes') }}",
+                        value: true,
+                        visible: true,
+                        className: "bg-primary",
+                    }
+                },
+            }).then((value) => {
+                if (value) {
+                    // Submit AJAX request with selected items
+                    $.ajax({
+                        url: route,
+                        type: $(button).attr('data-method'),
+                        data: { entries: crud.checkedItems },
+                        success: function(result) {
+                            if($(button).attr('data-refresh-table') && typeof crud != 'undefined' && typeof crud.table != 'undefined'){
+                                // Move to previous page if all items on current page were processed
+                                if(crud.table.rows().count() === crud.checkedItems.length) {
+                                    crud.table.page("previous");
+                                }
+
+                                // Clear selections and refresh table
+                                crud.checkedItems = [];
+                                crud.table.draw(false);
+                            }
+
+                            let message;
+                            // If message is returned from the API use that message
+                            if(result.message){
+                                message = result.message;
+                            } else {
+                                message = defaultButtonMessage(button, 'success');
+                            }
+
+                            new Noty({
+                                type: "success",
+                                text: message,
+                            }).show();
+                        },
+                        error: function(result) {
+                            let message;
+
+                            // If message is returned from the API use that message
+                            if(result.responseJSON && result.responseJSON.message){
+                                message = result.responseJSON.message;
+                            } else {
+                                message = defaultButtonMessage(button, 'error');
+                            }
+
+                            new Noty({
+                                type: "error",
+                                text: message,
+                            }).show();
+                        }
+                    });
+                }
+            });
+        }
+    }
 </script>
 @endBassetBlock
 @if (!request()->ajax()) @endpush @endif
