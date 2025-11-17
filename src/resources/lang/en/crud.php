@@ -20,6 +20,10 @@ return [
     'save_action_save_and_preview' => 'Save and preview',
     'save_action_changed_notification' => 'Default behaviour after saving has been changed.',
 
+    // headings
+    'page_heading' => ':plural',
+    'page_subheading' => ':action :singular',
+
     // Create form
     'add' => 'Add',
     'back_to_all' => 'Back to all ',
