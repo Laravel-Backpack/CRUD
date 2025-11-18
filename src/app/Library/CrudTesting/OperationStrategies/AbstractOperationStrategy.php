@@ -143,4 +143,16 @@ abstract class AbstractOperationStrategy implements OperationStrategyInterface
 
         return false;
     }
+
+    /**
+     * Build the descriptor structure returned by test generators.
+     */
+    protected function makeTestDescriptor(string $name, string $description, string $testerMethod, array $extras = []): array
+    {
+        return array_merge([
+            'name' => $name,
+            'description' => $description,
+            'tester_method' => $testerMethod,
+        ], $extras);
+    }
 }

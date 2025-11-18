@@ -56,7 +56,17 @@ class CrudTestBuilder
      */
     public function generateTestMethods(): array
     {
-        return $this->strategy->generateTestMethods();
+        return collect($this->strategy->generateTestMethods())
+            ->map(function ($method) {
+                if (! is_array($method)) {
+                    return null;
+                }
+
+                return array_merge(['operation' => $this->operation], $method);
+            })
+            ->filter()
+            ->values()
+            ->toArray();
     }
 }
 

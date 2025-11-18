@@ -42,15 +42,11 @@ class CreateOperationStrategy extends AbstractOperationStrategy
      */
     protected function generateCreatePageLoadTest(): ?array
     {
-        return [
-            'name' => 'test_create_page_loads_successfully',
-            'description' => 'Test that the create page loads without errors',
-            'route' => $this->crudPanel->route.'/create',
-            'assertions' => [
-                'status' => 200,
-                'see' => [$this->crudPanel->entity_name],
-            ],
-        ];
+        return $this->makeTestDescriptor(
+            'test_create_page_loads_successfully',
+            'Test that the create page loads without errors',
+            'testCreatePageLoads'
+        );
     }
 
     /**
@@ -66,12 +62,12 @@ class CreateOperationStrategy extends AbstractOperationStrategy
             return null;
         }
 
-        return [
-            'name' => 'test_form_fields_render_correctly',
-            'description' => 'Test that all configured fields render on the form',
-            'route' => $this->crudPanel->route.'/create',
-            'fields' => $fields,
-        ];
+        return $this->makeTestDescriptor(
+            'test_form_fields_render_correctly',
+            'Test that all configured fields render on the form',
+            'testFieldsAreVisible',
+            ['fields' => $fields]
+        );
     }
 
     /**
@@ -81,13 +77,15 @@ class CreateOperationStrategy extends AbstractOperationStrategy
      */
     protected function generateCreateFormSubmitTest(): ?array
     {
-        return [
-            'name' => 'test_create_form_submits_successfully',
-            'description' => 'Test that the create form can be submitted',
-            'route' => $this->crudPanel->route,
-            'method' => 'POST',
-            'fields' => $this->getFieldsConfiguration(),
-        ];
+        return $this->makeTestDescriptor(
+            'test_create_form_submits_successfully',
+            'Test that the create form can be submitted',
+            'testFormSubmits',
+            [
+                'method' => 'POST',
+                'fields' => $this->getFieldsConfiguration(),
+            ]
+        );
     }
 
     /**
@@ -105,12 +103,14 @@ class CreateOperationStrategy extends AbstractOperationStrategy
             return null;
         }
 
-        return [
-            'name' => 'test_validation_works_correctly',
-            'description' => 'Test that validation rules are enforced',
-            'route' => $this->crudPanel->route,
-            'method' => 'POST',
-            'required_fields' => $requiredFields,
-        ];
+        return $this->makeTestDescriptor(
+            'test_validation_works_correctly',
+            'Test that validation rules are enforced',
+            'testValidationWorks',
+            [
+                'method' => 'POST',
+                'required_fields' => $requiredFields,
+            ]
+        );
     }
 }

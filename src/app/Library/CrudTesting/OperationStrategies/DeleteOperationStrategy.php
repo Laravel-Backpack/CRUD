@@ -27,6 +27,7 @@ class DeleteOperationStrategy extends AbstractOperationStrategy
         return array_filter([
             $this->generateDeleteButtonTest(),
             $this->generateDeleteConfirmationTest(),
+            $this->generateDeleteExecutionTest(),
         ]);
     }
 
@@ -37,11 +38,12 @@ class DeleteOperationStrategy extends AbstractOperationStrategy
      */
     protected function generateDeleteButtonTest(): ?array
     {
-        return [
-            'name' => 'test_delete_button_is_visible',
-            'description' => 'Test that the delete button is visible on list page',
-            'route' => $this->crudPanel->route,
-        ];
+        return $this->makeTestDescriptor(
+            'test_delete_button_is_visible',
+            'Test that the delete button is visible on list page',
+            'testDeleteButtonExists',
+            ['requires_entries' => true]
+        );
     }
 
     /**
@@ -51,11 +53,27 @@ class DeleteOperationStrategy extends AbstractOperationStrategy
      */
     protected function generateDeleteConfirmationTest(): ?array
     {
-        return [
-            'name' => 'test_delete_works_correctly',
-            'description' => 'Test that delete operation works',
-            'route' => $this->crudPanel->route.'/{id}',
-            'method' => 'DELETE',
-        ];
+        return $this->makeTestDescriptor(
+            'test_delete_confirmation_is_displayed',
+            'Test that the delete confirmation dialog appears',
+            'testDeleteConfirmationAppears',
+            ['requires_entries' => true]
+        );
+    }
+
+    /**
+     * Generate test for delete execution.
+     */
+    protected function generateDeleteExecutionTest(): ?array
+    {
+        return $this->makeTestDescriptor(
+            'test_delete_works_correctly',
+            'Test that delete operation works',
+            'testDeleteWorks',
+            [
+                'method' => 'DELETE',
+                'requires_entry' => true,
+            ]
+        );
     }
 }

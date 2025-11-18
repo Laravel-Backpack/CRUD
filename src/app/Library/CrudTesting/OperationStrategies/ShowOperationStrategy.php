@@ -39,14 +39,12 @@ class ShowOperationStrategy extends AbstractOperationStrategy
      */
     protected function generateShowPageLoadTest(): ?array
     {
-        return [
-            'name' => 'test_show_page_loads_successfully',
-            'description' => 'Test that the show page loads without errors',
-            'route' => $this->crudPanel->route.'/{id}/show',
-            'assertions' => [
-                'status' => 200,
-            ],
-        ];
+        return $this->makeTestDescriptor(
+            'test_show_page_loads_successfully',
+            'Test that the show page loads without errors',
+            'testShowPageLoads',
+            ['requires_entry' => true]
+        );
     }
 
     /**
@@ -62,11 +60,14 @@ class ShowOperationStrategy extends AbstractOperationStrategy
             return null;
         }
 
-        return [
-            'name' => 'test_show_columns_display_correctly',
-            'description' => 'Test that configured columns display on show page',
-            'route' => $this->crudPanel->route.'/{id}/show',
-            'columns' => $columns,
-        ];
+        return $this->makeTestDescriptor(
+            'test_show_columns_display_correctly',
+            'Test that configured columns display on show page',
+            'testColumnsAreVisible',
+            [
+                'columns' => $columns,
+                'requires_entry' => true,
+            ]
+        );
     }
 }

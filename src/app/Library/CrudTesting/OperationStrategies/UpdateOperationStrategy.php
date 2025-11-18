@@ -41,14 +41,12 @@ class UpdateOperationStrategy extends AbstractOperationStrategy
      */
     protected function generateUpdatePageLoadTest(): ?array
     {
-        return [
-            'name' => 'test_update_page_loads_successfully',
-            'description' => 'Test that the update page loads without errors',
-            'route' => $this->crudPanel->route.'/{id}/edit',
-            'assertions' => [
-                'status' => 200,
-            ],
-        ];
+        return $this->makeTestDescriptor(
+            'test_update_page_loads_successfully',
+            'Test that the update page loads without errors',
+            'testUpdatePageLoads',
+            ['requires_entry' => true]
+        );
     }
 
     /**
@@ -64,12 +62,15 @@ class UpdateOperationStrategy extends AbstractOperationStrategy
             return null;
         }
 
-        return [
-            'name' => 'test_form_fields_render_correctly',
-            'description' => 'Test that all configured fields render on the form',
-            'route' => $this->crudPanel->route.'/{id}/edit',
-            'fields' => $fields,
-        ];
+        return $this->makeTestDescriptor(
+            'test_form_fields_render_correctly',
+            'Test that all configured fields render on the form',
+            'testFieldsAreVisible',
+            [
+                'fields' => $fields,
+                'requires_entry' => true,
+            ]
+        );
     }
 
     /**
@@ -79,12 +80,15 @@ class UpdateOperationStrategy extends AbstractOperationStrategy
      */
     protected function generateUpdateFormSubmitTest(): ?array
     {
-        return [
-            'name' => 'test_update_form_submits_successfully',
-            'description' => 'Test that the update form can be submitted',
-            'route' => $this->crudPanel->route.'/{id}',
-            'method' => 'PUT',
-            'fields' => $this->getFieldsConfiguration(),
-        ];
+        return $this->makeTestDescriptor(
+            'test_update_form_submits_successfully',
+            'Test that the update form can be submitted',
+            'testFormSubmits',
+            [
+                'method' => 'PUT',
+                'fields' => $this->getFieldsConfiguration(),
+                'requires_entry' => true,
+            ]
+        );
     }
 }

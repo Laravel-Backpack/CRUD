@@ -44,15 +44,11 @@ class ListOperationStrategy extends AbstractOperationStrategy
      */
     protected function generateListPageLoadTest(): ?array
     {
-        return [
-            'name' => 'test_list_page_loads_successfully',
-            'description' => 'Test that the list page loads without errors',
-            'route' => $this->crudPanel->route,
-            'assertions' => [
-                'status' => 200,
-                'see' => [$this->crudPanel->entity_name_plural],
-            ],
-        ];
+        return $this->makeTestDescriptor(
+            'test_list_page_loads_successfully',
+            'Test that the list page loads without errors',
+            'testListPageLoads'
+        );
     }
 
     /**
@@ -62,16 +58,12 @@ class ListOperationStrategy extends AbstractOperationStrategy
      */
     protected function generateDataTablesTest(): ?array
     {
-        return [
-            'name' => 'test_datatables_returns_data',
-            'description' => 'Test that DataTables ajax endpoint returns data',
-            'route' => $this->crudPanel->route.'/search',
-            'method' => 'POST',
-            'assertions' => [
-                'status' => 200,
-                'json_structure' => ['data', 'recordsTotal', 'recordsFiltered'],
-            ],
-        ];
+        return $this->makeTestDescriptor(
+            'test_datatables_returns_data',
+            'Test that DataTables ajax endpoint returns data',
+            'testDataTablesWorks',
+            ['requires_entries' => true]
+        );
     }
 
     /**
@@ -87,12 +79,12 @@ class ListOperationStrategy extends AbstractOperationStrategy
             return null;
         }
 
-        return [
-            'name' => 'test_list_columns_are_visible',
-            'description' => 'Test that configured columns are visible in the list',
-            'route' => $this->crudPanel->route,
-            'columns' => $columns,
-        ];
+        return $this->makeTestDescriptor(
+            'test_list_columns_are_visible',
+            'Test that configured columns are visible in the list',
+            'testColumnsAreVisible',
+            ['columns' => $columns]
+        );
     }
 
     /**
@@ -108,12 +100,12 @@ class ListOperationStrategy extends AbstractOperationStrategy
             return null;
         }
 
-        return [
-            'name' => 'test_filters_are_available',
-            'description' => 'Test that configured filters are available',
-            'route' => $this->crudPanel->route,
-            'filters' => $filters,
-        ];
+        return $this->makeTestDescriptor(
+            'test_filters_are_available',
+            'Test that configured filters are available',
+            'testFiltersWork',
+            ['filters' => $filters]
+        );
     }
 
     /**
@@ -129,11 +121,12 @@ class ListOperationStrategy extends AbstractOperationStrategy
             return null;
         }
 
-        return [
-            'name' => 'test_buttons_are_visible',
-            'description' => 'Test that configured buttons are visible',
-            'route' => $this->crudPanel->route,
-            'buttons' => $buttons,
-        ];
+        return $this->makeTestDescriptor(
+            'test_buttons_are_visible',
+            'Test that configured buttons are visible',
+            'testButtonsAreVisible',
+            ['buttons' => $buttons]
+        );
     }
+
 }

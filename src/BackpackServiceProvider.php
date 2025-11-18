@@ -37,6 +37,7 @@ class BackpackServiceProvider extends ServiceProvider
         app\Console\Commands\Themes\RequireThemeCoreuiv4::class,
         app\Console\Commands\Fix::class,
         app\Console\Commands\PublishHeaderMetas::class,
+        app\Console\Commands\GenerateCrudTests::class,
     ];
 
     // Indicates if loading of the provider is deferred.
@@ -280,6 +281,7 @@ class BackpackServiceProvider extends ServiceProvider
         $this->mergeConfigFrom(__DIR__.'/config/backpack/crud.php', 'backpack.crud');
         $this->mergeConfigFrom(__DIR__.'/config/backpack/base.php', 'backpack.base');
         $this->mergeConfigFrom(__DIR__.'/config/backpack/ui.php', 'backpack.ui');
+        $this->mergeConfigFrom(__DIR__.'/config/backpack/crud-testing.php', 'backpack.crud-testing');
         $this->mergeConfigsFromDirectory('operations');
 
         // add the root disk to filesystem configuration

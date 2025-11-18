@@ -242,7 +242,7 @@ return [
         'namespace' => 'Tests\\Browser\\Crud',
 
         // Test class naming pattern (use {controller} as placeholder)
-        'class_name_pattern' => '{controller}Test',
+        'class_name_pattern' => '{controller}{operation}Test',
 
         // Whether to overwrite existing test files
         'overwrite_existing' => false,
