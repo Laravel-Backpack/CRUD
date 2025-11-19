@@ -113,7 +113,6 @@ class UpgradeCommand extends Command
                 'step' => $stepClass,
                 'result' => $result,
             ];
-
         }
 
         $expectedVersionInstalled = $this->hasExpectedBackpackVersion($context, $config);
