@@ -43,7 +43,8 @@
     $old_secondary_dependency = old_empty_or_null($secondary_dependency['name'], false) ?? false;
 
     //for update form, get initial state of the entity
-    if (isset($id) && $id) {
+    if ($id = $crud->getCurrentEntryId()) {
+
         //get entity with relations for primary dependency
         $entity_dependencies = $entity_model->with($primary_dependency['entity'])
         ->with($primary_dependency['entity'].'.'.$primary_dependency['entity_secondary'])
