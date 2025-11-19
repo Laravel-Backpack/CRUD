@@ -4,36 +4,36 @@ namespace Backpack\CRUD\app\Console\Commands\Upgrade;
 
 use Backpack\CRUD\app\Console\Commands\Traits\PrettyCommandOutput;
 use Backpack\CRUD\app\Console\Commands\Upgrade\Concerns\ExtractsFirstInteger;
+use Composer\InstalledVersions;
 use Illuminate\Console\Command;
+use Illuminate\Filesystem\Filesystem;
+use OutOfBoundsException;
 use RuntimeException;
 
 class UpgradeCommand extends Command
 {
-    use PrettyCommandOutput, ExtractsFirstInteger;
+    use PrettyCommandOutput;
+    use ExtractsFirstInteger;
 
     protected $signature = 'backpack:upgrade
-                                {version=7 : Target Backpack version to prepare for.}
-                                {--stop-on-failure : Stop executing once a step fails.}
-                                {--format=cli : Output format (cli, json).}
+                                {version? : Target Backpack version to prepare for (e.g. v7, 7.1, v7-1).}
                                 {--debug : Show debug information for executed processes.}';
 
     protected $description = 'Run opinionated upgrade checks to help you move between Backpack major versions.';
 
+    protected ?array $availableConfigCache = null;
+
+    protected array $resolvedConfigCache = [];
+
+    protected array $renderedUpgradeDescriptions = [];
+
+    protected array $descriptorChoiceSummaries = [];
+
     public function handle(): int
     {
-        $format = $this->outputFormat();
-
-        if (! in_array($format, ['cli', 'json'], true)) {
-            $this->errorBlock(sprintf('Unknown output format "%s". Supported formats: cli, json.', $format));
-
-            return Command::INVALID;
-        }
-
-        $version = (string) $this->argument('version');
-        $majorVersion = $this->extractMajorVersion($version);
-
         try {
-            $config = $this->resolveConfigForMajor($majorVersion);
+            $descriptor = $this->determineTargetDescriptor($this->argument('version'));
+            $config = $this->resolveConfigForDescriptor($descriptor);
         } catch (RuntimeException $exception) {
             $this->errorBlock($exception->getMessage());
 
@@ -42,14 +42,18 @@ class UpgradeCommand extends Command
 
         $stepClasses = $config->steps();
         if (empty($stepClasses)) {
-            $this->errorBlock("No automated checks registered for Backpack v{$majorVersion}.");
+            $this->errorBlock("No automated checks registered for Backpack {$descriptor['label']}.");
 
             return Command::INVALID;
         }
 
-        $context = new UpgradeContext($majorVersion, addons: $config->addons());
+        $context = new UpgradeContext($descriptor['version'], addons: $config->addons());
 
-        $this->infoBlock("Backpack v{$majorVersion} upgrade assistant", 'upgrade');
+        $this->infoBlock("Backpack {$descriptor['label']} upgrade assistant", 'upgrade');
+
+        if ($this->displayDescriptorDescription($descriptor, $config)) {
+            $this->newLine();
+        }
 
         $results = [];
 
@@ -110,24 +114,19 @@ class UpgradeCommand extends Command
                 'result' => $result,
             ];
 
-            if ($this->option('stop-on-failure') && $result->status->isFailure()) {
-                break;
-            }
         }
 
         $expectedVersionInstalled = $this->hasExpectedBackpackVersion($context, $config);
 
-        return $this->outputSummary($majorVersion, $results, $expectedVersionInstalled, $config);
+        return $this->outputSummary($descriptor['label'], $results, $expectedVersionInstalled, $config);
     }
 
     protected function outputSummary(
-        string $majorVersion,
+        string $versionLabel,
         array $results,
         bool $expectedVersionInstalled = false,
         ?UpgradeConfigInterface $config = null
     ): int {
-        $format = $this->outputFormat();
-
         $resultsCollection = collect($results);
 
         $hasFailure = $resultsCollection->contains(function ($entry) {
@@ -143,28 +142,6 @@ class UpgradeCommand extends Command
 
             return $result->status === StepStatus::Warning;
         });
-
-        if ($format === 'json') {
-            $payload = [
-                'version' => $majorVersion,
-                'results' => collect($results)->map(function ($entry) {
-                    /** @var StepResult $result */
-                    $result = $entry['result'];
-
-                    return [
-                        'step' => $entry['step'],
-                        'status' => $result->status->value,
-                        'summary' => $result->summary,
-                        'details' => $result->details,
-                    ];
-                })->values()->all(),
-            ];
-
-            $this->newLine();
-            $this->line(json_encode($payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
-
-            return $hasFailure ? Command::FAILURE : Command::SUCCESS;
-        }
 
         $this->newLine();
         $this->infoBlock('Summary', 'done');
@@ -190,7 +167,7 @@ class UpgradeCommand extends Command
         }
 
         if ($expectedVersionInstalled && ! $hasFailure && ! empty($postUpgradeCommands)) {
-            $this->note("Now that you have v{$majorVersion} installed, don't forget to run the following commands:", 'green', 'green');
+            $this->note("Now that you have {$versionLabel} installed, don't forget to run the following commands:", 'green', 'green');
 
             foreach ($postUpgradeCommands as $command) {
                 $this->note($command);
@@ -224,10 +201,6 @@ class UpgradeCommand extends Command
 
     protected function shouldOfferFix(Step $step, StepResult $result): bool
     {
-        if ($this->outputFormat() === 'json') {
-            return false;
-        }
-
         if (! $this->input->isInteractive()) {
             return false;
         }
@@ -239,21 +212,24 @@ class UpgradeCommand extends Command
         return $step->canFix($result);
     }
 
-    protected function outputFormat(): string
+    protected function resolveConfigForDescriptor(array $descriptor): UpgradeConfigInterface
     {
-        $format = strtolower((string) $this->option('format'));
+        $descriptorKey = $descriptor['key'] ?? null;
 
-        return $format !== '' ? $format : 'cli';
-    }
+        if ($descriptorKey !== null && isset($this->resolvedConfigCache[$descriptorKey])) {
+            return $this->resolvedConfigCache[$descriptorKey];
+        }
 
-    protected function resolveConfigForMajor(string $majorVersion): UpgradeConfigInterface
-    {
-        $configProviderClass = sprintf('%s\\v%s\\UpgradeCommandConfig', __NAMESPACE__, $majorVersion);
+        $configProviderClass = sprintf('%s\\%s\\UpgradeCommandConfig', __NAMESPACE__, $descriptor['namespace']);
+
+        if (! class_exists($configProviderClass)) {
+            $this->manuallyLoadConfigDirectory($descriptor);
+        }
 
         if (! class_exists($configProviderClass)) {
             throw new RuntimeException(sprintf(
-                'Missing upgrade config provider for Backpack v%s. Please create %s.',
-                $majorVersion,
+                'Missing upgrade config provider for Backpack %s. Please create %s.',
+                $descriptor['label'],
                 $configProviderClass
             ));
         }
@@ -279,16 +255,434 @@ class UpgradeCommand extends Command
             ));
         }
 
+        if ($descriptorKey !== null) {
+            $this->resolvedConfigCache[$descriptorKey] = $provider;
+        }
+
         return $provider;
     }
 
-    protected function extractMajorVersion(string $version): string
+    protected function determineTargetDescriptor(mixed $requestedVersion): array
     {
-        if (preg_match('/^(\d+)/', $version, $matches)) {
-            return $matches[1];
+        $available = $this->availableVersionDescriptors();
+
+        if (empty($available)) {
+            throw new RuntimeException('No upgrade configurations were found. Please create one under '.basename(__DIR__).'.');
         }
 
-        return $version;
+        $normalizedRequested = $this->normalizeVersionKey(
+            is_string($requestedVersion) ? $requestedVersion : null
+        );
+
+        if ($normalizedRequested !== null) {
+            if (isset($available[$normalizedRequested])) {
+                return $available[$normalizedRequested];
+            }
+
+            $knownTargets = implode(', ', array_map(
+                fn (array $descriptor) => $descriptor['label'],
+                $this->sortDescriptors($available)
+            ));
+
+            throw new RuntimeException(sprintf(
+                'Unknown upgrade target [%s]. Available targets: %s.',
+                (string) $requestedVersion,
+                $knownTargets !== '' ? $knownTargets : 'none'
+            ));
+        }
+
+        $currentKey = $this->detectCurrentVersionKey($available);
+
+        if ($this->input->isInteractive()) {
+            $sorted = $this->sortDescriptors($available);
+
+            if (count($sorted) === 1) {
+                $singleDescriptor = $sorted[0];
+                $singleConfig = $this->resolveConfigForDescriptor($singleDescriptor);
+
+                if (! $this->descriptorHasSteps($singleConfig)) {
+                    if ($this->displayDescriptorDescription($singleDescriptor, $singleConfig)) {
+                        $this->newLine();
+                    }
+                }
+
+                return $singleDescriptor;
+            }
+
+            $choices = [];
+            $defaultChoice = null;
+            $summaries = [];
+
+            foreach ($sorted as $descriptor) {
+                $config = $this->resolveConfigForDescriptor($descriptor);
+                $hasSteps = $this->descriptorHasSteps($config);
+                $summary = $hasSteps ? $this->descriptorChoiceSummary($descriptor, $config) : null;
+
+                if (! $hasSteps) {
+                    if ($this->displayDescriptorDescription($descriptor, $config)) {
+                        $this->newLine();
+                    }
+
+                    continue;
+                }
+
+                $isCurrent = $currentKey !== null && $descriptor['key'] === $currentKey;
+                $label = $this->buildChoiceLabel($descriptor, $isCurrent);
+
+                $choices[$label] = $descriptor['key'];
+
+                if ($isCurrent && $defaultChoice === null) {
+                    $defaultChoice = $label;
+                }
+
+                $summaries[] = [
+                    'label' => $label,
+                    'summary' => $summary ?? 'Automated checks are available for this version.',
+                    'is_current' => $isCurrent,
+                ];
+            }
+
+            if (empty($choices)) {
+                throw new RuntimeException('No upgrade targets with automated checks are available.');
+            }
+
+            $this->outputDescriptorSummaryList($summaries);
+
+            if ($defaultChoice === null) {
+                $defaultChoice = array_key_first($choices);
+            }
+
+            $selectedLabel = $this->choice(
+                'Select the Backpack upgrade path you want to run',
+                array_keys($choices),
+                $defaultChoice
+            );
+
+            $selectedKey = $choices[$selectedLabel] ?? null;
+
+            if ($selectedKey !== null && isset($available[$selectedKey])) {
+                return $available[$selectedKey];
+            }
+
+            throw new RuntimeException('Invalid upgrade target selection.');
+        }
+
+        if ($currentKey !== null && isset($available[$currentKey])) {
+            return $available[$currentKey];
+        }
+
+        $sorted = $this->sortDescriptors($available, 'desc');
+
+        return $sorted[0];
+    }
+
+    protected function displayDescriptorDescription(array $descriptor, ?UpgradeConfigInterface $config = null): bool
+    {
+        $key = $descriptor['key'] ?? null;
+
+        if ($key === null) {
+            return false;
+        }
+
+        if (isset($this->renderedUpgradeDescriptions[$key])) {
+            return false;
+        }
+
+        try {
+            $config ??= $this->resolveConfigForDescriptor($descriptor);
+        } catch (\Throwable $exception) {
+            return false;
+        }
+
+        $this->renderedUpgradeDescriptions[$key] = true;
+
+        $description = $config->upgradeCommandDescription();
+
+        if ($description === null) {
+            return false;
+        }
+
+        $this->executeUpgradeCommandDescription($description);
+
+        return true;
+    }
+
+    protected function descriptorHasSteps(UpgradeConfigInterface $config): bool
+    {
+        return count($config->steps()) > 0;
+    }
+
+    protected function descriptorChoiceSummary(array $descriptor, UpgradeConfigInterface $config): ?string
+    {
+        $key = $descriptor['key'] ?? null;
+
+        if ($key === null) {
+            return null;
+        }
+
+        if (array_key_exists($key, $this->descriptorChoiceSummaries)) {
+            return $this->descriptorChoiceSummaries[$key];
+        }
+
+        if (! $config instanceof UpgradeConfigSummaryInterface) {
+            return $this->descriptorChoiceSummaries[$key] = null;
+        }
+
+        $summary = $config->upgradeCommandSummary();
+
+        if (! is_string($summary)) {
+            return $this->descriptorChoiceSummaries[$key] = null;
+        }
+
+        $summary = trim($summary);
+
+        if ($summary === '') {
+            return $this->descriptorChoiceSummaries[$key] = null;
+        }
+
+        return $this->descriptorChoiceSummaries[$key] = $summary;
+    }
+
+    protected function outputDescriptorSummaryList(array $summaries): void
+    {
+        if (empty($summaries)) {
+            return;
+        }
+
+        $this->newLine();
+        $this->line('  <fg=blue>Available upgrade paths</>');
+
+        foreach ($summaries as $entry) {
+            $labelColor = $entry['is_current'] ? 'green' : 'yellow';
+            $label = sprintf('<fg=%s>%s</>', $labelColor, $entry['label']);
+            $this->line(sprintf('    %s <fg=gray>—</> %s', $label, $entry['summary']));
+        }
+
+        $this->newLine();
+    }
+
+    protected function executeUpgradeCommandDescription(?callable $description): void
+    {
+        if ($description === null) {
+            return;
+        }
+
+        try {
+            $description($this);
+        } catch (\ArgumentCountError|\TypeError $exception) {
+            if ($description instanceof \Closure) {
+                $description->call($this);
+
+                return;
+            }
+
+            $description();
+        }
+    }
+
+    protected function availableVersionDescriptors(): array
+    {
+        if ($this->availableConfigCache !== null) {
+            return $this->availableConfigCache;
+        }
+
+        $filesystem = new Filesystem();
+
+        $descriptors = [];
+
+        foreach ($filesystem->directories(__DIR__) as $directory) {
+            $basename = basename($directory);
+            $normalizedKey = $this->normalizeDirectoryKey($basename);
+
+            if ($normalizedKey === null) {
+                continue;
+            }
+
+            $configPath = $directory.DIRECTORY_SEPARATOR.'UpgradeCommandConfig.php';
+
+            if (! $filesystem->exists($configPath)) {
+                continue;
+            }
+
+            $segments = $this->versionKeySegments($normalizedKey);
+
+            if (empty($segments)) {
+                continue;
+            }
+
+            $descriptors[$normalizedKey] = [
+                'key' => $normalizedKey,
+                'directory' => $basename,
+                'namespace' => str_replace('-', '_', $normalizedKey),
+                'label' => $normalizedKey,
+                'version' => ltrim($normalizedKey, 'v'),
+                'segments' => $segments,
+                'comparable' => $this->segmentsToComparable($segments),
+            ];
+        }
+
+        return $this->availableConfigCache = $descriptors;
+    }
+
+    protected function normalizeDirectoryKey(string $directory): ?string
+    {
+        $trimmed = strtolower($directory);
+
+        if (preg_match('/^v\d+(?:[-_]\d+)*$/', $trimmed) !== 1) {
+            return null;
+        }
+
+        return str_replace('_', '-', $trimmed);
+    }
+
+    protected function normalizeVersionKey(?string $version): ?string
+    {
+        if ($version === null) {
+            return null;
+        }
+
+        $trimmed = trim(strtolower($version));
+
+        if ($trimmed === '') {
+            return null;
+        }
+
+        preg_match_all('/\d+/', $trimmed, $matches);
+
+        if (empty($matches[0])) {
+            return null;
+        }
+
+        return 'v'.implode('-', $matches[0]);
+    }
+
+    protected function sortDescriptors(array $descriptors, string $direction = 'asc'): array
+    {
+        $list = array_values($descriptors);
+
+        usort($list, function (array $a, array $b) use ($direction) {
+            $comparison = version_compare($a['comparable'], $b['comparable']);
+
+            return $direction === 'desc' ? -$comparison : $comparison;
+        });
+
+        return $list;
+    }
+
+    protected function buildChoiceLabel(array $descriptor, bool $isCurrent): string
+    {
+        $label = $descriptor['label'];
+
+        if ($isCurrent) {
+            $label .= ' (current)';
+        }
+
+        return $label;
+    }
+
+    protected function detectCurrentVersionKey(array $available): ?string
+    {
+        $installedPretty = $this->installedBackpackPrettyVersion();
+
+        if ($installedPretty === null) {
+            return null;
+        }
+
+        foreach ($this->possibleKeysForVersion($installedPretty) as $candidate) {
+            if (isset($available[$candidate])) {
+                return $candidate;
+            }
+        }
+
+        return null;
+    }
+
+    protected function installedBackpackPrettyVersion(): ?string
+    {
+        try {
+            if (! InstalledVersions::isInstalled('backpack/crud')) {
+                return null;
+            }
+        } catch (OutOfBoundsException $exception) {
+            return null;
+        }
+
+        try {
+            $version = InstalledVersions::getPrettyVersion('backpack/crud');
+
+            if ($version === null) {
+                $version = InstalledVersions::getVersion('backpack/crud');
+            }
+
+            return $version ?: null;
+        } catch (OutOfBoundsException $exception) {
+            return null;
+        }
+    }
+
+    protected function possibleKeysForVersion(string $version): array
+    {
+        preg_match_all('/\d+/', $version, $matches);
+
+        $segments = $matches[0] ?? [];
+
+        if (empty($segments)) {
+            return [];
+        }
+
+        $keys = [];
+
+        for ($length = count($segments); $length > 0; $length--) {
+            $slice = array_slice($segments, 0, $length);
+            $keys[] = 'v'.implode('-', $slice);
+        }
+
+        return $keys;
+    }
+
+    protected function versionKeySegments(string $key): array
+    {
+        preg_match_all('/\d+/', $key, $matches);
+
+        if (empty($matches[0])) {
+            return [];
+        }
+
+        return array_map('intval', $matches[0]);
+    }
+
+    protected function segmentsToComparable(array $segments): string
+    {
+        return implode('.', array_map(static function ($segment) {
+            return (string) (int) $segment;
+        }, $segments));
+    }
+
+    protected function manuallyLoadConfigDirectory(array $descriptor): void
+    {
+        $filesystem = new Filesystem();
+        $basePath = __DIR__.DIRECTORY_SEPARATOR.$descriptor['directory'];
+
+        $configPath = $basePath.DIRECTORY_SEPARATOR.'UpgradeCommandConfig.php';
+
+        if ($filesystem->exists($configPath)) {
+            require_once $configPath;
+        }
+
+        $stepsPath = $basePath.DIRECTORY_SEPARATOR.'Steps';
+
+        if (! $filesystem->isDirectory($stepsPath)) {
+            return;
+        }
+
+        foreach ($filesystem->allFiles($stepsPath) as $file) {
+            /** @var \Symfony\Component\Finder\SplFileInfo $file */
+            if (strtolower($file->getExtension()) !== 'php') {
+                continue;
+            }
+
+            require_once $file->getRealPath();
+        }
     }
 
     protected function hasExpectedBackpackVersion(UpgradeContext $context, UpgradeConfigInterface $config): bool

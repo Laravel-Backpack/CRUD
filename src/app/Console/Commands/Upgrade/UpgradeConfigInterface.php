@@ -14,6 +14,8 @@ interface UpgradeConfigInterface
      */
     public function addons(): array;
 
+    public function upgradeCommandDescription(): ?callable;
+
     public static function backpackCrudRequirement(): string;
 
     /**

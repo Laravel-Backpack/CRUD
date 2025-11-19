@@ -2,10 +2,12 @@
 
 namespace Backpack\CRUD\app\Console\Commands\Upgrade\v7;
 
+use Backpack\CRUD\app\Console\Commands\Upgrade\UpgradeCommand;
 use Backpack\CRUD\app\Console\Commands\Upgrade\UpgradeConfigInterface;
+use Backpack\CRUD\app\Console\Commands\Upgrade\UpgradeConfigSummaryInterface;
 use Backpack\CRUD\app\Console\Commands\Upgrade\v7\Steps as Step;
 
-class UpgradeCommandConfig implements UpgradeConfigInterface
+class UpgradeCommandConfig implements UpgradeConfigInterface, UpgradeConfigSummaryInterface
 {
     public function steps(): array
     {
@@ -54,6 +56,30 @@ class UpgradeCommandConfig implements UpgradeConfigInterface
             'backpack/ckeditor-field' => 'dev-next',
             'backpack/tinymce-field' => 'dev-next',
         ];
+    }
+
+    public function upgradeCommandDescription(): ?callable
+    {
+        return function (UpgradeCommand $command): void {
+            $command->note(
+                'These checks will highlight anything you need to tackle before enjoying the new release.'.PHP_EOL.
+                '    Full upgrade instructions: <fg=cyan>https://backpackforlaravel.com/docs/7.x/upgrade-guide</>',
+                'green',
+                'green'
+            );
+
+            $command->note(
+                'Before you start, make sure you have a fresh <fg=red>FULL BACKUP</> of your project and database stored safely.'.PHP_EOL.
+                '    Run <fg=magenta>backpack:upgrade --version=7</> alongside the guide so you do not miss any manual steps.',
+                'yellow',
+                'yellow'
+            );
+        };
+    }
+
+    public function upgradeCommandSummary(): ?string
+    {
+        return 'Run the automated checks, while following the upgrade guide: <fg=cyan>https://backpackforlaravel.com/docs/7.x/upgrade-guide</>';
     }
 
     public static function backpackCrudRequirement(): string
