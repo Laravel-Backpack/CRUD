@@ -45,6 +45,12 @@ trait ListOperation
 
         $this->crud->operation('list', function () {
             $this->crud->loadDefaultOperationSettingsFromConfig();
+
+            $this->crud->setOperationSetting('breadcrumbs', [
+                trans('backpack::crud.admin') => url(config('backpack.base.route_prefix'), 'dashboard'),
+                $this->crud->entity_name_plural => url($this->crud->route),
+                trans('backpack::crud.list') => false,
+            ]);
         });
     }
 
@@ -59,6 +65,7 @@ trait ListOperation
 
         $this->data['crud'] = $this->crud;
         $this->data['title'] = $this->crud->getTitle() ?? mb_ucfirst($this->crud->entity_name_plural);
+        $this->data['breadcrumbs'] = $this->crud->getOperationSetting('breadcrumbs');
 
         // load the view from /resources/views/vendor/backpack/crud/ if it exists, otherwise load the one in the package
         return view($this->crud->getListView(), $this->data);

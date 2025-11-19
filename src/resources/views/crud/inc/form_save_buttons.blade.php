@@ -18,15 +18,15 @@
                     <span class="d-none visually-hidden">Toggle Dropdown</span>
                 </button>
                 <ul class="dropdown-menu" aria-labelledby="bpSaveButtonsGroup">
-                    @foreach( $saveAction['options'] as $value => $label)
+                    @foreach($saveAction['options'] as $value => $label)
                         <li><button class="dropdown-item" type="button" data-value="{{ $value }}">{{ $label }}</button></li>
                     @endforeach
                 </ul>
             </div>
         @endif
     @endif
-    @if(!$crud->hasOperationSetting('showCancelButton') || $crud->getOperationSetting('showCancelButton') == true)
-        <a href="{{ $crud->hasAccess('list') ? url($crud->route) : url()->previous() }}" class="btn btn-secondary text-decoration-none"><span class="la la-ban"></span> &nbsp;{{ trans('backpack::crud.cancel') }}</a>
+    @if(!$crud->hasOperationSetting('showCancelButton') || $crud->getOperationSetting('showCancelButton') === true)
+        @include('crud::buttons.cancel')
     @endif
 
     @if ($crud->get('update.showDeleteButton') && $crud->get('delete.configuration') && $crud->hasAccess('delete'))
