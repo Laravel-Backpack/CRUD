@@ -14,11 +14,11 @@ class DetectEditorAddonRequirementsStep extends Step
     protected array $editors = [
         'ckeditor' => [
             'package' => 'backpack/ckeditor-field',
-            'constraint' => 'dev-next',
+            'constraint' => '^1.0',
         ],
         'tinymce' => [
             'package' => 'backpack/tinymce-field',
-            'constraint' => 'dev-next',
+            'constraint' => '^1.0',
         ],
     ];
 
@@ -28,7 +28,7 @@ class DetectEditorAddonRequirementsStep extends Step
 
     public function title(): string
     {
-        return 'Ensure rich text editor add-ons are installed';
+        return 'Check if required WYSIWYG editors add-ons are installed';
     }
 
     public function run(): StepResult
@@ -134,7 +134,7 @@ class DetectEditorAddonRequirementsStep extends Step
 
     public function fixMessage(StepResult $result): string
     {
-        return 'We can add the missing editor packages to composer.json automatically. Apply this change?';
+        return 'We will add the required packages to composer.json. Proceed?';
     }
 
     public function fix(StepResult $result): StepResult

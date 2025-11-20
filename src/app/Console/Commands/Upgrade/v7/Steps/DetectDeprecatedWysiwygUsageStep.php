@@ -14,7 +14,7 @@ class DetectDeprecatedWysiwygUsageStep extends Step
 
     public function title(): string
     {
-        return 'Detect deprecated wysiwyg field/column aliases';
+        return 'Check if any CrudController uses the deprecated wysiwyg alias';
     }
 
     public function run(): StepResult
@@ -50,7 +50,7 @@ class DetectDeprecatedWysiwygUsageStep extends Step
 
     public function fixMessage(StepResult $result): string
     {
-        return 'We can replace the wysiwyg alias with ckeditor in the detected CrudController files automatically. Apply this fix?';
+        return 'We will replace the wysiwyg alias with ckeditor in the detected CrudController files. Proceed?';
     }
 
     public function fix(StepResult $result): StepResult

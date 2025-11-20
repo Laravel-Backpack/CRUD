@@ -19,7 +19,7 @@ class CheckFileManagerPublishedViewsStep extends Step
 
     public function title(): string
     {
-        return 'Legacy File Manager views';
+        return 'Check if File Manager has published views';
     }
 
     public function run(): StepResult
@@ -49,7 +49,7 @@ class CheckFileManagerPublishedViewsStep extends Step
 
         if (empty($relativeFiles)) {
             return StepResult::warning(
-                'Legacy File Manager directory detected. Delete resources/views/vendor/elfinder if you have not customized those views.',
+                'File Manager directory detected. Delete resources/views/vendor/elfinder if you have not customized those views.',
                 ['Published directory: '.self::LEGACY_VIEWS_DIRECTORY]
             );
         }
@@ -82,7 +82,7 @@ class CheckFileManagerPublishedViewsStep extends Step
 
     public function fixMessage(StepResult $result): string
     {
-        return 'We can delete resources/views/vendor/elfinder so Backpack uses the updated File Manager views. Proceed?';
+        return 'We will delete resources/views/vendor/elfinder views. Proceed?';
     }
 
     public function fix(StepResult $result): StepResult
@@ -107,7 +107,7 @@ class CheckFileManagerPublishedViewsStep extends Step
         $this->legacyFiles = [];
         $this->legacyDirectoryDetected = false;
 
-        return StepResult::success('Removed resources/views/vendor/elfinder so the package views are used.');
+        return StepResult::success('Removed resources/views/vendor/elfinder so the default package views are used.');
     }
 
     protected function collectRelativeFiles(Filesystem $filesystem, string $absoluteDirectory): array

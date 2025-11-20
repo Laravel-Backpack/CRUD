@@ -62,15 +62,7 @@ class UpgradeCommandConfig implements UpgradeConfigInterface, UpgradeConfigSumma
     {
         return function (UpgradeCommand $command): void {
             $command->note(
-                'These checks will highlight anything you need to tackle before enjoying the new release.'.PHP_EOL.
-                '    Full upgrade instructions: <fg=cyan>https://backpackforlaravel.com/docs/7.x/upgrade-guide</>',
-                'green',
-                'green'
-            );
-
-            $command->note(
-                'Before you start, make sure you have a fresh <fg=red>FULL BACKUP</> of your project and database stored safely.'.PHP_EOL.
-                '    Run <fg=magenta>backpack:upgrade --version=7</> alongside the guide so you do not miss any manual steps.',
+                'Before you start, make sure you have a fresh <fg=red>FULL BACKUP</> of your project and database stored safely.',
                 'yellow',
                 'yellow'
             );
@@ -79,7 +71,7 @@ class UpgradeCommandConfig implements UpgradeConfigInterface, UpgradeConfigSumma
 
     public function upgradeCommandSummary(): ?string
     {
-        return 'Run the automated checks, while following the upgrade guide: <fg=cyan>https://backpackforlaravel.com/docs/7.x/upgrade-guide</>';
+        return null;
     }
 
     public static function backpackCrudRequirement(): string

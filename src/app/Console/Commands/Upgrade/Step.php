@@ -41,6 +41,11 @@ abstract class Step
         return StepResult::skipped('No automatic fix available.');
     }
 
+    public function isBlocking(): bool
+    {
+        return false;
+    }
+
     /**
      * Build a preview of items with an optional formatter and overflow message.
      *

@@ -78,6 +78,19 @@ class UpgradeCommand extends Command
 
             $this->printResultDetails($result);
 
+            if ($result->status->isFailure() && $step->isBlocking()) {
+                $this->note(
+                    sprintf(
+                        'Please solve the issue above, then rerun `php artisan backpack:upgrade %s`.',
+                        $descriptor['label']
+                    ),
+                    'red',
+                    'red'
+                );
+
+                return Command::FAILURE;
+            }
+
             if ($this->shouldOfferFix($step, $result)) {
                 $question = trim($step->fixMessage($result));
                 $question = $question !== '' ? $question : 'Apply automatic fix?';

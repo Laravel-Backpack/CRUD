@@ -15,7 +15,7 @@ class EnsureBackpackCrudRequirementStep extends Step
 
     public function title(): string
     {
-        return 'Update composer requirement for backpack/crud';
+        return 'Check if Backpack CRUD is installed and the correct version is required';
     }
 
     public function run(): StepResult
@@ -95,7 +95,7 @@ class EnsureBackpackCrudRequirementStep extends Step
     public function fixMessage(StepResult $result): string
     {
         return sprintf(
-            'We can update composer.json to require backpack/crud:%s automatically. Apply this change now?',
+            'We will update the composer.json to require backpack/crud:%s . Proceed?',
             $this->targetConstraint()
         );
     }
