@@ -34,7 +34,7 @@ class UpgradeCommandConfig implements UpgradeConfigInterface, UpgradeConfigSumma
             'backpack/filemanager' => '^4.0',
             'backpack/theme-coreuiv2' => '^2.0',
             'backpack/theme-coreuiv4' => '^1.2',
-            'backpack/theme-tabler' => 'dev-next',
+            'backpack/theme-tabler' => '^2.0',
             'backpack/logmanager' => '^5.1',
             'backpack/settings' => '^3.2',
             'backpack/newscrud' => '^5.2',
