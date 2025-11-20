@@ -4,11 +4,11 @@ namespace Backpack\CRUD\app\Console\Commands\Upgrade\v7\Steps;
 
 use Backpack\CRUD\app\Console\Commands\Upgrade\Step;
 use Backpack\CRUD\app\Console\Commands\Upgrade\StepResult;
-use Backpack\CRUD\app\Console\Commands\Upgrade\UpgradeContext;
 use Backpack\CRUD\app\Console\Commands\Upgrade\Support\ConfigFilesHelper;
+use Backpack\CRUD\app\Console\Commands\Upgrade\UpgradeContext;
 
 class CheckOperationConfigFilesStep extends Step
-{   
+{
     protected ConfigFilesHelper $configs;
 
     public function __construct(UpgradeContext $context)

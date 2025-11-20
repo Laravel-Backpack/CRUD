@@ -51,7 +51,7 @@ class UpgradeCommandConfig implements UpgradeConfigInterface, UpgradeConfigSumma
             'backpack/language-switcher' => '^2.1',
             'backpack/pan-panel' => '^1.1',
             'backpack/pro' => '^3.0',
-            'backpack/translation-manager' => '^1.1'
+            'backpack/translation-manager' => '^1.1',
         ];
     }
 

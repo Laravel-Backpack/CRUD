@@ -218,7 +218,7 @@ class ConfigFilesHelper
     {
         return (bool) ($this->configFiles['checked_any'] ?? false);
     }
-    
+
     public function missingKeysPerFile(): array
     {
         return $this->configFiles['missing_keys_per_file'] ?? [];
@@ -747,7 +747,7 @@ class ConfigFilesHelper
             return $path;
         }
 
-        $trimmed = rtrim($path, "/\\");
+        $trimmed = rtrim($path, '/\\');
 
         return $trimmed === '' ? $path : $trimmed;
     }
@@ -779,7 +779,7 @@ class ConfigFilesHelper
 
     protected function trimLeadingSeparators(string $path): string
     {
-        return ltrim($path, "\\/");
+        return ltrim($path, '\\/');
     }
 
     protected function isAbsolutePath(string $path): bool
@@ -861,7 +861,6 @@ class ConfigFilesHelper
 
         return $text;
     }
-
 
     protected function stripStrings(string $line): string
     {
