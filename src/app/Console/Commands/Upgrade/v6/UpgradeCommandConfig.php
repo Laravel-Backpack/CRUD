@@ -28,7 +28,7 @@ class UpgradeCommandConfig implements UpgradeConfigInterface
             );
 
             $command->note(
-                'You can choose <fg=magenta>v7</> option bellow, or call it later with: <fg=magenta>backpack:upgrade --version=7</>.',
+                'Please select the upgrade path you wish to follow:',
                 'yellow',
                 'yellow'
             );

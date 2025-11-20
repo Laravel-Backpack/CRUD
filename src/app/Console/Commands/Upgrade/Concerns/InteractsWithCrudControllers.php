@@ -10,7 +10,7 @@ use Backpack\CRUD\app\Console\Commands\Upgrade\UpgradeContext;
 trait InteractsWithCrudControllers
 {
     /**
-     * Filter a list of file paths to those that look like CrudControllers and optionally validate contents.
+     * Filter a list of file paths.
      */
     protected function filterCrudControllerPaths(array $paths, ?callable $contentsValidator = null): array
     {
