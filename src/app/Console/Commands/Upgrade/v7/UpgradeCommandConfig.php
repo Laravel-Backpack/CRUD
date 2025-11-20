@@ -31,7 +31,7 @@ class UpgradeCommandConfig implements UpgradeConfigInterface, UpgradeConfigSumma
     {
         return [
             'backpack/crud' => self::backpackCrudRequirement(),
-            'backpack/filemanager' => 'dev-next',
+            'backpack/filemanager' => '^4.0',
             'backpack/theme-coreuiv2' => 'dev-next',
             'backpack/theme-coreuiv4' => '^1.2',
             'backpack/theme-tabler' => 'dev-next',
