@@ -4,122 +4,111 @@ namespace Backpack\CRUD\app\Console\Commands\Upgrade\v7\Steps;
 
 use Backpack\CRUD\app\Console\Commands\Upgrade\Step;
 use Backpack\CRUD\app\Console\Commands\Upgrade\StepResult;
+use Backpack\CRUD\app\Console\Commands\Upgrade\UpgradeContext;
+use Backpack\CRUD\app\Console\Commands\Upgrade\Support\ConfigFilesHelper;
 
 class CheckOperationConfigFilesStep extends Step
-{
-    protected array $operationFiles = [
-        'create.php',
-        'form.php',
-        'list.php',
-        'reorder.php',
-        'show.php',
-        'update.php',
-    ];
+{   
+    protected ConfigFilesHelper $configs;
+
+    public function __construct(UpgradeContext $context)
+    {
+        parent::__construct($context);
+
+        $this->configs = new ConfigFilesHelper(
+            $context,
+            config_path('backpack/operations'),
+            base_path('vendor/backpack/crud/src/config/backpack/operations')
+        );
+    }
 
     public function title(): string
     {
-        return 'Operation config files';
+        return 'Check if operation config files are published and up to date';
     }
 
     public function run(): StepResult
     {
         $issues = [];
-        $checkedAny = false;
 
-        foreach ($this->operationFiles as $filename) {
-            $relativePath = 'config/backpack/operations/'.$filename;
-
-            if (! $this->context()->fileExists($relativePath)) {
-                continue;
-            }
-
-            $checkedAny = true;
-
-            $publishedConfig = $this->loadConfigArray($this->context()->basePath($relativePath));
-            $packageConfig = $this->loadConfigArray($this->packageConfigPath($filename));
-
-            if ($publishedConfig === null || $packageConfig === null) {
-                continue;
-            }
-
-            $missingKeys = array_diff(
-                $this->flattenKeys($packageConfig),
-                $this->flattenKeys($publishedConfig)
-            );
-
-            if (! empty($missingKeys)) {
-                sort($missingKeys);
-
-                $issues[] = sprintf('Add the missing keys to %s:', $relativePath);
-
-                $preview = array_slice($missingKeys, 0, 10);
-
-                foreach ($preview as $key) {
-                    $issues[] = "- {$key}";
-                }
-
-                if (count($missingKeys) > count($preview)) {
-                    $issues[] = sprintf('… %d more key(s) omitted.', count($missingKeys) - count($preview));
-                }
-            }
-        }
-
-        if (! $checkedAny) {
+        if (! $this->configs->configFilesPublished()) {
             return StepResult::skipped('Operation config files are not published.');
         }
 
-        if (empty($issues)) {
-            return StepResult::success('Published operation config files include the latest options.');
-        }
-
-        return StepResult::warning(
-            'Copy the new configuration options into your published operation config files.',
-            $issues
-        );
-    }
-
-    private function loadConfigArray(string $path): ?array
-    {
-        if (! is_file($path)) {
-            return null;
-        }
-
-        $data = include $path;
-
-        return is_array($data) ? $data : null;
-    }
-
-    private function packageConfigPath(string $filename): string
-    {
-        return dirname(__DIR__, 6)
-            .DIRECTORY_SEPARATOR.'config'
-            .DIRECTORY_SEPARATOR.'backpack'
-            .DIRECTORY_SEPARATOR.'operations'
-            .DIRECTORY_SEPARATOR.$filename;
-    }
-
-    private function flattenKeys(array $config, string $prefix = ''): array
-    {
-        $keys = [];
-
-        foreach ($config as $key => $value) {
-            if (is_int($key)) {
-                if (is_array($value)) {
-                    $keys = array_merge($keys, $this->flattenKeys($value, $prefix));
-                }
-
+        foreach ($this->configs->missingKeysPerFile() as $relativePath => $missingKeys) {
+            if (empty($missingKeys)) {
                 continue;
             }
 
-            $key = (string) $key;
-            $fullKey = $prefix === '' ? $key : $prefix.'.'.$key;
-            $keys[] = $fullKey;
-
-            if (is_array($value)) {
-                $keys = array_merge($keys, $this->flattenKeys($value, $fullKey));
-            }
+            $issues[] = sprintf('Add the missing keys to %s:', $relativePath);
+            $issues = array_merge($issues, $this->previewList($missingKeys));
         }
 
-        return array_values(array_unique($keys));
+        if (empty($issues)) {
+            return StepResult::success('Published operation config are up to date with package version.');
+        }
+
+        return StepResult::warning(
+            'Copy the new configuration options into your published operation config files so you can keep up to date with the latest features.',
+            $issues,
+            [
+                'missing_entries' => $this->configs->collectedEntries(),
+                'missing_entries_per_file' => $this->configs->topLevelMissingKeysPerFile(),
+            ]
+        );
+    }
+
+    public function canFix(StepResult $result): bool
+    {
+        if (! $result->status->isWarning()) {
+            return false;
+        }
+
+        return ! empty($this->configs->topLevelEntriesPerFile());
+    }
+
+    public function fixMessage(StepResult $result): string
+    {
+        return 'Add the missing configuration keys to your published operation config files?';
+    }
+
+    public function fix(StepResult $result): StepResult
+    {
+        $entriesPerFile = $this->configs->topLevelEntriesPerFile();
+        $absolutePaths = $this->configs->absolutePaths();
+
+        if (empty($entriesPerFile)) {
+            return StepResult::skipped('No missing configuration keys detected to apply automatically.');
+        }
+
+        $updatedFiles = [];
+
+        foreach ($entriesPerFile as $displayPath => $entries) {
+            if (empty($entries)) {
+                continue;
+            }
+
+            $error = null;
+
+            $absolutePath = $absolutePaths[$displayPath] ?? null;
+
+            if ($absolutePath === null) {
+                return StepResult::failure("Could not locate {$displayPath} on disk.");
+            }
+
+            if (! $this->configs->addEntriesToPublishedFile($absolutePath, $entries, $error)) {
+                return StepResult::failure($error ?? "Could not update {$displayPath} automatically.");
+            }
+
+            $updatedFiles[] = $displayPath;
+        }
+
+        if (empty($updatedFiles)) {
+            return StepResult::skipped('No missing configuration keys were eligible for automatic updates.');
+        }
+
+        $details = $this->previewList($updatedFiles, limit: count($updatedFiles));
+
+        return StepResult::success('Added missing operation configuration keys automatically.', $details);
     }
 }

@@ -33,7 +33,7 @@ class DetectDeprecatedWysiwygUsageStep extends Step
         $details = $this->previewList($paths);
 
         return StepResult::warning(
-            'Replace the wysiwyg field/column with ckeditor or text (the alias was removed).',
+            'Wysiwyg found as a field/column type in the following CrudController file(s):',
             $details,
             ['paths' => $paths]
         );
@@ -50,7 +50,7 @@ class DetectDeprecatedWysiwygUsageStep extends Step
 
     public function fixMessage(StepResult $result): string
     {
-        return 'We will replace the wysiwyg alias with ckeditor in the detected CrudController files. Proceed?';
+        return 'We will replace the wysiwyg alias with ckeditor in CrudControllers. Proceed?';
     }
 
     public function fix(StepResult $result): StepResult

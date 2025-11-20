@@ -12,7 +12,7 @@ class CheckListOperationViewPublishedStep extends Step
 
     public function title(): string
     {
-        return 'Published list operation view';
+        return 'Check if List operation view is published';
     }
 
     public function run(): StepResult
@@ -34,7 +34,7 @@ class CheckListOperationViewPublishedStep extends Step
 
     public function fixMessage(StepResult $result): string
     {
-        return 'We can delete the published list.blade.php so Backpack uses the updated bundled view. Proceed?';
+        return 'Delete the published view and use the package default?';
     }
 
     public function fix(StepResult $result): StepResult
@@ -47,6 +47,6 @@ class CheckListOperationViewPublishedStep extends Step
             return StepResult::failure("Could not delete {$this->relativePath} automatically.");
         }
 
-        return StepResult::success('Removed the published list.blade.php so the package view is used.');
+        return StepResult::success('Removed the published list.blade.php.');
     }
 }

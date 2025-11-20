@@ -94,7 +94,7 @@ class UpgradeCommand extends Command
             if ($this->shouldOfferFix($step, $result)) {
                 $question = trim($step->fixMessage($result));
                 $question = $question !== '' ? $question : 'Apply automatic fix?';
-                $applyFix = $this->confirm('  '.$question, false);
+                $applyFix = $this->confirm('  '.$question, true);
 
                 if ($applyFix) {
                     $this->progressBlock('Applying automatic fix');
@@ -124,6 +124,7 @@ class UpgradeCommand extends Command
 
             $results[] = [
                 'step' => $stepClass,
+                'title' => $step->title(),
                 'result' => $result,
             ];
         }
@@ -155,6 +156,17 @@ class UpgradeCommand extends Command
             return $result->status === StepStatus::Warning;
         });
 
+        $failedTitles = $resultsCollection
+            ->filter(function ($entry) {
+                /** @var StepResult $result */
+                $result = $entry['result'];
+
+                return $result->status->isFailure();
+            })
+            ->pluck('title');
+
+        $warningTitles = $warnings->pluck('title');
+
         $this->newLine();
         $this->infoBlock('Summary', 'done');
 
@@ -164,12 +176,24 @@ class UpgradeCommand extends Command
             $this->note('At least one step reported a failure. Review the messages above before continuing.', 'red', 'red');
         }
 
-        if ($warnings->isNotEmpty()) {
-            $this->note(sprintf('%d step(s) reported warnings.', $warnings->count()), 'yellow', 'yellow');
-        }
-
         if (! $hasFailure && $warnings->isEmpty()) {
             $this->note('All checks passed, you are ready to continue with the manual steps from the upgrade guide.', 'green', 'green');
+        }
+
+        if ($failedTitles->isNotEmpty()) {
+            $this->note('Failed steps:', 'red', 'red');
+
+            foreach ($failedTitles as $title) {
+                $this->note(' - '.$title, 'red', 'red');
+            }
+        }
+
+        if ($warningTitles->isNotEmpty()) {
+            $this->note(sprintf('(%d) Warnings:', $warningTitles->count()), 'yellow', 'yellow');
+
+            foreach ($warningTitles as $title) {
+                $this->note(' - '.$title, 'yellow', 'yellow');
+            }
         }
 
         $postUpgradeCommands = [];

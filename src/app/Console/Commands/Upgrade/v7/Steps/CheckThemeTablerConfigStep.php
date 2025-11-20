@@ -14,20 +14,27 @@ class CheckThemeTablerConfigStep extends Step
 
     private array $issues = [];
 
+    private bool $needsPublish = false;
+
     public function title(): string
     {
-        return 'Tabler theme configuration';
+        return 'Check if Theme tabler config is published';
     }
 
     public function run(): StepResult
     {
         $this->currentContents = $this->context()->readFile($this->relativePath);
         $this->issues = [];
+        $this->needsPublish = false;
 
         $contents = $this->currentContents;
 
         if ($contents === null) {
-            return StepResult::skipped('Tabler theme config not published. Publish it if you want to lock the legacy layout.');
+            $this->needsPublish = true;
+
+            return StepResult::warning(
+                'Tabler theme config not published yet. Backpack v7 ships with a new tabler skin and layout.',
+            );
         }
 
         if (str_contains($contents, "'layout' => 'horizontal'")) {
@@ -35,15 +42,15 @@ class CheckThemeTablerConfigStep extends Step
         }
 
         if ($this->hasActiveStyle($contents, 'glass.css')) {
-            $this->issues[] = 'Remove glass.css from the styles array; the skin was dropped.';
+            $this->issues[] = 'Comment out glass.css in the styles array to disable the new v7 skin.';
         }
 
         if ($this->hasActiveStyle($contents, 'fuzzy-background.css')) {
-            $this->issues[] = 'Remove fuzzy-background.css from the styles array; the asset was dropped.';
+            $this->issues[] = 'Comment out fuzzy-background.css in the styles array to disable the new v7 skin.';
         }
 
         if (empty($this->issues)) {
-            return StepResult::success('Tabler theme config already matches the new defaults.');
+            return StepResult::success('Tabler theme config already aligned with the recommended Backpack v7 settings.');
         }
 
         return StepResult::warning('Review config/backpack/theme-tabler.php.', $this->issues);
@@ -51,36 +58,55 @@ class CheckThemeTablerConfigStep extends Step
 
     public function canFix(StepResult $result): bool
     {
-        return $result->status === StepStatus::Warning && $this->currentContents !== null && ! empty($this->issues);
+        return $result->status === StepStatus::Warning
+            && ($this->needsPublish || ($this->currentContents !== null && ! empty($this->issues)));
     }
 
     public function fixMessage(StepResult $result): string
     {
-        return 'We can update config/backpack/theme-tabler.php with the recommended Backpack v7 options automatically. Apply this change?';
+        return 'Do you want to revert to v6 skin and layout?';
     }
 
     public function fix(StepResult $result): StepResult
     {
-        if ($this->currentContents === null) {
-            return StepResult::skipped('Tabler theme config not published.');
-        }
-
         $updated = $this->currentContents;
         $changed = false;
+
+        if ($this->currentContents === null) {
+            $defaultConfig = $this->context()->readFile('vendor/backpack/theme-tabler/config/theme-tabler.php');
+
+            if ($defaultConfig === null) {
+                return StepResult::failure('Could not publish config/backpack/theme-tabler.php automatically.');
+            }
+
+            $updated = $defaultConfig;
+            $changed = true;
+        }
 
         if (str_contains($updated, "'layout' => 'horizontal'")) {
             $updated = preg_replace("/'layout'\s*=>\s*'horizontal'/", "'layout' => 'horizontal_overlap'", $updated, 1) ?? $updated;
             $changed = true;
         }
 
-        $removals = [
+        $commentTargets = [
             "base_path('vendor/backpack/theme-tabler/resources/assets/css/skins/glass.css')",
             "base_path('vendor/backpack/theme-tabler/resources/assets/css/skins/fuzzy-background.css')",
         ];
 
-        foreach ($removals as $removal) {
-            $pattern = '~^[\t ]*'.preg_quote($removal, '~').',\s*\r?\n?~m';
-            $new = preg_replace($pattern, '', $updated, -1, $count);
+        foreach ($commentTargets as $target) {
+            $pattern = '~^[\t ]*'.preg_quote($target, '~').'([\t ]*,?[\t ]*)\r?$~m';
+            $new = preg_replace_callback(
+                $pattern,
+                function (array $matches) use ($target) {
+                    $position = strpos($matches[0], $target);
+                    $indentation = $position === false ? '' : substr($matches[0], 0, $position);
+
+                    return $indentation.'// '.$target.$matches[1];
+                },
+                $updated,
+                1,
+                $count
+            );
 
             if ($new !== null) {
                 $updated = $new;
@@ -90,8 +116,6 @@ class CheckThemeTablerConfigStep extends Step
             }
         }
 
-        $updated = preg_replace('/^base_path/m', '        base_path', $updated);
-
         if (! $changed) {
             return StepResult::failure('Could not adjust Tabler config automatically.');
         }
@@ -100,7 +124,10 @@ class CheckThemeTablerConfigStep extends Step
             return StepResult::failure('Failed writing changes to config/backpack/theme-tabler.php.');
         }
 
-        return StepResult::success('Updated Tabler theme configuration for Backpack v7.');
+        $this->currentContents = $updated;
+        $this->needsPublish = false;
+
+        return StepResult::success('Published and updated config/backpack/theme-tabler.php to keep the Backpack v6 layout.');
     }
 
     private function hasActiveStyle(string $contents, string $needle): bool

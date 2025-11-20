@@ -12,7 +12,7 @@ class EnsureFirstPartyAddonsAreCompatibleStep extends Step
 
     public function title(): string
     {
-        return 'Ensure Backpack add-ons target v7 compatible releases';
+        return 'Check if Backpack add-ons versions are compatible with v7';
     }
 
     public function run(): StepResult

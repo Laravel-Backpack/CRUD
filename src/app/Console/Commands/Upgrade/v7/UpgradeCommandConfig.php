@@ -14,7 +14,6 @@ class UpgradeCommandConfig implements UpgradeConfigInterface, UpgradeConfigSumma
         return [
             Step\EnsureLaravelVersionStep::class,
             Step\EnsureBackpackCrudRequirementStep::class,
-            Step\EnsureMinimumStabilityStep::class,
             Step\EnsureFirstPartyAddonsAreCompatibleStep::class,
             Step\CheckOperationConfigFilesStep::class,
             Step\CheckThemeTablerConfigStep::class,
@@ -52,9 +51,7 @@ class UpgradeCommandConfig implements UpgradeConfigInterface, UpgradeConfigSumma
             'backpack/language-switcher' => '^2.1',
             'backpack/pan-panel' => '^1.1',
             'backpack/pro' => '^3.0',
-            'backpack/translation-manager' => '^1.1',
-            'backpack/ckeditor-field' => '^1.0',
-            'backpack/tinymce-field' => '^1.0',
+            'backpack/translation-manager' => '^1.1'
         ];
     }
 

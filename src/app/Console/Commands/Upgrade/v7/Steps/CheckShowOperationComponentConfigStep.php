@@ -5,39 +5,47 @@ namespace Backpack\CRUD\app\Console\Commands\Upgrade\v7\Steps;
 use Backpack\CRUD\app\Console\Commands\Upgrade\Step;
 use Backpack\CRUD\app\Console\Commands\Upgrade\StepResult;
 use Backpack\CRUD\app\Console\Commands\Upgrade\StepStatus;
+use Backpack\CRUD\app\Console\Commands\Upgrade\UpgradeContext;
+use Backpack\CRUD\app\Console\Commands\Upgrade\Support\ConfigFilesHelper;
 
 class CheckShowOperationComponentConfigStep extends Step
 {
-    protected string $relativePath = 'config/backpack/operations/show.php';
+    protected string $operationFilename = 'show.php';
 
     protected bool $missingComponent = false;
 
+    protected ConfigFilesHelper $configs;
+
+    public function __construct(UpgradeContext $context)
+    {
+        parent::__construct($context);
+
+        $this->configs = new ConfigFilesHelper(
+            $context,
+            config_path('backpack/operations/show.php'),
+            base_path('vendor/backpack/crud/src/config/backpack/operations/show.php')
+        );
+    }
+
     public function title(): string
     {
-        return 'Show operation configuration';
+        return 'Check if Show operation config has the component option';
     }
 
     public function run(): StepResult
     {
         $this->missingComponent = false;
 
-        $contents = $this->context()->readFile($this->relativePath);
-
-        if ($contents === null) {
+        if (! $this->configs->configFilesPublished()) {
             return StepResult::skipped('show.php config file is not published, core defaults already use the new datagrid component.');
         }
 
-        if (! str_contains($contents, "'component'")) {
+        if (! $this->configs->publishedFileContainsKey($this->operationFilename, 'component')) {
             $this->missingComponent = true;
 
             return StepResult::warning(
-                "Add the 'component' option to config/backpack/operations/show.php to pick between bp-datagrid and bp-datalist.",
-                ['Example:    "component" => "bp-datagrid"']
+                "The 'component' key is missing from the show operation config file.",
             );
-        }
-
-        if (str_contains($contents, "'bp-datalist'")) {
-            return StepResult::success('Show operation will keep the classic bp-datalist component.');
         }
 
         return StepResult::success('Show operation config file already has the new "component" key.');
@@ -50,41 +58,31 @@ class CheckShowOperationComponentConfigStep extends Step
 
     public function fixMessage(StepResult $result): string
     {
-        return 'We can add the component option to config/backpack/operations/show.php automatically. Apply this change?';
+        return 'Add the component key to the config file?';
     }
 
     public function fix(StepResult $result): StepResult
     {
-        $contents = $this->context()->readFile($this->relativePath);
-
-        if ($contents === null) {
+        if (! $this->configs->configFilesPublished()) {
             return StepResult::skipped('show.php config file is not published, core defaults already use the new datagrid component.');
         }
 
-        if (str_contains($contents, "'component'")) {
+        if ($this->configs->publishedFileContainsKey($this->operationFilename, 'component')) {
             return StepResult::success('Show operation config already defines the component option.');
         }
 
-        $newline = str_contains($contents, "\r\n") ? "\r\n" : "\n";
-        $pattern = '/(return\s*\[\s*(?:\r?\n))/';
-        $replacement = '$1'
-            .'    // Which component to use for displaying the Show page?'
-            .$newline
-            ."    'component' => 'bp-datagrid', // options: bp-datagrid, bp-datalist, or a custom component alias"
-            .$newline.$newline;
+        $relativePath = $this->configs->publishedRelativePath($this->operationFilename);
+        $snippet = '    // Which component to use for displaying the Show page?'.PHP_EOL
+            ."    'component' => 'bp-datagrid', // options: bp-datagrid, bp-datalist, or a custom component alias";
 
-        $updatedContents = preg_replace($pattern, $replacement, $contents, 1, $replacements);
+        $error = null;
 
-        if ($updatedContents === null || $replacements === 0) {
-            return StepResult::failure('Could not update show.php automatically.');
-        }
-
-        if (! $this->context()->writeFile($this->relativePath, $updatedContents)) {
-            return StepResult::failure('Could not save the updated show.php configuration.');
+        if (! $this->configs->addKeyToConfigFile($this->operationFilename, $snippet, $error)) {
+            return StepResult::failure($error ?? 'Could not update show.php automatically.');
         }
 
         $this->missingComponent = false;
 
-        return StepResult::success("Added the 'component' option to config/backpack/operations/show.php.");
+        return StepResult::success("Added the 'component' option to {$relativePath}.");
     }
 }

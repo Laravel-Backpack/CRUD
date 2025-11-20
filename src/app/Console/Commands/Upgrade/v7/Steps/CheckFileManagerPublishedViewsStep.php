@@ -32,42 +32,28 @@ class CheckFileManagerPublishedViewsStep extends Step
         }
 
         if (! $this->context()->fileExists(self::LEGACY_VIEWS_DIRECTORY)) {
-            return StepResult::success('No legacy File Manager views found in resources/views/vendor/elfinder.');
+            return StepResult::success('No File Manager views found in resources/views/vendor/elfinder.');
         }
 
         $filesystem = new Filesystem();
         $absoluteDirectory = $this->context()->basePath(self::LEGACY_VIEWS_DIRECTORY);
 
         if (! $filesystem->isDirectory($absoluteDirectory)) {
-            return StepResult::success('No legacy File Manager views found in resources/views/vendor/elfinder.');
+            return StepResult::success('No File Manager views found in resources/views/vendor/elfinder.');
         }
 
         $this->legacyDirectoryDetected = true;
 
-        $relativeFiles = $this->collectRelativeFiles($filesystem, $absoluteDirectory);
-        $this->legacyFiles = $relativeFiles;
+        $this->legacyFiles = $this->collectRelativeFiles($filesystem, $absoluteDirectory);
 
-        if (empty($relativeFiles)) {
+        if (empty($this->legacyFiles)) {
             return StepResult::warning(
                 'File Manager directory detected. Delete resources/views/vendor/elfinder if you have not customized those views.',
-                ['Published directory: '.self::LEGACY_VIEWS_DIRECTORY]
             );
         }
 
-        $details = array_merge(
-            ['Published directory: '.self::LEGACY_VIEWS_DIRECTORY],
-            $this->previewList(
-                $relativeFiles,
-                10,
-                static fn (string $path): string => "- {$path}",
-                '... %d more file(s) omitted.'
-            )
-        );
-
         return StepResult::warning(
-            'Legacy File Manager views detected. Delete resources/views/vendor/elfinder if you have not customized those views.',
-            $details,
-            ['paths' => $relativeFiles]
+            'File Manager views detected. Delete resources/views/vendor/elfinder if you have not customized those views.',
         );
     }
 

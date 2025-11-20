@@ -58,7 +58,7 @@ class EnsureBackpackCrudRequirementStep extends Step
         if ($comparisonMajor !== null && $installedMajor !== null && $installedMajor < $comparisonMajor) {
             return StepResult::warning(
                 sprintf(
-                    'Composer requirement is updated, but a Backpack version satisfying %s is not installed yet. Run composer update.',
+                    'Backpack %s is required in the composer.json, but is not installed yet.',
                     $targetConstraint
                 ),
                 ["Installed version: {$installedPretty}"]

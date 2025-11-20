@@ -55,18 +55,9 @@ class DetectEditorAddonRequirementsStep extends Step
                 continue;
             }
 
-            $details = $this->previewList(
-                $paths,
-                10,
-                fn (string $path): string => "- {$keyword} usage: {$path}",
-                '... %d more occurrence(s) omitted.'
-            );
-
             if ($composerConstraint === null) {
                 $this->missingPackages[$package] = [
                     'keyword' => $keyword,
-                    'details' => $details,
-                    'paths' => $paths,
                     'constraint' => $recommendedConstraint,
                 ];
 
@@ -76,8 +67,6 @@ class DetectEditorAddonRequirementsStep extends Step
             if ($installedVersion === null) {
                 $this->uninstalledPackages[$package] = [
                     'keyword' => $keyword,
-                    'details' => $details,
-                    'paths' => $paths,
                     'constraint' => $composerConstraint,
                 ];
             }
@@ -90,20 +79,14 @@ class DetectEditorAddonRequirementsStep extends Step
         $detailLines = [];
 
         if (! empty($this->missingPackages)) {
-            $detailLines[] = 'Missing editor packages (add to composer.json):';
-
             foreach ($this->missingPackages as $package => $data) {
                 $detailLines[] = sprintf('- %s (%s field/column usage detected)', $package, $data['keyword']);
-                $detailLines = array_merge($detailLines, $data['details']);
             }
         }
 
         if (! empty($this->uninstalledPackages) && empty($this->missingPackages)) {
-            $detailLines[] = 'Declared but not installed (run composer update):';
-
             foreach ($this->uninstalledPackages as $package => $data) {
                 $detailLines[] = sprintf('- %s (%s field/column usage detected)', $package, $data['keyword']);
-                $detailLines = array_merge($detailLines, $data['details']);
             }
         }
 
@@ -114,14 +97,14 @@ class DetectEditorAddonRequirementsStep extends Step
 
         if (! empty($this->missingPackages)) {
             return StepResult::failure(
-                'Install the missing editor add-ons before continuing the upgrade.',
+                'There are missing editor packages required by your CrudControllers.',
                 $detailLines,
                 $context
             );
         }
 
         return StepResult::warning(
-            'Run composer update to install the declared editor add-ons.',
+            'Addons declared in composer.json but not installed yet.',
             $detailLines,
             $context
         );
