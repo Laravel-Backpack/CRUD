@@ -20,12 +20,6 @@ class UpgradeCommandConfig implements UpgradeConfigInterface
     public function upgradeCommandDescription(): ?callable
     {
         return function (UpgradeCommand $command): void {
-            $command->note(
-                'Thank you for choosing Backpack. If you are reading this, most likely you are upgrading from v6 to v7.'.PHP_EOL.
-                '    We have prepared an upgrade guide to help you with the process: <fg=cyan>https://backpackforlaravel.com/docs/7.x/upgrade-guide</>',
-                'green',
-                'green'
-            );
 
             $command->note(
                 'Please select the upgrade path you wish to follow:',
