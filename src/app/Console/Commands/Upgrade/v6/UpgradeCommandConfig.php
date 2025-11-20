@@ -20,7 +20,6 @@ class UpgradeCommandConfig implements UpgradeConfigInterface
     public function upgradeCommandDescription(): ?callable
     {
         return function (UpgradeCommand $command): void {
-
             $command->note(
                 'Please select the upgrade path you wish to follow:',
                 'yellow',
