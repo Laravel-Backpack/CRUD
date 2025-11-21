@@ -92,32 +92,72 @@ class UpgradeCommand extends Command
             }
 
             if ($this->shouldOfferFix($step, $result)) {
-                $question = trim($step->fixMessage($result));
-                $question = $question !== '' ? $question : 'Apply automatic fix?';
-                $applyFix = $this->confirm('  '.$question, true);
+                $options = $step->fixOptions($result);
 
-                if ($applyFix) {
-                    $this->progressBlock('Applying automatic fix');
-                    $fixResult = $step->fix($result);
-                    $this->closeProgressBlock(strtoupper($fixResult->status->label()), $fixResult->status->color());
-                    $this->printResultDetails($fixResult);
+                if (! empty($options)) {
+                    [$choiceMap, $defaultLabel] = $this->normalizeFixOptions($options);
 
-                    if (! $fixResult->status->isFailure()) {
-                        $this->progressBlock('Re-running '.$step->title());
+                    if (! empty($choiceMap)) {
+                        $question = trim($step->fixMessage($result));
+                        $question = $question !== '' ? $question : 'Select an automatic fix option';
+                        $selectedLabel = $this->choice('  '.$question, array_keys($choiceMap), $defaultLabel);
+                        $selectedOption = $choiceMap[$selectedLabel] ?? null;
 
-                        try {
-                            $result = $step->run();
-                        } catch (\Throwable $exception) {
-                            $result = StepResult::failure(
-                                $exception->getMessage(),
-                                [
-                                    'Step: '.$stepClass,
-                                ]
-                            );
+                        if ($selectedOption !== null && $selectedOption !== '') {
+                            $step->selectFixOption((string) $selectedOption);
+
+                            $this->progressBlock('Applying automatic fix');
+                            $fixResult = $step->fix($result);
+                            $this->closeProgressBlock(strtoupper($fixResult->status->label()), $fixResult->status->color());
+                            $this->printResultDetails($fixResult);
+
+                            if (! $fixResult->status->isFailure()) {
+                                $this->progressBlock('Re-running '.$step->title());
+
+                                try {
+                                    $result = $step->run();
+                                } catch (\Throwable $exception) {
+                                    $result = StepResult::failure(
+                                        $exception->getMessage(),
+                                        [
+                                            'Step: '.$stepClass,
+                                        ]
+                                    );
+                                }
+
+                                $this->closeProgressBlock(strtoupper($result->status->label()), $result->status->color());
+                                $this->printResultDetails($result);
+                            }
                         }
+                    }
+                } else {
+                    $question = trim($step->fixMessage($result));
+                    $question = $question !== '' ? $question : 'Apply automatic fix?';
+                    $applyFix = $this->confirm('  '.$question, true);
 
-                        $this->closeProgressBlock(strtoupper($result->status->label()), $result->status->color());
-                        $this->printResultDetails($result);
+                    if ($applyFix) {
+                        $this->progressBlock('Applying automatic fix');
+                        $fixResult = $step->fix($result);
+                        $this->closeProgressBlock(strtoupper($fixResult->status->label()), $fixResult->status->color());
+                        $this->printResultDetails($fixResult);
+
+                        if (! $fixResult->status->isFailure()) {
+                            $this->progressBlock('Re-running '.$step->title());
+
+                            try {
+                                $result = $step->run();
+                            } catch (\Throwable $exception) {
+                                $result = StepResult::failure(
+                                    $exception->getMessage(),
+                                    [
+                                        'Step: '.$stepClass,
+                                    ]
+                                );
+                            }
+
+                            $this->closeProgressBlock(strtoupper($result->status->label()), $result->status->color());
+                            $this->printResultDetails($result);
+                        }
                     }
                 }
             }
@@ -131,7 +171,11 @@ class UpgradeCommand extends Command
 
         $expectedVersionInstalled = $this->hasExpectedBackpackVersion($context, $config);
 
-        return $this->outputSummary($descriptor['label'], $results, $expectedVersionInstalled, $config);
+        $this->outputSummary($descriptor['label'], $results, $expectedVersionInstalled, $config);
+
+        $this->note('The script has only updated what could be automated. '.PHP_EOL.'    Please run composer update to finish Step 1, then go back to the Upgrade Guide and follow all other steps, to make sure your admin panel is correctly upgraded: https://backpackforlaravel.com/docs/7.x/upgrade-guide#step-2');
+
+        return Command::SUCCESS;
     }
 
     protected function outputSummary(
@@ -246,6 +290,54 @@ class UpgradeCommand extends Command
         }
 
         return $step->canFix($result);
+    }
+
+    /**
+     * @param  array<int|string, mixed>  $options
+     * @return array{0: array<string, string|null>, 1: string|null}
+     */
+    protected function normalizeFixOptions(array $options): array
+    {
+        $choices = [];
+        $defaultLabel = null;
+
+        foreach ($options as $key => $option) {
+            $label = null;
+            $value = null;
+            $isDefault = false;
+
+            if (is_array($option)) {
+                $label = $option['label'] ?? null;
+                $value = $option['key'] ?? (is_string($key) ? $key : null);
+                $isDefault = (bool) ($option['default'] ?? false);
+            } else {
+                $label = (string) $option;
+                $value = is_string($key) ? $key : $label;
+            }
+
+            if (! is_string($label)) {
+                continue;
+            }
+
+            $label = trim($label);
+
+            if ($label === '') {
+                continue;
+            }
+
+            $value = $value === null ? null : (string) $value;
+            $choices[$label] = $value;
+
+            if ($isDefault && $defaultLabel === null) {
+                $defaultLabel = $label;
+            }
+        }
+
+        if ($defaultLabel === null && ! empty($choices)) {
+            $defaultLabel = array_key_first($choices);
+        }
+
+        return [$choices, $defaultLabel];
     }
 
     protected function resolveConfigForDescriptor(array $descriptor): UpgradeConfigInterface

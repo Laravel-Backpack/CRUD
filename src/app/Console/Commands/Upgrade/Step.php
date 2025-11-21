@@ -41,6 +41,20 @@ abstract class Step
         return StepResult::skipped('No automatic fix available.');
     }
 
+    /**
+     * Provide optional choices for automatic fixes. When empty, a yes/no confirmation is shown.
+     *
+     * @return array<int|string, mixed>
+     */
+    public function fixOptions(StepResult $result): array
+    {
+        return [];
+    }
+
+    public function selectFixOption(?string $option): void
+    {
+    }
+
     public function isBlocking(): bool
     {
         return false;

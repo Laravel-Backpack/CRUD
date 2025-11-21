@@ -11,6 +11,7 @@ class ConfigFilesHelper
     protected string $packageRoot;
     protected bool $publishedIsFile = false;
     protected bool $packageIsFile = false;
+    protected ?string $defaultConfigFile = null;
     private array $configFiles = [];
 
     public function __construct(
@@ -22,6 +23,11 @@ class ConfigFilesHelper
         $this->setPublishedDirectory($publishedDirectory);
         $this->setPackageDirectory($packageDirectory);
         $this->initializeConfigFiles();
+    }
+
+    public function setDefaultConfigFile(string $configFile): void
+    {
+        $this->defaultConfigFile = $configFile;
     }
 
     protected function initializeConfigFiles(): void
@@ -60,11 +66,137 @@ class ConfigFilesHelper
         return $this->context->readFile($this->context->relativePath($absolutePath));
     }
 
+    public function configKeyHasValue(string $key, mixed $expectedValue, ?string $path = null): bool
+    {
+        $target = $this->resolveConfigFileArgument($path);
+
+        if ($target === null) {
+            return false;
+        }
+
+        $config = $this->loadPublishedConfig($target);
+
+        if ($config === null) {
+            return false;
+        }
+
+        $current = $this->getConfigValueByKey($config, $key);
+
+        if ($current === null) {
+            return false;
+        }
+
+        if (is_array($current)) {
+            if (is_array($expectedValue)) {
+                foreach ($expectedValue as $value) {
+                    if (! in_array($value, $current, true)) {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+
+            return in_array($expectedValue, $current, true);
+        }
+
+        return $current === $expectedValue;
+    }
+
     public function writePublishedFile(string $path, string $contents): bool
     {
         $absolutePath = $this->resolvePublishedPath($path);
 
         return $this->context->writeFile($this->context->relativePath($absolutePath), $contents);
+    }
+
+    public function updateConfigKeyValue(string $key, mixed $newValue, ?string $path = null): bool
+    {
+        $target = $this->resolveConfigFileArgument($path);
+
+        if ($target === null) {
+            return false;
+        }
+
+        if (is_string($newValue) && $this->configKeyHasValue($key, $newValue, $target)) {
+            return false;
+        }
+
+        $contents = $this->readPublishedFile($target);
+
+        if ($contents === null) {
+            return false;
+        }
+
+        $changed = false;
+        $pattern = '/(?P<prefix>(["\"])'.preg_quote($key, '/').'\2\s*=>\s*)(?P<value>(?:[^,\r\n\/]|\/(?!\/))+)(?P<suffix>,?[ \t]*(?:\/\/[^\r\n]*)?)/';
+
+        $updated = preg_replace_callback(
+            $pattern,
+            function (array $matches) use ($newValue, &$changed) {
+                $existing = trim($matches['value']);
+                $quote = $existing[0] ?? null;
+
+                if (is_string($newValue)) {
+                    $preferredQuote = ($quote === "'" || $quote === '"') ? $quote : "'";
+                    $replacement = $this->exportStringValue($newValue, $preferredQuote);
+                } else {
+                    $replacement = $this->exportValue($newValue);
+                }
+
+                if ($replacement === $existing) {
+                    return $matches[0];
+                }
+
+                $changed = true;
+
+                return $matches['prefix'].$replacement.$matches['suffix'];
+            },
+            $contents,
+            1
+        );
+
+        if ($updated === null || ! $changed) {
+            return false;
+        }
+
+        return $this->writePublishedFile($target, $updated);
+    }
+
+    public function commentOutConfigValue(string $valueExpression, ?string $path = null): bool
+    {
+        $target = $this->resolveConfigFileArgument($path);
+
+        if ($target === null) {
+            return false;
+        }
+
+        $contents = $this->readPublishedFile($target);
+
+        if ($contents === null) {
+            return false;
+        }
+
+        $pattern = '~^[\t ]*'.preg_quote($valueExpression, '~').'([\t ]*,?[\t ]*)\r?$~m';
+
+        $updated = preg_replace_callback(
+            $pattern,
+            function (array $matches) use ($valueExpression) {
+                $position = strpos($matches[0], $valueExpression);
+                $indentation = $position === false ? '' : substr($matches[0], 0, $position);
+
+                return $indentation.'// '.$valueExpression.$matches[1];
+            },
+            $contents,
+            1,
+            $count
+        );
+
+        if ($updated === null || $count === 0) {
+            return false;
+        }
+
+        return $this->writePublishedFile($target, $updated);
     }
 
     public function loadPublishedConfig(string $path): ?array
@@ -822,6 +954,49 @@ class ConfigFilesHelper
     protected function normalizePath(string $path): string
     {
         return rtrim(str_replace('\\', '/', $path), '/');
+    }
+
+    protected function resolveConfigFileArgument(?string $path): ?string
+    {
+        if ($path !== null) {
+            return $path;
+        }
+
+        return $this->defaultConfigFile;
+    }
+
+    protected function getConfigValueByKey(array $config, string $key): mixed
+    {
+        if ($key === '') {
+            return null;
+        }
+
+        $segments = explode('.', $key);
+        $current = $config;
+
+        foreach ($segments as $segment) {
+            if (! is_array($current) || ! array_key_exists($segment, $current)) {
+                return null;
+            }
+
+            $current = $current[$segment];
+        }
+
+        return $current;
+    }
+
+    protected function exportStringValue(string $value, string $quote): string
+    {
+        if ($quote === '"') {
+            return '"'.addcslashes($value, "\\\"$").'"';
+        }
+
+        return '\'' . addcslashes($value, "\\'") . '\'';
+    }
+
+    protected function exportValue(mixed $value): string
+    {
+        return var_export($value, true);
     }
 
     protected function calculateMissingKeys(array $packageKeys, array $publishedKeys): array
