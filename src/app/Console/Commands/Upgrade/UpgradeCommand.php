@@ -81,7 +81,7 @@ class UpgradeCommand extends Command
             if ($result->status->isFailure() && $step->isBlocking()) {
                 $this->note(
                     sprintf(
-                        'Please solve the issue above, then rerun `php artisan backpack:upgrade %s`.',
+                        'Please solve the issue above, then re-run `php artisan backpack:upgrade %s`.',
                         $descriptor['label']
                     ),
                     'red',
