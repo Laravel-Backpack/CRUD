@@ -30,7 +30,7 @@ class EnsureLaravelVersionStep extends Step
             [
                 "Detected Laravel version: {$prettyVersion}",
                 'Follow the official upgrade guide: https://laravel.com/docs/12.x/upgrade',
-                'After upgrading to Laravel 12, test everything is working in your app and admin panel.'
+                'After upgrading to Laravel 12, test everything is working in your app and admin panel.',
             ]
         );
     }

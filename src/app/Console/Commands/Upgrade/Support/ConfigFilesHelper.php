@@ -988,10 +988,10 @@ class ConfigFilesHelper
     protected function exportStringValue(string $value, string $quote): string
     {
         if ($quote === '"') {
-            return '"'.addcslashes($value, "\\\"$").'"';
+            return '"'.addcslashes($value, '\\"$').'"';
         }
 
-        return '\'' . addcslashes($value, "\\'") . '\'';
+        return '\''.addcslashes($value, "\\'").'\'';
     }
 
     protected function exportValue(mixed $value): string
