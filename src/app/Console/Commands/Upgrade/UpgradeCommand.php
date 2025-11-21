@@ -173,7 +173,9 @@ class UpgradeCommand extends Command
 
         $this->outputSummary($descriptor['label'], $results, $expectedVersionInstalled, $config);
 
-        $this->note('The script has only updated what could be automated. '.PHP_EOL.'    Please run composer update to finish Step 1, then go back to the Upgrade Guide and follow all other steps, to make sure your admin panel is correctly upgraded: https://backpackforlaravel.com/docs/7.x/upgrade-guide#step-2', 'white', 'white');
+        if(! $expectedVersionInstalled) {
+            $this->note('The script has only updated what could be automated. '.PHP_EOL.'    Please run composer update to finish Step 1, then go back to the Upgrade Guide and follow all other steps, to make sure your admin panel is correctly upgraded: https://backpackforlaravel.com/docs/7.x/upgrade-guide#step-2', 'white', 'white');
+        }
 
         return Command::SUCCESS;
     }
@@ -221,7 +223,7 @@ class UpgradeCommand extends Command
         }
 
         if (! $hasFailure && $warnings->isEmpty()) {
-            $this->note('All checks passed, you are ready to continue with the manual steps from the upgrade guide.', 'green', 'green');
+            $this->note('All checks passed.', 'green', 'green');
         }
 
         if ($failedTitles->isNotEmpty()) {
@@ -240,6 +242,8 @@ class UpgradeCommand extends Command
             }
         }
 
+        $this->newLine();
+
         $postUpgradeCommands = [];
 
         if ($config !== null) {
@@ -247,7 +251,9 @@ class UpgradeCommand extends Command
         }
 
         if ($expectedVersionInstalled && ! $hasFailure && ! empty($postUpgradeCommands)) {
-            $this->note("Now that you have {$versionLabel} installed, don't forget to run the following commands:", 'green', 'green');
+            $this->note("Now that you have {$versionLabel} installed, don't forget to run the following commands:", 'gray', 'gray');
+
+            $this->newLine();
 
             foreach ($postUpgradeCommands as $command) {
                 $this->note($command);

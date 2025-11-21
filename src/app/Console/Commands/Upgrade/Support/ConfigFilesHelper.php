@@ -118,8 +118,15 @@ class ConfigFilesHelper
             return false;
         }
 
-        if (is_string($newValue) && $this->configKeyHasValue($key, $newValue, $target)) {
-            return false;
+        $config = $this->loadPublishedConfig($target);
+        $currentValue = null;
+
+        if ($config !== null) {
+            $currentValue = $this->getConfigValueByKey($config, $key);
+
+            if (is_string($newValue) && $currentValue === $newValue) {
+                return false;
+            }
         }
 
         $contents = $this->readPublishedFile($target);
@@ -128,39 +135,406 @@ class ConfigFilesHelper
             return false;
         }
 
-        $changed = false;
-        $pattern = '/(?P<prefix>(["\"])'.preg_quote($key, '/').'\2\s*=>\s*)(?P<value>(?:[^,\r\n\/]|\/(?!\/))+)(?P<suffix>,?[ \t]*(?:\/\/[^\r\n]*)?)/';
+        $segment = $this->locateConfigValueSegment($contents, $key);
 
-        $updated = preg_replace_callback(
-            $pattern,
-            function (array $matches) use ($newValue, &$changed) {
-                $existing = trim($matches['value']);
-                $quote = $existing[0] ?? null;
+        if ($segment === null) {
+            return false;
+        }
 
-                if (is_string($newValue)) {
-                    $preferredQuote = ($quote === "'" || $quote === '"') ? $quote : "'";
-                    $replacement = $this->exportStringValue($newValue, $preferredQuote);
-                } else {
-                    $replacement = $this->exportValue($newValue);
-                }
+        if (is_string($newValue)) {
+            $stringUpdatedContents = $this->updateStringConfigSegment(
+                $contents,
+                $segment,
+                $newValue,
+                is_string($currentValue) ? $currentValue : null
+            );
 
-                if ($replacement === $existing) {
-                    return $matches[0];
-                }
+            if ($stringUpdatedContents !== null && $stringUpdatedContents !== $contents) {
+                return $this->writePublishedFile($target, $stringUpdatedContents);
+            }
+        }
 
-                $changed = true;
+        $existing = $segment['existing'];
+        $quote = $existing[0] ?? null;
 
-                return $matches['prefix'].$replacement.$matches['suffix'];
-            },
-            $contents,
-            1
-        );
+        if (is_string($newValue) && $this->valueMatchesString($existing, $newValue)) {
+            return false;
+        }
 
-        if ($updated === null || ! $changed) {
+        $replacementValue = is_string($newValue)
+            ? $this->exportStringValue($newValue, ($quote === "'" || $quote === '"') ? $quote : "'")
+            : $this->exportValue($newValue);
+
+        if ($replacementValue === $existing) {
+            return false;
+        }
+
+        $newRaw = $segment['leading'].$replacementValue.$segment['trailing'];
+        $updated = $this->applySegmentReplacement($contents, $segment, $newRaw);
+
+        if ($updated === null || $updated === $contents) {
             return false;
         }
 
         return $this->writePublishedFile($target, $updated);
+    }
+
+    protected function updateStringConfigSegment(
+        string $contents,
+        array $segment,
+        string $newValue,
+        ?string $currentValue
+    ): ?string {
+        $raw = $segment['raw'];
+
+        if ($currentValue !== null) {
+            $updatedRaw = $this->replaceStringLiteral($raw, $currentValue, $newValue);
+
+            if ($updatedRaw !== null && $updatedRaw !== $raw) {
+                return $this->applySegmentReplacement($contents, $segment, $updatedRaw);
+            }
+        }
+
+        $updatedRaw = $this->replaceEnvDefaultString($raw, $newValue, $currentValue);
+
+        if ($updatedRaw !== null && $updatedRaw !== $raw) {
+            return $this->applySegmentReplacement($contents, $segment, $updatedRaw);
+        }
+
+        $updatedRaw = $this->replaceStringLiteralFallback($raw, $newValue, $currentValue);
+
+        if ($updatedRaw !== null && $updatedRaw !== $raw) {
+            return $this->applySegmentReplacement($contents, $segment, $updatedRaw);
+        }
+        return null;
+    }
+
+    protected function replaceEnvDefaultString(string $raw, string $newValue, ?string $currentValue): ?string
+    {
+        if (stripos($raw, 'env(') === false) {
+            return null;
+        }
+
+        $pattern = '/(env\(\s*[^,]+,\s*)([\'"])((?:\\\\.|(?!\2).)*)\2(\s*\))/';
+
+        $updated = preg_replace_callback(
+            $pattern,
+            function (array $matches) use ($newValue, $currentValue) {
+                $quote = $matches[2];
+                $literal = $matches[2].$matches[3].$matches[2];
+                $defaultValue = $this->unescapeStringLiteralValue($literal);
+
+                if ($defaultValue === $newValue) {
+                    return $matches[0];
+                }
+
+                if ($currentValue !== null && $defaultValue !== $currentValue) {
+                    return $matches[0];
+                }
+
+                return $matches[1].$this->exportStringValue($newValue, $quote).$matches[4];
+            },
+            $raw,
+            1,
+            $count
+        );
+
+        if ($updated === null || $count === 0) {
+            return null;
+        }
+
+        return $updated;
+    }
+
+    protected function replaceStringLiteralFallback(string $raw, string $newValue, ?string $currentValue): ?string
+    {
+        if (! preg_match_all('/([\'"])((?:\\\\.|(?!\1).)*)\1/', $raw, $matches, PREG_OFFSET_CAPTURE)) {
+            return null;
+        }
+
+        $literals = $matches[0];
+
+        if (empty($literals)) {
+            return null;
+        }
+
+        $attempts = array_reverse($literals);
+
+        if ($currentValue !== null) {
+            foreach ($attempts as $match) {
+                $literal = $match[0];
+                $offset = $match[1];
+                $value = $this->unescapeStringLiteralValue($literal);
+
+                if ($value !== $currentValue) {
+                    continue;
+                }
+
+                if ($value === $newValue) {
+                    return null;
+                }
+
+                $replacement = $this->exportStringValue($newValue, $literal[0]);
+
+                return substr($raw, 0, $offset).$replacement.substr($raw, $offset + strlen($literal));
+            }
+
+            return null;
+        }
+
+        if (count($literals) < 2) {
+            return null;
+        }
+
+        $last = end($literals);
+        $literal = $last[0];
+        $offset = $last[1];
+        $value = $this->unescapeStringLiteralValue($literal);
+
+        if ($value === $newValue) {
+            return null;
+        }
+
+        $replacement = $this->exportStringValue($newValue, $literal[0]);
+
+        return substr($raw, 0, $offset).$replacement.substr($raw, $offset + strlen($literal));
+    }
+
+    protected function unescapeStringLiteralValue(string $literal): string
+    {
+        $quote = $literal[0] ?? '';
+        $inner = substr($literal, 1, -1);
+
+        if ($quote === '\'') {
+            return str_replace(["\\\\", "\\'"], ["\\", "'"], $inner);
+        }
+
+        return stripcslashes($inner);
+    }
+
+    protected function locateConfigValueSegment(string $contents, string $key): ?array
+    {
+        $pattern = "/(?P<prefix>(['\"])".preg_quote($key, '/')."\\2\\s*=>\\s*)/";
+        $offset = 0;
+
+        while (preg_match($pattern, $contents, $matches, PREG_OFFSET_CAPTURE, $offset)) {
+            $prefix = $matches['prefix'][0];
+            $matchOffset = $matches['prefix'][1];
+
+            if ($this->isCommentedConfigLine($contents, $matchOffset)) {
+                $offset = $matchOffset + strlen($prefix);
+                continue;
+            }
+
+            $valueStart = $matchOffset + strlen($prefix);
+            $suffixStart = $this->findConfigValueSuffixStart($contents, $valueStart);
+
+            if ($suffixStart === null || $suffixStart < $valueStart) {
+                $offset = $valueStart;
+                continue;
+            }
+
+            $raw = substr($contents, $valueStart, $suffixStart - $valueStart);
+
+            if ($raw === '') {
+                $offset = $suffixStart;
+                continue;
+            }
+
+            $leading = '';
+            $trailing = '';
+
+            if (preg_match('/^\s*/', $raw, $leadingMatch)) {
+                $leading = $leadingMatch[0];
+            }
+
+            if (preg_match('/\s*$/', $raw, $trailingMatch)) {
+                $trailing = $trailingMatch[0];
+            }
+
+            $existing = trim($raw);
+
+            return [
+                'value_start' => $valueStart,
+                'suffix_start' => $suffixStart,
+                'raw' => $raw,
+                'existing' => $existing,
+                'leading' => $leading,
+                'trailing' => $trailing,
+            ];
+        }
+
+        return null;
+    }
+
+    protected function findConfigValueSuffixStart(string $contents, int $offset): ?int
+    {
+        $length = strlen($contents);
+        $depthRound = 0;
+        $depthSquare = 0;
+        $depthCurly = 0;
+        $inSingle = false;
+        $inDouble = false;
+
+        for ($i = $offset; $i < $length; $i++) {
+            $char = $contents[$i];
+
+            if ($inSingle) {
+                if ($char === "'" && ! $this->isCharacterEscaped($contents, $i)) {
+                    $inSingle = false;
+                }
+
+                continue;
+            }
+
+            if ($inDouble) {
+                if ($char === '"' && ! $this->isCharacterEscaped($contents, $i)) {
+                    $inDouble = false;
+                }
+
+                continue;
+            }
+
+            $next = $contents[$i + 1] ?? '';
+
+            if ($char === "'" && ! $inDouble) {
+                $inSingle = true;
+                continue;
+            }
+
+            if ($char === '"' && ! $inSingle) {
+                $inDouble = true;
+                continue;
+            }
+
+            if ($char === '(') {
+                $depthRound++;
+                continue;
+            }
+
+            if ($char === ')') {
+                if ($depthRound > 0) {
+                    $depthRound--;
+                    continue;
+                }
+            }
+
+            if ($char === '[') {
+                $depthSquare++;
+                continue;
+            }
+
+            if ($char === ']') {
+                if ($depthSquare > 0) {
+                    $depthSquare--;
+                    continue;
+                }
+            }
+
+            if ($char === '{') {
+                $depthCurly++;
+                continue;
+            }
+
+            if ($char === '}') {
+                if ($depthCurly > 0) {
+                    $depthCurly--;
+                    continue;
+                }
+            }
+
+            if ($char === '/' && $next === '*') {
+                $commentEnd = strpos($contents, '*/', $i + 2);
+
+                if ($commentEnd === false) {
+                    return $length;
+                }
+
+                $i = $commentEnd + 1;
+                continue;
+            }
+
+            if ($char === '/' && $next === '/') {
+                return $i;
+            }
+
+            if ($depthRound === 0 && $depthSquare === 0 && $depthCurly === 0) {
+                if ($char === ',') {
+                    return $i;
+                }
+
+                if ($char === "\r" || $char === "\n") {
+                    return $i;
+                }
+            }
+        }
+
+        return $length;
+    }
+
+    protected function applySegmentReplacement(string $contents, array $segment, string $newRaw): ?string
+    {
+        return substr($contents, 0, $segment['value_start'])
+            .$newRaw
+            .substr($contents, $segment['suffix_start']);
+    }
+
+    protected function valueMatchesString(string $existing, string $newValue): bool
+    {
+        $trimmed = trim($existing);
+
+        if ($trimmed === '' || ($trimmed[0] !== '(' && $trimmed[0] !== '[' && $trimmed[0] !== '{')) {
+            return $existing === $newValue
+                || $existing === '\''.$newValue.'\''
+                || $existing === '"'.$newValue.'"';
+        }
+
+        return false;
+    }
+
+    protected function replaceStringLiteral(string $expression, string $oldValue, string $newValue): ?string
+    {
+        if ($oldValue === $newValue) {
+            return null;
+        }
+
+        $pattern = '/([\'\"])'.preg_quote($oldValue, '/').'\1/';
+
+        $replaced = preg_replace_callback(
+            $pattern,
+            function (array $matches) use ($newValue) {
+                $quote = $matches[1];
+
+                return $this->exportStringValue($newValue, $quote);
+            },
+            $expression,
+            1,
+            $count
+        );
+
+        if ($replaced === null || $count === 0) {
+            return null;
+        }
+
+        return $replaced;
+    }
+
+    protected function isCommentedConfigLine(string $contents, int $matchOffset): bool
+    {
+        $lineStart = strrpos(substr($contents, 0, $matchOffset), "\n");
+        $lineStart = $lineStart === false ? 0 : $lineStart + 1;
+        $line = substr($contents, $lineStart, $matchOffset - $lineStart);
+        $trimmed = ltrim($line);
+
+        if ($trimmed === '') {
+            return false;
+        }
+
+        if (str_starts_with($trimmed, '//') || str_starts_with($trimmed, '/*') || str_starts_with($trimmed, '*')) {
+            return true;
+        }
+
+        return false;
     }
 
     public function commentOutConfigValue(string $valueExpression, ?string $path = null): bool

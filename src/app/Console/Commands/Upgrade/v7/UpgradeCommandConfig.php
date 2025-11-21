@@ -12,9 +12,6 @@ class UpgradeCommandConfig implements UpgradeConfigInterface, UpgradeConfigSumma
     public function steps(): array
     {
         return [
-            Step\EnsureLaravelVersionStep::class,
-            Step\EnsureBackpackCrudRequirementStep::class,
-            Step\EnsureFirstPartyAddonsAreCompatibleStep::class,
             Step\CheckOperationConfigFilesStep::class,
             Step\CheckThemeTablerConfigStep::class,
             Step\DetectDeprecatedWysiwygUsageStep::class,
@@ -28,31 +25,7 @@ class UpgradeCommandConfig implements UpgradeConfigInterface, UpgradeConfigSumma
 
     public function addons(): array
     {
-        return [
-            'backpack/crud' => self::backpackCrudRequirement(),
-            'backpack/filemanager' => '^4.0',
-            'backpack/theme-coreuiv2' => '^2.0',
-            'backpack/theme-coreuiv4' => '^1.2',
-            'backpack/theme-tabler' => '^2.0',
-            'backpack/logmanager' => '^5.1',
-            'backpack/settings' => '^3.2',
-            'backpack/newscrud' => '^5.2',
-            'backpack/permissionmanager' => '^7.3',
-            'backpack/pagemanager' => '^3.4',
-            'backpack/menucrud' => '^4.1',
-            'backpack/backupmanager' => '^5.1',
-            'backpack/editable-columns' => '^3.1',
-            'backpack/revise-operation' => '^2.1',
-            'backpack/medialibrary-uploaders' => '^2.0',
-            'backpack/devtools' => '^4.0',
-            'backpack/generators' => '^4.1',
-            'backpack/activity-log' => '^2.1',
-            'backpack/calendar-operation' => '^1.1',
-            'backpack/language-switcher' => '^2.1',
-            'backpack/pan-panel' => '^1.1',
-            'backpack/pro' => '^3.0',
-            'backpack/translation-manager' => '^1.1',
-        ];
+        return [];
     }
 
     public function upgradeCommandDescription(): ?callable
@@ -79,10 +52,9 @@ class UpgradeCommandConfig implements UpgradeConfigInterface, UpgradeConfigSumma
     public static function postUpgradeCommands(): array
     {
         return [
+            'php artisan optimize:clear',
             'php artisan basset:clear',
-            'php artisan config:clear',
-            'php artisan cache:clear',
-            'php artisan view:clear',
+            'php artisan basset:cache'
         ];
     }
 }
