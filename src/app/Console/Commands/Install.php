@@ -111,7 +111,7 @@ class Install extends Command
         $this->progressBlock('Installing Generators');
         if (! file_exists('vendor/backpack/generators/composer.json')) {
             // only do this if Generators aren't already required
-            $process = new Process(['composer', 'require', '--dev', 'backpack/generators:dev-next']);
+            $process = new Process(['composer', 'require', '--dev', 'backpack/generators']);
             $process->setTimeout(300);
             $process->run();
         }
