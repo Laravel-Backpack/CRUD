@@ -274,6 +274,12 @@ class CrudPanelSaveActionsTest extends \Backpack\CRUD\Tests\config\CrudPanel\Bas
     public function testSaveActionsRedirectAndRefererUrl($action, $redirect, $referrer)
     {
         $this->setupDefaultSaveActionsOnCrudPanel();
+        
+        // Add SaveAndPreview for testing since it's not in the defaults
+        if ($action === 'save_and_preview') {
+            $this->crudPanel->allowAccess('show');
+            $this->crudPanel->addSaveAction(new \Backpack\CRUD\app\Library\CrudPanel\SaveActions\SaveAndPreview());
+        }
 
         $this->crudPanel->getRequest()->merge(['_save_action' => $action, 'id' => 1, '_locale' => 'pt', '_current_tab' => 'tab1']);
 
@@ -301,6 +307,11 @@ class CrudPanelSaveActionsTest extends \Backpack\CRUD\Tests\config\CrudPanel\Bas
                 'action' => 'save_and_new',
                 'redirect' => 'http://localhost/create',
                 'referrer' => false,
+            ],
+            [
+                'action' => 'save_and_preview',
+                'redirect' => 'http://localhost/1/show?_locale=pt#tab1',
+                'referrer' => 'http://localhost/1/show',
             ],
         ];
     }

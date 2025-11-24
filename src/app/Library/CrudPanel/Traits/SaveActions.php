@@ -6,6 +6,7 @@ use Backpack\CRUD\app\Library\CrudPanel\SaveActions\SaveActionInterface;
 use Backpack\CRUD\app\Library\CrudPanel\SaveActions\SaveAndBack;
 use Backpack\CRUD\app\Library\CrudPanel\SaveActions\SaveAndEdit;
 use Backpack\CRUD\app\Library\CrudPanel\SaveActions\SaveAndNew;
+use Backpack\CRUD\app\Library\CrudPanel\SaveActions\SaveAndPreview;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Redirect;
 use InvalidArgumentException;
