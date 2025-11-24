@@ -223,7 +223,7 @@ class CheckThemeTablerConfigStep extends Step
                 'expression' => "base_path('vendor/backpack/theme-tabler/resources/assets/css/skins/fuzzy-background.css')",
                 'value' => base_path('vendor/backpack/theme-tabler/resources/assets/css/skins/fuzzy-background.css'),
                 'issue' => 'Comment out fuzzy-background.css in the styles array to disable the new v7 skin.',
-            ]
+            ],
         ];
     }
 

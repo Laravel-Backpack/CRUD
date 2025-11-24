@@ -173,7 +173,7 @@ class UpgradeCommand extends Command
 
         $this->outputSummary($descriptor['label'], $results, $expectedVersionInstalled, $config);
 
-        if(! $expectedVersionInstalled) {
+        if (! $expectedVersionInstalled) {
             $this->note('The script has only updated what could be automated. '.PHP_EOL.'    Please run composer update to finish Step 1, then go back to the Upgrade Guide and follow all other steps, to make sure your admin panel is correctly upgraded: https://backpackforlaravel.com/docs/7.x/upgrade-guide#step-2', 'white', 'white');
         }
 

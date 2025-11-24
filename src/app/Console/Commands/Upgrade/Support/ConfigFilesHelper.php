@@ -309,7 +309,7 @@ class ConfigFilesHelper
         $inner = substr($literal, 1, -1);
 
         if ($quote === '\'') {
-            return str_replace(["\\\\", "\\'"], ["\\", "'"], $inner);
+            return str_replace(['\\\\', "\\'"], ['\\', "'"], $inner);
         }
 
         return stripcslashes($inner);
@@ -317,7 +317,7 @@ class ConfigFilesHelper
 
     protected function locateConfigValueSegment(string $contents, string $key): ?array
     {
-        $pattern = "/(?P<prefix>(['\"])".preg_quote($key, '/')."\\2\\s*=>\\s*)/";
+        $pattern = "/(?P<prefix>(['\"])".preg_quote($key, '/').'\\2\\s*=>\\s*)/';
         $offset = 0;
 
         while (preg_match($pattern, $contents, $matches, PREG_OFFSET_CAPTURE, $offset)) {
@@ -481,6 +481,7 @@ class ConfigFilesHelper
             .$newRaw
             .substr($contents, $segment['suffix_start']);
     }
+
     protected function replaceStringLiteral(string $expression, string $oldValue, string $newValue): ?string
     {
         if ($oldValue === $newValue) {
@@ -1191,6 +1192,7 @@ class ConfigFilesHelper
 
         return $paths;
     }
+
     protected function packagePathFor(string $publishedPath): string
     {
         $publishedAbsolute = $this->resolvePublishedPath($publishedPath);

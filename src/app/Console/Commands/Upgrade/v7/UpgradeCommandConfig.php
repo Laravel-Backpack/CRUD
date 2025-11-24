@@ -54,7 +54,7 @@ class UpgradeCommandConfig implements UpgradeConfigInterface, UpgradeConfigSumma
         return [
             'php artisan optimize:clear',
             'php artisan basset:clear',
-            'php artisan basset:cache'
+            'php artisan basset:cache',
         ];
     }
 }
