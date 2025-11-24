@@ -188,7 +188,7 @@
 
         window.errors = {!! json_encode(session()->get('errors')->getBags()) !!};
         var submittedFormId = "{{ old('_form_id') }}";
-        var currentFormId = '{{ $formId }}';
+        var currentFormId = '{{ $formId ?? 'crudForm' }}';
 
         // Only display errors if this is the form that was submitted
         if (submittedFormId && submittedFormId === currentFormId) {
@@ -246,7 +246,7 @@
                   @if ($crud->tabsEnabled())
                     var tab_id = $(container).closest('[role="tabpanel"]').attr('id');
                     try {
-                      $('#form_tabs[data-form-id="' + (typeof currentFormId !== 'undefined' ? currentFormId : '{{ $formId }}') + '"] [aria-controls="'+tab_id+'"]').addClass('text-danger');
+                      $('#form_tabs[data-form-id="' + (typeof currentFormId !== 'undefined' ? currentFormId : '{{ $formId ?? 'crudForm' }}') + '"] [aria-controls="'+tab_id+'"]').addClass('text-danger');
                     } catch (e) {
                       $("#form_tabs [aria-controls="+tab_id+"]").addClass('text-danger');
                     }
@@ -261,7 +261,7 @@
                       // Switch to the tab containing the first error if needed
                       if (firstErrorTab) {
                         try {
-                            var selector = '#form_tabs[data-form-id="' + (typeof currentFormId !== 'undefined' ? currentFormId : '{{ $formId }}') + '"] .nav a[href="#' + firstErrorTab + '"]';
+                            var selector = '#form_tabs[data-form-id="' + (typeof currentFormId !== 'undefined' ? currentFormId : '{{ $formId ?? 'crudForm' }}') + '"] .nav a[href="#' + firstErrorTab + '"]';
                             $(selector).tab('show');
                         } catch (e) {
                             $('.nav a[href="#' + firstErrorTab + '"]').tab('show');
