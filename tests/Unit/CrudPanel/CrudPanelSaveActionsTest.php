@@ -274,7 +274,7 @@ class CrudPanelSaveActionsTest extends \Backpack\CRUD\Tests\config\CrudPanel\Bas
     public function testSaveActionsRedirectAndRefererUrl($action, $redirect, $referrer)
     {
         $this->setupDefaultSaveActionsOnCrudPanel();
-        
+
         // Add SaveAndPreview for testing since it's not in the defaults
         if ($action === 'save_and_preview') {
             $this->crudPanel->allowAccess('show');
