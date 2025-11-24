@@ -68,20 +68,20 @@ class BackpackServiceProvider extends ServiceProvider
         foreach (config('backpack.ui.styles', []) as $style) {
             if (is_array($style)) {
                 foreach ($style as $file) {
-                    Basset::map($file);
+                    Basset::map($file, $file);
                 }
             } else {
-                Basset::map($style);
+                Basset::map($style, $style);
             }
         }
 
         foreach (config('backpack.ui.scripts', []) as $script) {
             if (is_array($script)) {
                 foreach ($script as $file) {
-                    Basset::map($file);
+                    Basset::map($file, $file);
                 }
             } else {
-                Basset::map($script);
+                Basset::map($script, $script);
             }
         }
     }
