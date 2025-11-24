@@ -157,8 +157,14 @@ class ConfigFilesHelper
         $existing = $segment['existing'];
         $quote = $existing[0] ?? null;
 
-        if (is_string($newValue) && $this->valueMatchesString($existing, $newValue)) {
-            return false;
+        if (is_string($newValue)) {
+            $firstChar = $existing[0] ?? '';
+
+            if ($existing === '' || ! in_array($firstChar, ['(', '[', '{'], true)) {
+                if (in_array($existing, [$newValue, "'{$newValue}'", "\"{$newValue}\""], true)) {
+                    return false;
+                }
+            }
         }
 
         $replacementValue = is_string($newValue)
@@ -186,26 +192,23 @@ class ConfigFilesHelper
         ?string $currentValue
     ): ?string {
         $raw = $segment['raw'];
+        $strategies = [];
 
         if ($currentValue !== null) {
-            $updatedRaw = $this->replaceStringLiteral($raw, $currentValue, $newValue);
+            $strategies[] = fn (string $candidate) => $this->replaceStringLiteral($candidate, $currentValue, $newValue);
+        }
+
+        $strategies[] = fn (string $candidate) => $this->replaceEnvDefaultString($candidate, $newValue, $currentValue);
+        $strategies[] = fn (string $candidate) => $this->replaceStringLiteralFallback($candidate, $newValue, $currentValue);
+
+        foreach ($strategies as $strategy) {
+            $updatedRaw = $strategy($raw);
 
             if ($updatedRaw !== null && $updatedRaw !== $raw) {
                 return $this->applySegmentReplacement($contents, $segment, $updatedRaw);
             }
         }
 
-        $updatedRaw = $this->replaceEnvDefaultString($raw, $newValue, $currentValue);
-
-        if ($updatedRaw !== null && $updatedRaw !== $raw) {
-            return $this->applySegmentReplacement($contents, $segment, $updatedRaw);
-        }
-
-        $updatedRaw = $this->replaceStringLiteralFallback($raw, $newValue, $currentValue);
-
-        if ($updatedRaw !== null && $updatedRaw !== $raw) {
-            return $this->applySegmentReplacement($contents, $segment, $updatedRaw);
-        }
         return null;
     }
 
@@ -478,20 +481,6 @@ class ConfigFilesHelper
             .$newRaw
             .substr($contents, $segment['suffix_start']);
     }
-
-    protected function valueMatchesString(string $existing, string $newValue): bool
-    {
-        $trimmed = trim($existing);
-
-        if ($trimmed === '' || ($trimmed[0] !== '(' && $trimmed[0] !== '[' && $trimmed[0] !== '{')) {
-            return $existing === $newValue
-                || $existing === '\''.$newValue.'\''
-                || $existing === '"'.$newValue.'"';
-        }
-
-        return false;
-    }
-
     protected function replaceStringLiteral(string $expression, string $oldValue, string $newValue): ?string
     {
         if ($oldValue === $newValue) {
@@ -593,7 +582,7 @@ class ConfigFilesHelper
         $relativeWithinPublished = $this->relativePublishedPath($path);
 
         $publishedConfig = $this->loadConfigArray($path);
-        $packageConfig = $this->loadPackageConfigFor($path);
+        $packageConfig = $this->loadConfigArray($this->packagePathFor($path));
 
         if ($publishedConfig === null || $packageConfig === null) {
             return [
@@ -609,6 +598,11 @@ class ConfigFilesHelper
 
         $packageKeys = $this->flattenKeys($packageConfig);
         $publishedKeys = $this->flattenKeys($publishedConfig);
+        $missingKeys = array_values(array_diff($packageKeys, $publishedKeys));
+        sort($missingKeys);
+
+        $topLevelMissingKeys = array_keys(array_diff_key($packageConfig, $publishedConfig));
+        sort($topLevelMissingKeys);
 
         return [
             'filename' => $relativeWithinPublished,
@@ -616,8 +610,8 @@ class ConfigFilesHelper
             'absolute_path' => $path,
             'published_config' => $publishedConfig,
             'package_config' => $packageConfig,
-            'missing_keys' => $this->calculateMissingKeys($packageKeys, $publishedKeys),
-            'top_level_missing_keys' => $this->calculateTopLevelMissingKeys($packageConfig, $publishedConfig),
+            'missing_keys' => $missingKeys,
+            'top_level_missing_keys' => $topLevelMissingKeys,
         ];
     }
 
@@ -904,9 +898,9 @@ class ConfigFilesHelper
             return true;
         }
 
-        $closingPosition = $this->findConfigArrayClosurePosition($contents);
+        $closingPosition = strrpos($contents, '];');
 
-        if ($closingPosition === null) {
+        if ($closingPosition === false) {
             $error = sprintf('Could not locate the end of the configuration array in %s.', $this->publishedRelativePath($path));
 
             return false;
@@ -1197,12 +1191,6 @@ class ConfigFilesHelper
 
         return $paths;
     }
-
-    protected function loadPackageConfigFor(string $absolutePublishedPath): ?array
-    {
-        return $this->loadConfigArray($this->packagePathFor($absolutePublishedPath));
-    }
-
     protected function packagePathFor(string $publishedPath): string
     {
         $publishedAbsolute = $this->resolvePublishedPath($publishedPath);
@@ -1274,18 +1262,13 @@ class ConfigFilesHelper
             return $this->publishedRoot;
         }
 
-        $relative = $this->trimLeadingSeparators($target);
+        $relative = ltrim($target, '\\/');
 
         if ($relative === '') {
             return $this->publishedRoot;
         }
 
         return $this->publishedRoot.DIRECTORY_SEPARATOR.str_replace('/', DIRECTORY_SEPARATOR, $relative);
-    }
-
-    protected function trimLeadingSeparators(string $path): string
-    {
-        return ltrim($path, '\\/');
     }
 
     protected function isAbsolutePath(string $path): bool
@@ -1373,29 +1356,6 @@ class ConfigFilesHelper
         return var_export($value, true);
     }
 
-    protected function calculateMissingKeys(array $packageKeys, array $publishedKeys): array
-    {
-        $missingKeys = array_values(array_diff($packageKeys, $publishedKeys));
-        sort($missingKeys);
-
-        return $missingKeys;
-    }
-
-    protected function calculateTopLevelMissingKeys(array $packageConfig, array $publishedConfig): array
-    {
-        $topLevelMissing = array_keys(array_diff_key($packageConfig, $publishedConfig));
-        sort($topLevelMissing);
-
-        return $topLevelMissing;
-    }
-
-    protected function findConfigArrayClosurePosition(string $contents): ?int
-    {
-        $position = strrpos($contents, '];');
-
-        return $position === false ? null : $position;
-    }
-
     protected function normalizeNewlines(string $text, string $newline): string
     {
         if ($newline === "\n") {
@@ -1443,14 +1403,6 @@ class ConfigFilesHelper
         }
 
         return $result;
-    }
-
-    protected function stripInlineComment(string $line): string
-    {
-        $clean = $this->stripStrings($line);
-        $parts = explode('//', $clean, 2);
-
-        return $parts[0];
     }
 
     protected function findInlineCommentPosition(string $line): ?int
@@ -1531,7 +1483,12 @@ class ConfigFilesHelper
 
     protected function lineHasTerminatingComma(string $line): bool
     {
-        $clean = $this->stripInlineComment($line);
+        $clean = $this->stripStrings($line);
+        $commentPos = strpos($clean, '//');
+
+        if ($commentPos !== false) {
+            $clean = substr($clean, 0, $commentPos);
+        }
 
         return str_contains($clean, ',');
     }
