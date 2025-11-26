@@ -7,7 +7,6 @@ use Backpack\CRUD\app\Library\Auth\UserFromCookie;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
-use Prologue\Alerts\Facades\Alert;
 
 class VerifyEmailController extends Controller
 {
@@ -20,7 +19,7 @@ class VerifyEmailController extends Controller
      */
     public function __construct()
     {
-        if (! app('router')->getMiddleware()['signed'] ?? null) {
+        if (! app()->runningInConsole() && ! array_key_exists('signed', app('router')->getMiddleware())) {
             throw new Exception('Missing "signed" alias middleware in App/Http/Kernel.php. More info: https://backpackforlaravel.com/docs/6.x/base-how-to#enable-email-verification-in-backpack-routes');
         }
 
@@ -67,7 +66,6 @@ class VerifyEmailController extends Controller
         }
 
         $user->sendEmailVerificationNotification();
-        Alert::success(trans('backpack.base.verify_email.email_sent_with_success'))->flash();
 
         return back()->with('status', 'verification-link-sent');
     }
