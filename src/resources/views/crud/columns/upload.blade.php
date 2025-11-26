@@ -9,7 +9,7 @@
                 return asset($prefix.$file_path);
             }
             if (isset($column['temporary'])) {
-                return asset(\Storage::disk($disk)->temporaryUrl($file_path, Carbon\Carbon::now()->addMinutes($column['temporary'])));
+                return asset(\Storage::disk($disk)->temporaryUrl($file_path, Carbon\Carbon::now()->addMinutes($column['expiration'] ?? $column['temporary'])));
             }
             return asset(\Storage::disk($disk)->url($file_path)); 
         };
