@@ -73,6 +73,31 @@ class Install extends Command
 
         // Create users table
         $this->progressBlock('Creating users table');
+        try {
+            if(! $this->option('no-interaction'))
+            \Illuminate\Support\Facades\DB::connection()->getPdo();
+        } catch (\Throwable $e) {
+            $this->closeProgressBlock();
+
+            $connection = config('database.default');
+            $database = config("database.connections.{$connection}.database");
+
+            if ($connection === 'sqlite' && ! file_exists($database)) {
+                if ($this->confirm("The SQLite database file [$database] does not exist. Would you like to create it?")) {
+                    touch($database);
+                    $this->progressBlock('Database file created.');
+                } else {
+                    $this->errorBlock('Error accessing the database. Make sure your database is set up correctly and try again.');
+
+                    return Command::FAILURE;
+                }
+            } else {
+                $this->errorBlock('Error accessing the database. Make sure your database is set up correctly and try again.');
+
+                return Command::FAILURE;
+            }
+        }
+
         $this->executeArtisanProcess('migrate', $this->option('no-interaction') ? ['--no-interaction' => true] : []);
         $this->closeProgressBlock();
 
@@ -116,8 +141,13 @@ class Install extends Command
         //execute basset checks
         if (! $this->option('skip-basset-check')) {
             $this->progressBlock('Running Basset checks');
-            $this->executeArtisanProcess('basset:check');
-            $this->closeProgressBlock();
+            $this->closeProgressBlock('running', 'blue');
+
+            $process = new Process([PHP_BINARY, 'artisan', 'basset:check']);
+            $process->setTimeout(300);
+            $process->run(function ($type, $buffer) {
+                $this->output->write($buffer);
+            });
         }
         // Done
         $url = Str::of(config('app.url'))->finish('/')->append('admin/');
