@@ -84,7 +84,7 @@ class Install extends Command
             $database = config("database.connections.{$connection}.database");
 
             if ($connection === 'sqlite' && ! file_exists($database)) {
-                if ($this->confirm("The SQLite database file [$database] does not exist. Would you like to create it?")) {
+                if ($this->confirm("The SQLite database file [$database] does not exist. Would you like to create it?", true)) {
                     touch($database);
                     $this->progressBlock('Database file created.');
                 } else {
