@@ -74,8 +74,9 @@ class Install extends Command
         // Create users table
         $this->progressBlock('Creating users table');
         try {
-            if(! $this->option('no-interaction'))
-            \Illuminate\Support\Facades\DB::connection()->getPdo();
+            if (! $this->option('no-interaction')) {
+                \Illuminate\Support\Facades\DB::connection()->getPdo();
+            }
         } catch (\Throwable $e) {
             $this->closeProgressBlock();
 
