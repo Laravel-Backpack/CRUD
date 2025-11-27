@@ -66,8 +66,8 @@ class CrudFilter
             $this->fallbackLogic = $fallbackLogic;
         }
 
-        if ($this->crud()->getRequest()->has($this->name)) {
-            $this->currentValue = $this->crud()->getRequest()->input($this->name);
+        if (request()->has($this->name)) {
+            $this->currentValue = request()->input($this->name);
         }
     }
 
@@ -79,7 +79,7 @@ class CrudFilter
      */
     public function isActive()
     {
-        if ($this->crud()->getRequest()->has($this->name)) {
+        if (request()->has($this->name)) {
             return true;
         }
 
@@ -123,7 +123,7 @@ class CrudFilter
             $input = new ParameterBag($input);
         }
 
-        $input = $input ?? new ParameterBag($this->crud()->getRequest()->all());
+        $input = $input ?? new ParameterBag(request()->all());
 
         if (! $input->has($this->name)) {
             // if fallback logic was supplied and is a closure
@@ -219,27 +219,7 @@ class CrudFilter
 
         return $this;
     }
-
-    /**
-     * Remove an attribute from one field's definition array.
-     * (unused function).
-     *
-     * @param  string  $field  The name of the field.
-     * @param  string  $attribute  The name of the attribute being removed.
-     *
-     * @codeCoverageIgnore
-     *
-     * @deprecated
-     */
-    public function removeFilterAttribute($filter, $attribute)
-    {
-        $fields = $this->fields();
-
-        unset($fields[$field][$attribute]);
-
-        $this->setOperationSetting('fields', $fields);
-    }
-
+    
     /**
      * Move the current filter after another filter.
      *

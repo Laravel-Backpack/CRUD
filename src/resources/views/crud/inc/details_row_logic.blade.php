@@ -9,14 +9,6 @@
             return;
         }
         
-        // Check if this table has already been initialized for details row
-        if (tableElement.getAttribute('data-details-row-initialized') === 'true') {
-            return;
-        }
-        
-        // Mark this table as initialized
-        tableElement.setAttribute('data-details-row-initialized', 'true');
-        
         // Make sure the ajaxDatatables rows also have the correct classes
         const detailsButtons = tableElement.querySelectorAll('tbody td .details-row-button');
         detailsButtons.forEach(button => {
