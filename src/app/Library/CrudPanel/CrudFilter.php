@@ -219,7 +219,7 @@ class CrudFilter
 
         return $this;
     }
-    
+
     /**
      * Move the current filter after another filter.
      *
