@@ -10,7 +10,7 @@
 <div class="row mb-2 align-items-center">
   <div class="col-sm-9">
     @if ( $crud->buttons()->where('stack', 'top')->count() ||  $crud->exportButtons())
-      <div class="d-print-none {{ $crud->hasAccess('create')?'with-border':'' }}">
+      <div class="d-print-none {{ $crud->hasAccess('create')?'with-border':'' }} top_buttons_{{$tableId}}">
         @include('crud::inc.button_stack', ['stack' => 'top'])
       </div>
     @endif

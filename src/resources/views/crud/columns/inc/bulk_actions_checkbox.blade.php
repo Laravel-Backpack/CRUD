@@ -13,7 +13,32 @@
     // Make sure window.crud exists before we try to use it
     window.crud = window.crud || {};
     window.crud.tableConfigs = window.crud.tableConfigs || {};
-    window.crud.checkedItems = window.crud.checkedItems || [];
+    
+    // Intercept changes to crud.checkedItems to sync with tableConfigs
+    if (!Object.getOwnPropertyDescriptor(window.crud, 'checkedItems')?.get) {
+        let _checkedItems = window.crud.checkedItems || [];
+        
+        Object.defineProperty(window.crud, 'checkedItems', {
+            get: function() {
+                return _checkedItems;
+            },
+            set: function(value) {
+                _checkedItems = value;
+                
+                // Sync with the main table config if it exists
+                // This handles the case where legacy bulk buttons clear crud.checkedItems
+                if (window.crud.table && window.crud.table.table && window.crud.table.table().node) {
+                    let tableId = window.crud.table.table().node().id;
+                    if (window.crud.tableConfigs[tableId]) {
+                         if (Array.isArray(value) && value.length === 0) {
+                             window.crud.tableConfigs[tableId].checkedItems = [];
+                         }
+                    }
+                }
+            },
+            configurable: true
+        });
+    }
 
 if (typeof window.crud.addOrRemoveCrudCheckedItem !== 'function') {
     window.crud.addOrRemoveCrudCheckedItem = function(element, tableId) {        
@@ -182,7 +207,8 @@ if (typeof window.crud.enableOrDisableBulkButtons !== 'function') {
         
         const tableSpecificContainers = [
             document.querySelector(`#bottom_buttons_${tableId}`),
-            document.querySelector(`#datatable_button_stack_${tableId}`)
+            document.querySelector(`#datatable_button_stack_${tableId}`),
+            document.querySelector(`.top_buttons_${tableId}`)
         ];
         
         for (const container of tableSpecificContainers) {
@@ -255,11 +281,8 @@ if (typeof window.crud.synchronizeCheckedItems !== 'function') {
         tableConfig.checkedItems = Array.isArray(tableConfig.checkedItems) ? tableConfig.checkedItems : [];
         window.crud.checkedItems = Array.isArray(window.crud.checkedItems) ? window.crud.checkedItems : [];
         
-        // For default table or primary tables, sync with the global crud.checkedItems
-        if (tableId === 'crudTable' || tableId.startsWith('crudTable_')) {            
-            // Copy items from tableConfig to global crud object
-            window.crud.checkedItems = [...tableConfig.checkedItems];            
-        }
+        // Copy items from tableConfig to global crud object
+        window.crud.checkedItems = [...tableConfig.checkedItems];
     }
 }
 
