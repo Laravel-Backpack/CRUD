@@ -900,7 +900,7 @@ div.dt-scroll-body {
 
 /* Adjust table headers */
 .dataTable thead th {
-    font-size: 0.70em;
+    vertical-align: middle;
     font-weight: 700;
 }
 
