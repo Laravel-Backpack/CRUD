@@ -3,6 +3,7 @@
     --select2-selected-item-background: #7c69ef;
     --select2-selected-item-color: #fff;
     --btn-close-bg: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23000000'%3e%3cpath d='M.293.293a1 1 0 0 1 1.414 0L8 6.586 14.293.293a1 1 0 1 1 1.414 1.414L9.414 8l6.293 6.293a1 1 0 0 1-1.414 1.414L8 9.414l-6.293 6.293a1 1 0 0 1-1.414-1.414L6.586 8 .293 1.707a1 1 0 0 1 0-1.414z'/%3e%3c/svg%3e");
+    --datatable-search-icon-color: #999;
 }
 
 .sidebar .nav-dropdown-items .nav-dropdown {
@@ -595,6 +596,32 @@ div[id$="_wrapper"] .dt-processing {
     display: block !important;
     visibility: visible !important;
     opacity: 1 !important;
+}
+
+.datatable_search_stack .input-icon input[type=search] {
+    padding-left: 2.5rem;
+}
+
+.datatable_search_stack .input-icon {
+    position: relative;
+}
+
+.datatable_search_stack .input-icon .input-icon-addon .icon {
+    fill: none;
+}
+
+.input-icon-addon {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2.5rem;
+    color: var(--datatable-search-icon-color);
+    pointer-events: none;
+    font-size: 1.2em;
 }
 
 .dt-container .dataTables_info {
