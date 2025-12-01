@@ -725,6 +725,10 @@ table.dataTable tr th:first-child, table.dataTable tr td:first-child, table.data
     padding-left: 0.6rem;
 }
 
+table.dataTable td {
+    vertical-align: middle;
+}
+
 /* Processing indicator - global styles */
 .dataTables_processing,
 .dt-processing {
