@@ -6,6 +6,7 @@ use Backpack\CRUD\app\Library\CrudPanel\CrudFilter;
 use Backpack\CRUD\Tests\config\CrudPanel\BaseCrudPanel;
 use Backpack\CRUD\Tests\config\Models\User;
 use Config;
+use Illuminate\Routing\Route;
 
 /**
  * @covers Backpack\CRUD\app\Library\CrudPanel\Traits\Filters
@@ -52,7 +53,7 @@ class CrudPanelFiltersTest extends BaseCrudPanel
         $request->setRouteResolver(function () use ($request) {
             return (new Route('GET', 'admin/users', ['UserCrudController', 'index']))->bind($request);
         });
-        $this->crudPanel->setRequest($request);
+        $this->app->instance('request', $request);
 
         $isActive = CrudFilter::name('my_custom_filter')->isActive();
         $this->assertTrue($isActive);
