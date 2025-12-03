@@ -64,7 +64,7 @@ trait Read
     /**
      * Find and retrieve an entry in the database or fail.
      *
-     * @param int The id of the row in the db to fetch.
+     * @param int|string The id of the row in the db to fetch.
      * @return \Illuminate\Database\Eloquent\Model The row in the db.
      */
     public function getEntry($id)
@@ -116,7 +116,7 @@ trait Read
     /**
      * Find and retrieve an entry in the database or fail.
      *
-     * @param int The id of the row in the db to fetch.
+     * @param int|string The id of the row in the db to fetch.
      * @return \Illuminate\Database\Eloquent\Model The row in the db.
      */
     public function getEntryWithoutFakes($id)
