@@ -2102,7 +2102,7 @@ class CrudPanelCreateTest extends \Backpack\CRUD\Tests\config\CrudPanel\BaseDBCr
                 'type' => 'relationship',
                 'subfields' => [
                     ['name' => 'title'],
-                ]
+                ],
             ]);
 
             $inputData = [
@@ -2112,7 +2112,7 @@ class CrudPanelCreateTest extends \Backpack\CRUD\Tests\config\CrudPanel\BaseDBCr
                 ],
                 'star' => [
                     'title' => 'Sun',
-                ]
+                ],
             ];
 
             $entry = $this->crudPanel->create($inputData);
@@ -2120,7 +2120,6 @@ class CrudPanelCreateTest extends \Backpack\CRUD\Tests\config\CrudPanel\BaseDBCr
             $this->assertInstanceOf(\Backpack\CRUD\Tests\config\Models\Comment::class, $entry);
             $this->assertNotNull($entry->star);
             $this->assertEquals('Sun', $entry->star->title);
-
         } finally {
             \Illuminate\Database\Eloquent\Model::preventSilentlyDiscardingAttributes($previousState);
         }
@@ -2171,7 +2170,6 @@ class CrudPanelCreateTest extends \Backpack\CRUD\Tests\config\CrudPanel\BaseDBCr
             $this->assertInstanceOf(\Backpack\CRUD\Tests\config\Models\Comment::class, $entry);
             $this->assertNotNull($entry->accountDetails);
             $this->assertEquals('Nick', $entry->accountDetails->nickname);
-
         } finally {
             \Illuminate\Database\Eloquent\Model::preventSilentlyDiscardingAttributes($previousState);
         }
