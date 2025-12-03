@@ -2078,4 +2078,102 @@ class CrudPanelCreateTest extends \Backpack\CRUD\Tests\config\CrudPanel\BaseDBCr
 
         return array_merge($inputData, $pivotRelationData);
     }
+
+    public function testMorphOneRelationshipWithPreventMassAssignment()
+    {
+        // setup model constrains
+        $previousState = \Illuminate\Database\Eloquent\Model::preventsSilentlyDiscardingAttributes();
+        \Illuminate\Database\Eloquent\Model::preventSilentlyDiscardingAttributes(true);
+
+        try {
+            $this->crudPanel->setModel(\Backpack\CRUD\Tests\config\Models\Comment::class);
+
+            $this->crudPanel->addField([
+                'name' => 'commentable',
+                'type' => 'relationship',
+            ]);
+
+            \Backpack\CRUD\Tests\config\Models\Comment::resolveRelationUsing('star', function ($comment) {
+                return $comment->morphOne(\Backpack\CRUD\Tests\config\Models\Star::class, 'starable');
+            });
+
+            $this->crudPanel->addField([
+                'name' => 'star',
+                'type' => 'relationship',
+                'subfields' => [
+                    ['name' => 'title'],
+                ]
+            ]);
+
+            $inputData = [
+                'commentable' => [
+                    'commentable_type' => 'Backpack\CRUD\Tests\config\Models\User',
+                    'commentable_id' => 1,
+                ],
+                'star' => [
+                    'title' => 'Sun',
+                ]
+            ];
+
+            $entry = $this->crudPanel->create($inputData);
+
+            $this->assertInstanceOf(\Backpack\CRUD\Tests\config\Models\Comment::class, $entry);
+            $this->assertNotNull($entry->star);
+            $this->assertEquals('Sun', $entry->star->title);
+
+        } finally {
+            \Illuminate\Database\Eloquent\Model::preventSilentlyDiscardingAttributes($previousState);
+        }
+    }
+
+    public function testHasOneDotNotationRelationshipWithPreventMassAssignment()
+    {
+        $previousState = \Illuminate\Database\Eloquent\Model::preventsSilentlyDiscardingAttributes();
+        \Illuminate\Database\Eloquent\Model::preventSilentlyDiscardingAttributes(true);
+
+        try {
+            $this->crudPanel->setModel(\Backpack\CRUD\Tests\config\Models\Comment::class);
+
+            $this->crudPanel->addField([
+                'name' => 'commentable',
+                'type' => 'relationship',
+            ]);
+
+            \Backpack\CRUD\Tests\config\Models\Comment::resolveRelationUsing('accountDetails', function ($comment) {
+                return $comment->hasOne(\Backpack\CRUD\Tests\config\Models\AccountDetails::class, 'article_id');
+            });
+
+            $this->crudPanel->addField([
+                'name' => 'accountDetails.nickname',
+                'type' => 'text',
+            ]);
+            $this->crudPanel->addField([
+                'name' => 'accountDetails.user_id',
+                'type' => 'hidden',
+            ]);
+            $this->crudPanel->addField([
+                'name' => 'accountDetails.profile_picture',
+                'type' => 'text',
+            ]);
+
+            $inputData = [
+                'commentable' => [
+                    'commentable_type' => 'Backpack\CRUD\Tests\config\Models\User',
+                    'commentable_id' => 1,
+                ],
+                'accountDetails.nickname' => 'Nick',
+                'accountDetails.user_id' => 1,
+                'accountDetails.profile_picture' => 'pic.jpg',
+            ];
+
+            $entry = $this->crudPanel->create($inputData);
+
+            $this->assertInstanceOf(\Backpack\CRUD\Tests\config\Models\Comment::class, $entry);
+            $this->assertNotNull($entry->accountDetails);
+            $this->assertEquals('Nick', $entry->accountDetails->nickname);
+
+        } finally {
+            \Illuminate\Database\Eloquent\Model::preventSilentlyDiscardingAttributes($previousState);
+        }
+    }
 }
