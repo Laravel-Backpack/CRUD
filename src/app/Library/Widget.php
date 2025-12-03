@@ -106,14 +106,74 @@ class Widget extends Fluent
         return $this;
     }
 
-    // TODO: add ability to push a widget right after another widget
+    /**
+     * Move this widget to appear right after another widget.
+     *
+     * @param  string  $destination  The name of the destination widget.
+     * @return Widget
+     */
     public function after($destination)
     {
+        $collection = $this->collection();
+        $widgets = $collection->all();
+        
+        // Check if destination widget exists
+        if (! isset($widgets[$destination])) {
+            return $this;
+        }
+        
+        // Remove current widget from collection
+        $currentWidget = $collection->pull($this->attributes['name']);
+        
+        // Find the position of the destination widget
+        $keys = array_keys($widgets);
+        $position = array_search($destination, $keys);
+        
+        // Insert after the destination
+        $before = array_slice($widgets, 0, $position + 1, true);
+        $after = array_slice($widgets, $position + 1, null, true);
+        
+        $newWidgets = $before + [$this->attributes['name'] => $currentWidget] + $after;
+        
+        // Update the collection
+        $collection->replace($newWidgets);
+        
+        return $this;
     }
 
-    // TODO: add ability to push a widget right before another widget
+    /**
+     * Move this widget to appear right before another widget.
+     *
+     * @param  string  $destination  The name of the destination widget.
+     * @return Widget
+     */
     public function before($destination)
     {
+        $collection = $this->collection();
+        $widgets = $collection->all();
+        
+        // Check if destination widget exists
+        if (! isset($widgets[$destination])) {
+            return $this;
+        }
+        
+        // Remove current widget from collection
+        $currentWidget = $collection->pull($this->attributes['name']);
+        
+        // Find the position of the destination widget
+        $keys = array_keys($widgets);
+        $position = array_search($destination, $keys);
+        
+        // Insert before the destination
+        $before = array_slice($widgets, 0, $position, true);
+        $after = array_slice($widgets, $position, null, true);
+        
+        $newWidgets = $before + [$this->attributes['name'] => $currentWidget] + $after;
+        
+        // Update the collection
+        $collection->replace($newWidgets);
+        
+        return $this;
     }
 
     /**
