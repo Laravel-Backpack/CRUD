@@ -1285,7 +1285,7 @@ function formatActionColumnAsDropdown(tableId) {
             actionCell.wrapInner('<div class="dropdown-menu"></div>');
             actionCell.wrapInner('<div class="dropdown"></div>');
 
-            actionCell.prepend('<button class="btn btn-sm px-2 py-1 btn-outline-primary dropdown-toggle actions-buttons-column" type="button" data-bs-toggle="dropdown" data-bs-boundary="viewport" data-bs-placement="bottom-start" aria-expanded="false">Actions</button>');
+            actionCell.prepend('<button class="btn btn-sm px-2 py-1 btn-outline-primary dropdown-toggle actions-buttons-column" type="button" aria-expanded="false">Actions</button>');
             
             const remainingButtons = actionButtons.slice(0, buttonsToShowBeforeDropdown);
             actionCell.prepend(remainingButtons);
@@ -1312,14 +1312,22 @@ function initDatatableDropdowns(tableId) {
                 const $dropdown = $this.next('.dropdown');
                 const $menu = $dropdown.find('.dropdown-menu');
                 
-                // If no menu found, let's create one or find it differently
+                // Check if the menu is already open
+                const wasOpen = $menu.hasClass('show');
+
+                // close all dropdowns in this table
+                $('#' + tableId + ' .actions-buttons-column').next('.dropdown').find('.dropdown-menu').removeClass('show').hide();
+                
+                // if it was open, we just closed it, so we are done
+                if (wasOpen) {
+                    return;
+                }
+
+                // if no menu found, let's create one or find it differently
                 if ($menu.length === 0) {                    
                     // Try different selectors
                     const $ul = $dropdown.find('ul');
-                    const $allMenus = $('.dropdown-menu');
                     
-                    // Try to find the menu as a sibling or next element
-                    const $nextSibling = $this.next();                    
                     if ($ul.length > 0) {
                         $ul.addClass('dropdown-menu show').show();
                         
@@ -1343,26 +1351,34 @@ function initDatatableDropdowns(tableId) {
                     }
                 }
                 
-                $('#' + tableId + ' .actions-buttons-column').next('.dropdown').find('.dropdown-menu').removeClass('show').hide();
-                
                 // Show this dropdown
                 $menu.addClass('show').show();
                 
                 // Force positioning
                 const buttonRect = this.getBoundingClientRect();
                 const menuHeight = $menu.outerHeight() || 150;
+                const menuWidth = $menu.outerWidth() || 160;
                 const windowHeight = $(window).height();
+                const windowWidth = $(window).width();
                 
-                let top = buttonRect.bottom + window.scrollY + 5;
-                if (top + menuHeight > windowHeight + window.scrollY) {
-                    top = buttonRect.top + window.scrollY - menuHeight - 5;
+                let top = buttonRect.bottom + 5;
+                let left = buttonRect.left;
+
+                // check position if going off screen vertically
+                if (buttonRect.bottom + menuHeight > windowHeight) {
+                    top = buttonRect.top - menuHeight - 5;
+                }
+
+                // check position if going off screen horizontally
+                if (left + menuWidth > windowWidth) {
+                    left = buttonRect.right - menuWidth;
                 }
                 
                 // Apply positioning with maximum override
                 const cssProps = {
                     'position': 'fixed',
-                    'top': (buttonRect.bottom + 5) + 'px',
-                    'left': buttonRect.left + 'px',
+                    'top': top + 'px',
+                    'left': left + 'px',
                     'z-index': '999999',
                     'display': 'block',
                     'background': 'white',
@@ -1374,11 +1390,6 @@ function initDatatableDropdowns(tableId) {
                 };
                 
                 $menu.css(cssProps);
-                
-                // Auto-position if going off screen
-                if (buttonRect.bottom + menuHeight > windowHeight) {
-                    $menu.css('top', (buttonRect.top - menuHeight - 5) + 'px');
-                }                
             });
             
             // Close on outside click, but only for line action dropdowns in this table
