@@ -26,7 +26,7 @@
 </nav>
   
 @push('after_scripts')
-    @basset('https://unpkg.com/urijs@1.19.11/src/URI.min.js')
+    @basset('https://cdn.jsdelivr.net/npm/urijs@1.19.11/src/URI.min.js')
     <script>
     if(typeof addOrUpdateUriParameter !== 'function') {
         function addOrUpdateUriParameter(uri, parameter, value) {
