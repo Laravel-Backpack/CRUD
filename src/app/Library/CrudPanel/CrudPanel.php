@@ -209,6 +209,11 @@ class CrudPanel
      */
     public function setRoute($route)
     {
+        // if the route is a full URL, strip the domain
+        if (str_starts_with($route, url('/'))) {
+            $route = substr($route, strlen(url('/')));
+        }
+
         $this->route = ltrim($route, '/');
     }
 

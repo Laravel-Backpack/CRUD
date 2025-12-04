@@ -36,12 +36,9 @@ class CrudControllerTest extends BaseTestClass
         $crudPanel = app('crud');
         $crudPanel->setRoute(backpack_url('users'));
         $crudPanel->setEntityNameStrings('singular', 'plural');
-        $this->assertEquals(route('users.index'), $crudPanel->getRoute());
+        $this->assertEquals(config('backpack.base.route_prefix').'/users', $crudPanel->getRoute());
     }
 
-    /**
-     * @group fail
-     */
     public function testCrudRequestUpdatesOnEachRequest()
     {
         // create a first request
