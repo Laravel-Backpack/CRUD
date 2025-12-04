@@ -1374,7 +1374,7 @@ function initDatatableDropdowns(tableId) {
                     left = buttonRect.right - menuWidth;
                 }
                 
-                // Apply positioning with maximum override
+                // apply positioning
                 const cssProps = {
                     'position': 'fixed',
                     'top': top + 'px',
