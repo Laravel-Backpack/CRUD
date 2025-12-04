@@ -1285,7 +1285,7 @@ function formatActionColumnAsDropdown(tableId) {
             actionCell.wrapInner('<div class="dropdown-menu"></div>');
             actionCell.wrapInner('<div class="dropdown"></div>');
 
-            actionCell.prepend('<button class="btn btn-sm px-2 py-1 btn-outline-primary dropdown-toggle actions-buttons-column" type="button" aria-expanded="false">Actions</button>');
+            actionCell.prepend('<button class="btn btn-sm px-2 py-1 btn-outline-primary dropdown-toggle actions-buttons-column" type="button" aria-expanded="false">{{trans("backpack::crud.actions")}}</button>');
             
             const remainingButtons = actionButtons.slice(0, buttonsToShowBeforeDropdown);
             actionCell.prepend(remainingButtons);
