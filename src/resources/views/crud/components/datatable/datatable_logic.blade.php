@@ -634,10 +634,11 @@ function setupTableUI(tableId, config) {
                 localStorage.removeItem(`${config.persistentTableSlug}_list_url_time`);
             }
 
-            // Clear the table sorting/ordering/visibility
-            if(localStorage.getItem(`DataTables_${tableId}_/${config.urlStart}`)) {
-                localStorage.removeItem(`DataTables_${tableId}_/${config.urlStart}`);
-            }
+            // Clear ALL DataTables localStorage keys for this table
+            // Fixes key mismatch where DataTables 2.x uses pathname-based keys
+            Object.keys(localStorage)
+              .filter(key => key.startsWith(`DataTables_${tableId}`))
+              .forEach(key => localStorage.removeItem(key));
         });
     }
 
