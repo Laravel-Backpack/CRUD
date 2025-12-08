@@ -42,6 +42,10 @@ class CheckThemeTablerConfigStep extends Step
 
     public function run(): StepResult
     {
+        if (config('backpack.ui.view_namespace') !== 'backpack.theme-tabler::') {
+            return StepResult::skipped('Current theme is not Tabler.');
+        }
+
         $this->needsPublish = false;
         $this->selectedOption = null;
         $this->currentContents = $this->configs->readPublishedFile($this->configFilename);
