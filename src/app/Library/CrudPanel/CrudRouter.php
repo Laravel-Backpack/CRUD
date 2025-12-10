@@ -34,7 +34,6 @@ final class CrudRouter
                 str_starts_with($method->getName(), 'setup') &&
                 str_ends_with($method->getName(), 'Routes')
             ) {
-                $method->setAccessible(true);
                 LifecycleHook::trigger('crud:before_setup_routes', [$name, $routeName, $controller]);
                 $method->invoke($controllerInstance, $name, $routeName, $controller);
                 LifecycleHook::trigger('crud:after_setup_routes', [$name, $routeName, $controller]);
