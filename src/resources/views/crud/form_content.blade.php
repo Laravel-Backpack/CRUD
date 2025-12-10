@@ -1,5 +1,5 @@
 <input type="hidden" name="_http_referrer" value="{{ session('referrer_url_override') ?? old('_http_referrer') ?? \URL::previous() ?? url($crud->route) }}">
-<input type="hidden" name="_form_id" value="{{ $formId ?? 'crudForm' }}">
+<input type="hidden" name="_form_id" value="{{ $formId ?? $id ?? 'crudForm' }}">
 
 {{-- See if we're using tabs --}}
 @if ($crud->tabsEnabled() && count($crud->getTabs()))
@@ -187,8 +187,8 @@
       @if ($crud->inlineErrorsEnabled() && session()->get('errors'))
 
         window.errors = {!! json_encode(session()->get('errors')->getBags()) !!};
-        var submittedFormId = "{{ old('_form_id') }}";
-        var currentFormId = '{{ $formId ?? 'crudForm' }}';
+        var submittedFormId = "{{ old('_form_id') ?? 'crudForm' }}";
+        var currentFormId = '{{ $formId ?? $id ?? 'crudForm' }}';
 
         // Only display errors if this is the form that was submitted
         if (submittedFormId && submittedFormId === currentFormId) {

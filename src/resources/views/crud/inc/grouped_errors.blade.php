@@ -1,8 +1,8 @@
 {{-- Show the errors, if any --}}
 @if ($crud->groupedErrorsEnabled() && session()->get('errors'))
     @php
-    $submittedFormId = old('_form_id') ?? 'crudForm';
-        $currentFormId = $formId ?? 'crudForm';
+        $submittedFormId = old('_form_id') ?? 'crudForm';
+        $currentFormId = $formId ?? $id ?? 'crudForm';
     @endphp
     @if (!$submittedFormId || $submittedFormId === $currentFormId)
     <div class="alert alert-danger text-danger">
