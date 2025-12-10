@@ -28,7 +28,7 @@ final class CrudPanelManager
     /** @var array<string, array<string>> Tracks which operations have been initialized for each controller */
     private array $initializedOperations = [];
 
-    /** @var string|null The currently active controller class name */
+    /** The currently active controller class name */
     private ?string $currentlyActiveCrudController = null;
 
     /**
@@ -53,7 +53,7 @@ final class CrudPanelManager
      * Setup and initialize a CrudPanel for the given controller and operation.
      *
      * @param  string  $controller  The controller class name
-     * @param  string|null  $operation  The operation to set (defaults to 'list')
+     * @param  ?string  $operation  The operation to set (defaults to 'list')
      * @return CrudPanel The initialized CrudPanel instance
      */
     public function setupCrudPanel(string $controller, ?string $operation = null): CrudPanel
@@ -392,7 +392,7 @@ final class CrudPanelManager
     /**
      * Get the parent (first registered) controller class name.
      *
-     * @return string|null The parent controller class name or null if none exists
+     * @return ?string The parent controller class name or null if none exists
      */
     public function getParentController(): ?string
     {
@@ -417,7 +417,7 @@ final class CrudPanelManager
     /**
      * Get the currently active controller class name.
      *
-     * @return string|null The active controller class name or null if none is set
+     * @return ?string The active controller class name or null if none is set
      */
     public function getActiveController(): ?string
     {

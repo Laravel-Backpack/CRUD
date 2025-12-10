@@ -292,6 +292,9 @@ trait SaveActions
 
     /**
      * Change the session variable that remembers what to do after the "Save" action.
+     *
+     * @param  ?string  $forceSaveAction
+     * @return void
      */
     public function setSaveAction($forceSaveAction = null)
     {

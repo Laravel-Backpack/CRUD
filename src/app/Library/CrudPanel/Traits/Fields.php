@@ -156,7 +156,7 @@ trait Fields
     /**
      * Move this field to be first in the fields list.
      *
-     * @return bool|null
+     * @return ?bool
      */
     public function makeFirstField()
     {

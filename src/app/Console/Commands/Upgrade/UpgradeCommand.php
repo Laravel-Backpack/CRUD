@@ -294,7 +294,7 @@ class UpgradeCommand extends Command
 
     /**
      * @param  array<int|string, mixed>  $options
-     * @return array{0: array<string, string|null>, 1: string|null}
+     * @return array{0: array<string, ?string>, 1: ?string}
      */
     protected function normalizeFixOptions(array $options): array
     {
