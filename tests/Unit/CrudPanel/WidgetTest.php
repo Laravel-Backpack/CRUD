@@ -5,6 +5,9 @@ namespace Backpack\CRUD\Tests\Unit\CrudPanel;
 use Backpack\CRUD\app\Library\Widget;
 use Backpack\CRUD\Tests\BaseTestClass;
 
+/**
+ * @covers Backpack\CRUD\app\Library\Widget
+ */
 class WidgetTest extends BaseTestClass
 {
     protected function setUp(): void

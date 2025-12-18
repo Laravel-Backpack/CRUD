@@ -11,7 +11,7 @@ use Illuminate\Support\Fluent;
  */
 class Widget extends Fluent
 {
-    protected $attributes = [];
+    public $attributes = [];
 
     public function __construct($attributes)
     {
@@ -115,29 +115,23 @@ class Widget extends Fluent
     public function after($destination)
     {
         $collection = $this->collection();
-        $widgets = $collection->all();
-        
-        // Check if destination widget exists
-        if (! isset($widgets[$destination])) {
+
+        if (! $collection->has($destination)) {
             return $this;
         }
-        
-        // Remove current widget from collection
-        $currentWidget = $collection->pull($this->attributes['name']);
-        
-        // Find the position of the destination widget
-        $keys = array_keys($widgets);
-        $position = array_search($destination, $keys);
-        
-        // Insert after the destination
-        $before = array_slice($widgets, 0, $position + 1, true);
-        $after = array_slice($widgets, $position + 1, null, true);
-        
-        $newWidgets = $before + [$this->attributes['name'] => $currentWidget] + $after;
-        
-        // Update the collection
-        $collection->replace($newWidgets);
-        
+
+        $target = $collection->pull($this->attributes['name']);
+        $offset = $collection->keys()->search($destination) + 1;
+
+        $newCollection = $collection->slice(0, $offset)
+            ->put($this->attributes['name'], $target)
+            ->union($collection->slice($offset));
+
+        $collection->forget($collection->keys()->toArray());
+        foreach ($newCollection->all() as $key => $value) {
+            $collection->put($key, $value);
+        }
+
         return $this;
     }
 
@@ -150,29 +144,23 @@ class Widget extends Fluent
     public function before($destination)
     {
         $collection = $this->collection();
-        $widgets = $collection->all();
-        
-        // Check if destination widget exists
-        if (! isset($widgets[$destination])) {
+
+        if (! $collection->has($destination)) {
             return $this;
         }
-        
-        // Remove current widget from collection
-        $currentWidget = $collection->pull($this->attributes['name']);
-        
-        // Find the position of the destination widget
-        $keys = array_keys($widgets);
-        $position = array_search($destination, $keys);
-        
-        // Insert before the destination
-        $before = array_slice($widgets, 0, $position, true);
-        $after = array_slice($widgets, $position, null, true);
-        
-        $newWidgets = $before + [$this->attributes['name'] => $currentWidget] + $after;
-        
-        // Update the collection
-        $collection->replace($newWidgets);
-        
+
+        $target = $collection->pull($this->attributes['name']);
+        $offset = $collection->keys()->search($destination);
+
+        $newCollection = $collection->slice(0, $offset)
+            ->put($this->attributes['name'], $target)
+            ->union($collection->slice($offset));
+
+        $collection->forget($collection->keys()->toArray());
+        foreach ($newCollection->all() as $key => $value) {
+            $collection->put($key, $value);
+        }
+
         return $this;
     }
 
