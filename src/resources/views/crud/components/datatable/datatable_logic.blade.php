@@ -476,7 +476,8 @@ window.crud.initializeTable = function(tableId, customConfig = {}) {
             data.columns.forEach(function(item, index) {
                 var columnHeading = table.columns().header()[index];
                 if ($(columnHeading).attr('data-visible-in-table') == 'true') {
-                    return item.visible = true;
+                    item.visible = true;
+                    return true;
                 }
             });
         };
