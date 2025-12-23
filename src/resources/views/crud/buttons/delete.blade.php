@@ -32,8 +32,6 @@
         $("[data-button-type=delete]").unbind('click');
 
         function deleteEntry(button) {
-            // ask for confirmation before deleting an item
-            // e.preventDefault();
             var route = $(button).attr('data-route');
 
             swal({
@@ -148,9 +146,6 @@
 
         }
     }
-
-    // make it so that the function above is run after each DataTable draw event
-    // crud.addFunctionToDataTablesDrawEventQueue('deleteEntry');
 </script>
 @endBassetBlock
 @if (!request()->ajax()) @endpush @endif

@@ -1,14 +1,18 @@
 @php
-    $access = (function() use ($crud, $button) {
-        if (isset($button->meta['access']) && $button->meta['access'] !== null && $button->meta['access'] !== false) {
-            return $button->meta['access'];
-        }
-        return !is_null($crud->get(Str::of($button->name)->studly().'.access'))  ? Str::of($button->name)->studly() : $button->name;
-    })();
+    // Access
+    $access = $button->meta['access'] ?? null;
+    if ($access === null) {
+        $access = !is_null($crud->get(Str::of($button->name)->studly().'.access')) ? Str::of($button->name)->studly() : $button->name;
+    }
+
+    // Icon & Label
     $icon = $button->meta['icon'] ?? '';
     $label = $button->meta['label'] ?? Str::of($button->name)->headline();
 
+    // Default Href
     $defaultHref = url($crud->route. ($entry?->getKey() ? '/'.$entry?->getKey().'/' : '/') . Str::of($button->name)->kebab());
+
+    // Default Class
     $defaultClass = match ($button->stack) {
         'line' => 'btn btn-sm btn-link',
         'top' => 'btn btn-outline-primary',
@@ -16,52 +20,54 @@
         default => 'btn btn-outline-primary',
     };
 
+    // Wrapper
     $wrapper = $button->meta['wrapper'] ?? [];
     $wrapper['element'] = $wrapper['element'] ?? 'a';
     $wrapper['href'] = $wrapper['href'] ?? $defaultHref;
+
     if (is_a($wrapper['href'], \Closure::class, true)) {
         $wrapper['href'] = ($wrapper['href'])($entry, $crud);
     }
-    $wrapper['class'] = $wrapper['class'] ?? $defaultClass;
-    //if ajax enabled
-    $buttonAjaxConfiguration = $button->meta['ajax'] ?? false;
-    $bulkConfiguration = $button->meta['bulk'] ?? false;
-    if($buttonAjaxConfiguration) {
-        $wrapper['data-route'] = $wrapper['href'];
-		$wrapper['data-method'] = $button->meta['ajax']['method'] ?? 'GET';
-        $wrapper['data-refresh-table'] = $button->meta['ajax']['refreshCrudTable'] ?? false;
 
+    $wrapper['class'] = $wrapper['class'] ?? $defaultClass;
+
+    // Ajax Configuration
+    $ajaxConfiguration = $button->meta['ajax'] ?? false;
+    $bulkConfiguration = $button->meta['bulk'] ?? false;
+
+    if ($ajaxConfiguration) {
+        $wrapper['data-route'] = $wrapper['href'];
+        $wrapper['data-method'] = $ajaxConfiguration['method'] ?? 'GET';
+        $wrapper['data-refresh-table'] = $ajaxConfiguration['refreshCrudTable'] ?? false;
         $wrapper['href'] = 'javascript:void(0)';
 
-        // Check if this is a bulk button
-        if($bulkConfiguration) {
+        // Bulk Configuration
+        if ($bulkConfiguration) {
             $wrapper['onclick'] = 'sendQuickBulkButtonAjaxRequest(this)';
             $wrapper['data-button-type'] = 'quick-bulk-ajax';
-            $wrapper['class'] = $wrapper['class'] . ' bulk-button';
+            $wrapper['class'] .= ' bulk-button';
 
-            // Bulk-specific messages
-            $wrapper['data-bulk-no-entries-title'] = $button->meta['bulk']['no_entries_title'] ?? trans('backpack::crud.bulk_no_entries_selected_title');
-            $wrapper['data-bulk-no-entries-message'] = $button->meta['bulk']['no_entries_message'] ?? trans('backpack::crud.bulk_no_entries_selected_message');
-            $wrapper['data-bulk-confirm-title'] = $button->meta['bulk']['confirm_title'] ?? trans('backpack::base.warning');
-            $wrapper['data-bulk-confirm-message'] = $button->meta['bulk']['confirm_message'] ?? trans('backpack::crud.bulk_operation_are_you_sure');
+            $wrapper['data-bulk-no-entries-title'] = $bulkConfiguration['no_entries_title'] ?? trans('backpack::crud.bulk_no_entries_selected_title');
+            $wrapper['data-bulk-no-entries-message'] = $bulkConfiguration['no_entries_message'] ?? trans('backpack::crud.bulk_no_entries_selected_message');
+            $wrapper['data-bulk-confirm-title'] = $bulkConfiguration['confirm_title'] ?? trans('backpack::base.warning');
+            $wrapper['data-bulk-confirm-message'] = $bulkConfiguration['confirm_message'] ?? trans('backpack::crud.bulk_operation_are_you_sure');
         } else {
             $wrapper['onclick'] = 'sendQuickButtonAjaxRequest(this)';
             $wrapper['data-button-type'] = 'quick-ajax';
         }
 
-        //success message
-        $wrapper['data-success-title'] = $button->meta['ajax']['success_title'] ?? trans('backpack::crud.quick_button_ajax_success_title');
-        $wrapper['data-success-message'] = $button->meta['ajax']['success_message'] ?? trans('backpack::crud.quick_button_ajax_success_message');
-        //error message
-        $wrapper['data-error-title'] = $button->meta['ajax']['error_title'] ?? trans('backpack::crud.quick_button_ajax_error_title');
-        $wrapper['data-error-message']  = $button->meta['ajax']['error_message'] ?? trans('backpack::crud.quick_button_ajax_error_message');
+        // Messages
+        $wrapper['data-success-title'] = $ajaxConfiguration['success_title'] ?? trans('backpack::crud.quick_button_ajax_success_title');
+        $wrapper['data-success-message'] = $ajaxConfiguration['success_message'] ?? trans('backpack::crud.quick_button_ajax_success_message');
+        $wrapper['data-error-title'] = $ajaxConfiguration['error_title'] ?? trans('backpack::crud.quick_button_ajax_error_title');
+        $wrapper['data-error-message'] = $ajaxConfiguration['error_message'] ?? trans('backpack::crud.quick_button_ajax_error_message');
     }
-    //endif ajax enabled
 @endphp
 
 @if ($access === true || $crud->hasAccess($access, isset($entry) ? $entry : null))
     <{{ $wrapper['element'] }}
         bp-button="{{ $button->name }}"
+        data-table-id="{{ isset($crudTableId) ? $crudTableId : 'crudTable' }}"
         @foreach ($wrapper as $attribute => $value)
             @if (is_string($attribute))
             {{ $attribute }}="{{ $value }}"
@@ -73,166 +79,146 @@
     </{{ $wrapper['element'] }}>
 @endif
 
+@if($ajaxConfiguration)
+    {{-- Button Javascript --}}
+    {{-- Pushed to the end of the page, after jQuery is loaded --}}
+    @push('after_scripts') @if (request()->ajax()) @endpush @endif
+    @bassetBlock('backpack/crud/buttons/quick-button.js')
+    <script>
+        if (typeof sendQuickButtonAjaxRequest !== 'function') {
+            function sendQuickButtonAjaxRequest(button) {
+                const tableId = button.getAttribute('data-table-id') ?? 'crudTable';
+                const table = window.crud.tables[tableId];
+                const route = button.getAttribute('data-route');
+                const method = button.getAttribute('data-method');
+                const refreshTable = button.getAttribute('data-refresh-table') == '1';
 
-@if($buttonAjaxConfiguration)
-{{-- Button Javascript --}}
-{{-- Pushed to the end of the page, after jQuery is loaded --}}
-@push('after_scripts') @if (request()->ajax()) @endpush @endif
-@bassetBlock('backpack/crud/buttons/quick-button.js')
-<script>
-	if (typeof sendQuickButtonAjaxRequest != 'function') {
-        $("[data-button-type=quick-ajax]").unbind('click');
+                const defaultButtonMessage = function(button, type) {
+                    const buttonTitle = button.getAttribute(`data-${type}-title`);
+                    const buttonMessage =  button.getAttribute(`data-${type}-message`);
+                    return `<strong>${buttonTitle}</strong><br/>${buttonMessage}`;
+                }
 
-        function sendQuickButtonAjaxRequest(button) {
-            let route = $(button).attr('data-route');
-
-            const defaultButtonMessage = function(button, type) {
-                let buttonTitle = button.getAttribute(`data-${type}-title`);
-                let buttonMessage =  button.getAttribute(`data-${type}-message`);
-                return `<strong>${buttonTitle}</strong><br/>${buttonMessage}`;
-            }
-
-            $.ajax({
-                url: route,
-                type: $(button).attr('data-method'),
-                success: function(result) {
-
-                    if($(button).attr('data-refresh-table') && typeof crud != 'undefined' && typeof crud.table != 'undefined'){
-                        crud.table.draw(false);
+                fetch(route, {
+                    method: method,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content
+                    },
+                })
+                .then(response => response.json().then(data => ({ status: response.status, body: data })))
+                .then(({ status, body }) => {
+                    if (status >= 200 && status < 300) {
+                        if (refreshTable && typeof table !== 'undefined') {
+                            table.draw(false);
+                        }
+                        new Noty({
+                            type: "success",
+                            text: body.message || defaultButtonMessage(button, 'success'),
+                        }).show();
+                    } else {
+                        throw new Error(body.message || defaultButtonMessage(button, 'error'));
                     }
-                    let message;
-                    //if message is returned from the API use that message
-                    if(result.message){
-                        message = result.message;
-                    }
-
-                    message ??= defaultButtonMessage(button, 'success');
-
-                    new Noty({
-                        type: "success",
-                        text: message,
-                    }).show();
-                },
-                error: function(result) {
-
-                    let message;
-
-                    //if message is returned from the API use that message
-                    if(result.responseJSON.message){
-                        message = result.responseJSON.message;
-                    }
-
-                    message ??= defaultButtonMessage(button, 'error');
-
+                })
+                .catch(error => {
                     new Noty({
                         type: "error",
-                        text: message,
+                        text: error.message,
                     }).show();
-                }
-            });
+                });
+            }
         }
-	}
 
-    if (typeof sendQuickBulkButtonAjaxRequest != 'function') {
-        $("[data-button-type=quick-bulk-ajax]").unbind('click');
+        if (typeof sendQuickBulkButtonAjaxRequest !== 'function') {
+            function sendQuickBulkButtonAjaxRequest(button) {
+                const tableId = button.getAttribute('data-table-id') ?? 'crudTable';
+                const tableConfig = window.crud.tableConfigs[tableId] || window.crud;
+                const table = window.crud.tables[tableId];
+                const checkedItems = tableConfig.checkedItems;
 
-        function sendQuickBulkButtonAjaxRequest(button) {
-            // Check if items are selected
-            if (typeof crud.checkedItems === 'undefined' || crud.checkedItems.length == 0) {
-                let noEntriesTitle = $(button).attr('data-bulk-no-entries-title');
-                let noEntriesMessage = $(button).attr('data-bulk-no-entries-message');
+                if (typeof checkedItems === 'undefined' || checkedItems.length === 0) {
+                    const noEntriesTitle = button.getAttribute('data-bulk-no-entries-title');
+                    const noEntriesMessage = button.getAttribute('data-bulk-no-entries-message');
 
-                new Noty({
-                    type: "warning",
-                    text: `<strong>${noEntriesTitle}</strong><br/>${noEntriesMessage}`
-                }).show();
+                    new Noty({
+                        type: "warning",
+                        text: `<strong>${noEntriesTitle}</strong><br/>${noEntriesMessage}`
+                    }).show();
 
-                return;
-            }
+                    return;
+                }
 
-            let route = $(button).attr('data-route');
-            let confirmTitle = $(button).attr('data-bulk-confirm-title');
-            let confirmMessage = $(button).attr('data-bulk-confirm-message').replace(':number', crud.checkedItems.length);
+                const route = button.getAttribute('data-route');
+                const method = button.getAttribute('data-method');
+                const confirmTitle = button.getAttribute('data-bulk-confirm-title');
+                const confirmMessage = button.getAttribute('data-bulk-confirm-message').replace(':number', checkedItems.length);
+                const refreshTable = button.getAttribute('data-refresh-table') == '1';
 
-            const defaultButtonMessage = function(button, type) {
-                let buttonTitle = button.getAttribute(`data-${type}-title`);
-                let buttonMessage = button.getAttribute(`data-${type}-message`);
-                return `<strong>${buttonTitle}</strong><br/>${buttonMessage}`;
-            }
+                const defaultButtonMessage = function(button, type) {
+                    const buttonTitle = button.getAttribute(`data-${type}-title`);
+                    const buttonMessage = button.getAttribute(`data-${type}-message`);
+                    return `<strong>${buttonTitle}</strong><br/>${buttonMessage}`;
+                }
 
-            // Show confirmation dialog
-            swal({
-                title: confirmTitle,
-                text: confirmMessage,
-                icon: "warning",
-                buttons: {
-                    cancel: {
-                        text: "{{ trans('backpack::crud.no') }}",
-                        value: null,
-                        visible: true,
-                        className: "bg-secondary",
-                        closeModal: true,
-                    },
-                    confirm: {
-                        text: "{{ trans('backpack::crud.yes') }}",
-                        value: true,
-                        visible: true,
-                        className: "bg-primary",
-                    }
-                },
-            }).then((value) => {
-                if (value) {
-                    // Submit AJAX request with selected items
-                    $.ajax({
-                        url: route,
-                        type: $(button).attr('data-method'),
-                        data: { entries: crud.checkedItems },
-                        success: function(result) {
-                            if($(button).attr('data-refresh-table') && typeof crud != 'undefined' && typeof crud.table != 'undefined'){
-                                // Move to previous page if all items on current page were processed
-                                if(crud.table.rows().count() === crud.checkedItems.length) {
-                                    crud.table.page("previous");
-                                }
-
-                                // Clear selections and refresh table
-                                crud.checkedItems = [];
-                                crud.table.draw(false);
-                            }
-
-                            let message;
-                            // If message is returned from the API use that message
-                            if(result.message){
-                                message = result.message;
-                            } else {
-                                message = defaultButtonMessage(button, 'success');
-                            }
-
-                            new Noty({
-                                type: "success",
-                                text: message,
-                            }).show();
+                swal({
+                    title: confirmTitle,
+                    text: confirmMessage,
+                    icon: "warning",
+                    buttons: {
+                        cancel: {
+                            text: "{{ trans('backpack::crud.no') }}",
+                            value: null,
+                            visible: true,
+                            className: "bg-secondary",
+                            closeModal: true,
                         },
-                        error: function(result) {
-                            let message;
-
-                            // If message is returned from the API use that message
-                            if(result.responseJSON && result.responseJSON.message){
-                                message = result.responseJSON.message;
+                        confirm: {
+                            text: "{{ trans('backpack::crud.yes') }}",
+                            value: true,
+                            visible: true,
+                            className: "bg-primary",
+                        }
+                    },
+                }).then((value) => {
+                    if (value) {
+                        fetch(route, {
+                            method: method,
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content
+                            },
+                            body: JSON.stringify({ entries: checkedItems })
+                        })
+                        .then(response => response.json().then(data => ({ status: response.status, body: data })))
+                        .then(({ status, body }) => {
+                            if (status >= 200 && status < 300) {
+                                if (refreshTable && typeof table !== 'undefined') {
+                                    if (table.rows().count() === checkedItems.length) {
+                                        table.page("previous");
+                                    }
+                                    tableConfig.checkedItems = [];
+                                    table.draw(false);
+                                }
+                                new Noty({
+                                    type: "success",
+                                    text: body.message || defaultButtonMessage(button, 'success'),
+                                }).show();
                             } else {
-                                message = defaultButtonMessage(button, 'error');
+                                throw new Error(body.message || defaultButtonMessage(button, 'error'));
                             }
-
+                        })
+                        .catch(error => {
                             new Noty({
                                 type: "error",
-                                text: message,
+                                text: error.message,
                             }).show();
-                        }
-                    });
-                }
-            });
+                        });
+                    }
+                });
+            }
         }
-    }
-</script>
-@endBassetBlock
-@if (!request()->ajax()) @endpush @endif
+    </script>
+    @endBassetBlock
+    @if (!request()->ajax()) @endpush @endif
 @endif

@@ -27,7 +27,7 @@
                 
                 // Sync with the main table config if it exists
                 // This handles the case where legacy bulk buttons clear crud.checkedItems
-                if (window.crud.table && window.crud.table.table && window.crud.table.table().node) {
+                if (!window.crud.ignoreNextSetterSync && window.crud.table && window.crud.table.table && window.crud.table.table().node) {
                     let tableId = window.crud.table.table().node().id;
                     if (window.crud.tableConfigs[tableId]) {
                          if (Array.isArray(value) && value.length === 0) {
@@ -279,10 +279,11 @@ if (typeof window.crud.synchronizeCheckedItems !== 'function') {
         
         // Make sure both are arrays
         tableConfig.checkedItems = Array.isArray(tableConfig.checkedItems) ? tableConfig.checkedItems : [];
-        window.crud.checkedItems = Array.isArray(window.crud.checkedItems) ? window.crud.checkedItems : [];
         
         // Copy items from tableConfig to global crud object
+        window.crud.ignoreNextSetterSync = true;
         window.crud.checkedItems = [...tableConfig.checkedItems];
+        window.crud.ignoreNextSetterSync = false;
     }
 }
 
