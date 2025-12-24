@@ -205,7 +205,6 @@ final class CrudPanelManager
         // Use the controller's own method to setup the operation properly
         $reflection = new \ReflectionClass($controller);
         $method = $reflection->getMethod('setupConfigurationForCurrentOperation');
-        $method->setAccessible(true);
         $method->invoke($controller, $operation);
 
         // Completely restore the original state
@@ -321,7 +320,6 @@ final class CrudPanelManager
         // Use the controller's own method to setup the operation properly
         $reflection = new \ReflectionClass($controller);
         $method = $reflection->getMethod('setupConfigurationForCurrentOperation');
-        $method->setAccessible(true);
         $method->invoke($controller, $operation);
     }
 
