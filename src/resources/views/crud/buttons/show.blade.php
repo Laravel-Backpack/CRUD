@@ -1,5 +1,5 @@
 @if ($crud->hasAccess('show', $entry))
-	@if (!$crud->model->translationEnabled())
+	@if (!$crud->model->translationEnabled() || $crud->getOperationSetting('showLanguagesDirectlyInShowButton') === false)
 
 	{{-- Single edit button --}}
 	<a href="{{ url($crud->route.'/'.$entry->getKey().'/show') }}" bp-button="show" class="btn btn-sm btn-link">

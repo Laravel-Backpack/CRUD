@@ -1270,14 +1270,45 @@ function formatActionColumnAsDropdown(tableId) {
 
     $('#' + tableId + ' tbody tr').each(function (i, tr) {
         const actionCell = $(tr).find('td').eq(actionColumnIndex);
-        const actionButtons = actionCell.find('a.btn.btn-link');
+        const actionButtons = actionCell.find('a.btn.btn-link, .btn-group').filter(function() {
+            return !$(this).parents('.btn-group').length;
+        });
+
         if (actionCell.find('.actions-buttons-column').length) return;
         if (actionButtons.length < minimumButtonsToBuildDropdown) return;
 
         // Prepare buttons as dropdown items
         const dropdownItems = actionButtons.slice(buttonsToShowBeforeDropdown).map((index, action) => {
-            $(action).addClass('dropdown-item').removeClass('btn btn-sm btn-link');
-            $(action).find('i').addClass('me-2 text-primary');
+            const $action = $(action);
+
+            if ($action.hasClass('btn-group')) {
+                $action.addClass('nested-dropdown-item d-flex nested-dropdown align-items-stretch p-0');
+                $action.removeClass('btn-group');
+                
+                const $btns = $action.find('a.btn');
+                
+                const $mainBtn = $btns.not('.dropdown-toggle');
+                $mainBtn.addClass('flex-grow-1 py-1 px-3').removeClass('btn btn-sm btn-link pr-0 pl-1 dropdown-item');
+                $mainBtn.find('i').addClass('me-2 text-primary');
+                
+                const $toggleBtn = $btns.filter('.dropdown-toggle');
+                $toggleBtn.addClass('px-2 py-1 text-primary dropdown-toggle-split').removeClass('btn btn-sm btn-link pr-0 pl-1 dropdown-item dropdown-toggle');
+                $toggleBtn.attr('href', 'javascript:void(0)');
+                $toggleBtn.removeAttr('data-bs-toggle');
+                $toggleBtn.removeAttr('data-toggle');
+                $toggleBtn.css({
+                    'width': 'auto',
+                    'cursor': 'pointer',
+                    'display': 'flex',
+                    'align-items': 'center',
+                    'justify-content': 'center'
+                });
+                
+                return action;
+            }
+
+            $action.addClass('dropdown-item').removeClass('btn btn-sm btn-link');
+            $action.find('i').addClass('me-2 text-primary');
             return action;
         });
 
@@ -1312,13 +1343,14 @@ function initDatatableDropdowns(tableId) {
                 
                 const $this = $(this);
                 const $dropdown = $this.next('.dropdown');
-                const $menu = $dropdown.find('.dropdown-menu');
+                // Only select the direct child dropdown-menu to avoid selecting nested dropdowns
+                const $menu = $dropdown.children('.dropdown-menu');
                 
                 // Check if the menu is already open
                 const wasOpen = $menu.hasClass('show');
 
                 // close all dropdowns in this table
-                $('#' + tableId + ' .actions-buttons-column').next('.dropdown').find('.dropdown-menu').removeClass('show').hide();
+                $('#' + tableId + ' .actions-buttons-column').next('.dropdown').children('.dropdown-menu').removeClass('show').hide();
                 
                 // if it was open, we just closed it, so we are done
                 if (wasOpen) {
@@ -1400,6 +1432,36 @@ function initDatatableDropdowns(tableId) {
                 if (!$(e.target).closest('#' + tableId + ' .actions-buttons-column').length && 
                     !$(e.target).closest('#' + tableId + ' .actions-buttons-column').next('.dropdown').length) {
                     $('#' + tableId + ' .actions-buttons-column').next('.dropdown').find('.dropdown-menu').removeClass('show').hide();
+                }
+            });
+
+            // Handle nested dropdown toggles
+            $('#' + tableId).off('click.nestedActions').on('click.nestedActions', '.nested-dropdown .dropdown-toggle-split, .nested-dropdown > a:not(.dropdown-toggle-split)', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                e.stopImmediatePropagation();
+                
+                const $this = $(this);
+                const $parent = $this.closest('.nested-dropdown');
+                const $menu = $parent.find('.dropdown-menu');
+                
+                // Close other nested dropdowns in the same parent menu
+                $parent.siblings().find('.dropdown-menu').removeClass('show').hide();
+                
+                // Toggle this one
+                if ($menu.hasClass('show')) {
+                    $menu.removeClass('show').hide();
+                } else {
+                    $menu.addClass('show').show();
+                    // Ensure positioning
+                    $menu.css({
+                        'position': 'absolute',
+                        'top': '100%',
+                        'left': '0',
+                        'margin-top': '0',
+                        'margin-left': '0',
+                        'z-index': '1000'
+                    });
                 }
             });
         });

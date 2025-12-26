@@ -714,6 +714,41 @@ table.dataTable .dt-paging .dt-paging-button:active {
     box-shadow: inset 0 0 3px #111;
 }
 
+.nested-dropdown-item {
+            display: flex;
+            width: 100%;
+            padding: 0;
+            clear: both;
+            font-weight: 400;
+            color: #212529;
+            text-align: inherit;
+            text-decoration: none;
+            white-space: nowrap;
+            background-color: transparent;
+            border: 0;
+            position: relative;
+        }
+        .nested-dropdown-item:hover, .nested-dropdown-item:focus {
+            color: #1e2125;
+            text-decoration: none;
+            background-color: var(--bs-light);
+        }
+        .nested-dropdown-item > a {
+            color: inherit;
+            text-decoration: none;
+            display: block;
+        }
+        .nested-dropdown .dropdown-toggle-split::after {
+            display: inline-block;
+            margin-left: 0.255em;
+            vertical-align: 0.255em;
+            content: "";
+            border-top: 0.3em solid;
+            border-right: 0.3em solid transparent;
+            border-bottom: 0;
+            border-left: 0.3em solid transparent;
+        }
+
 table.dataTable .dt-paging .ellipsis {
     padding: 0 1em;
 }
