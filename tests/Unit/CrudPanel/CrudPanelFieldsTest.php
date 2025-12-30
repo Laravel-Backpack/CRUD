@@ -735,7 +735,8 @@ class CrudPanelFieldsTest extends BaseCrudPanel
     public function testItCanAddAFluentField()
     {
         $this->crudPanel->setModel(User::class);
-
+        $createdAtClosure = static function () {
+        };
         $this->crudPanel->field('my_field')
                         ->type('my_custom_type')
                         ->label('my_label')
@@ -748,8 +749,7 @@ class CrudPanelFieldsTest extends BaseCrudPanel
                         ->validationMessages(['required' => 'is_required', 'min' => 'min_2'])
                         ->store_in('some')
                         ->size(6)
-                        ->on('created', function () {
-                        })
+                        ->on('created', $createdAtClosure)
                         ->subfields([['name' => 'sub_1']])
                         ->entity('bang');
 
@@ -780,8 +780,7 @@ class CrudPanelFieldsTest extends BaseCrudPanel
                 'class' => 'form-group col-md-6 mb-3',
             ],
             'events' => [
-                'created' => function () {
-                },
+                'created' => $createdAtClosure,
             ],
             'subfields' => [
                 [
