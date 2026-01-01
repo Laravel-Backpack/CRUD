@@ -59,7 +59,7 @@ jobs:
             steps.test-coverage.outputs.coverage > 20 && 'red,red,red,orange' ||
             'red' }}
       - name: Upload badge as artifact
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: badge
           path: test-coverage.svg
