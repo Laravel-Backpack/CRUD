@@ -38,7 +38,9 @@ if (!XMLHttpRequest.prototype._backpackWrapped) {
                             retryXhr.open(self._method, self._url);
                             
                             Object.keys(self._requestHeaders).forEach(key => {
-                                retryXhr.setRequestHeader(key, self._requestHeaders[key]);
+                                if (key.toLowerCase() !== 'accept') {
+                                    retryXhr.setRequestHeader(key, self._requestHeaders[key]);
+                                }
                             });
                             retryXhr.setRequestHeader('Accept', 'text/html');
                             retryXhr.send(body);
@@ -66,7 +68,7 @@ const showErrorFrame = html => {
 
     if (isJson) {
         page.innerHTML = `
-            <head><meta charset="UTF-8"></head>
+            <head><meta charset="UTF-8"><\/head>
             <body>
                 <div class="error-container">
                     <h2 class="error-title">${errorData.exception || 'Error'}</h2>
@@ -79,7 +81,7 @@ const showErrorFrame = html => {
                         </details>
                     ` : ''}
                 </div>
-            </body>
+            <\/body>
         `;
     } else {
         page.innerHTML = html;
