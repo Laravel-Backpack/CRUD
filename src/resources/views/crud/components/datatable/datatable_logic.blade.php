@@ -604,6 +604,7 @@ function setupTableUI(tableId, config) {
     const searchInput = $(`#datatable_search_stack_${tableId} input.datatable-search-input`);
     
     if (searchInput.length > 0) {
+        searchInput.val(window.crud.tables[tableId].search());
         searchInput.on('keyup', function() {
             window.crud.tables[tableId].search(this.value).draw();
         });
