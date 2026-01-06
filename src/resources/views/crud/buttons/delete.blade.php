@@ -14,6 +14,13 @@
         data-redirect-route="{{ $redirectUrl }}"
         data-route="{{ url($crud->route.'/'.$entry->getKey()) }}"
         data-table-id="{{ isset($crudTableId) ? $crudTableId : 'crudTable' }}"
+        data-warning-text="{!! trans('backpack::base.warning') !!}"
+        data-confirm-text="{!! trans('backpack::crud.delete_confirm') !!}"
+        data-cancel-text="{!! trans('backpack::crud.cancel') !!}"
+        data-delete-text="{!! trans('backpack::crud.delete') !!}"
+        data-error-title="{!! trans('backpack::crud.delete_confirmation_not_title') !!}"
+        data-error-text="{!! trans('backpack::crud.delete_confirmation_not_message') !!}"
+        data-delete-confirmation-text="{!! '<strong>'.trans('backpack::crud.delete_confirmation_title').'</strong><br>'.trans('backpack::crud.delete_confirmation_message') !!}"
         class="btn btn-sm btn-link"
         data-button-type="delete"
     >
@@ -25,9 +32,8 @@
 {{-- - used right away in AJAX operations (ex: List) --}}
 {{-- - pushed to the end of the page, after jQuery is loaded, for non-AJAX operations (ex: Show) --}}
 @push('after_scripts') @if (request()->ajax()) @endpush @endif
-@bassetBlock('backpack/crud/buttons/delete-button-'.app()->getLocale().'.js')
+@bassetBlock('backpack/crud/buttons/delete-button.js')
 <script>
-
     if (typeof deleteEntry != 'function') {
         $("[data-button-type=delete]").unbind('click');
 
@@ -35,19 +41,19 @@
             var route = $(button).attr('data-route');
 
             swal({
-                title: "{!! trans('backpack::base.warning') !!}",
-                text: "{!! trans('backpack::crud.delete_confirm') !!}",
+                title: button.getAttribute('data-warning-text'),
+                text: button.getAttribute('data-confirm-text'),
                 icon: "warning",
                 buttons: {
                     cancel: {
-                        text: "{!! trans('backpack::crud.cancel') !!}",
+                        text: button.getAttribute('data-cancel-text'),
                         value: null,
                         visible: true,
                         className: "bg-secondary",
                         closeModal: true,
                     },
                     delete: {
-                        text: "{!! trans('backpack::crud.delete') !!}",
+                        text: button.getAttribute('data-delete-text'),
                         value: true,
                         visible: true,
                         className: "bg-danger",
@@ -59,7 +65,7 @@
                     // Show a success notification bubble
                     new Noty({
                         type: "success",
-                        text: "{!! '<strong>'.trans('backpack::crud.delete_confirmation_title').'</strong><br>'.trans('backpack::crud.delete_confirmation_message') !!}"
+                        text: button.getAttribute('data-delete-confirmation-text')
                     }).show();
                 }
                 if (value) {
@@ -67,6 +73,7 @@
                         url: route,
                         type: 'DELETE',
                         success: function(result) {
+                            console.log(result);
                             if (result == 1) {
                                 // Get the table ID from the button's data attribute
                                 let tableId = $(button).data('table-id') || 'crudTable';
@@ -94,7 +101,7 @@
                                         // queue the alert in localstorage to show it after the redirect
                                         localStorage.setItem('backpack_alerts', JSON.stringify({
                                             'success': [ 
-                                                "{!! '<strong>'.trans('backpack::crud.delete_confirmation_title').'</strong><br>'.trans('backpack::crud.delete_confirmation_message') !!}"
+                                                button.getAttribute('data-delete-confirmation-title')
                                             ]
                                         }));
                                         window.location.href = redirectRoute;
@@ -121,8 +128,8 @@
                                 } else {
                                     // Show an error alert
                                     swal({
-                                        title: "{!! trans('backpack::crud.delete_confirmation_not_title') !!}",
-                                        text: "{!! trans('backpack::crud.delete_confirmation_not_message') !!}",
+                                        title: button.getAttribute('data-error-title'),
+                                        text: button.getAttribute('data-error-text'),
                                         icon: "error",
                                         timer: 4000,
                                         buttons: false,
@@ -131,10 +138,11 @@
                             }
                         },
                         error: function(result) {
+                            console.log(result);
                             // Show an alert with the result
                             swal({
-                                title: "{!! trans('backpack::crud.delete_confirmation_not_title') !!}",
-                                text: "{!! trans('backpack::crud.delete_confirmation_not_message') !!}",
+                                title: button.getAttribute('data-error-title'),
+                                text: button.getAttribute('data-error-text'),
                                 icon: "error",
                                 timer: 4000,
                                 buttons: false,
