@@ -100,7 +100,7 @@ trait HasForm
      *
      * @return array|\Illuminate\Http\RedirectResponse
      */
-    public function formAction(callable $formLogic, ?int $id = null)
+    public function formAction(?int $id = null, ?callable $formLogic)
     {
         if ($id) {
             // Get entry ID from Request (makes sure its the last ID for nested resources)
@@ -116,7 +116,9 @@ trait HasForm
         $this->crud->registerFieldEvents();
 
         // perform the actual logic, that developers give in a callback
-        ($formLogic)($request ?? null, $entry ?? null);
+        if (is_callable($formLogic) && $formLogic instanceof \Closure) {
+            $formLogic($request, $entry ?? null);
+        }
 
         // save the redirect choice for next time
         $this->crud->setSaveAction();
