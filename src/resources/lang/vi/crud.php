@@ -14,6 +14,7 @@ return [
     */
 
     // Forms
+    'save_action_save_and_list' => 'Lưu và liệt kê các mục',
     'save_action_save_and_new' => 'Lưu và Thêm mới',
     'save_action_save_and_edit' => 'Lưu và Tiếp tục sửa',
     'save_action_save_and_back' => 'Lưu và Quay lại',
@@ -61,6 +62,7 @@ return [
     // Bulk actions
     'bulk_no_entries_selected_title' => 'Chưa chọn bản ghi',
     'bulk_no_entries_selected_message' => 'Vui lòng chọn một hoặc nhiều bản ghi để thực hiện thao tác trên tập hợp.',
+    'bulk_operation_are_you_sure' => 'Bạn có chắc chắn muốn thực hiện hành động này trên các mục :number này không?',
 
     // Bulk delete
     'bulk_delete_are_you_sure' => 'Bạn có chắc chắn muốn xoá :number bản ghi này?',
@@ -187,8 +189,18 @@ return [
     'inline_saving' => 'Đang lưu...',
 
     // returned when no translations found in select inputs
-    'empty_translations' => '(chưa có)',
+    'empty_translations' => '(trống rỗng)',
 
     // The pivot selector required validation message
     'pivot_selector_required_validation_message' => 'Trường pivot là bắt buộc.',
+
+    // Quick button messages
+    'quick_button_ajax_error_title' => 'Yêu cầu không thành công!',
+    'quick_button_ajax_error_message' => 'Đã xảy ra lỗi khi xử lý yêu cầu của bạn.',
+    'quick_button_ajax_success_title' => 'yêu cầu đã hoàn thành!',
+    'quick_button_ajax_success_message' => 'Yêu cầu của bạn đã được xử lý thành công.',
+
+    // translations
+    'no_attributes_translated' => 'Mục nhập này không được dịch trong :locale.',
+    'no_attributes_translated_href_text' => 'Điền vào đầu vào từ :locale',
 ];
