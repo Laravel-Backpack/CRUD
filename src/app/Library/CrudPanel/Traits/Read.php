@@ -73,7 +73,10 @@ trait Read
             if ($this->getOperationSetting('eagerLoadRelationships')) {
                 $this->eagerLoadRelationshipFields();
             }
-            $this->entry = $this->getModelWithCrudPanelQuery()->findOrFail($id);
+            
+            $modelWithQuery = $this->getModelWithCrudPanelQuery();
+            
+            $this->entry = $modelWithQuery->findOrFail($id);
             $this->entry = $this->entry->withFakes();
         }
 
@@ -110,7 +113,16 @@ trait Read
      */
     public function getModelWithCrudPanelQuery()
     {
-        return $this->model->setQuery($this->query->getQuery());
+        $newBuilder = $this->model->setQuery($this->query->getQuery());
+
+        // Remove global scopes that were removed from the original query
+        $removedScopes = $this->query->removedScopes();
+
+        if ($removedScopes) {
+            $newBuilder->withoutGlobalScopes($removedScopes);
+        }
+
+        return $newBuilder;
     }
 
     /**
