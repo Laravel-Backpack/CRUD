@@ -73,9 +73,9 @@ trait Read
             if ($this->getOperationSetting('eagerLoadRelationships')) {
                 $this->eagerLoadRelationshipFields();
             }
-            
+
             $modelWithQuery = $this->getModelWithCrudPanelQuery();
-            
+
             $this->entry = $modelWithQuery->findOrFail($id);
             $this->entry = $this->entry->withFakes();
         }
