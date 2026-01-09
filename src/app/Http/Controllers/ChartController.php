@@ -7,3 +7,7 @@ if (backpack_pro()) {
     {
     }
 }
+
+class ChartController
+{
+}
