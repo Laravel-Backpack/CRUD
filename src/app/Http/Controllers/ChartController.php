@@ -6,8 +6,8 @@ if (backpack_pro()) {
     class ChartController extends \Backpack\Pro\Http\Controllers\ChartController
     {
     }
-}
-
-class ChartController
-{
+} else {
+    class ChartController
+    {
+    }
 }
