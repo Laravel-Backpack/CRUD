@@ -78,7 +78,7 @@ class DetectDeprecatedDropzoneUsageStep extends Step
                 $content = str_replace('setupDropzoneOperation', 'setupAjaxUploadOperation', $content);
 
                 $content = str_replace('traitDropzoneUpload', 'traitAjaxUpload', $content);
-                
+
                 $content = str_replace('$this->dropzoneUpload', '$this->ajaxUpload', $content);
 
                 $this->context()->writeFile($file, $content);
