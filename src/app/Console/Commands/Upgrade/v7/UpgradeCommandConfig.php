@@ -16,6 +16,7 @@ class UpgradeCommandConfig implements UpgradeConfigInterface, UpgradeConfigSumma
             Step\EnsureBackpackCrudRequirementStep::class,
             Step\EnsureFirstPartyAddonsAreCompatibleStep::class,
             Step\CheckOperationConfigFilesStep::class,
+            Step\DetectDeprecatedDropzoneUsageStep::class,
             Step\CheckThemeTablerConfigStep::class,
             Step\DetectDeprecatedWysiwygUsageStep::class,
             Step\DetectEditorAddonRequirementsStep::class,
