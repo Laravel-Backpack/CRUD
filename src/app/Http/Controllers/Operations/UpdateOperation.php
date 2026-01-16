@@ -102,7 +102,7 @@ trait UpdateOperation
 
         // update the row in the db
         $item = $this->crud->update(
-            $request->get($this->crud->model->getKeyName()),
+            $request->input($this->crud->model->getKeyName()),
             $this->crud->getStrippedSaveRequest($request)
         );
         $this->data['entry'] = $this->crud->entry = $item;

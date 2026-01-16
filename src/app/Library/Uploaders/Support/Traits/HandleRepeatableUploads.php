@@ -49,7 +49,7 @@ trait HandleRepeatableUploads
 
     protected function handleRepeatableFiles(Model $entry): Model
     {
-        $values = collect(CRUD::getRequest()->get($this->getRepeatableContainerName()));
+        $values = collect(CRUD::getRequest()->input($this->getRepeatableContainerName()));
         $files = collect(CRUD::getRequest()->file($this->getRepeatableContainerName()));
 
         $value = $this->mergeValuesRecursive($values, $files);

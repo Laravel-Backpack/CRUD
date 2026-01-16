@@ -26,6 +26,6 @@ class SaveAndBack extends AbstractSaveAction
 
     public function getRedirectUrl(CrudPanel $crud, Request $request, $itemId = null): ?string
     {
-        return $request->has('_http_referrer') ? $request->get('_http_referrer') : $crud->route;
+        return $request->input('_http_referrer', $crud->route);
     }
 }

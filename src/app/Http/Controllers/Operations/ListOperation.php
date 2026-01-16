@@ -111,7 +111,7 @@ trait ListOperation
         $this->crud->applyDatatableOrder();
 
         $entries = $this->crud->getEntries();
-        $requestTotalEntryCount = request()->get('totalEntryCount') ? (int) request()->get('totalEntryCount') : null;
+        $requestTotalEntryCount = request()->input('totalEntryCount') ? (int) request()->input('totalEntryCount') : null;
         // if show entry count is disabled we use the "simplePagination" technique to move between pages.
         if ($this->crud->getOperationSetting('showEntryCount')) {
             $totalEntryCount = (int) ($requestTotalEntryCount ?: $this->crud->getTotalQueryCount());
