@@ -72,6 +72,6 @@ class SingleBase64Image extends Uploader
 
     public function getUploadedFilesFromRequest()
     {
-        return CRUD::getRequest()->get($this->getNameForRequest());
+        return CRUD::getRequest()->input($this->getNameForRequest());
     }
 }
