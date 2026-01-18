@@ -86,7 +86,7 @@ trait HasUploadFields
             $attribute_value = $originalModelValue;
         }
 
-        $files_to_clear = request()->get('clear_'.$attribute_name);
+        $files_to_clear = request()->input('clear_'.$attribute_name);
 
         // if a file has been marked for removal,
         // delete it from the disk and from the db

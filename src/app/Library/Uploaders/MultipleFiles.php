@@ -122,6 +122,6 @@ class MultipleFiles extends Uploader
 
     private function getFilesToDeleteFromRequest(): array
     {
-        return collect(CRUD::getRequest()->get('clear_'.$this->getNameForRequest()))->flatten()->toArray();
+        return collect(CRUD::getRequest()->input('clear_'.$this->getNameForRequest()))->flatten()->toArray();
     }
 }

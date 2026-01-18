@@ -55,7 +55,7 @@ trait HasForm
                     return $crud->hasAccess($operationName);
                 },
                 'redirect' => function ($crud, $request, $itemId = null) {
-                    return $request->request->has('_http_referrer') ? $request->request->get('_http_referrer') : $crud->route;
+                    return $request->input('_http_referrer', $crud->route);
                 },
                 'button_text' => trans('backpack::crud.save_action_save_and_back'),
             ]);

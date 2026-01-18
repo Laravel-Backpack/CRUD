@@ -26,7 +26,7 @@ class SaveAndPreview extends AbstractSaveAction
 
     public function getRedirectUrl(CrudPanel $crud, Request $request, $itemId = null): ?string
     {
-        $itemId = $itemId ?: $request->get('id');
+        $itemId = $itemId ?: $request->input('id');
 
         if (! $itemId) {
             return $crud->route;
@@ -35,11 +35,11 @@ class SaveAndPreview extends AbstractSaveAction
         $redirectUrl = rtrim($crud->route, '/').'/'.$itemId.'/show';
 
         if ($request->has('_locale')) {
-            $redirectUrl .= '?_locale='.$request->get('_locale');
+            $redirectUrl .= '?_locale='.$request->input('_locale');
         }
 
         if ($request->has('_current_tab')) {
-            $redirectUrl .= '#'.$request->get('_current_tab');
+            $redirectUrl .= '#'.$request->input('_current_tab');
         }
 
         return $redirectUrl;
@@ -47,7 +47,7 @@ class SaveAndPreview extends AbstractSaveAction
 
     public function getReferrerUrl(CrudPanel $crud, Request $request, $itemId = null): ?string
     {
-        $itemId = $itemId ?: $request->get('id');
+        $itemId = $itemId ?: $request->input('id');
 
         if (! $itemId) {
             return null;
