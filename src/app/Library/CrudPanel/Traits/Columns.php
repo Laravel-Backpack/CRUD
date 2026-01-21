@@ -378,7 +378,7 @@ trait Columns
         $column = $this->makeSureColumnHasRelationType($column);
         $column = $this->makeSureColumnHasType($column);
         $column = $this->makeSureColumnHasPriority($column);
-        $column = $this->makeSureSubfieldsHaveNecessaryAttributes($column);
+        $column = $this->makeSureSubfieldsHaveNecessaryAttributes($column, false);
 
         // check if the column exists in the database (as a db column)
         $column_exists_in_db = $this->hasDatabaseColumn($this->model->getTable(), $column['name']);
