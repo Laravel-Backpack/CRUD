@@ -150,7 +150,7 @@ if (! function_exists('backpack_avatar_url')) {
                     $avatarLink = Gravatar::fallback(config('backpack.base.gravatar_fallback'))->get($user->email, ['size' => 80]);
 
                     // if we can save it locally, for safer loading, let's do it
-                    if (in_array(Basset::basset($avatarLink, false)->name, ['INTERNALIZED', 'IN_CACHE', 'LOADED'])) {
+                    if (in_array(Basset::basset($avatarLink, false)->name, ['INTERNALIZED', 'IN_CACHE', 'LOADED']) && ! Basset::isDevMode()) {
                         return Basset::getUrl($avatarLink);
                     }
 
