@@ -29,4 +29,6 @@ return [
 
     // When using tabbed forms (create & update), what kind of tabs would you like?
     'tabsType' => 'horizontal', //options: horizontal, vertical
+
+    'usePanelQuery' => false,
 ];
