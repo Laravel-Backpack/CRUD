@@ -168,6 +168,10 @@ return [
     'new_item' => 'Nuevo elemento',
     'select_entry' => 'Selecciona un elemento',
     'select_entries' => 'Selecciona elementos',
+    'clipboard' => [
+        'confirmation_message' => 'Elemento copiado correctamente',
+        'error_message' => 'No se pudo copiar el elemento',
+    ],
 
     // Table field
     'table_cant_add' => 'No se puede agregar una nueva :entity',

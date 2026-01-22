@@ -169,6 +169,10 @@ return [
     'select_entry' => 'Selecciona un element',
     'select_entries' => 'Selecciona elements',
     'upload_multiple_files_selected' => 'Files selected. After save, they will show up above.',
+    'clipboard' => [
+        'confirmation_message' => 'Element copiat correctament',
+        'error_message' => 'No s\'ha pogut copiar l\'element',
+    ],
 
     // Table field
     'table_cant_add' => 'No es pot afegir una nova :entity',
