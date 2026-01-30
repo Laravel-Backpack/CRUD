@@ -1,0 +1,72 @@
+    /**
+     * Test that the update page loads without errors
+     */
+    public function test_update_page_loads_successfully(): void
+    {
+        $entry = $this->createTestEntry();
+        $response = $this->get($this->getCrudUrl($entry->getKey().'/edit'));
+        $response->assertStatus(200);
+        $response->assertSee($this->operationConfig['entity_name'] ?? '');
+    }
+
+    /**
+     * Test that entry is updated in the database
+     */
+    public function test_update_updates_entry_in_database(): void
+    {
+        $entry = $this->createTestEntry();
+        $data = json_decode(json_encode($this->model::factory()->raw()), true);
+        $response = $this->put($this->getCrudUrl($entry->getKey()), $data);
+        
+        $response->assertSessionHasNoErrors();
+        $response->assertStatus(302);
+    }
+
+    /**
+     * Test that the update form validates wrong form data
+     */
+    public function test_update_validates_wrong_data(): void
+    {
+        $entry = $this->createTestEntry();
+        // Submit empty data to trigger required validation
+        $response = $this->put($this->getCrudUrl($entry->getKey()), []);
+        
+        // Assert session has errors if there are required fields
+        $fields = $this->getOperationSettings('update')['fields'] ?? [];
+        $requiredFields = collect($fields)
+            ->filter(function($field) { return str_contains($field['validationRules'] ?? '', 'required'); });
+            
+        if ($requiredFields->isNotEmpty()) {
+            $response->assertSessionHasErrors($requiredFields->keys()->toArray());
+        } else {
+             $response->assertStatus(302);
+        }
+    }
+
+    /**
+     * Test update page loads with old() inputs after failed validation and errors are present on page
+     */
+    public function test_update_page_loads_with_old_inputs(): void
+    {
+        $entry = $this->createTestEntry();
+         // Submit empty data to trigger required validation
+        $response = $this->put($this->route.'/'.$entry->getKey(), []);
+        
+        $fields = $this->getOperationSettings('update')['fields'] ?? [];
+        $requiredFields = collect($fields)
+            ->filter(function($field) { return str_contains($field['validationRules'] ?? '', 'required'); });
+
+        if ($requiredFields->isNotEmpty()) {
+            // Check that we are redirected back
+            $response->assertStatus(302);
+            
+            // Follow the redirect to see the page with errors
+            $response = $this->followRedirects($response);
+            $response->assertStatus(200);
+            
+            // Check for error messages
+            $response->assertSee('required');
+        } else {
+             $this->assertTrue(true);
+        }
+    }

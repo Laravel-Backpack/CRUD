@@ -1,0 +1,17 @@
+    /**
+     * Test that show page loads
+     */
+    public function test_show_page_loads_successfully(): void
+    {
+        $entry = $this->createTestEntry();
+        $response = $this->get($this->getCrudUrl($entry->getKey().'/show'));
+        $response->assertStatus(200);
+    }
+
+    /**
+     * Test if the buttons display on show page
+     */
+    public function test_show_buttons_are_on_page(): void
+    {
+        $this->tester->testButtonsAreVisible($this);
+    }

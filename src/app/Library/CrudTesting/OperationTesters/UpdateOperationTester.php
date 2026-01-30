@@ -42,6 +42,12 @@ class UpdateOperationTester extends OperationTester
             $data[$field['name']] = $fieldTester->generateFakeValue();
         }
 
+        // Apply custom overrides from test class
+        if (isset($this->config['custom_data_source']) && method_exists($this->config['custom_data_source'], 'getUpdateData')) {
+            $overrides = $this->config['custom_data_source']->getUpdateData();
+            $data = array_merge($data, $overrides);
+        }
+
         return $data;
     }
 

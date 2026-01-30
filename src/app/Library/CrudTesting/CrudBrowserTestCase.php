@@ -57,6 +57,13 @@ abstract class CrudBrowserTestCase extends BaseTestClass
     protected string $model;
 
     /**
+     * The type of tester to use (feature or browser).
+     *
+     * @var string
+     */
+    protected string $testerType = 'browser';
+
+    /**
      * Whether to use Dusk for browser tests.
      *
      * @var bool
@@ -133,17 +140,27 @@ abstract class CrudBrowserTestCase extends BaseTestClass
         $cacheKey = $operation;
 
         if (! isset($this->operationTesters[$cacheKey])) {
+            // If config is missing fields/columns, try to discover them at runtime
+            if (empty($config['fields']) && empty($config['columns'])) {
+                $controllerInfo = CrudControllerDiscovery::analyzeController($this->controller);
+                $builder = new CrudTestBuilder($controllerInfo, $operation);
+                $runtimeConfig = $builder->getTestConfiguration();
+                $config = array_merge($runtimeConfig, $config);
+            }
+
             $defaultConfig = [
                 'route' => $this->getCrudUrl(),
                 'entity_name' => class_basename($this->model),
                 'entity_name_plural' => str(class_basename($this->model))->plural(),
                 'model' => $this->model,
                 'controller' => $this->controller ?? null,
+                'custom_data_source' => $this,
             ];
 
             $this->operationTesters[$cacheKey] = OperationTester::make(
                 $operation,
-                array_merge($defaultConfig, $config)
+                array_merge($defaultConfig, $config),
+                $this->testerType
             );
         }
 

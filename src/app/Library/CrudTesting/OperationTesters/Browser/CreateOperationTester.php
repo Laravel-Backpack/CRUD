@@ -1,17 +1,12 @@
 <?php
 
-namespace Backpack\CRUD\app\Library\CrudTesting\OperationTesters;
+namespace Backpack\CRUD\app\Library\CrudTesting\OperationTesters\Browser;
 
+use Backpack\CRUD\app\Library\CrudTesting\OperationTesters\OperationTester;
 use Backpack\CRUD\app\Library\CrudTesting\FieldTesters\FieldTester;
 
 /**
- * Tester for Create operation.
- * 
- * Handles testing for the create page of a CRUD, including:
- * - Page loading
- * - Field visibility
- * - Form submission
- * - Validation
+ * Browser Tester for Create operation.
  */
 class CreateOperationTester extends OperationTester
 {

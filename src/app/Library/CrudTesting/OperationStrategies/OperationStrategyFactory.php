@@ -20,6 +20,7 @@ class OperationStrategyFactory
         'update' => UpdateOperationStrategy::class,
         'show' => ShowOperationStrategy::class,
         'delete' => DeleteOperationStrategy::class,
+        'ajax_upload' => AjaxUploadOperationStrategy::class,
     ];
 
     /**
@@ -34,11 +35,7 @@ class OperationStrategyFactory
      */
     public static function make(string $operation, object $crudPanel, array $controllerInfo): OperationStrategyInterface
     {
-        $strategyClass = static::$strategies[$operation] ?? null;
-
-        if (! $strategyClass) {
-            throw new InvalidArgumentException("Unknown operation: {$operation}. No strategy registered.");
-        }
+        $strategyClass = static::$strategies[$operation] ?? DefaultOperationStrategy::class;
 
         return new $strategyClass($crudPanel, $controllerInfo);
     }

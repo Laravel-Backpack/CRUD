@@ -51,7 +51,7 @@ class CrudControllerDiscovery
             }
         }
 
-        return $controllers;
+        return collect($controllers)->unique('class')->values()->toArray();
     }
 
     /**
@@ -91,13 +91,21 @@ class CrudControllerDiscovery
         $operations = [];
 
         foreach ($traits as $trait) {
-            if (Str::endsWith($trait, 'Operation')) {
-                $operationName = Str::before(class_basename($trait), 'Operation');
-                $operations[] = Str::snake($operationName);
+            try {
+                $traitReflection = new ReflectionClass($trait);
+            } catch (\ReflectionException $e) {
+                continue;
+            }
+            
+            foreach ($traitReflection->getMethods() as $method) {
+                if (preg_match('/^setup(.+)(Routes|Defaults)$/', $method->getName(), $matches)) {
+                    $operations[] = Str::kebab($matches[1]);
+                    break;
+                }
             }
         }
 
-        return $operations;
+        return collect($operations)->unique()->values()->toArray();
     }
 
     /**
@@ -116,7 +124,7 @@ class CrudControllerDiscovery
                 $operationName = Str::between($method->getName(), 'setup', 'Operation');
                 $setupMethods[] = [
                     'method' => $method->getName(),
-                    'operation' => Str::snake($operationName),
+                    'operation' => Str::kebab($operationName),
                 ];
             }
         }
@@ -161,26 +169,32 @@ class CrudControllerDiscovery
      */
     public static function buildCrudPanel(string $controllerClass, string $operation = 'list'): object
     {
-        // Create a mock request for the operation
-        $request = request();
-        
         // Instantiate the controller
         $controller = app()->make($controllerClass);
         
-        // Get the CRUD panel
-        $crud = $controller->crud;
+        // Use CrudManager to get the CrudPanel, consistent with the rest of the app
+        \Backpack\CRUD\CrudManager::setActiveController($controllerClass);
+        $crud = \Backpack\CRUD\CrudManager::getCrudPanel($controllerClass);
+        $crud->setRequest(request());
+        
+        $controller->crud = $crud;
+        $crud->setController(get_class($controller));
         
         // Set the operation
         $crud->setOperation($operation);
+
+        // Apply auxiliary testing configurations
+        CrudTestConfigurator::apply($crud, $controller);
         
-        // Run setup configuration for the operation
-        $crud->applyConfigurationFromSettings($operation);
-        
-        // Call setup method if exists
-        $setupMethod = 'setup'.Str::studly($operation).'Operation';
-        if (method_exists($controller, $setupMethod)) {
-            $controller->{$setupMethod}();
+        // Call setup actions
+        if (method_exists($controller, 'setup')) {
+            $controller->setup();
         }
+        
+        // Call setup method
+        $reflectionMethod = new \ReflectionMethod($controller, 'setupConfigurationForCurrentOperation');
+        $reflectionMethod->setAccessible(true);
+        $reflectionMethod->invoke($controller);
 
         return $crud;
     }

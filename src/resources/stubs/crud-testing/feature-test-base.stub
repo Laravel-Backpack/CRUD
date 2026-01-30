@@ -1,0 +1,14 @@
+<?php
+
+namespace DummyNamespace;
+
+use DummyController;
+use DummyModel;
+use Backpack\CRUD\app\Library\CrudTesting\CrudFeatureTestCase;
+
+class DummyBaseClass extends CrudFeatureTestCase
+{
+    protected string $controller = DummyControllerClass::class;
+    protected string $route = 'DummyRoute';
+    protected string $model = DummyModelClass::class;
+}

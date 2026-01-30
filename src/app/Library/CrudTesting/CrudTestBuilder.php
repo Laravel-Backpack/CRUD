@@ -31,6 +31,16 @@ class CrudTestBuilder
     }
 
     /**
+     * Get the class name of the strategy used.
+     *
+     * @return string
+     */
+    public function getStrategyClass(): string
+    {
+        return get_class($this->strategy);
+    }
+
+    /**
      * Get test configuration for the current operation.
      *
      * @return array
@@ -43,7 +53,7 @@ class CrudTestBuilder
             'route' => $this->crudPanel->route,
             'entity_name' => $this->crudPanel->entity_name,
             'entity_name_plural' => $this->crudPanel->entity_name_plural,
-            'model' => $this->crudPanel->model,
+            'model' => is_object($this->crudPanel->model) ? get_class($this->crudPanel->model) : $this->crudPanel->model,
         ];
 
         return array_merge($baseConfig, $this->strategy->getOperationConfiguration());

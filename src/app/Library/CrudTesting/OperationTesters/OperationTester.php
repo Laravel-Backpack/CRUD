@@ -37,11 +37,12 @@ abstract class OperationTester
      *
      * @param  string  $operation
      * @param  array  $config
+     * @param  string  $type  Type of tester (feature or browser)
      * @return OperationTester
      */
-    public static function make(string $operation, array $config): OperationTester
+    public static function make(string $operation, array $config, string $type = 'browser'): OperationTester
     {
-        $testerClass = static::resolveTesterClass($operation);
+        $testerClass = static::resolveTesterClass($operation, $type);
 
         return new $testerClass($config);
     }
@@ -50,9 +51,10 @@ abstract class OperationTester
      * Resolve the tester class for a given operation.
      *
      * @param  string  $operation
+     * @param  string  $type
      * @return string
      */
-    protected static function resolveTesterClass(string $operation): string
+    protected static function resolveTesterClass(string $operation, string $type = 'browser'): string
     {
         // 1. Check for custom override in config
         $customClass = config("backpack.crud-testing.operation_testers.{$operation}");
@@ -60,21 +62,36 @@ abstract class OperationTester
             return $customClass;
         }
 
-        // 2. Try convention-based class name in this namespace
+        // 2. Try type-specific convention-based class name
+        $typeNamespace = ucfirst($type);
+        $typeClass = __NAMESPACE__.'\\'.$typeNamespace.'\\'.static::getTesterClassName($operation);
+        if (class_exists($typeClass)) {
+            return $typeClass;
+        }
+
+        // 3. Try generic convention-based class name in this namespace
         $conventionClass = static::getConventionBasedClass($operation);
         if (class_exists($conventionClass)) {
             return $conventionClass;
         }
 
-        // 3. Try convention-based class name in custom paths
+        // 4. Try convention-based class name in custom paths
         foreach (static::getCustomTesterPaths() as $namespace) {
+            // Check for type specific
+            $customTypePath = $namespace.'\\'.$typeNamespace.'\\'.static::getTesterClassName($operation);
+            if (class_exists($customTypePath)) {
+                return $customTypePath;
+            }
+            
+            // Check for generic
             $customPath = $namespace.'\\'.static::getTesterClassName($operation);
             if (class_exists($customPath)) {
                 return $customPath;
             }
         }
 
-        throw new \Exception("Operation tester not found for: {$operation}");
+        // 5. Fallback to default tester
+        return DefaultOperationTester::class;
     }
 
     /**

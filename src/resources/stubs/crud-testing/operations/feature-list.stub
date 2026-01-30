@@ -1,0 +1,34 @@
+    /**
+     * Test that the list page loads without errors
+     */
+    public function test_list_page_loads_successfully(): void
+    {
+        $response = $this->get($this->getCrudUrl());
+        $response->assertStatus(200);
+        $response->assertSee($this->operationConfig['entity_name'] ?? '');
+    }
+
+    /**
+     * Test that DataTables ajax endpoint returns datatable compatible data
+     */
+    public function test_list_datatables_returns_compatible_data(): void
+    {
+        $this->createTestEntries(5);
+        $this->tester->testDataTablesWorks($this);
+    }
+
+    /**
+     * Test that buttons are on page
+     */
+    public function test_list_buttons_are_on_page(): void
+    {
+        $this->tester->testButtonsAreVisible($this);
+    }
+
+    /**
+     * Test that filters are on page
+     */
+    public function test_list_filters_are_on_page(): void
+    {
+        $this->tester->testFiltersWork($this);
+    }

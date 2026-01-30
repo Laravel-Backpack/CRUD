@@ -17,13 +17,25 @@ class GenerateCrudTests extends Command
     protected $signature = 'backpack:tests
                             {--controller= : Only generate tests for the given controller class name}
                             {--operation= : Only generate tests for the given CRUD operation}
+                            {--type= : The type of test to generate (browser or feature)}
+                            {--framework=phpunit : The testing framework to use (phpunit or pest)}
                             {--force : Overwrite existing test classes}
                             {--dry-run : Show what would be generated without writing files}';
 
     /**
      * The console command description.
      */
-    protected $description = 'Generate browser tests for discovered Backpack CRUD controllers.';
+    protected $description = 'Generate tests for discovered Backpack CRUD controllers.';
+    
+    /**
+     * Operations that were skipped due to missing strategy.
+     */
+    protected array $skippedOperations = [];
+
+    /**
+     * The files that were generated.
+     */
+    protected array $generatedFiles = [];
 
     public function handle(): int
     {
@@ -36,14 +48,23 @@ class GenerateCrudTests extends Command
         }
 
         if ($filter = $this->option('controller')) {
-            $controllers = $controllers->filter(function (array $controller) use ($filter) {
-                return Str::contains($controller['class'], $filter);
+            // First try strict matching on the short name or full class name
+            $exactMatches = $controllers->filter(function (array $controller) use ($filter) {
+                return $controller['short_name'] === $filter || $controller['class'] === $filter;
             });
 
-            if ($controllers->isEmpty()) {
-                $this->error("No controllers match filter '{$filter}'.");
+            if ($exactMatches->isNotEmpty()) {
+                $controllers = $exactMatches;
+            } else {
+                $controllers = $controllers->filter(function (array $controller) use ($filter) {
+                    return Str::contains($controller['class'], $filter);
+                });
 
-                return self::FAILURE;
+                if ($controllers->isEmpty()) {
+                    $this->error("No controllers match filter '{$filter}'.");
+
+                    return self::FAILURE;
+                }
             }
         }
 
@@ -53,9 +74,58 @@ class GenerateCrudTests extends Command
             $this->generateTestsForController($controllerInfo, $operationFilter);
         }
 
+        if (! empty($this->skippedOperations)) {
+            $this->line('');
+            $this->warn('Tests not generated for the following operations (no test strategy defined):');
+            foreach ($this->skippedOperations as $key => $operations) {
+                $this->line("- {$key}: ".implode(', ', $operations));
+            }
+        }
+
         $this->info('Test generation finished.');
 
+        if (! empty($this->generatedFiles) && $this->confirm('Do you want to run the generated tests now?', true)) {
+            $this->runGeneratedTests();
+        }
+
         return self::SUCCESS;
+    }
+
+    /**
+     * Run the generated tests.
+     */
+    protected function runGeneratedTests(): void
+    {
+        $featureTests = $this->generatedFiles['feature'] ?? [];
+        $browserTests = $this->generatedFiles['browser'] ?? [];
+        $framework = $this->option('framework');
+
+        if (! empty($featureTests)) {
+            $this->line('');
+            $this->info("Running feature tests ({$framework})...");
+            
+            $binary = $framework === 'pest' ? 'pest' : 'phpunit';
+            $binaryPath = base_path("vendor/bin/{$binary}");
+            
+            if (file_exists($binaryPath)) {
+                $command = '"'.PHP_BINARY.'" "'.$binaryPath.'" '.implode(' ', array_map(fn ($f) => '"'.$f.'"', $featureTests));
+                passthru($command);
+            } elseif ($framework === 'phpunit' && $this->getApplication()->has('test')) {
+                $this->call('test', ['args' => $featureTests]);
+            } else {
+                $this->error("Testing binary not found: {$binaryPath}");
+            }
+        }
+
+        if (! empty($browserTests)) {
+            $this->line('');
+            $this->info('Running browser tests...');
+            if ($this->getApplication()->has('dusk')) {
+                $this->call('dusk', ['args' => $browserTests]);
+            } else {
+                $this->warn('Dusk command not found. Please run "php artisan dusk" manually.');
+            }
+        }
     }
 
     /**
@@ -79,7 +149,8 @@ class GenerateCrudTests extends Command
         $operations = collect($controllerInfo['operations']);
 
         if ($operationFilter) {
-            $operations = $operations->filter(fn ($operation) => $operation === $operationFilter);
+            $allowedOperations = explode(',', $operationFilter);
+            $operations = $operations->filter(fn ($operation) => in_array($operation, $allowedOperations));
         }
 
         if ($operations->isEmpty()) {
@@ -88,26 +159,48 @@ class GenerateCrudTests extends Command
             return;
         }
 
-        $operations->each(function (string $operation) use ($controllerInfo) {
-            if (! $this->operationEnabled($operation)) {
-                $this->line("  ⏭️  Skipping {$operation} (disabled in configuration)");
+        $types = $this->option('type') ? [$this->option('type')] : ['feature', 'browser'];
 
-                return;
-            }
-
-            $this->generateTestForOperation($controllerInfo, $operation);
-        });
+        foreach ($types as $type) {
+            $this->line("  Generating {$type} tests...");
+            
+            $operations->each(function (string $operation) use ($controllerInfo, $type) {
+                if (! $this->operationEnabled($operation)) {
+                    $this->line("  ⏭️  Skipping {$operation} (disabled in configuration)");
+    
+                    return;
+                }
+    
+                $this->generateTestForOperation($controllerInfo, $operation, $type);
+            });
+        }
     }
 
     /**
      * Generate the test class for a controller operation.
      */
-    protected function generateTestForOperation(array $controllerInfo, string $operation): void
+    protected function generateTestForOperation(array $controllerInfo, string $operation, string $type): void
     {
         try {
             $builder = new CrudTestBuilder($controllerInfo, $operation);
+
+            if ($builder->getStrategyClass() === \Backpack\CRUD\app\Library\CrudTesting\OperationStrategies\DefaultOperationStrategy::class) {
+                // Skip generation for default strategy, collect for reporting
+                $this->skippedOperations[$controllerInfo['short_name']][] = $operation;
+                return;
+            }
+
             $config = $builder->getTestConfiguration();
-            $methods = $builder->generateTestMethods();
+            
+            // Check for stub override
+            $stubName = "{$type}-{$operation}.stub";
+            $operationStubPath = $this->getStubPath('operations/'.$stubName);
+            
+            if (File::exists($operationStubPath)) {
+                $methods = File::get($operationStubPath);
+            } else {
+                $methods = $builder->generateTestMethods();
+            }
 
             if (empty($methods)) {
                 $this->line("  ⏭️  Skipping {$operation} (no test methods generated)");
@@ -116,13 +209,28 @@ class GenerateCrudTests extends Command
             }
 
             $className = $this->resolveClassName($controllerInfo, $operation);
-            $namespace = config('backpack.crud-testing.generation.namespace', 'Tests\\Browser\\Crud');
+
+            $controllerName = Str::replaceLast('Controller', '', $controllerInfo['short_name']);
+            
+            $namespace = $type === 'feature'
+                ? 'Tests\\Feature\\'.$controllerName
+                : 'Tests\\Browser\\'.$controllerName;
+            
+            $baseClassName = $controllerName.'TestBase';
+            $this->ensureBaseTestClassExists($namespace, $baseClassName, $controllerInfo, $config, $type);
+
             $operationConfig = $this->extractOperationConfig($config);
+            
+            // SIMPLIFICATION: Remove detailed config to rely on runtime introspection
+            // This makes the test file smaller and more resilient to controller changes
+            unset($operationConfig['columns'], $operationConfig['fields'], $operationConfig['filters'], $operationConfig['buttons']);
+
             $routeSegment = $this->normalizeRoute($config['route'] ?? '');
 
             $testClass = $this->renderTestClass([
                 'namespace' => $namespace,
                 'class' => $className,
+                'base_class' => $baseClassName,
                 'controller' => $config['controller'],
                 'model' => $config['model'],
                 'route' => $routeSegment,
@@ -131,7 +239,7 @@ class GenerateCrudTests extends Command
                 'methods' => $methods,
             ]);
 
-            $filePath = $this->determineOutputPath($className);
+            $filePath = $this->determineOutputPath($className, $controllerName, $type);
 
             if ($this->shouldSkipExisting($filePath)) {
                 $this->line("  ⏭️  Skipping {$operation} (file exists, use --force to overwrite)");
@@ -147,6 +255,8 @@ class GenerateCrudTests extends Command
 
             File::ensureDirectoryExists(dirname($filePath));
             File::put($filePath, $testClass);
+
+            $this->generatedFiles[$type][] = $filePath;
 
             $this->line("  ✅ Generated {$operation} test: {$filePath}");
         } catch (\Throwable $e) {
@@ -181,23 +291,72 @@ class GenerateCrudTests extends Command
     }
 
     /**
+     * Ensure the base test class exists for the controller.
+     */
+    protected function ensureBaseTestClassExists(string $namespace, string $className, array $controllerInfo, array $config, string $type): void
+    {
+        $controllerName = Str::replaceLast('Controller', '', $controllerInfo['short_name']);
+        $filePath = $this->determineOutputPath($className, $controllerName, $type);
+
+        if ($this->shouldSkipExisting($filePath)) {
+             return;
+        }
+
+        $stubName = $type === 'feature' ? 'feature-test-base.stub' : 'browser-test-base.stub';
+        $stubPath = $this->getStubPath($stubName);
+        
+        if (! File::exists($stubPath)) {
+            return;
+        }
+        
+        $stub = File::get($stubPath);
+
+        $routeSegment = $this->normalizeRoute($config['route'] ?? '');
+
+        $replacements = [
+            'DummyNamespace' => $namespace,
+            'DummyBaseClass' => $className,
+            'DummyControllerClass' => class_basename($config['controller']),
+            'DummyController' => $config['controller'],
+            'DummyModelClass' => class_basename($config['model']),
+            'DummyModel' => $config['model'],
+            'DummyRoute' => $this->escapeString($routeSegment),
+        ];
+
+        $content = str_replace(array_keys($replacements), array_values($replacements), $stub);
+
+        File::ensureDirectoryExists(dirname($filePath));
+        File::put($filePath, $content);
+        $this->line("  ✅ Generated Base Test: {$filePath}");
+    }
+
+    /**
      * Render the test class contents.
      */
     protected function renderTestClass(array $data): string
     {
-        $stubPath = __DIR__.'/../../../resources/stubs/crud-testing/browser-test.stub';
+        $type = $this->option('type');
+        $stubName = $type === 'feature' ? 'feature-test.stub' : 'browser-test.stub';
+        $stubPath = $this->getStubPath($stubName);
         $stub = File::get($stubPath);
 
         $operationConfigProperty = $this->renderOperationConfigProperty($data['operation_config']);
-        $methodsBlock = $this->renderMethodsBlock($data['methods']);
+        
+        $methodsBlock = is_string($data['methods']) 
+            ? $data['methods'] 
+            : $this->renderMethodsBlock($data['methods']);
 
         $replacements = [
             'DummyNamespace' => $data['namespace'],
             'DummyClass' => $data['class'],
+            'DummyBaseClass' => $data['base_class'] ?? ($type === 'feature' ? 'CrudFeatureTestCase' : 'CrudBrowserTestCase'),
+            'DummyControllerClass' => class_basename($data['controller']),
             'DummyController' => $data['controller'],
+            'DummyModelClass' => class_basename($data['model']),
             'DummyModel' => $data['model'],
             'DummyRoute' => $this->escapeString($data['route']),
             'DummyOperationConfigProperty' => $operationConfigProperty,
+            'DummyOperation' => $data['operation'],
             'DummyMethods' => $methodsBlock,
         ];
 
@@ -256,21 +415,33 @@ class GenerateCrudTests extends Command
             $bodyLines[] = '';
         }
 
-        $useVariables = [];
-        $callArguments = '$browser';
+        $type = $this->option('type');
 
-        if ($requiresEntry) {
-            $useVariables[] = '$entry';
-            $callArguments .= ', $entry->getKey()';
+        if ($type === 'feature') {
+            $callArguments = '$this';
+            
+            if ($requiresEntry) {
+                $callArguments .= ', $entry->getKey()';
+            }
+
+            $bodyLines[] = "\$this->tester->{$testerMethod}({$callArguments});";
+        } else {
+            $useVariables = [];
+            $callArguments = '$browser';
+
+            if ($requiresEntry) {
+                $useVariables[] = '$entry';
+                $callArguments .= ', $entry->getKey()';
+            }
+
+            $useClause = empty($useVariables) ? '' : ' use ('.implode(', ', $useVariables).')';
+
+            $bodyLines[] = '$this->browse(function (Browser $browser)'.$useClause.' {';
+            $bodyLines[] = '    $this->loginAsAdmin($browser);';
+            $bodyLines[] = "    \$tester = \$this->getOperationTester('{$operation}', \$this->operationConfig);";
+            $bodyLines[] = "    \$tester->{$testerMethod}({$callArguments});";
+            $bodyLines[] = '});';
         }
-
-        $useClause = empty($useVariables) ? '' : ' use ('.implode(', ', $useVariables).')';
-
-        $bodyLines[] = '$this->browse(function (Browser $browser)'.$useClause.' {';
-        $bodyLines[] = '    $this->loginAsAdmin($browser);';
-        $bodyLines[] = "    \$tester = \$this->getOperationTester('{$operation}', \$this->operationConfig);";
-        $bodyLines[] = "    \$tester->{$testerMethod}({$callArguments});";
-        $bodyLines[] = '});';
 
         $body = $this->indentLines($bodyLines, 2);
 
@@ -390,6 +561,14 @@ PHP;
      */
     protected function exportValue($value, int $indentLevel): string
     {
+        if ($value instanceof \Closure) {
+            return 'function() { return "Closure"; }';
+        }
+
+        if (is_object($value)) {
+            return "'Object: ".get_class($value)."'";
+        }
+
         if (is_array($value)) {
             return $this->exportArray($value, $indentLevel);
         }
@@ -445,24 +624,29 @@ PHP;
      */
     protected function resolveClassName(array $controllerInfo, string $operation): string
     {
-        $pattern = config('backpack.crud-testing.generation.class_name_pattern', '{controller}{operation}Test');
-        $controllerBase = Str::replaceLast('CrudController', '', $controllerInfo['short_name']);
-        $controllerBase = $controllerBase !== '' ? $controllerBase : $controllerInfo['short_name'];
-
-        $replacements = [
-            '{controller}' => $controllerBase,
-            '{operation}' => Str::studly($operation),
-        ];
-
-        return strtr($pattern, $replacements);
+        return Str::studly($operation).'Test';
     }
 
     /**
      * Decide where the generated file should be stored.
      */
-    protected function determineOutputPath(string $className): string
+    protected function determineOutputPath(string $className, string $controllerName = null, string $type = null): string
     {
-        $baseDir = config('backpack.crud-testing.generation.output_path', base_path('tests/Browser/Crud'));
+        // Use provided type or fallback to option (for backward compatibility if method called elsewhere)
+        $testType = $type ?? $this->option('type');
+        
+        $baseDir = $testType === 'feature'
+            ? base_path('tests/Feature')
+            : base_path('tests/Browser');
+
+        if ($controllerName) {
+            $baseDir .= DIRECTORY_SEPARATOR.$controllerName;
+        }
+
+        if (! File::isDirectory($baseDir)) {
+            File::makeDirectory($baseDir, 0755, true);
+        }
+
         $baseDir = rtrim($baseDir, '\\/');
 
         return $baseDir.DIRECTORY_SEPARATOR.$className.'.php';
@@ -485,5 +669,31 @@ PHP;
         }
 
         return $route;
+    }
+
+    /**
+     * Get the path to a stub file, respecting the chosen framework.
+     */
+    protected function getStubPath(string $name): string
+    {
+        $framework = $this->option('framework');
+        $basePath = __DIR__.'/../../../resources/stubs/crud-testing/';
+        
+        // If framework is defined and not default, try to find framework-specific stub
+        if ($framework && $framework !== 'phpunit') {
+            // First try nested directory: frameworks/{framework}/{stub}
+            $namespaced = $basePath . $framework . '/' . $name;
+            if (File::exists($namespaced)) {
+                return $namespaced;
+            }
+            
+            // Then try prefixed: {framework}-{stub}
+            $prefixed = $basePath . $framework . '-' . $name;
+            if (File::exists($prefixed)) {
+                return $prefixed;
+            }
+        }
+        
+        return $basePath . $name;
     }
 }
