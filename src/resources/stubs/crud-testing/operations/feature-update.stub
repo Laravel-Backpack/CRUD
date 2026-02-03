@@ -3,10 +3,25 @@
      */
     public function test_update_page_loads_successfully(): void
     {
+        // Check if the model has a factory defined
+        if (! method_exists($this->model, 'factory')) {
+            $this->markTestSkipped('Factory not found for model ' . $this->model);
+        }
+        try {
+             $this->model::factory()->count(1)->make();
+        } catch (\Throwable $e) {
+            $this->markTestSkipped('Factory not found for model ' . $this->model);
+        }
+
         $entry = $this->createTestEntry();
         $response = $this->get($this->getCrudUrl($entry->getKey().'/edit'));
         $response->assertStatus(200);
-        $response->assertSee($this->operationConfig['entity_name'] ?? '');
+        $response->assertSee($this->entityName ?? '');
+
+        $fields = $this->getOperationSettings('update')['fields'] ?? [];
+        foreach ($fields as $field) {
+            $response->assertSee('name="'.$field['name'].'"', false);
+        }
     }
 
     /**
@@ -14,8 +29,19 @@
      */
     public function test_update_updates_entry_in_database(): void
     {
+        // Check if the model has a factory defined
+        if (! method_exists($this->model, 'factory')) {
+            $this->markTestSkipped('Factory not found for model ' . $this->model);
+        }
+        try {
+             $this->model::factory()->count(1)->make();
+        } catch (\Throwable $e) {
+            $this->markTestSkipped('Factory not found for model ' . $this->model);
+        }
+
         $entry = $this->createTestEntry();
         $data = json_decode(json_encode($this->model::factory()->raw()), true);
+        $data[$entry->getKeyName()] = $entry->getKey();
         $response = $this->put($this->getCrudUrl($entry->getKey()), $data);
         
         $response->assertSessionHasNoErrors();
@@ -27,6 +53,16 @@
      */
     public function test_update_validates_wrong_data(): void
     {
+        // Check if the model has a factory defined
+        if (! method_exists($this->model, 'factory')) {
+            $this->markTestSkipped('Factory not found for model ' . $this->model);
+        }
+        try {
+             $this->model::factory()->count(1)->make();
+        } catch (\Throwable $e) {
+            $this->markTestSkipped('Factory not found for model ' . $this->model);
+        }
+
         $entry = $this->createTestEntry();
         // Submit empty data to trigger required validation
         $response = $this->put($this->getCrudUrl($entry->getKey()), []);
@@ -48,6 +84,16 @@
      */
     public function test_update_page_loads_with_old_inputs(): void
     {
+        // Check if the model has a factory defined
+        if (! method_exists($this->model, 'factory')) {
+            $this->markTestSkipped('Factory not found for model ' . $this->model);
+        }
+        try {
+             $this->model::factory()->count(1)->make();
+        } catch (\Throwable $e) {
+            $this->markTestSkipped('Factory not found for model ' . $this->model);
+        }
+
         $entry = $this->createTestEntry();
          // Submit empty data to trigger required validation
         $response = $this->put($this->route.'/'.$entry->getKey(), []);

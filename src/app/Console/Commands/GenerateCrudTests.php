@@ -37,6 +37,20 @@ class GenerateCrudTests extends Command
      */
     protected array $generatedFiles = [];
 
+    /**
+     * Track generated base classes to avoid duplicates during single run.
+     *
+     * @var array
+     */
+    protected array $generatedBaseClasses = [];
+
+    /**
+     * Track models without factories to warn the user.
+     *
+     * @var array
+     */
+    protected array $modelsWithoutFactories = [];
+
     public function handle(): int
     {
         $controllers = collect($this->discoverControllers());
@@ -80,6 +94,15 @@ class GenerateCrudTests extends Command
             foreach ($this->skippedOperations as $key => $operations) {
                 $this->line("- {$key}: ".implode(', ', $operations));
             }
+        }
+
+        if (! empty($this->modelsWithoutFactories)) {
+            $this->line('');
+            $this->warn('Some tests were generated but marked as skipped because the model factory is missing:');
+            foreach (array_unique($this->modelsWithoutFactories) as $model) {
+                $this->line("- {$model}");
+            }
+            $this->line('  Please explicitly define a factory for these models or implement the tests manually.');
         }
 
         $this->info('Test generation finished.');
@@ -137,7 +160,6 @@ class GenerateCrudTests extends Command
 
         return CrudControllerDiscovery::discover($paths);
     }
-
     /**
      * Generate tests for a specific controller.
      */
@@ -184,23 +206,24 @@ class GenerateCrudTests extends Command
         try {
             $builder = new CrudTestBuilder($controllerInfo, $operation);
 
-            if ($builder->getStrategyClass() === \Backpack\CRUD\app\Library\CrudTesting\OperationStrategies\DefaultOperationStrategy::class) {
-                // Skip generation for default strategy, collect for reporting
-                $this->skippedOperations[$controllerInfo['short_name']][] = $operation;
-                return;
-            }
-
             $config = $builder->getTestConfiguration();
+
+            // Check for factory existence
+            $model = $config['model'] ?? null;
+            if ($model && class_exists($model) && ! method_exists($model, 'factory')) {
+                $this->modelsWithoutFactories[] = $model;
+            }
             
             // Check for stub override
             $stubName = "{$type}-{$operation}.stub";
             $operationStubPath = $this->getStubPath('operations/'.$stubName);
             
-            if (File::exists($operationStubPath)) {
-                $methods = File::get($operationStubPath);
-            } else {
-                $methods = $builder->generateTestMethods();
+            if (! File::exists($operationStubPath)) {
+                $this->skippedOperations[$controllerInfo['short_name']][] = $operation;
+                return;
             }
+
+            $methods = File::get($operationStubPath);
 
             if (empty($methods)) {
                 $this->line("  ⏭️  Skipping {$operation} (no test methods generated)");
@@ -298,6 +321,10 @@ class GenerateCrudTests extends Command
         $controllerName = Str::replaceLast('Controller', '', $controllerInfo['short_name']);
         $filePath = $this->determineOutputPath($className, $controllerName, $type);
 
+        if (in_array($filePath, $this->generatedBaseClasses)) {
+            return;
+        }
+
         if ($this->shouldSkipExisting($filePath)) {
              return;
         }
@@ -321,12 +348,15 @@ class GenerateCrudTests extends Command
             'DummyModelClass' => class_basename($config['model']),
             'DummyModel' => $config['model'],
             'DummyRoute' => $this->escapeString($routeSegment),
+            'DummyEntityNamePlural' => $this->escapeString($config['entity_name_plural'] ?? ''),
+            'DummyEntityName' => $this->escapeString($config['entity_name'] ?? ''),
         ];
 
         $content = str_replace(array_keys($replacements), array_values($replacements), $stub);
 
         File::ensureDirectoryExists(dirname($filePath));
         File::put($filePath, $content);
+        $this->generatedBaseClasses[] = $filePath;
         $this->line("  ✅ Generated Base Test: {$filePath}");
     }
 
@@ -342,9 +372,7 @@ class GenerateCrudTests extends Command
 
         $operationConfigProperty = $this->renderOperationConfigProperty($data['operation_config']);
         
-        $methodsBlock = is_string($data['methods']) 
-            ? $data['methods'] 
-            : $this->renderMethodsBlock($data['methods']);
+        $methodsBlock = $data['methods'];
 
         $replacements = [
             'DummyNamespace' => $data['namespace'],
@@ -371,109 +399,6 @@ class GenerateCrudTests extends Command
         $export = $this->exportArray($config, 2);
 
         return '    protected array $operationConfig = '.$export.';';
-    }
-
-    /**
-     * Render all generated methods into a code block.
-     */
-    protected function renderMethodsBlock(array $methods): string
-    {
-        return collect($methods)
-            ->map(fn ($method) => $this->renderMethod($method))
-            ->filter()
-            ->implode("\n\n");
-    }
-
-    /**
-     * Render a single generated method.
-     */
-    protected function renderMethod(array $method): ?string
-    {
-        $name = $method['name'];
-        $description = $method['description'] ?? 'Generated test.';
-        $operation = $method['operation'];
-        $testerMethod = $method['tester_method'] ?? null;
-
-        if (! $testerMethod) {
-            return $this->renderTodoMethod($name, $description);
-        }
-
-        $requiresEntries = (bool) ($method['requires_entries'] ?? false);
-        $requiresEntry = (bool) ($method['requires_entry'] ?? false);
-
-        $bodyLines = [];
-
-        if ($requiresEntries) {
-            $bodyLines[] = '$this->createTestEntries(config(\'backpack.crud-testing.operations.list_test_entries\', 5));';
-        }
-
-        if ($requiresEntry) {
-            $bodyLines[] = '$entry = $this->createTestEntry();';
-        }
-
-        if (! empty($bodyLines)) {
-            $bodyLines[] = '';
-        }
-
-        $type = $this->option('type');
-
-        if ($type === 'feature') {
-            $callArguments = '$this';
-            
-            if ($requiresEntry) {
-                $callArguments .= ', $entry->getKey()';
-            }
-
-            $bodyLines[] = "\$this->tester->{$testerMethod}({$callArguments});";
-        } else {
-            $useVariables = [];
-            $callArguments = '$browser';
-
-            if ($requiresEntry) {
-                $useVariables[] = '$entry';
-                $callArguments .= ', $entry->getKey()';
-            }
-
-            $useClause = empty($useVariables) ? '' : ' use ('.implode(', ', $useVariables).')';
-
-            $bodyLines[] = '$this->browse(function (Browser $browser)'.$useClause.' {';
-            $bodyLines[] = '    $this->loginAsAdmin($browser);';
-            $bodyLines[] = "    \$tester = \$this->getOperationTester('{$operation}', \$this->operationConfig);";
-            $bodyLines[] = "    \$tester->{$testerMethod}({$callArguments});";
-            $bodyLines[] = '});';
-        }
-
-        $body = $this->indentLines($bodyLines, 2);
-
-        return <<<PHP
-    /**
-     * {$description}
-     */
-    public function {$name}(): void
-    {
-{$body}
-    }
-PHP;
-    }
-
-    /**
-     * Render a fallback TODO method when metadata is incomplete.
-     */
-    protected function renderTodoMethod(string $name, string $description): string
-    {
-        $body = $this->indentLines([
-            "\$this->markTestIncomplete('Generator could not determine implementation for {$name}.');",
-        ], 2);
-
-        return <<<PHP
-    /**
-     * {$description}
-     */
-    public function {$name}(): void
-    {
-{$body}
-    }
-PHP;
     }
 
     /**

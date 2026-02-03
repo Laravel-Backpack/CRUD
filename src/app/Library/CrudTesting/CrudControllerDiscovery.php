@@ -6,6 +6,7 @@ use Backpack\CRUD\app\Http\Controllers\CrudController;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 use ReflectionClass;
+use Backpack\CRUD\CrudManager;
 
 /**
  * Discovers CrudControllers in the application and extracts their configuration.
@@ -67,8 +68,6 @@ class CrudControllerDiscovery
         // Get the operations used by this controller
         $operations = static::getOperations($reflection);
         
-        // Build a temporary instance to get CRUD panel configuration
-        // This needs to be done carefully to avoid side effects
         $analysis = [
             'class' => $controllerClass,
             'short_name' => $reflection->getShortName(),
@@ -169,33 +168,20 @@ class CrudControllerDiscovery
      */
     public static function buildCrudPanel(string $controllerClass, string $operation = 'list'): object
     {
-        // Instantiate the controller
         $controller = app()->make($controllerClass);
-        
-        // Use CrudManager to get the CrudPanel, consistent with the rest of the app
-        \Backpack\CRUD\CrudManager::setActiveController($controllerClass);
-        $crud = \Backpack\CRUD\CrudManager::getCrudPanel($controllerClass);
-        $crud->setRequest(request());
-        
-        $controller->crud = $crud;
-        $crud->setController(get_class($controller));
-        
-        // Set the operation
-        $crud->setOperation($operation);
+        $request = request([
+            'operation' => $operation
+        ]);
+        if (! CrudManager::hasCrudPanel($controllerClass)) {
+            
+            $controller->initializeCrudPanel($request);
 
-        // Apply auxiliary testing configurations
-        CrudTestConfigurator::apply($crud, $controller);
-        
-        // Call setup actions
-        if (method_exists($controller, 'setup')) {
-            $controller->setup();
+            return CrudManager::getCrudPanel($controllerClass);
         }
-        
-        // Call setup method
-        $reflectionMethod = new \ReflectionMethod($controller, 'setupConfigurationForCurrentOperation');
-        $reflectionMethod->setAccessible(true);
-        $reflectionMethod->invoke($controller);
 
-        return $crud;
+        $controller->setupCrudController($operation);
+
+        return CrudManager::getCrudPanel($controller);
+        
     }
 }

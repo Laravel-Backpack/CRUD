@@ -1,7 +1,7 @@
     /**
-     * Test that show page loads
+     * Test that entry can be deleted
      */
-    public function test_show_page_loads_successfully(): void
+    public function test_delete_removes_entry_from_database(): void
     {
         // Check if the model has a factory defined
         if (! method_exists($this->model, 'factory')) {
@@ -15,6 +15,11 @@
         }
 
         $entry = $this->createTestEntry();
-        $response = $this->get($this->getCrudUrl($entry->getKey().'/show'));
+        
+        $response = $this->delete($this->getCrudUrl($entry->getKey()));
+        
         $response->assertStatus(200);
+        
+        // Assert entry is missing from database
+        $this->assertDatabaseMissing($this->model, [$entry->getKeyName() => $entry->getKey()]);
     }

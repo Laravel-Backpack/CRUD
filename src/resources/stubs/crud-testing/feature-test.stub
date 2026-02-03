@@ -2,31 +2,7 @@
 
 namespace DummyNamespace;
 
-use DummyController;
-use DummyModel;
-use Backpack\CRUD\app\Library\CrudTesting\CrudFeatureTestCase;
-
-class DummyClass extends CrudFeatureTestCase
+class DummyClass extends DummyBaseClass
 {
-    protected string $controller = DummyControllerClass::class;
-    protected string $route = 'DummyRoute';
-    protected string $model = DummyModelClass::class;
-
-DummyOperationConfigProperty
-
-    protected $tester;
-
-    protected function setUp(): void
-    {
-        parent::setUp();
-        $this->actingAsAdmin();
-        $this->tester = $this->getOperationTester('DummyOperation', $this->operationConfig);
-
-        // Clear filters to avoid duplication conflict when the request is run
-        if ($this->app->bound('crud')) {
-            $this->app['crud']->clearFilters();
-        }
-    }
-
 DummyMethods
 }

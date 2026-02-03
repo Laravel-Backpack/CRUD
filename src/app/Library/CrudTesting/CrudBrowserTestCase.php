@@ -6,7 +6,6 @@ use Backpack\CRUD\app\Library\CrudTesting\Helpers\ButtonHelper;
 use Backpack\CRUD\app\Library\CrudTesting\Helpers\DataTablesHelper;
 use Backpack\CRUD\app\Library\CrudTesting\Helpers\FilterHelper;
 use Backpack\CRUD\app\Library\CrudTesting\Helpers\FormHelper;
-use Backpack\CRUD\app\Library\CrudTesting\OperationTesters\OperationTester;
 use Backpack\CRUD\Tests\BaseTestClass;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Laravel\Dusk\Browser;
@@ -15,15 +14,7 @@ use Laravel\Dusk\Browser;
  * Base test case for CRUD browser tests.
  * Provides common functionality for testing CRUD operations with Dusk.
  * 
- * This class follows a strategy pattern similar to FieldTesters, where each
- * operation has its own dedicated tester class. This makes the code more
- * maintainable, extensible, and flexible.
- * 
  * @example
- * // Get an operation tester and run its tests
- * $listTester = $this->getOperationTester('list');
- * $listTester->testListPageLoads($browser);
- * 
  * // Use helpers for common tasks
  * $formHelper = $this->getFormHelper($browser);
  * $formHelper->fill(['name' => 'Test'])->submit();
@@ -57,6 +48,16 @@ abstract class CrudBrowserTestCase extends BaseTestClass
     protected string $model;
 
     /**
+     * The entity name (singular).
+     */
+    protected ?string $entityName = null;
+
+    /**
+     * The entity name (plural).
+     */
+    protected ?string $entityNamePlural = null;
+
+    /**
      * The type of tester to use (feature or browser).
      *
      * @var string
@@ -69,13 +70,6 @@ abstract class CrudBrowserTestCase extends BaseTestClass
      * @var bool
      */
     protected bool $useDusk = true;
-
-    /**
-     * Cached operation testers.
-     *
-     * @var array
-     */
-    protected array $operationTesters = [];
 
     /**
      * Get the base admin URL.
@@ -125,46 +119,6 @@ abstract class CrudBrowserTestCase extends BaseTestClass
     protected function createTestEntries(int $count = 5, array $attributes = [])
     {
         return $this->model::factory()->count($count)->create($attributes);
-    }
-
-    /**
-     * Get an operation tester for the specified operation.
-     * Uses the strategy pattern similar to FieldTesters.
-     *
-     * @param  string  $operation  Operation name (e.g., 'list', 'create', 'update', 'show', 'delete')
-     * @param  array  $config  Optional configuration to override defaults
-     * @return OperationTester
-     */
-    protected function getOperationTester(string $operation, array $config = []): OperationTester
-    {
-        $cacheKey = $operation;
-
-        if (! isset($this->operationTesters[$cacheKey])) {
-            // If config is missing fields/columns, try to discover them at runtime
-            if (empty($config['fields']) && empty($config['columns'])) {
-                $controllerInfo = CrudControllerDiscovery::analyzeController($this->controller);
-                $builder = new CrudTestBuilder($controllerInfo, $operation);
-                $runtimeConfig = $builder->getTestConfiguration();
-                $config = array_merge($runtimeConfig, $config);
-            }
-
-            $defaultConfig = [
-                'route' => $this->getCrudUrl(),
-                'entity_name' => class_basename($this->model),
-                'entity_name_plural' => str(class_basename($this->model))->plural(),
-                'model' => $this->model,
-                'controller' => $this->controller ?? null,
-                'custom_data_source' => $this,
-            ];
-
-            $this->operationTesters[$cacheKey] = OperationTester::make(
-                $operation,
-                array_merge($defaultConfig, $config),
-                $this->testerType
-            );
-        }
-
-        return $this->operationTesters[$cacheKey];
     }
 
     /**
@@ -237,7 +191,7 @@ abstract class CrudBrowserTestCase extends BaseTestClass
 
     /**
      * Visit the list page.
-     * @deprecated Use visitOperationPage($browser, 'list') or getOperationTester('list') instead
+     * @deprecated Use visitOperationPage($browser, 'list') instead
      *
      * @param  mixed  $browser
      * @return mixed
@@ -249,7 +203,7 @@ abstract class CrudBrowserTestCase extends BaseTestClass
 
     /**
      * Visit the create page.
-     * @deprecated Use visitOperationPage($browser, 'create') or getOperationTester('create') instead
+     * @deprecated Use visitOperationPage($browser, 'create') instead
      *
      * @param  mixed  $browser
      * @return mixed
@@ -261,7 +215,7 @@ abstract class CrudBrowserTestCase extends BaseTestClass
 
     /**
      * Visit the update page for an entry.
-     * @deprecated Use visitOperationPage($browser, 'update', $id) or getOperationTester('update') instead
+     * @deprecated Use visitOperationPage($browser, 'update', $id) instead
      *
      * @param  mixed  $browser
      * @param  int  $id
@@ -274,7 +228,7 @@ abstract class CrudBrowserTestCase extends BaseTestClass
 
     /**
      * Visit the show page for an entry.
-     * @deprecated Use visitOperationPage($browser, 'show', $id) or getOperationTester('show') instead
+     * @deprecated Use visitOperationPage($browser, 'show', $id) instead
      *
      * @param  mixed  $browser
      * @param  int  $id
@@ -316,7 +270,7 @@ abstract class CrudBrowserTestCase extends BaseTestClass
 
     /**
      * Assert that a column is visible in the list.
-     * @deprecated Use getOperationTester('list')->testColumnsAreVisible() instead
+     * @deprecated
      *
      * @param  mixed  $browser
      * @param  string  $columnName

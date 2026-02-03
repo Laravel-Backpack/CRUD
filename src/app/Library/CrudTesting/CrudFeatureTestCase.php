@@ -2,30 +2,14 @@
 
 namespace Backpack\CRUD\app\Library\CrudTesting;
 
-use Backpack\CRUD\app\Library\CrudTesting\OperationTesters\OperationTester;
 use Illuminate\Foundation\Testing\TestCase as IlluminateTestCase;
-use Illuminate\Foundation\Testing\DatabaseTransactions;
 
 /**
  * Base test case for CRUD feature tests.
- * Provides common functionality for testing CRUD operations with standard HTTP requests.
+ * Provides common functionality for testing CRUD operations
  */
 abstract class CrudFeatureTestCase extends IlluminateTestCase
 {
-    use DatabaseTransactions;
-
-    /**
-     * Boot the application.
-     *
-     * @return \Illuminate\Foundation\Application
-     */
-    public function createApplication()
-    {
-        $app = require __DIR__.'/../../../../../../../bootstrap/app.php';
-        $app->make(\Illuminate\Contracts\Console\Kernel::class)->bootstrap();
-        return $app;
-    }
-
     /**
      * The controller class being tested.
      *
@@ -48,18 +32,21 @@ abstract class CrudFeatureTestCase extends IlluminateTestCase
     protected string $model;
 
     /**
+     * The entity name (singular).
+     */
+    protected ?string $entityName = null;
+
+    /**
+     * The entity name (plural).
+     */
+    protected ?string $entityNamePlural = null;
+
+    /**
      * The type of tester to use (feature or browser).
      *
      * @var string
      */
     protected string $testerType = 'feature';
-
-    /**
-     * Cached operation testers.
-     *
-     * @var array
-     */
-    protected array $operationTesters = [];
 
     /**
      * Get the base admin URL.
@@ -68,7 +55,7 @@ abstract class CrudFeatureTestCase extends IlluminateTestCase
      */
     protected function getAdminUrl(): string
     {
-        return url(config('backpack.base.route_prefix', 'admin'));
+        return backpack_url();
     }
 
     /**
@@ -99,38 +86,11 @@ abstract class CrudFeatureTestCase extends IlluminateTestCase
         return $this->model::factory()->create($attributes);
     }
 
+
     /**
-     * Get an operation tester for the specified operation.
-     *
-     * @param  string  $operation
-     * @param  array  $config
-     * @return OperationTester
+     * Cache for operation settings
      */
-    protected function getOperationTester(string $operation, array $config = []): OperationTester
-    {
-        $cacheKey = $operation;
-
-        if (! isset($this->operationTesters[$cacheKey])) {
-            $config = array_merge($this->getOperationSettings($operation), $config);
-
-            $defaultConfig = [
-                'route' => $this->getCrudUrl(),
-                'entity_name' => class_basename($this->model),
-                'entity_name_plural' => str(class_basename($this->model))->plural(),
-                'model' => $this->model,
-                'controller' => $this->controller ?? null,
-                'custom_data_source' => $this,
-            ];
-
-            $this->operationTesters[$cacheKey] = OperationTester::make(
-                $operation,
-                array_merge($defaultConfig, $config),
-                $this->testerType
-            );
-        }
-
-        return $this->operationTesters[$cacheKey];
-    }
+    protected static array $operationSettingsCache = [];
 
     /**
      * Get the operation configuration for the current controller.
@@ -140,9 +100,19 @@ abstract class CrudFeatureTestCase extends IlluminateTestCase
      */
     protected function getOperationSettings(string $operation): array
     {
+        $cacheKey = $this->controller . ':' . $operation;
+
+        if (isset(static::$operationSettingsCache[$cacheKey])) {
+            return static::$operationSettingsCache[$cacheKey];
+        }
+
         $controllerInfo = CrudControllerDiscovery::analyzeController($this->controller);
         $builder = new CrudTestBuilder($controllerInfo, $operation);
-        return $builder->getTestConfiguration();
+        $settings = $builder->getTestConfiguration();
+
+        static::$operationSettingsCache[$cacheKey] = $settings;
+
+        return $settings;
     }
 
     protected function setUp(): void

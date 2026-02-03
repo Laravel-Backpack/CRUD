@@ -11,4 +11,6 @@ class DummyBaseClass extends CrudBrowserTestCase
     protected string $controller = DummyControllerClass::class;
     protected string $route = 'DummyRoute';
     protected string $model = DummyModelClass::class;
+    protected ?string $entityName = 'DummyEntityName';
+    protected ?string $entityNamePlural = 'DummyEntityNamePlural';
 }

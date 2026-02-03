@@ -69,7 +69,7 @@ class CrudController extends Controller implements CrudControllerContract
         CrudManager::storeCrudPanel(get_class($this), $crudPanel);
     }
 
-    private function setupCrudController($operation = null)
+    public function setupCrudController($operation = null)
     {
         LifecycleHook::trigger('crud:before_setup_defaults', [$this]);
         $this->setupDefaults();

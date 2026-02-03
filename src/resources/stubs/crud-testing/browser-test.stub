@@ -2,18 +2,9 @@
 
 namespace DummyNamespace;
 
-use DummyController;
-use DummyModel;
-use Backpack\CRUD\app\Library\CrudTesting\CrudBrowserTestCase;
 use Laravel\Dusk\Browser;
 
-class DummyClass extends CrudBrowserTestCase
+class DummyClass extends DummyBaseClass
 {
-    protected string $controller = DummyController::class;
-    protected string $route = 'DummyRoute';
-    protected string $model = DummyModel::class;
-
-DummyOperationConfigProperty
-
 DummyMethods
 }

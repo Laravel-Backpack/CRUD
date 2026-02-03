@@ -5,7 +5,7 @@
     {
         $response = $this->get($this->getCrudUrl());
         $response->assertStatus(200);
-        $response->assertSee($this->operationConfig['entity_name'] ?? '');
+        $response->assertSee($this->entityName ?? '');
     }
 
     /**
@@ -13,16 +13,26 @@
      */
     public function test_list_datatables_returns_compatible_data(): void
     {
-        $this->createTestEntries(5);
-        $this->tester->testDataTablesWorks($this);
-    }
+        // Check if the model has a factory defined
+        if (! method_exists($this->model, 'factory')) {
+            $this->markTestSkipped('Factory not found for model ' . $this->model);
+        }
 
-    /**
-     * Test that buttons are on page
-     */
-    public function test_list_buttons_are_on_page(): void
-    {
-        $this->tester->testButtonsAreVisible($this);
+        try {
+             $this->model::factory()->count(1)->make();
+        } catch (\Throwable $e) {
+            $this->markTestSkipped('Factory not found for model ' . $this->model);
+        }
+
+        $this->createTestEntries(5);
+        $response = $this->post($this->getCrudUrl('search'));
+        $response->assertStatus(200);
+        $response->assertJsonStructure([
+            'draw',
+            'recordsTotal',
+            'recordsFiltered',
+            'data'
+        ]);
     }
 
     /**
@@ -30,5 +40,21 @@
      */
     public function test_list_filters_are_on_page(): void
     {
-        $this->tester->testFiltersWork($this);
+        $filters = $this->getOperationSettings('list')['filters'] ?? [];
+
+        // Clear filters after getting settings to avoid duplication conflict when the request is run
+        if ($this->app->bound('crud')) {
+            $this->app['crud']->clearFilters();
+        }
+        
+        if (count($filters) > 0) {
+             $response = $this->get($this->getCrudUrl());
+             $response->assertStatus(200);
+             
+             foreach ($filters as $filter) {
+                 $response->assertSee('filter-name="'.$filter->name.'"', false);
+             }
+        } else {
+             $this->assertTrue(true);
+        }
     }

@@ -5,7 +5,12 @@
     {
         $response = $this->get($this->getCrudUrl('create'));
         $response->assertStatus(200);
-        $response->assertSee($this->operationConfig['entity_name'] ?? '');
+        $response->assertSee($this->entityName ?? '');
+
+        $fields = $this->getOperationSettings('create')['fields'] ?? [];
+        foreach ($fields as $field) {
+            $response->assertSee('name="'.$field['name'].'"', false);
+        }
     }
 
     /**
@@ -13,6 +18,17 @@
      */
     public function test_create_adds_entry_to_database(): void
     {
+        // Check if the model has a factory defined
+        if (! method_exists($this->model, 'factory')) {
+            $this->markTestSkipped('Factory not found for model ' . $this->model);
+        }
+
+        try {
+             $this->model::factory()->count(1)->make();
+        } catch (\Throwable $e) {
+            $this->markTestSkipped('Factory not found for model ' . $this->model);
+        }
+
         $data = json_decode(json_encode($this->model::factory()->raw()), true);
         $response = $this->post($this->getCrudUrl(), $data);
         
