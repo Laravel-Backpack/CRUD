@@ -1,19 +1,10 @@
+    public string $operation = 'delete';
     /**
      * Test that entry can be deleted
      */
     public function test_delete_removes_entry_from_database(): void
     {
-        // Check if the model has a factory defined
-        if (! method_exists($this->model, 'factory')) {
-            $this->markTestSkipped('Factory not found for model ' . $this->model);
-        }
-
-        try {
-             $this->model::factory()->count(1)->make();
-        } catch (\Throwable $e) {
-            $this->markTestSkipped('Factory not found for model ' . $this->model);
-        }
-
+        __MARK_TEST_AS_SKIPPED__
         $entry = $this->createTestEntry();
         
         $response = $this->delete($this->getCrudUrl($entry->getKey()));

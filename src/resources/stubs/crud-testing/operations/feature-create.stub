@@ -1,3 +1,5 @@
+    public string $operation = 'create';
+
     /**
      * Test that the create page loads without errors
      */
@@ -7,7 +9,7 @@
         $response->assertStatus(200);
         $response->assertSee($this->entityName ?? '');
 
-        $fields = $this->getOperationSettings('create')['fields'] ?? [];
+        $fields = $this->getOperationSettings()['fields'] ?? [];
         foreach ($fields as $field) {
             $response->assertSee('name="'.$field['name'].'"', false);
         }
@@ -18,22 +20,14 @@
      */
     public function test_create_adds_entry_to_database(): void
     {
-        // Check if the model has a factory defined
-        if (! method_exists($this->model, 'factory')) {
-            $this->markTestSkipped('Factory not found for model ' . $this->model);
-        }
+        __MARK_TEST_AS_SKIPPED__
+        $data = $this->testConfig->validCreateInput($this->model);
 
-        try {
-             $this->model::factory()->count(1)->make();
-        } catch (\Throwable $e) {
-            $this->markTestSkipped('Factory not found for model ' . $this->model);
-        }
-
-        $data = json_decode(json_encode($this->model::factory()->raw()), true);
         $response = $this->post($this->getCrudUrl(), $data);
         
         $response->assertSessionHasNoErrors();
         $response->assertStatus(302);
+        $this->assertDatabaseHas($this->model, $this->testConfig->getDatabaseAssertInput($this->model, $data));
     }
 
     /**
@@ -41,10 +35,18 @@
      */
     public function test_create_validates_wrong_data(): void
     {
-        // Submit empty data to trigger required validation
-        $response = $this->post($this->getCrudUrl(), []);
-        
-        $fields = $this->getOperationSettings('create')['fields'] ?? [];
+        $data = $this->testConfig->invalidInput();
+
+        // Submit data to trigger validation
+        $response = $this->post($this->getCrudUrl(), $data ?? []);
+
+        if ($data !== null) {
+            $response->assertStatus(302);
+            $response->assertSessionHasErrors();
+            return;
+        }
+
+        $fields = $this->getOperationSettings()['fields'] ?? [];
         $requiredFields = collect($fields)
             ->filter(function($field) { return str_contains($field['validationRules'] ?? '', 'required'); });
 
@@ -65,7 +67,7 @@
          // Submit empty data to trigger required validation
         $response = $this->post($this->route, []);
         
-        $fields = $this->getOperationSettings('create')['fields'] ?? [];
+        $fields = $this->getOperationSettings()['fields'] ?? [];
         $requiredFields = collect($fields)
             ->filter(function($field) { return str_contains($field['validationRules'] ?? '', 'required'); });
 

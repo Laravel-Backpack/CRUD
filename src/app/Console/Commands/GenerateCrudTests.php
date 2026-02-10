@@ -19,8 +19,7 @@ class GenerateCrudTests extends Command
                             {--operation= : Only generate tests for the given CRUD operation}
                             {--type= : The type of test to generate (browser or feature)}
                             {--framework=phpunit : The testing framework to use (phpunit or pest)}
-                            {--force : Overwrite existing test classes}
-                            {--dry-run : Show what would be generated without writing files}';
+                            {--force : Overwrite existing test classes}';
 
     /**
      * The console command description.
@@ -107,8 +106,8 @@ class GenerateCrudTests extends Command
 
         $this->info('Test generation finished.');
 
-        if (! empty($this->generatedFiles) && $this->confirm('Do you want to run the generated tests now?', true)) {
-            $this->runGeneratedTests();
+        if (! empty($this->generatedFiles)) {
+            $this->info('To run the tests call: php artisan test');
         }
 
         return self::SUCCESS;
@@ -131,7 +130,13 @@ class GenerateCrudTests extends Command
             $binaryPath = base_path("vendor/bin/{$binary}");
             
             if (file_exists($binaryPath)) {
-                $command = '"'.PHP_BINARY.'" "'.$binaryPath.'" '.implode(' ', array_map(fn ($f) => '"'.$f.'"', $featureTests));
+                $command = '"'.PHP_BINARY.'" "'.$binaryPath.'"';
+
+                if (file_exists(base_path('phpunit.xml'))) {
+                    $command .= ' --configuration "'.base_path('phpunit.xml').'"';
+                }
+
+                $command .= ' '.implode(' ', array_map(fn ($f) => '"'.$f.'"', $featureTests));
                 passthru($command);
             } elseif ($framework === 'phpunit' && $this->getApplication()->has('test')) {
                 $this->call('test', ['args' => $featureTests]);
@@ -219,7 +224,7 @@ class GenerateCrudTests extends Command
             $operationStubPath = $this->getStubPath('operations/'.$stubName);
             
             if (! File::exists($operationStubPath)) {
-                $this->skippedOperations[$controllerInfo['short_name']][] = $operation;
+                $this->skippedOperations[$controllerInfo['short_name']][] = "$operation ($type)";
                 return;
             }
 
@@ -231,15 +236,31 @@ class GenerateCrudTests extends Command
                 return;
             }
 
+            // Replace __MARK_TEST_AS_SKIPPED__ placeholder
+            $hasFactory = $model && class_exists($model) && method_exists($model, 'factory') && file_exists(database_path('factories/'.class_basename($model).'Factory.php'));
+            
+            if ($hasFactory) {
+                // If the model has a factory, remove the placeholder
+                $methods = str_replace('__MARK_TEST_AS_SKIPPED__', '', $methods);
+            } else {
+                // If no factory, mark the test as skipped
+                $methods = str_replace(
+                    '__MARK_TEST_AS_SKIPPED__', 
+                    '$this->markTestSkipped(\'Factory not found for model \' . $this->model);', 
+                    $methods
+                );
+            }
+
             $className = $this->resolveClassName($controllerInfo, $operation);
 
-            $controllerName = Str::replaceLast('Controller', '', $controllerInfo['short_name']);
+            $controllerShortName = Str::replaceLast('Controller', '', $controllerInfo['short_name']);
+            $controllerRelPath = $this->getRelativeNamespace($controllerInfo['class']);
             
             $namespace = $type === 'feature'
-                ? 'Tests\\Feature\\'.$controllerName
-                : 'Tests\\Browser\\'.$controllerName;
+                ? 'Tests\\Feature\\'.$controllerRelPath
+                : 'Tests\\Browser\\'.$controllerRelPath;
             
-            $baseClassName = $controllerName.'TestBase';
+            $baseClassName = $controllerShortName.'TestBase';
             $this->ensureBaseTestClassExists($namespace, $baseClassName, $controllerInfo, $config, $type);
 
             $operationConfig = $this->extractOperationConfig($config);
@@ -262,16 +283,10 @@ class GenerateCrudTests extends Command
                 'methods' => $methods,
             ]);
 
-            $filePath = $this->determineOutputPath($className, $controllerName, $type);
+            $filePath = $this->determineOutputPath($className, $controllerRelPath, $type);
 
             if ($this->shouldSkipExisting($filePath)) {
                 $this->line("  ⏭️  Skipping {$operation} (file exists, use --force to overwrite)");
-
-                return;
-            }
-
-            if ($this->option('dry-run')) {
-                $this->line("  📝 Would write {$filePath}");
 
                 return;
             }
@@ -318,7 +333,7 @@ class GenerateCrudTests extends Command
      */
     protected function ensureBaseTestClassExists(string $namespace, string $className, array $controllerInfo, array $config, string $type): void
     {
-        $controllerName = Str::replaceLast('Controller', '', $controllerInfo['short_name']);
+        $controllerName = $this->getRelativeNamespace($controllerInfo['class']);
         $filePath = $this->determineOutputPath($className, $controllerName, $type);
 
         if (in_array($filePath, $this->generatedBaseClasses)) {
@@ -565,7 +580,8 @@ class GenerateCrudTests extends Command
             : base_path('tests/Browser');
 
         if ($controllerName) {
-            $baseDir .= DIRECTORY_SEPARATOR.$controllerName;
+            $pathFn = fn($path) => str_replace('\\', DIRECTORY_SEPARATOR, $path);
+            $baseDir .= DIRECTORY_SEPARATOR.$pathFn($controllerName);
         }
 
         if (! File::isDirectory($baseDir)) {
@@ -597,28 +613,54 @@ class GenerateCrudTests extends Command
     }
 
     /**
-     * Get the path to a stub file, respecting the chosen framework.
+     * Get the path to a stub file, respecting the chosen framework and published stubs.
      */
     protected function getStubPath(string $name): string
     {
         $framework = $this->option('framework');
-        $basePath = __DIR__.'/../../../resources/stubs/crud-testing/';
         
-        // If framework is defined and not default, try to find framework-specific stub
-        if ($framework && $framework !== 'phpunit') {
-            // First try nested directory: frameworks/{framework}/{stub}
-            $namespaced = $basePath . $framework . '/' . $name;
-            if (File::exists($namespaced)) {
-                return $namespaced;
+        $searchPaths = [
+            resource_path('views/vendor/backpack/crud/stubs/crud-testing/'),
+            __DIR__.'/../../../resources/stubs/crud-testing/',
+        ];
+
+        foreach ($searchPaths as $basePath) {
+            // If framework is defined and not default, try to find framework-specific stub
+            if ($framework && $framework !== 'phpunit') {
+                // First try nested directory: frameworks/{framework}/{stub}
+                $namespaced = $basePath . $framework . '/' . $name;
+                if (File::exists($namespaced)) {
+                    return $namespaced;
+                }
+                
+                // Then try prefixed: {framework}-{stub}
+                $prefixed = $basePath . $framework . '-' . $name;
+                if (File::exists($prefixed)) {
+                    return $prefixed;
+                }
             }
-            
-            // Then try prefixed: {framework}-{stub}
-            $prefixed = $basePath . $framework . '-' . $name;
-            if (File::exists($prefixed)) {
-                return $prefixed;
+
+            if (File::exists($basePath . $name)) {
+                return $basePath . $name;
             }
         }
         
-        return $basePath . $name;
+        return __DIR__.'/../../../resources/stubs/crud-testing/' . $name;
+    }
+
+    /**
+     * Get the relative namespace for the test class based on controller structure.
+     */
+    protected function getRelativeNamespace(string $controllerClass): string
+    {
+        $rootNamespace = 'App\\Http\\Controllers\\';
+        
+        if (Str::startsWith($controllerClass, $rootNamespace)) {
+            $relative = Str::after($controllerClass, $rootNamespace);
+        } else {
+            $relative = class_basename($controllerClass);
+        }
+
+        return Str::replaceLast('Controller', '', $relative);
     }
 }

@@ -26,5 +26,9 @@ class DummyBaseClass extends CrudFeatureTestCase
         if ($this->app->bound('crud')) {
             $this->app['crud']->clearFilters();
         }
+
+        if(config('backpack.testing.configurations.'.$this->controller)) {
+            $this->testConfig = new (config('backpack.testing.configurations.'.$this->controller))();
+        }
     }
 }

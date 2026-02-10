@@ -35,7 +35,7 @@ class CrudTestBuilder
             'entity_name' => $this->crudPanel->entity_name,
             'entity_name_plural' => $this->crudPanel->entity_name_plural,
             'model' => is_object($this->crudPanel->model) ? get_class($this->crudPanel->model) : $this->crudPanel->model,
-        ];
+            ];
 
         if ($this->operation === 'list') {
             $config['filters'] = $this->crudPanel->filters();

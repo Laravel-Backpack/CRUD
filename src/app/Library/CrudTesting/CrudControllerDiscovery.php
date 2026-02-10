@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 use ReflectionClass;
 use Backpack\CRUD\CrudManager;
+use Illuminate\Support\Facades\Route;
 
 /**
  * Discovers CrudControllers in the application and extracts their configuration.
@@ -21,7 +22,10 @@ class CrudControllerDiscovery
      */
     public static function discover($paths = null): array
     {
-        $paths = $paths ?? [app_path('Http/Controllers')];
+        if ($paths === null) {
+            $paths = config('backpack.testing.controllers_path', app_path('Http/Controllers'));
+        }
+        
         $paths = is_array($paths) ? $paths : [$paths];
         
         $controllers = [];
@@ -86,10 +90,18 @@ class CrudControllerDiscovery
      */
     protected static function getOperations(ReflectionClass $reflection): array
     {
-        $traits = $reflection->getTraitNames();
+        $traits = [];
+        $currentReflection = $reflection;
+
+        // Collect traits from the class and all its parents
+        while ($currentReflection) {
+            $traits = array_merge($traits, $currentReflection->getTraitNames());
+            $currentReflection = $currentReflection->getParentClass();
+        }
+
         $operations = [];
 
-        foreach ($traits as $trait) {
+        foreach (array_unique($traits) as $trait) {
             try {
                 $traitReflection = new ReflectionClass($trait);
             } catch (\ReflectionException $e) {
@@ -168,13 +180,15 @@ class CrudControllerDiscovery
      */
     public static function buildCrudPanel(string $controllerClass, string $operation = 'list'): object
     {
+        self::clearCrudPanelBindings($controllerClass);
+
+        TestConfigHelper::applyConfiguration($controllerClass, $operation);
+        
         $controller = app()->make($controllerClass);
-        $request = request([
-            'operation' => $operation
-        ]);
+        
         if (! CrudManager::hasCrudPanel($controllerClass)) {
             
-            $controller->initializeCrudPanel($request);
+            $controller->initializeCrudPanel(request());
 
             return CrudManager::getCrudPanel($controllerClass);
         }
@@ -182,6 +196,22 @@ class CrudControllerDiscovery
         $controller->setupCrudController($operation);
 
         return CrudManager::getCrudPanel($controller);
+
         
+    }
+
+    private static function clearCrudPanelBindings(): void
+    {
+         if (app()->bound('crud')) {
+            app()->forgetInstance('crud');
+            app()->forgetInstance(\Backpack\CRUD\app\Library\CrudPanel\CrudPanel::class);
+        }
+        
+        if (app()->bound('CrudManager')) {
+            app()->forgetInstance('CrudManager');
+        }
+
+        \Illuminate\Support\Facades\Facade::clearResolvedInstance('CrudManager');
+        \Illuminate\Support\Facades\Facade::clearResolvedInstance('crud');
     }
 }

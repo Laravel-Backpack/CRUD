@@ -2,6 +2,7 @@
 
 namespace Backpack\CRUD\app\Library\CrudTesting;
 
+use Backpack\CRUD\app\Library\CrudPanel\CrudPanel;
 use Illuminate\Foundation\Testing\TestCase as IlluminateTestCase;
 
 /**
@@ -41,12 +42,18 @@ abstract class CrudFeatureTestCase extends IlluminateTestCase
      */
     protected ?string $entityNamePlural = null;
 
+    
     /**
-     * The type of tester to use (feature or browser).
-     *
-     * @var string
+     * Cache for operation settings
      */
-    protected string $testerType = 'feature';
+    protected static array $operationSettingsCache = [];
+
+
+    public string $operation = 'list'; // Default operation, can be overridden in child classes
+
+    public CrudTestConfiguration $testConfig;
+
+    public CrudPanel $crudPanel;
 
     /**
      * Get the base admin URL.
@@ -81,43 +88,36 @@ abstract class CrudFeatureTestCase extends IlluminateTestCase
      * @param  array  $attributes
      * @return \Illuminate\Database\Eloquent\Model
      */
-    protected function createTestEntry(array $attributes = [])
+    public function createTestEntry(array $attributes = [])
     {
-        return $this->model::factory()->create($attributes);
+        return TestConfigHelper::createTestEntry($this->model, $attributes);
     }
-
-
-    /**
-     * Cache for operation settings
-     */
-    protected static array $operationSettingsCache = [];
 
     /**
      * Get the operation configuration for the current controller.
      * 
-     * @param string $operation
      * @return array
      */
-    protected function getOperationSettings(string $operation): array
+    protected function getOperationSettings(): array
     {
-        $cacheKey = $this->controller . ':' . $operation;
-
-        if (isset(static::$operationSettingsCache[$cacheKey])) {
-            return static::$operationSettingsCache[$cacheKey];
-        }
-
-        $controllerInfo = CrudControllerDiscovery::analyzeController($this->controller);
-        $builder = new CrudTestBuilder($controllerInfo, $operation);
-        $settings = $builder->getTestConfiguration();
-
-        static::$operationSettingsCache[$cacheKey] = $settings;
-
-        return $settings;
+        return static::$operationSettingsCache[$this->getCacheKey()] ?? [];
     }
 
     protected function setUp(): void
     {
         parent::setUp();
+
+        $cacheKey = $this->getCacheKey();
+        if (! isset(static::$operationSettingsCache[$cacheKey])) {
+            //$panel = CrudControllerDiscovery::buildCrudPanel($this->controller, $this->operation);
+            $controllerInfo = CrudControllerDiscovery::analyzeController($this->controller);
+            $builder = new CrudTestBuilder($controllerInfo, $this->operation);
+            $settings = $builder->getTestConfiguration();
+
+            static::$operationSettingsCache[$cacheKey] = $settings;
+        }
+        $this->testConfig = new TestConfigHelper();
+
         // Disable CSRF protection for feature tests as they make direct requests
         $this->withoutMiddleware(\App\Http\Middleware\VerifyCsrfToken::class);
     }
@@ -142,8 +142,14 @@ abstract class CrudFeatureTestCase extends IlluminateTestCase
      * @param  array  $attributes
      * @return \Illuminate\Database\Eloquent\Collection
      */
-    protected function createTestEntries(int $count = 5, array $attributes = [])
+    public function createTestEntries(int $count = 5, array $attributes = [])
     {
         return $this->model::factory()->count($count)->create($attributes);
+    }
+
+
+    private function getCacheKey(): string 
+    {
+        return $this->controller . ':' . $this->operation;
     }
 }

@@ -1,19 +1,11 @@
+    public string $operation = 'show';
+
     /**
      * Test that show page loads
      */
     public function test_show_page_loads_successfully(): void
     {
-        // Check if the model has a factory defined
-        if (! method_exists($this->model, 'factory')) {
-            $this->markTestSkipped('Factory not found for model ' . $this->model);
-        }
-
-        try {
-             $this->model::factory()->count(1)->make();
-        } catch (\Throwable $e) {
-            $this->markTestSkipped('Factory not found for model ' . $this->model);
-        }
-
+        __MARK_TEST_AS_SKIPPED__
         $entry = $this->createTestEntry();
         $response = $this->get($this->getCrudUrl($entry->getKey().'/show'));
         $response->assertStatus(200);
