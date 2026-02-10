@@ -7,7 +7,7 @@ use Illuminate\Foundation\Testing\TestCase as IlluminateTestCase;
 
 /**
  * Base test case for CRUD feature tests.
- * Provides common functionality for testing CRUD operations
+ * Provides common functionality for testing CRUD operations.
  */
 abstract class CrudFeatureTestCase extends IlluminateTestCase
 {
@@ -42,12 +42,10 @@ abstract class CrudFeatureTestCase extends IlluminateTestCase
      */
     protected ?string $entityNamePlural = null;
 
-    
     /**
-     * Cache for operation settings
+     * Cache for operation settings.
      */
     protected static array $operationSettingsCache = [];
-
 
     public string $operation = 'list'; // Default operation, can be overridden in child classes
 
@@ -95,7 +93,7 @@ abstract class CrudFeatureTestCase extends IlluminateTestCase
 
     /**
      * Get the operation configuration for the current controller.
-     * 
+     *
      * @return array
      */
     protected function getOperationSettings(): array
@@ -131,7 +129,7 @@ abstract class CrudFeatureTestCase extends IlluminateTestCase
     {
         $userModel = config('backpack.base.user_model_fqn', 'App\Models\User');
         $user = $userModel::find(1) ?? $userModel::factory()->create();
-        
+
         return $this->actingAs($user, config('backpack.base.guard', 'web'));
     }
 
@@ -147,9 +145,8 @@ abstract class CrudFeatureTestCase extends IlluminateTestCase
         return $this->model::factory()->count($count)->create($attributes);
     }
 
-
-    private function getCacheKey(): string 
+    private function getCacheKey(): string
     {
-        return $this->controller . ':' . $this->operation;
+        return $this->controller.':'.$this->operation;
     }
 }

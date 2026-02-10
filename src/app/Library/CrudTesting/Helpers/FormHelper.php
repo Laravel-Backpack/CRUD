@@ -45,7 +45,7 @@ class FormHelper
     /**
      * Fill the form with generated fake data.
      *
-     * @return array  The generated data
+     * @return array The generated data
      */
     public function fillWithFakeData(): array
     {
@@ -235,7 +235,7 @@ class FormHelper
     /**
      * Fill only required fields.
      *
-     * @return array  The generated data
+     * @return array The generated data
      */
     public function fillRequiredFields(): array
     {

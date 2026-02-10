@@ -3,11 +3,10 @@
 namespace Backpack\CRUD\app\Library\CrudTesting;
 
 use Backpack\CRUD\app\Http\Controllers\CrudController;
+use Backpack\CRUD\CrudManager;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 use ReflectionClass;
-use Backpack\CRUD\CrudManager;
-use Illuminate\Support\Facades\Route;
 
 /**
  * Discovers CrudControllers in the application and extracts their configuration.
@@ -25,9 +24,9 @@ class CrudControllerDiscovery
         if ($paths === null) {
             $paths = config('backpack.testing.controllers_path', app_path('Http/Controllers'));
         }
-        
+
         $paths = is_array($paths) ? $paths : [$paths];
-        
+
         $controllers = [];
 
         foreach ($paths as $path) {
@@ -68,10 +67,10 @@ class CrudControllerDiscovery
     public static function analyzeController(string $controllerClass): array
     {
         $reflection = new ReflectionClass($controllerClass);
-        
+
         // Get the operations used by this controller
         $operations = static::getOperations($reflection);
-        
+
         $analysis = [
             'class' => $controllerClass,
             'short_name' => $reflection->getShortName(),
@@ -107,7 +106,7 @@ class CrudControllerDiscovery
             } catch (\ReflectionException $e) {
                 continue;
             }
-            
+
             foreach ($traitReflection->getMethods() as $method) {
                 if (preg_match('/^setup(.+)(Routes|Defaults)$/', $method->getName(), $matches)) {
                     $operations[] = Str::kebab($matches[1]);
@@ -183,11 +182,10 @@ class CrudControllerDiscovery
         self::clearCrudPanelBindings($controllerClass);
 
         TestConfigHelper::applyConfiguration($controllerClass, $operation);
-        
+
         $controller = app()->make($controllerClass);
-        
+
         if (! CrudManager::hasCrudPanel($controllerClass)) {
-            
             $controller->initializeCrudPanel(request());
 
             return CrudManager::getCrudPanel($controllerClass);
@@ -196,17 +194,15 @@ class CrudControllerDiscovery
         $controller->setupCrudController($operation);
 
         return CrudManager::getCrudPanel($controller);
-
-        
     }
 
     private static function clearCrudPanelBindings(): void
     {
-         if (app()->bound('crud')) {
+        if (app()->bound('crud')) {
             app()->forgetInstance('crud');
             app()->forgetInstance(\Backpack\CRUD\app\Library\CrudPanel\CrudPanel::class);
         }
-        
+
         if (app()->bound('CrudManager')) {
             app()->forgetInstance('CrudManager');
         }

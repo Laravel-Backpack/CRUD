@@ -192,7 +192,7 @@ class DataTablesHelper
      */
     public function getCellValue(int $rowIndex, int $columnIndex): string
     {
-        $selector = "{$this->tableSelector} tbody tr:nth-child(".($rowIndex + 1).") td:nth-child(".($columnIndex + 1).")";
+        $selector = "{$this->tableSelector} tbody tr:nth-child(".($rowIndex + 1).') td:nth-child('.($columnIndex + 1).')';
 
         return $this->browser->text($selector);
     }

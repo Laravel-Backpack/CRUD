@@ -41,8 +41,8 @@ interface CrudTestConfiguration
     /**
      * Create a test entry for the model.
      *
-     * @param string $model
-     * @param array $attributes
+     * @param  string  $model
+     * @param  array  $attributes
      * @return \Illuminate\Database\Eloquent\Model
      */
     public static function createTestEntry(string $model, array $attributes = []);
@@ -50,8 +50,8 @@ interface CrudTestConfiguration
     /**
      * Get the database assertion input for the model.
      *
-     * @param string $model
-     * @param array $data
+     * @param  string  $model
+     * @param  array  $data
      * @return array
      */
     public static function getDatabaseAssertInput(string $model, array $data = []): array;

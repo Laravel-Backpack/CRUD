@@ -25,13 +25,13 @@ class Select2FieldTester extends FieldTester
     {
         // Open select2 dropdown
         $browser->click($this->getSelector());
-        
+
         // Wait for dropdown to appear
         $browser->waitFor('.select2-dropdown', 2);
-        
+
         // Type search value
         $browser->type('.select2-search__field', $value);
-        
+
         // Select first result
         $browser->keys('.select2-search__field', '{enter}');
 

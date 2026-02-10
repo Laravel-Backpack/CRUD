@@ -37,7 +37,7 @@ class ButtonHelper
      */
     public function clickLineButton(string $buttonName, int $rowIndex = 0): self
     {
-        $selector = "#crudTable tbody tr:nth-child(".($rowIndex + 1).") [data-button-name='{$buttonName}']";
+        $selector = '#crudTable tbody tr:nth-child('.($rowIndex + 1).") [data-button-name='{$buttonName}']";
         $this->browser->click($selector);
 
         return $this;
@@ -106,7 +106,7 @@ class ButtonHelper
      */
     public function clickEdit(int $rowIndex = 0): self
     {
-        $selector = "#crudTable tbody tr:nth-child(".($rowIndex + 1).") [data-button-type='edit'], #crudTable tbody tr:nth-child(".($rowIndex + 1).") .edit-button";
+        $selector = '#crudTable tbody tr:nth-child('.($rowIndex + 1).") [data-button-type='edit'], #crudTable tbody tr:nth-child(".($rowIndex + 1).') .edit-button';
         $this->browser->click($selector);
 
         return $this;
@@ -120,7 +120,7 @@ class ButtonHelper
      */
     public function clickDelete(int $rowIndex = 0): self
     {
-        $selector = "#crudTable tbody tr:nth-child(".($rowIndex + 1).") [data-button-type='delete'], #crudTable tbody tr:nth-child(".($rowIndex + 1).") .delete-button";
+        $selector = '#crudTable tbody tr:nth-child('.($rowIndex + 1).") [data-button-type='delete'], #crudTable tbody tr:nth-child(".($rowIndex + 1).') .delete-button';
         $this->browser->click($selector);
 
         return $this;
@@ -134,7 +134,7 @@ class ButtonHelper
      */
     public function clickShow(int $rowIndex = 0): self
     {
-        $selector = "#crudTable tbody tr:nth-child(".($rowIndex + 1).") [data-button-type='show'], #crudTable tbody tr:nth-child(".($rowIndex + 1).") .show-button";
+        $selector = '#crudTable tbody tr:nth-child('.($rowIndex + 1).") [data-button-type='show'], #crudTable tbody tr:nth-child(".($rowIndex + 1).') .show-button';
         $this->browser->click($selector);
 
         return $this;

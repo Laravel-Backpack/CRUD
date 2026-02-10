@@ -64,7 +64,7 @@ class RepeatableFieldTester extends FieldTester
     {
         $addButtonSelector = "{$this->getSelector()} .repeatable-add-button";
         $browser->click($addButtonSelector);
-        
+
         // Wait for new row to be added
         $browser->pause(500);
 

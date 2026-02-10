@@ -13,12 +13,12 @@ use Laravel\Dusk\Browser;
 /**
  * Base test case for CRUD browser tests.
  * Provides common functionality for testing CRUD operations with Dusk.
- * 
+ *
  * @example
  * // Use helpers for common tasks
  * $formHelper = $this->getFormHelper($browser);
  * $formHelper->fill(['name' => 'Test'])->submit();
- * 
+ *
  * $dataTablesHelper = $this->getDataTablesHelper($browser);
  * $dataTablesHelper->search('test')->assertContains('test');
  */
@@ -191,6 +191,7 @@ abstract class CrudBrowserTestCase extends BaseTestClass
 
     /**
      * Visit the list page.
+     *
      * @deprecated Use visitOperationPage($browser, 'list') instead
      *
      * @param  mixed  $browser
@@ -203,6 +204,7 @@ abstract class CrudBrowserTestCase extends BaseTestClass
 
     /**
      * Visit the create page.
+     *
      * @deprecated Use visitOperationPage($browser, 'create') instead
      *
      * @param  mixed  $browser
@@ -215,6 +217,7 @@ abstract class CrudBrowserTestCase extends BaseTestClass
 
     /**
      * Visit the update page for an entry.
+     *
      * @deprecated Use visitOperationPage($browser, 'update', $id) instead
      *
      * @param  mixed  $browser
@@ -228,6 +231,7 @@ abstract class CrudBrowserTestCase extends BaseTestClass
 
     /**
      * Visit the show page for an entry.
+     *
      * @deprecated Use visitOperationPage($browser, 'show', $id) instead
      *
      * @param  mixed  $browser
@@ -241,6 +245,7 @@ abstract class CrudBrowserTestCase extends BaseTestClass
 
     /**
      * Wait for DataTables to load.
+     *
      * @deprecated Use getDataTablesHelper($browser)->waitForLoad() instead
      *
      * @param  mixed  $browser
@@ -255,6 +260,7 @@ abstract class CrudBrowserTestCase extends BaseTestClass
 
     /**
      * Assert that DataTables contains text.
+     *
      * @deprecated Use getDataTablesHelper($browser)->assertContains($text) instead
      *
      * @param  mixed  $browser
@@ -270,6 +276,7 @@ abstract class CrudBrowserTestCase extends BaseTestClass
 
     /**
      * Assert that a column is visible in the list.
+     *
      * @deprecated
      *
      * @param  mixed  $browser
@@ -285,6 +292,7 @@ abstract class CrudBrowserTestCase extends BaseTestClass
 
     /**
      * Assert that a field is visible on the form.
+     *
      * @deprecated Use getFormHelper($browser, $fields)->assertFieldVisible($fieldName) instead
      *
      * @param  mixed  $browser
@@ -300,6 +308,7 @@ abstract class CrudBrowserTestCase extends BaseTestClass
 
     /**
      * Assert that a button is visible.
+     *
      * @deprecated Use getButtonHelper($browser)->assertVisible($buttonText) instead
      *
      * @param  mixed  $browser
@@ -313,6 +322,7 @@ abstract class CrudBrowserTestCase extends BaseTestClass
 
     /**
      * Fill a form field.
+     *
      * @deprecated Use getFormHelper($browser, $fields)->fill($data) instead
      *
      * @param  mixed  $browser
@@ -347,6 +357,7 @@ abstract class CrudBrowserTestCase extends BaseTestClass
 
     /**
      * Submit the form.
+     *
      * @deprecated Use getFormHelper($browser)->submit($buttonText) instead
      *
      * @param  mixed  $browser
@@ -360,6 +371,7 @@ abstract class CrudBrowserTestCase extends BaseTestClass
 
     /**
      * Get the selector for a form field.
+     *
      * @deprecated Use FieldTester::make($field)->getSelector() instead
      *
      * @param  string  $fieldName
@@ -374,6 +386,7 @@ abstract class CrudBrowserTestCase extends BaseTestClass
 
     /**
      * Assert that validation error is shown.
+     *
      * @deprecated Use getFormHelper($browser)->assertValidationError($fieldName) instead
      *
      * @param  mixed  $browser
@@ -388,6 +401,7 @@ abstract class CrudBrowserTestCase extends BaseTestClass
 
     /**
      * Click a button in the DataTable.
+     *
      * @deprecated Use getButtonHelper($browser)->clickInRow($buttonClass, $rowIndex) instead
      *
      * @param  mixed  $browser
@@ -404,6 +418,7 @@ abstract class CrudBrowserTestCase extends BaseTestClass
 
     /**
      * Apply a filter.
+     *
      * @deprecated Use getFilterHelper($browser, $filters)->apply($filterName, $value) instead
      *
      * @param  mixed  $browser
@@ -425,6 +440,7 @@ abstract class CrudBrowserTestCase extends BaseTestClass
 
     /**
      * Search in DataTable.
+     *
      * @deprecated Use getDataTablesHelper($browser)->search($searchTerm) instead
      *
      * @param  mixed  $browser

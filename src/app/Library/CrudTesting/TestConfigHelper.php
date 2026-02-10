@@ -3,12 +3,12 @@
 namespace Backpack\CRUD\app\Library\CrudTesting;
 
 use Illuminate\Routing\Route;
-use Backpack\CRUD\app\Library\CrudPanel\CrudPanel;
-use Illuminate\Database\Eloquent\Model;
 
 class TestConfigHelper implements CrudTestConfiguration
 {
-    public function __construct() {}
+    public function __construct()
+    {
+    }
 
     public function setup()
     {
@@ -36,7 +36,7 @@ class TestConfigHelper implements CrudTestConfiguration
 
         if (self::isTranslatable($instance)) {
             return self::getTranslatableDatabaseAssertInput($model, $instance, $data);
-        } 
+        }
 
         $input = $model::factory()->make()->getAttributes();
 
@@ -74,6 +74,7 @@ class TestConfigHelper implements CrudTestConfiguration
                 $input[$key] = $data[$key];
             }
         }
+
         return $input;
     }
 
@@ -85,7 +86,7 @@ class TestConfigHelper implements CrudTestConfiguration
     /**
      * Apply the test configuration for the given controller.
      *
-     * @param string $controllerClass
+     * @param  string  $controllerClass
      * @return void
      */
     public static function applyConfiguration(string $controllerClass, $operation = 'list'): void
@@ -99,31 +100,31 @@ class TestConfigHelper implements CrudTestConfiguration
         // Handle Class Configuration
         if (is_string($config) && class_exists($config)) {
             $instance = new $config();
-        
+
             if (! $instance instanceof CrudTestConfiguration) {
                 throw new \InvalidArgumentException("Configuration class {$config} must implement CrudTestConfiguration.");
             }
-            
+
             if (method_exists($instance, 'setup')) {
                 $instance->setup();
             }
 
             static::mockRoute($instance->getRouteParameters(), $operation);
+
             return;
         }
-        
+
         static::mockRoute([], $operation);
 
-        return;
     }
 
     /**
      * Mock the current route with the given parameters.
      *
-     * @param array $parameters
-     * @param string $operation
-     * @param string $uri
-     * @param string $method
+     * @param  array  $parameters
+     * @param  string  $operation
+     * @param  string  $uri
+     * @param  string  $method
      * @return void
      */
     public static function mockRoute(array $parameters, string $operation, string $uri = '/', string $method = 'GET'): void
@@ -131,10 +132,10 @@ class TestConfigHelper implements CrudTestConfiguration
         $action = ['uses' => 'Controller@method', 'operation' => $operation];
 
         $route = new Route([$method], $uri, $action);
-        
+
         $request = app('request')->merge(['operation' => $operation]);
         $route->bind($request);
-        
+
         foreach ($parameters as $key => $value) {
             $route->setParameter($key, $value);
         }
@@ -142,7 +143,7 @@ class TestConfigHelper implements CrudTestConfiguration
         $request->setRouteResolver(fn () => $route);
 
         $router = app('router');
-        
+
         try {
             $reflector = new \ReflectionClass($router);
             $property = $reflector->getProperty('current');

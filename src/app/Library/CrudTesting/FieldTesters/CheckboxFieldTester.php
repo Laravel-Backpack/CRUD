@@ -20,8 +20,8 @@ class CheckboxFieldTester extends FieldTester
      */
     public function fill($browser, $value)
     {
-        return $value 
-            ? $browser->check($this->getSelector()) 
+        return $value
+            ? $browser->check($this->getSelector())
             : $browser->uncheck($this->getSelector());
     }
 
