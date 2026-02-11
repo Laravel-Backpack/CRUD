@@ -57,7 +57,7 @@ class TestConfigHelper implements CrudTestConfiguration
     {
         return $this->model::factory()->count($count)->create($attributes);
     }
-    
+
     /**
      * Create a test entry for the model.
      *
@@ -174,7 +174,6 @@ class TestConfigHelper implements CrudTestConfiguration
         }
 
         static::mockRoute([], $operation);
-
     }
 
     /**

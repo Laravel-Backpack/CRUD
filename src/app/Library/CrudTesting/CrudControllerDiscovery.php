@@ -146,7 +146,7 @@ class CrudControllerDiscovery
 
     /**
      * Build a CrudPanel for testing.
-     * 
+     *
      * @param  string  $controllerClass
      * @param  string  $operation
      * @return \Backpack\CRUD\app\Library\CrudPanel\CrudPanel

@@ -41,8 +41,8 @@ abstract class CrudFeatureTestCase extends IlluminateTestCase
     protected function setUp(): void
     {
         parent::setUp();
-        
-        $this->testHelper = config('backpack.testing.configurations.'.$this->controller) !== null ? 
+
+        $this->testHelper = config('backpack.testing.configurations.'.$this->controller) !== null ?
         new (config('backpack.testing.configurations.'.$this->controller))($this->controller, $this->operation, $this->route, $this->model) :
         new TestConfigHelper($this->controller, $this->operation, $this->route, $this->model);
 

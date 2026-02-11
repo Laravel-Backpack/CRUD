@@ -54,7 +54,7 @@ class GenerateCrudTests extends Command
     {
         config(['database.default' => 'sqlite']);
         config(['database.connections.sqlite' => [
-            'driver'   => 'sqlite',
+            'driver' => 'sqlite',
             'database' => ':memory:',
         ]]);
 
@@ -69,8 +69,7 @@ class GenerateCrudTests extends Command
         }
 
         if ($filter = $this->option('controller')) {
-
-        $exactMatches = $controllers->filter(function (array $controller) use ($filter) {
+            $exactMatches = $controllers->filter(function (array $controller) use ($filter) {
                 return $controller['short_name'] === $filter || $controller['class'] === $filter;
             });
 
