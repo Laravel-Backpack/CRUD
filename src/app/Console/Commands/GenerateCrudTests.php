@@ -52,6 +52,14 @@ class GenerateCrudTests extends Command
 
     public function handle(): int
     {
+        config(['database.default' => 'sqlite']);
+        config(['database.connections.sqlite' => [
+            'driver'   => 'sqlite',
+            'database' => ':memory:',
+        ]]);
+
+        $this->callSilent('migrate');
+
         $controllers = collect($this->discoverControllers());
 
         if ($controllers->isEmpty()) {
@@ -61,8 +69,8 @@ class GenerateCrudTests extends Command
         }
 
         if ($filter = $this->option('controller')) {
-            // First try strict matching on the short name or full class name
-            $exactMatches = $controllers->filter(function (array $controller) use ($filter) {
+
+        $exactMatches = $controllers->filter(function (array $controller) use ($filter) {
                 return $controller['short_name'] === $filter || $controller['class'] === $filter;
             });
 
@@ -193,12 +201,6 @@ class GenerateCrudTests extends Command
             $this->line("  Generating {$type} tests...");
 
             $operations->each(function (string $operation) use ($controllerInfo, $type) {
-                if (! $this->operationEnabled($operation)) {
-                    $this->line("  ⏭️  Skipping {$operation} (disabled in configuration)");
-
-                    return;
-                }
-
                 $this->generateTestForOperation($controllerInfo, $operation, $type);
             });
         }
@@ -221,8 +223,8 @@ class GenerateCrudTests extends Command
             }
 
             // Check for stub override
-            $stubName = "{$type}-{$operation}.stub";
-            $operationStubPath = $this->getStubPath('operations/'.$stubName);
+            $stubName = "{$operation}.stub";
+            $operationStubPath = $this->getStubPath($type.'/'.$stubName);
 
             if (! File::exists($operationStubPath)) {
                 $this->skippedOperations[$controllerInfo['short_name']][] = "$operation ($type)";
@@ -253,6 +255,15 @@ class GenerateCrudTests extends Command
                 );
             }
 
+            // Check for SoftDeletes
+            if ($model && class_exists($model) && in_array('Illuminate\Database\Eloquent\SoftDeletes', class_uses_recursive($model))) {
+                $methods = str_replace('__WITH_SOFT_DELETES_MISSING_ASSERTION__', '$this->assertSoftDeleted($this->model, [$entry->getKeyName() => $entry->getKey()]);', $methods);
+                $methods = str_replace('__NON_SOFT_DELETE_MISSING_ASSERTION__', '', $methods);
+            } else {
+                $methods = str_replace('__WITH_SOFT_DELETES_MISSING_ASSERTION__', '', $methods);
+                $methods = str_replace('__NON_SOFT_DELETE_MISSING_ASSERTION__', '$this->assertDatabaseMissing($this->model, [$entry->getKeyName() => $entry->getKey()]);', $methods);
+            }
+
             $className = $this->resolveClassName($controllerInfo, $operation);
 
             $controllerShortName = Str::replaceLast('Controller', '', $controllerInfo['short_name']);
@@ -272,6 +283,7 @@ class GenerateCrudTests extends Command
             $routeSegment = $this->normalizeRoute($config['route'] ?? '');
 
             $testClass = $this->renderTestClass([
+                'type' => $type,
                 'namespace' => $namespace,
                 'class' => $className,
                 'base_class' => $baseClassName,
@@ -330,7 +342,7 @@ class GenerateCrudTests extends Command
             return;
         }
 
-        $stubName = $type === 'feature' ? 'feature-test-base.stub' : 'browser-test-base.stub';
+        $stubName = $type.'/base.stub';
         $stubPath = $this->getStubPath($stubName);
 
         if (! File::exists($stubPath)) {
@@ -366,8 +378,8 @@ class GenerateCrudTests extends Command
      */
     protected function renderTestClass(array $data): string
     {
-        $type = $this->option('type');
-        $stubName = $type === 'feature' ? 'feature-test.stub' : 'browser-test.stub';
+        $type = $data['type'] ?? $this->option('type') ?? 'feature';
+        $stubName = $type.'/test.stub';
         $stubPath = $this->getStubPath($stubName);
         $stub = File::get($stubPath);
 
@@ -606,8 +618,8 @@ class GenerateCrudTests extends Command
         $framework = $this->option('framework');
 
         $searchPaths = [
-            resource_path('views/vendor/backpack/crud/stubs/crud-testing/'),
-            __DIR__.'/../../../resources/stubs/crud-testing/',
+            resource_path('views/vendor/backpack/crud/stubs/testing/'),
+            __DIR__.'/../../../resources/stubs/testing/',
         ];
 
         foreach ($searchPaths as $basePath) {
@@ -631,7 +643,7 @@ class GenerateCrudTests extends Command
             }
         }
 
-        return __DIR__.'/../../../resources/stubs/crud-testing/'.$name;
+        return __DIR__.'/../../../resources/stubs/testing/'.$name;
     }
 
     /**

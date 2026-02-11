@@ -181,7 +181,7 @@ class BackpackServiceProvider extends ServiceProvider
             __DIR__.'/resources/views/ui/inc/menu_items.blade.php' => resource_path('views/vendor/backpack/ui/inc/menu_items.blade.php'),
         ];
         $backpack_custom_routes_file = [__DIR__.$this->customRoutesFilePath => base_path($this->customRoutesFilePath)];
-        $backpack_stubs = [__DIR__.'/resources/stubs/crud-testing' => resource_path('views/vendor/backpack/crud/stubs/crud-testing')];
+        $backpack_stubs = [__DIR__.'/resources/stubs/testing' => resource_path('views/vendor/backpack/crud/stubs/testing')];
 
         // calculate the path from current directory to get the vendor path
         $vendorPath = dirname(__DIR__, 3);

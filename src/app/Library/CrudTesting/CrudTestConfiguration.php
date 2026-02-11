@@ -55,4 +55,46 @@ interface CrudTestConfiguration
      * @return array
      */
     public static function getDatabaseAssertInput(string $model, array $data = []): array;
+
+    /**
+     * Authenticate as admin.
+     * 
+     * @param object $testCase
+     * @return object
+     */
+    public function actingAsAdmin($testCase);
+
+    /**
+     * Get the CRUD URL.
+     * 
+     * @param string|null $path
+     * @return string
+     */
+    public function getCrudUrl(?string $path = null): string;
+
+    /**
+     * Create multiple test entries.
+     * 
+     * @param int $count
+     * @param array $attributes
+     * @return mixed
+     */
+    public function createTestEntries(int $count = 5, array $attributes = []);
+
+    /**
+     * Create a test entry for the model (instance method).
+     * 
+     * @param array $attributes
+     * @return \Illuminate\Database\Eloquent\Model
+     */
+    public function createEntry(array $attributes = []);
+
+        /**
+        * Get a specific setting for the current operation.
+        * 
+        * @param string $setting
+        * @param mixed $default
+        * @return mixed
+        */
+    public function getOperationSetting(string $setting, $default = null);
 }

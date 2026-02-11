@@ -75,7 +75,6 @@ class CrudControllerDiscovery
             'class' => $controllerClass,
             'short_name' => $reflection->getShortName(),
             'operations' => $operations,
-            'setup_methods' => static::getSetupMethods($reflection),
         ];
 
         return $analysis;
@@ -119,30 +118,6 @@ class CrudControllerDiscovery
     }
 
     /**
-     * Get setup methods (setupXxxOperation) from the controller.
-     *
-     * @param  ReflectionClass  $reflection
-     * @return array
-     */
-    protected static function getSetupMethods(ReflectionClass $reflection): array
-    {
-        $methods = $reflection->getMethods(\ReflectionMethod::IS_PUBLIC | \ReflectionMethod::IS_PROTECTED);
-        $setupMethods = [];
-
-        foreach ($methods as $method) {
-            if (Str::startsWith($method->getName(), 'setup') && Str::endsWith($method->getName(), 'Operation')) {
-                $operationName = Str::between($method->getName(), 'setup', 'Operation');
-                $setupMethods[] = [
-                    'method' => $method->getName(),
-                    'operation' => Str::kebab($operationName),
-                ];
-            }
-        }
-
-        return $setupMethods;
-    }
-
-    /**
      * Extract class name from a file path.
      *
      * @param  string  $filePath
@@ -170,9 +145,8 @@ class CrudControllerDiscovery
     }
 
     /**
-     * Build a CrudPanel for testing by instantiating the controller.
-     * This is used to extract fields, columns, and operation settings.
-     *
+     * Build a CrudPanel for testing.
+     * 
      * @param  string  $controllerClass
      * @param  string  $operation
      * @return \Backpack\CRUD\app\Library\CrudPanel\CrudPanel

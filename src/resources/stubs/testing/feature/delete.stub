@@ -5,12 +5,13 @@
     public function test_delete_removes_entry_from_database(): void
     {
         __MARK_TEST_AS_SKIPPED__
-        $entry = $this->createTestEntry();
+        $entry = $this->testHelper->createEntry();
         
-        $response = $this->delete($this->getCrudUrl($entry->getKey()));
+        $response = $this->delete($this->testHelper->getCrudUrl($entry->getKey()));
         
         $response->assertStatus(200);
         
         // Assert entry is missing from database
-        $this->assertDatabaseMissing($this->model, [$entry->getKeyName() => $entry->getKey()]);
+        __NON_SOFT_DELETE_MISSING_ASSERTION__
+        __WITH_SOFT_DELETES_MISSING_ASSERTION__
     }

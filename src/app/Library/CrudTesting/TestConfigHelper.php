@@ -6,13 +6,67 @@ use Illuminate\Routing\Route;
 
 class TestConfigHelper implements CrudTestConfiguration
 {
-    public function __construct()
-    {
+    protected static array $operationSettingsCache = [];
+    protected static bool $isConfiguring = false;
+
+    public function __construct(
+        public string $controller,
+        public string $operation = 'list',
+        public ?string $route = null,
+        public ?string $model = null,
+    ) {
+        if (static::$isConfiguring) {
+            return;
+        }
+
+        $cacheKey = $this->getCacheKey();
+        if (! isset(static::$operationSettingsCache[$cacheKey])) {
+            $controllerInfo = CrudControllerDiscovery::analyzeController($this->controller);
+            $builder = new CrudTestBuilder($controllerInfo, $this->operation);
+            $settings = $builder->getTestConfiguration();
+
+            static::$operationSettingsCache[$cacheKey] = $settings;
+        }
     }
 
     public function setup()
     {
         // Default setup can be defined here if needed
+    }
+
+    public function actingAsAdmin($testCase)
+    {
+        $userModel = config('backpack.base.user_model_fqn', 'App\Models\User');
+        $user = $userModel::find(1) ?? $userModel::factory()->create();
+
+        return $testCase->actingAs($user, config('backpack.base.guard', 'web'));
+    }
+
+    public function getCrudUrl(?string $path = null): string
+    {
+        $url = backpack_url().'/'.$this->route;
+
+        if ($path) {
+            $url .= '/'.ltrim($path, '/');
+        }
+
+        return $url;
+    }
+
+    public function createTestEntries(int $count = 5, array $attributes = [])
+    {
+        return $this->model::factory()->count($count)->create($attributes);
+    }
+    
+    /**
+     * Create a test entry for the model.
+     *
+     * @param  array  $attributes
+     * @return \Illuminate\Database\Eloquent\Model
+     */
+    public function createEntry(array $attributes = [])
+    {
+        return static::createTestEntry($this->model, $attributes);
     }
 
     public function getRouteParameters()
@@ -99,7 +153,12 @@ class TestConfigHelper implements CrudTestConfiguration
 
         // Handle Class Configuration
         if (is_string($config) && class_exists($config)) {
-            $instance = new $config();
+            static::$isConfiguring = true;
+            try {
+                $instance = new $config($controllerClass, $operation);
+            } finally {
+                static::$isConfiguring = false;
+            }
 
             if (! $instance instanceof CrudTestConfiguration) {
                 throw new \InvalidArgumentException("Configuration class {$config} must implement CrudTestConfiguration.");
@@ -160,5 +219,20 @@ class TestConfigHelper implements CrudTestConfiguration
     public static function createTestEntry(string $model, array $attributes = [])
     {
         return $model::factory()->create($attributes);
+    }
+
+    public function getOperationSettings(): array
+    {
+        return static::$operationSettingsCache[$this->getCacheKey()] ?? [];
+    }
+
+    public function getOperationSetting(string $key, $default = null)
+    {
+        return $this->getOperationSettings()[$key] ?? $default;
+    }
+
+    private function getCacheKey(): string
+    {
+        return $this->controller.':'.$this->operation;
     }
 }
