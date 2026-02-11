@@ -283,7 +283,7 @@ class BackpackServiceProvider extends ServiceProvider
         $this->mergeConfigFrom(__DIR__.'/config/backpack/crud.php', 'backpack.crud');
         $this->mergeConfigFrom(__DIR__.'/config/backpack/base.php', 'backpack.base');
         $this->mergeConfigFrom(__DIR__.'/config/backpack/ui.php', 'backpack.ui');
-        $this->mergeConfigFrom(__DIR__.'/config/backpack/crud-testing.php', 'backpack.crud-testing');
+        $this->mergeConfigFrom(__DIR__.'/config/backpack/testing.php', 'backpack.testing');
         $this->mergeConfigsFromDirectory('operations');
 
         // add the root disk to filesystem configuration

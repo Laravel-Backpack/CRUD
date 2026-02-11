@@ -115,7 +115,7 @@ abstract class FieldTester
     protected static function resolveTesterClass(string $type): string
     {
         // 1. Check for custom override in config
-        $customClass = config("backpack.crud-testing.field_testers.{$type}");
+        $customClass = config("backpack.testing.field_testers.{$type}");
         if ($customClass && class_exists($customClass)) {
             return $customClass;
         }
@@ -168,6 +168,6 @@ abstract class FieldTester
      */
     protected static function getCustomTesterPaths(): array
     {
-        return config('backpack.crud-testing.field_tester_namespaces', []);
+        return config('backpack.testing.field_tester_namespaces', []);
     }
 }

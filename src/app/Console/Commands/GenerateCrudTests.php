@@ -161,7 +161,7 @@ class GenerateCrudTests extends Command
      */
     protected function discoverControllers(): array
     {
-        $paths = config('backpack.crud-testing.discovery_paths', [app_path('Http/Controllers')]);
+        $paths = (array) config('backpack.testing.controllers_path', [app_path('Http/Controllers')]);
 
         return CrudControllerDiscovery::discover($paths);
     }
@@ -187,7 +187,7 @@ class GenerateCrudTests extends Command
             return;
         }
 
-        $types = $this->option('type') ? [$this->option('type')] : ['feature', 'browser'];
+        $types = $this->option('type') ? [$this->option('type')] : ['feature'];
 
         foreach ($types as $type) {
             $this->line("  Generating {$type} tests...");
@@ -267,8 +267,6 @@ class GenerateCrudTests extends Command
 
             $operationConfig = $this->extractOperationConfig($config);
 
-            // SIMPLIFICATION: Remove detailed config to rely on runtime introspection
-            // This makes the test file smaller and more resilient to controller changes
             unset($operationConfig['columns'], $operationConfig['fields'], $operationConfig['filters'], $operationConfig['buttons']);
 
             $routeSegment = $this->normalizeRoute($config['route'] ?? '');
@@ -305,29 +303,15 @@ class GenerateCrudTests extends Command
     }
 
     /**
-     * Determine if an operation is enabled by configuration.
-     */
-    protected function operationEnabled(string $operation): bool
-    {
-        $coverage = config('backpack.crud-testing.coverage.operations', []);
-
-        return ! array_key_exists($operation, $coverage) || (bool) $coverage[$operation];
-    }
-
-    /**
      * Decide whether to skip writing a class if it already exists.
      */
     protected function shouldSkipExisting(string $filePath): bool
     {
-        if (! File::exists($filePath)) {
+        if (! File::exists($filePath) || $this->option('force')) {
             return false;
         }
 
-        if ($this->option('force')) {
-            return false;
-        }
-
-        return ! config('backpack.crud-testing.generation.overwrite_existing', false);
+        return true;
     }
 
     /**
