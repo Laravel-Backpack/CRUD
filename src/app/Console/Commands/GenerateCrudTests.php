@@ -206,6 +206,16 @@ class GenerateCrudTests extends Command
     }
 
     /**
+     * Get the namespace for default test artifacts.
+     */
+    protected function getDefaultsNamespace(string $type): string
+    {
+        return $type === 'feature'
+            ? 'Tests\\Feature\\Backpack'
+            : 'Tests\\Browser\\Backpack';
+    }
+
+    /**
      * Generate the test class for a controller operation.
      */
     protected function generateTestForOperation(array $controllerInfo, string $operation, string $type): void
@@ -214,54 +224,6 @@ class GenerateCrudTests extends Command
             $builder = new CrudTestBuilder($controllerInfo, $operation);
 
             $config = $builder->getTestConfiguration();
-
-            // Check for factory existence
-            $model = $config['model'] ?? null;
-            if ($model && class_exists($model) && ! method_exists($model, 'factory')) {
-                $this->modelsWithoutFactories[] = $model;
-            }
-
-            // Check for stub override
-            $stubName = "{$operation}.stub";
-            $operationStubPath = $this->getStubPath($type.'/'.$stubName);
-
-            if (! File::exists($operationStubPath)) {
-                $this->skippedOperations[$controllerInfo['short_name']][] = "$operation ($type)";
-
-                return;
-            }
-
-            $methods = File::get($operationStubPath);
-
-            if (empty($methods)) {
-                $this->line("  ⏭️  Skipping {$operation} (no test methods generated)");
-
-                return;
-            }
-
-            // Replace __MARK_TEST_AS_SKIPPED__ placeholder
-            $hasFactory = $model && class_exists($model) && method_exists($model, 'factory') && file_exists(database_path('factories/'.class_basename($model).'Factory.php'));
-
-            if ($hasFactory) {
-                // If the model has a factory, remove the placeholder
-                $methods = str_replace('__MARK_TEST_AS_SKIPPED__', '', $methods);
-            } else {
-                // If no factory, mark the test as skipped
-                $methods = str_replace(
-                    '__MARK_TEST_AS_SKIPPED__',
-                    '$this->markTestSkipped(\'Factory not found for model \' . $this->model);',
-                    $methods
-                );
-            }
-
-            // Check for SoftDeletes
-            if ($model && class_exists($model) && in_array('Illuminate\Database\Eloquent\SoftDeletes', class_uses_recursive($model))) {
-                $methods = str_replace('__WITH_SOFT_DELETES_MISSING_ASSERTION__', '$this->assertSoftDeleted($this->model, [$entry->getKeyName() => $entry->getKey()]);', $methods);
-                $methods = str_replace('__NON_SOFT_DELETE_MISSING_ASSERTION__', '', $methods);
-            } else {
-                $methods = str_replace('__WITH_SOFT_DELETES_MISSING_ASSERTION__', '', $methods);
-                $methods = str_replace('__NON_SOFT_DELETE_MISSING_ASSERTION__', '$this->assertDatabaseMissing($this->model, [$entry->getKeyName() => $entry->getKey()]);', $methods);
-            }
 
             $className = $this->resolveClassName($controllerInfo, $operation);
 
@@ -272,28 +234,29 @@ class GenerateCrudTests extends Command
                 ? 'Tests\\Feature\\'.$controllerRelPath
                 : 'Tests\\Browser\\'.$controllerRelPath;
 
-            $baseClassName = $controllerShortName.'TestBase';
-            $this->ensureBaseTestClassExists($namespace, $baseClassName, $controllerInfo, $config, $type);
+            // 1. Ensure Default Traits and Base exist (in consolidated folder)
+            $defaultsNamespace = $this->getDefaultsNamespace($type);
+            $this->ensureDefaultArtifactsExist($defaultsNamespace, $type);
+            
+            // Check if trait stub exists
+            $traitStubName = strtolower($operation).'.stub';
+            if (!$this->getStubContent($type.'/'.$traitStubName)) {
+                $this->line("  ⏭️  Skipping {$operation} (no trait stub found)");
+                return;
+            }
 
-            $operationConfig = $this->extractOperationConfig($config);
+            $traitName = 'Default'.Str::studly($operation).'Tests';
 
-            unset($operationConfig['columns'], $operationConfig['fields'], $operationConfig['filters'], $operationConfig['buttons']);
+            // Ensure the specific trait for this operation exists (beyond the default 5) if needed
+            // Actually ensureDefaultArtifactsExist handles standard ones. 
+            // If it's a custom operation with a trait stub but not in standard 5, we should ensure it exists.
+            $this->ensureTraitExists($defaultsNamespace, $operation, $type);
 
-            $routeSegment = $this->normalizeRoute($config['route'] ?? '');
+            // 2. Ensure Controller Specific Base exists
+            $baseClassName = 'TestBase'; 
+            $this->ensureControllerTestBaseExists($namespace, $baseClassName, $controllerInfo, $config, $type);
 
-            $testClass = $this->renderTestClass([
-                'type' => $type,
-                'namespace' => $namespace,
-                'class' => $className,
-                'base_class' => $baseClassName,
-                'controller' => $config['controller'],
-                'model' => $config['model'],
-                'route' => $routeSegment,
-                'operation' => $operation,
-                'operation_config' => $operationConfig,
-                'methods' => $methods,
-            ]);
-
+            // 3. Generate the Operation Test Class
             $filePath = $this->determineOutputPath($className, $controllerRelPath, $type);
 
             if ($this->shouldSkipExisting($filePath)) {
@@ -302,8 +265,21 @@ class GenerateCrudTests extends Command
                 return;
             }
 
+            $traitName = 'Default'.Str::studly($operation).'Tests';
+
+            $stub = $this->getStubContent($type.'/test_class.stub');
+
+            $replacements = [
+                'DummyNamespace' => $namespace,
+                'DummyClass' => $className,
+                'DummyBaseClass' => $baseClassName, // Short name e.g. TestBase
+                'DummyTrait' => '\\'.$defaultsNamespace.'\\'.$traitName, // FQCN with leading slash for direct use
+            ];
+
+            $content = str_replace(array_keys($replacements), array_values($replacements), $stub);
+
             File::ensureDirectoryExists(dirname($filePath));
-            File::put($filePath, $testClass);
+            File::put($filePath, $content);
 
             $this->generatedFiles[$type][] = $filePath;
 
@@ -311,6 +287,116 @@ class GenerateCrudTests extends Command
         } catch (\Throwable $e) {
             $this->error("  ❌ Failed generating {$operation}: {$e->getMessage()}");
         }
+    }
+
+    protected function ensureDefaultArtifactsExist(string $namespace, string $type): void
+    {
+        $basePath = $type === 'feature' ? base_path('tests/Feature') : base_path('tests/Browser');
+        $relativePath = str_replace(['Tests\\Feature\\', 'Tests\\Browser\\'], '', $namespace);
+        $relativePath = trim($relativePath, '\\');
+        
+        $targetDir = $basePath . ($relativePath ? DIRECTORY_SEPARATOR . str_replace('\\', DIRECTORY_SEPARATOR, $relativePath) : '');
+
+        if (!File::isDirectory($targetDir)) {
+            File::makeDirectory($targetDir, 0755, true);
+        }
+
+        // 1. Generate DefaultTestBase
+        $baseClassName = 'DefaultTestBase';
+        $itemPath = $targetDir . DIRECTORY_SEPARATOR . $baseClassName . '.php';
+
+        if (! in_array($itemPath, $this->generatedBaseClasses)) {
+            if (!File::exists($itemPath) || $this->option('force')) {
+                $stub = $this->getStubContent($type.'/default_base.stub');
+                $content = str_replace('DummyNamespace', $namespace, $stub);
+                File::put($itemPath, $content);
+                $this->line("  ✅ Generated Default Base: {$itemPath}");
+            }
+            $this->generatedBaseClasses[] = $itemPath; // Mark as processed
+        }
+
+        // 2. Generate Default Traits
+        $operations = ['List', 'Create', 'Update', 'Show', 'Delete'];
+        foreach ($operations as $op) {
+            $this->ensureTraitExists($namespace, $op, $type);
+        }
+    }
+    
+    protected function ensureTraitExists(string $namespace, string $operation, string $type): void
+    {
+        $basePath = $type === 'feature' ? base_path('tests/Feature') : base_path('tests/Browser');
+        $relativePath = str_replace(['Tests\\Feature\\', 'Tests\\Browser\\'], '', $namespace);
+        $relativePath = trim($relativePath, '\\');
+        
+        $targetDir = $basePath . ($relativePath ? DIRECTORY_SEPARATOR . str_replace('\\', DIRECTORY_SEPARATOR, $relativePath) : '');
+
+        $traitName = 'Default'.Str::studly($operation).'Tests';
+        $traitPath = $targetDir . DIRECTORY_SEPARATOR . $traitName . '.php';
+
+        if (in_array($traitPath, $this->generatedBaseClasses)) {
+            return;
+        }
+
+        if (!File::exists($traitPath) || $this->option('force')) {
+            $stubName = strtolower($operation).'.stub';
+            $stub = $this->getStubContent($type.'/'.$stubName);
+            if ($stub) {
+                $content = str_replace(['DummyNamespace', 'DummyTrait'], [$namespace, $traitName], $stub);
+                File::put($traitPath, $content);
+                $this->line("  ✅ Generated Default Trait: {$traitPath}");
+            }
+        }
+        
+        $this->generatedBaseClasses[] = $traitPath;
+    }
+
+    protected function ensureControllerTestBaseExists(string $namespace, string $className, array $controllerInfo, array $config, string $type): void
+    {
+        $controllerRelPath = $this->getRelativeNamespace($controllerInfo['class']);
+        $filePath = $this->determineOutputPath($className, $controllerRelPath, $type);
+
+        if (in_array($filePath, $this->generatedBaseClasses)) {
+            return;
+        }
+
+        if (File::exists($filePath) && !$this->option('force')) {
+            $this->generatedBaseClasses[] = $filePath;
+            return;
+        }
+
+        $defaultsNamespace = $this->getDefaultsNamespace($type);
+        $defaultBaseClass = '\\'.$defaultsNamespace.'\\DefaultTestBase';
+
+        $stub = $this->getStubContent($type.'/controller_base.stub');
+        
+        $routeSegment = $this->normalizeRoute($config['route'] ?? '');
+
+        $replacements = [
+            'DummyNamespace' => $namespace,
+            'DummyClass' => $className,
+            'DummyBaseClass' => $defaultBaseClass,
+            'DummyControllerClass' => class_basename($config['controller']),
+            'DummyController' => $config['controller'],
+            'DummyModelClass' => class_basename($config['model']),
+            'DummyModel' => $config['model'],
+            'DummyRoute' => $this->escapeString($routeSegment),
+            'DummyEntityNamePlural' => $this->escapeString($config['entity_name_plural'] ?? ''),
+            'DummyEntityName' => $this->escapeString($config['entity_name'] ?? ''),
+        ];
+
+        $content = str_replace(array_keys($replacements), array_values($replacements), $stub);
+
+        File::ensureDirectoryExists(dirname($filePath));
+        File::put($filePath, $content);
+        $this->line("  ✅ Generated Controller Base: {$filePath}");
+
+        $this->generatedBaseClasses[] = $filePath;
+    }
+
+    protected function getStubContent(string $name): string
+    {
+        $path = $this->getStubPath($name);
+        return File::exists($path) ? File::get($path) : '';
     }
 
     /**
@@ -325,205 +411,7 @@ class GenerateCrudTests extends Command
         return true;
     }
 
-    /**
-     * Ensure the base test class exists for the controller.
-     */
-    protected function ensureBaseTestClassExists(string $namespace, string $className, array $controllerInfo, array $config, string $type): void
-    {
-        $controllerName = $this->getRelativeNamespace($controllerInfo['class']);
-        $filePath = $this->determineOutputPath($className, $controllerName, $type);
 
-        if (in_array($filePath, $this->generatedBaseClasses)) {
-            return;
-        }
-
-        if ($this->shouldSkipExisting($filePath)) {
-            return;
-        }
-
-        $stubName = $type.'/base.stub';
-        $stubPath = $this->getStubPath($stubName);
-
-        if (! File::exists($stubPath)) {
-            return;
-        }
-
-        $stub = File::get($stubPath);
-
-        $routeSegment = $this->normalizeRoute($config['route'] ?? '');
-
-        $replacements = [
-            'DummyNamespace' => $namespace,
-            'DummyBaseClass' => $className,
-            'DummyControllerClass' => class_basename($config['controller']),
-            'DummyController' => $config['controller'],
-            'DummyModelClass' => class_basename($config['model']),
-            'DummyModel' => $config['model'],
-            'DummyRoute' => $this->escapeString($routeSegment),
-            'DummyEntityNamePlural' => $this->escapeString($config['entity_name_plural'] ?? ''),
-            'DummyEntityName' => $this->escapeString($config['entity_name'] ?? ''),
-        ];
-
-        $content = str_replace(array_keys($replacements), array_values($replacements), $stub);
-
-        File::ensureDirectoryExists(dirname($filePath));
-        File::put($filePath, $content);
-        $this->generatedBaseClasses[] = $filePath;
-        $this->line("  ✅ Generated Base Test: {$filePath}");
-    }
-
-    /**
-     * Render the test class contents.
-     */
-    protected function renderTestClass(array $data): string
-    {
-        $type = $data['type'] ?? $this->option('type') ?? 'feature';
-        $stubName = $type.'/test.stub';
-        $stubPath = $this->getStubPath($stubName);
-        $stub = File::get($stubPath);
-
-        $operationConfigProperty = $this->renderOperationConfigProperty($data['operation_config']);
-
-        $methodsBlock = $data['methods'];
-
-        $replacements = [
-            'DummyNamespace' => $data['namespace'],
-            'DummyClass' => $data['class'],
-            'DummyBaseClass' => $data['base_class'] ?? ($type === 'feature' ? 'CrudFeatureTestCase' : 'CrudBrowserTestCase'),
-            'DummyControllerClass' => class_basename($data['controller']),
-            'DummyController' => $data['controller'],
-            'DummyModelClass' => class_basename($data['model']),
-            'DummyModel' => $data['model'],
-            'DummyRoute' => $this->escapeString($data['route']),
-            'DummyOperationConfigProperty' => $operationConfigProperty,
-            'DummyOperation' => $data['operation'],
-            'DummyMethods' => $methodsBlock,
-        ];
-
-        return str_replace(array_keys($replacements), array_values($replacements), $stub);
-    }
-
-    /**
-     * Render the property holding operation-specific configuration.
-     */
-    protected function renderOperationConfigProperty(array $config): string
-    {
-        $export = $this->exportArray($config, 2);
-
-        return '    protected array $operationConfig = '.$export.';';
-    }
-
-    /**
-     * Indent the provided lines by the given level.
-     */
-    protected function indentLines(array $lines, int $level = 1): string
-    {
-        $indent = str_repeat('    ', $level);
-
-        return collect($lines)
-            ->map(function ($line) use ($indent) {
-                if ($line === '') {
-                    return '';
-                }
-
-                return $indent.$line;
-            })
-            ->implode("\n");
-    }
-
-    /**
-     * Export an array to PHP code using short array syntax.
-     */
-    protected function exportArray(array $value, int $indentLevel = 0): string
-    {
-        if ($value === []) {
-            return '[]';
-        }
-
-        $indent = str_repeat('    ', $indentLevel);
-        $nextIndent = str_repeat('    ', $indentLevel + 1);
-        $isList = function_exists('array_is_list') ? array_is_list($value) : $this->isList($value);
-
-        $lines = ['['];
-
-        foreach ($value as $key => $item) {
-            $line = $nextIndent;
-
-            if (! $isList) {
-                $line .= $this->exportKey($key).' => ';
-            }
-
-            $line .= $this->exportValue($item, $indentLevel + 1);
-            $line .= ',';
-            $lines[] = $line;
-        }
-
-        $lines[] = $indent.']';
-
-        return implode("\n", $lines);
-    }
-
-    /**
-     * Determine if the array is sequential when array_is_list() is unavailable.
-     */
-    protected function isList(array $value): bool
-    {
-        $expected = 0;
-
-        foreach ($value as $key => $unused) {
-            if ($key !== $expected) {
-                return false;
-            }
-
-            $expected++;
-        }
-
-        return true;
-    }
-
-    /**
-     * Export a key for short array syntax.
-     */
-    protected function exportKey($key): string
-    {
-        if (is_int($key)) {
-            return (string) $key;
-        }
-
-        return '\''.addslashes((string) $key).'\'';
-    }
-
-    /**
-     * Export a value to PHP code.
-     */
-    protected function exportValue($value, int $indentLevel): string
-    {
-        if ($value instanceof \Closure) {
-            return 'function() { return "Closure"; }';
-        }
-
-        if (is_object($value)) {
-            return "'Object: ".get_class($value)."'";
-        }
-
-        if (is_array($value)) {
-            return $this->exportArray($value, $indentLevel);
-        }
-
-        if (is_bool($value)) {
-            return $value ? 'true' : 'false';
-        }
-
-        if (is_null($value)) {
-            return 'null';
-        }
-
-        if (is_string($value)) {
-            return '\''.addslashes($value).'\'';
-        }
-
-        return (string) $value;
-    }
 
     /**
      * Escape a string for inclusion inside single quotes.
@@ -533,28 +421,6 @@ class GenerateCrudTests extends Command
         return addslashes($value);
     }
 
-    /**
-     * Extract the subset of configuration that operation testers need.
-     */
-    protected function extractOperationConfig(array $config): array
-    {
-        $keys = [
-            'entity_name',
-            'entity_name_plural',
-            'columns',
-            'filters',
-            'buttons',
-            'fields',
-            'save_actions',
-            'required_fields',
-        ];
-
-        $operationConfig = Arr::only($config, $keys);
-
-        return array_filter($operationConfig, static function ($value) {
-            return $value !== null;
-        });
-    }
 
     /**
      * Resolve the class name for a generated test.

@@ -2,7 +2,6 @@
 
 namespace Backpack\CRUD\app\Library\CrudTesting;
 
-use Backpack\CRUD\app\Library\CrudPanel\CrudPanel;
 use Illuminate\Foundation\Testing\TestCase as IlluminateTestCase;
 
 /**
@@ -14,37 +13,41 @@ abstract class CrudFeatureTestCase extends IlluminateTestCase
     /**
      * The controller class being tested.
      *
-     * @var string
      */
-    protected string $controller;
+    public string $controller;
 
     /**
      * The CRUD route being tested.
      *
-     * @var string
      */
-    protected string $route;
+    public string $route;
 
     /**
      * The model class being tested.
      *
-     * @var string
      */
-    protected string $model;
+    public string $model;
 
-    public string $operation = 'list'; // Default operation, can be overridden in child classes
+    /**
+    * The current CRUD operation being tested (e.g., 'list', 'create', 'update', 'delete').
+    *
+    */
+    public string $operation = 'list'; 
 
-    public CrudTestConfiguration $testHelper;
+    /**
+     * The parameters to mock the current route with.
+     *
+     */
+    public array $routeParameters = [];
 
-    public CrudPanel $crudPanel;
+    public TestConfigHelper $testHelper;
 
     protected function setUp(): void
     {
         parent::setUp();
+        \Illuminate\Support\Facades\Log::info('CrudFeatureTestCase::setUp - ' . static::class);
 
-        $this->testHelper = config('backpack.testing.configurations.'.$this->controller) !== null ?
-        new (config('backpack.testing.configurations.'.$this->controller))($this->controller, $this->operation, $this->route, $this->model) :
-        new TestConfigHelper($this->controller, $this->operation, $this->route, $this->model);
+        $this->testHelper = new TestConfigHelper($this);
 
         $this->app['crud']->clearFilters();
 

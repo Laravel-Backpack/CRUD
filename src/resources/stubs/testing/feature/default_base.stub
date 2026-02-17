@@ -1,0 +1,17 @@
+<?php
+
+namespace DummyNamespace;
+
+use Backpack\CRUD\app\Library\CrudTesting\CrudFeatureTestCase;
+
+abstract class DefaultTestBase extends CrudFeatureTestCase
+{
+    use \Illuminate\Foundation\Testing\RefreshDatabase;
+
+    // Common setup for all CRUD tests within this namespace
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->testHelper->actingAsAdmin($this);
+    }
+}

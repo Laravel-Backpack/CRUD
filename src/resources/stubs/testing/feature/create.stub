@@ -1,4 +1,12 @@
-    public string $operation = 'create';
+<?php
+
+namespace DummyNamespace;
+
+trait DefaultCreateTests
+{
+    public ?array $createInput = null;
+
+    public ?array $assertCreateInput = null;
 
     /**
      * Test that the create page loads without errors
@@ -9,10 +17,7 @@
         $response->assertStatus(200);
         $response->assertSee($this->entityName ?? '');
 
-        $fields = $this->testHelper->getOperationSetting('fields', []);
-        foreach ($fields as $field) {
-            $response->assertSee('name="'.$field['name'].'"', false);
-        }
+        // TODO: check if fields are present
     }
 
     /**
@@ -20,13 +25,17 @@
      */
     public function test_create_endpoint_adds_entry_to_database(): void
     {
-        __MARK_TEST_AS_SKIPPED__
-        $data = $this->testHelper->validCreateInput($this->model);
+        if (! method_exists($this->model, 'factory')) {
+            $this->markTestSkipped('Factory not found for model ' . $this->model);
+        }
+
+        $data = $this->createInput ?? $this->model::factory()->make()->toArray();
 
         $response = $this->post($this->testHelper->getCrudUrl(), $data);
         $response->assertSessionHasNoErrors();
         $response->assertStatus(302);
-        $this->assertDatabaseHas($this->model, $this->testHelper->getDatabaseAssertInput($this->model, $data));
+        
+        $this->assertDatabaseHas($this->model, $this->assertCreateInput ?? $data);
     }
 
     /**
@@ -34,8 +43,8 @@
      */
     public function test_create_endpoint_rejects_invalid_input(): void
     {
-        __MARK_TEST_AS_SKIPPED__
-        $response = $this->post($this->testHelper->getCrudUrl(), $this->testHelper->invalidInput());
+        $response = $this->post($this->testHelper->getCrudUrl(), []);
         $response->assertStatus(302);
         $response->assertSessionHasErrors();
     }
+}

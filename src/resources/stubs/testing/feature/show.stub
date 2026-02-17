@@ -1,12 +1,22 @@
-    public string $operation = 'show';
+<?php
 
+namespace DummyNamespace;
+
+trait DefaultShowTests
+{
     /**
-     * Test that show page loads
+     * Test logic for show operation
      */
     public function test_show_page_loads_successfully(): void
     {
-        __MARK_TEST_AS_SKIPPED__
-        $entry = $this->testHelper->createEntry();
+        if (! method_exists($this->model, 'factory')) {
+            $this->markTestSkipped('Factory not found for model ' . $this->model);
+        }
+
+        $entry = $this->model::factory()->create();
+
         $response = $this->get($this->testHelper->getCrudUrl($entry->getKey().'/show'));
         $response->assertStatus(200);
+        $response->assertSee($this->entityName ?? '');
     }
+}

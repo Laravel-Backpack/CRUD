@@ -99,7 +99,6 @@ trait UpdateOperation
 
         // register any Model Events defined on fields
         $this->crud->registerFieldEvents();
-
         // update the row in the db
         $item = $this->crud->update(
             $request->input($this->crud->model->getKeyName()),

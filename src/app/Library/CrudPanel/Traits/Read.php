@@ -27,7 +27,7 @@ trait Read
 
         return  // use the entity name to get the current entry
                 // this makes sure the ID is current even for nested resources
-                $this->getRequest()->input($this->entity_name) ??
+                $this->getRequest()?->input($this->entity_name) ??
                 // otherwise use the next to last parameter
                 array_values($params)[count($params) - 1] ??
                 // otherwise return false

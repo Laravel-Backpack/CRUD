@@ -4,5 +4,5 @@ namespace DummyNamespace;
 
 class DummyClass extends DummyBaseClass
 {
-DummyMethods
+    use DummyTrait;
 }

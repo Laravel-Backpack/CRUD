@@ -1,17 +1,22 @@
-    public string $operation = 'delete';
+<?php
+
+namespace DummyNamespace;
+
+trait DefaultDeleteTests
+{
     /**
-     * Test that entry can be deleted
+     * Test logic for deleting an entry
      */
-    public function test_delete_removes_entry_from_database(): void
+    public function test_delete_endpoint_removes_entry_from_database(): void
     {
-        __MARK_TEST_AS_SKIPPED__
-        $entry = $this->testHelper->createEntry();
-        
+        if (! method_exists($this->model, 'factory')) {
+            $this->markTestSkipped('Factory not found for model ' . $this->model);
+        }
+
+        $entry = $this->model::factory()->create();
+
         $response = $this->delete($this->testHelper->getCrudUrl($entry->getKey()));
-        
         $response->assertStatus(200);
-        
-        // Assert entry is missing from database
-        __NON_SOFT_DELETE_MISSING_ASSERTION__
-        __WITH_SOFT_DELETES_MISSING_ASSERTION__
+        $this->assertDatabaseMissing($this->model, [$entry->getKeyName() => $entry->getKey()]);
     }
+}

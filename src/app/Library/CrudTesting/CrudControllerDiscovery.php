@@ -155,7 +155,7 @@ class CrudControllerDiscovery
     {
         self::clearCrudPanelBindings($controllerClass);
 
-        TestConfigHelper::applyConfiguration($controllerClass, $operation);
+        //TestConfigHelper::applyConfiguration($controllerClass, $operation);
 
         $controller = app()->make($controllerClass);
 
