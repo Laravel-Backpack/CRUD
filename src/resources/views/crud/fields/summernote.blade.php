@@ -3,7 +3,7 @@
     // make sure that the option array is defined,
     // and at the very least, dialogsInBody is true;
     // that's needed for modals to show above the overlay in Bootstrap 4
-$field['options'] = array_merge(['dialogsInBody' => true, 'tooltip' => false], $field['options'] ?? []);
+    $field['options'] = array_merge(['dialogsInBody' => true, 'tooltip' => false], $field['options'] ?? []);
 
 $themeNamespace = config('backpack.ui.view_namespace') ?? config('backpack.ui.view_namespace_fallback', '');
 
@@ -100,10 +100,10 @@ if (!in_array($fullLocale, $supportedLanguages)) {
 {{-- FIELD CSS - will be loaded in the after_styles section --}}
 @push('crud_fields_styles')
     {{-- include summernote css --}}
-    @basset('https://cdn.jsdelivr.net/npm/summernote@0.9.1/dist/summernote-{{ $summernoteTheme }}.min.css')
+    @basset('https://cdn.jsdelivr.net/npm/summernote@0.9.1/dist/summernote-'.$summernoteTheme.'.min.css')
     @basset('https://cdn.jsdelivr.net/npm/summernote@0.9.1/dist/font/summernote.woff2', false)
     @bassetBlock('backpack/crud/fields/summernote-field.css')
-    <style>
+    <style type="text/css">
         .note-editor.note-frame .note-status-output,
         .note-editor.note-airframe .note-status-output {
             height: auto;
@@ -124,18 +124,18 @@ if (!in_array($fullLocale, $supportedLanguages)) {
 {{-- FIELD JS - will be loaded in the after_scripts section --}}
 @push('crud_fields_scripts')
     {{-- include summernote js --}}
-    @basset('https://cdn.jsdelivr.net/npm/summernote@0.9.1/dist/summernote-{{ $summernoteTheme }}.min.js')
+    @basset('https://cdn.jsdelivr.net/npm/summernote@0.9.1/dist/summernote-'.$summernoteTheme.'.min.js')
     @if ($fullLocale !== 'en-US')
-        @basset('https://cdn.jsdelivr.net/npm/summernote@0.9.1/dist/lang/summernote-{{ $fullLocale }}.js')
+        @basset('https://cdn.jsdelivr.net/npm/summernote@0.9.1/dist/lang/summernote-'.$fullLocale.'.js')
     @endif
-    @bassetBlock('backpack/crud/fields/summernote-field.js')
+    @bassetBlock('backpack/crud/fields/summernote-'.$fullLocale.'-field.js')
     <script>
         function bpFieldInitSummernoteElement(element) {
             let summernoteOptions = element.data('options');
             summernoteOptions.lang = '{{ $fullLocale }}';
 
             let summernoteCallbacks = {
-                onChange: function(contents, $editable) {
+                onChange: function (contents, $editable) {
                     element.val(contents).trigger('change');
                 },
             }
@@ -148,7 +148,7 @@ if (!in_array($fullLocale, $supportedLanguages)) {
                     element.closest('[data-repeatable-identifier]').attr('data-repeatable-identifier') + '#' + element.attr(
                         'data-repeatable-input-name') : element.attr('name');
 
-                summernoteCallbacks.onImageUpload = function(files) {
+                summernoteCallbacks.onImageUpload = function (files) {
                     const data = new FormData();
                     data.append(paramName, files[0]);
                     data.append('_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
@@ -159,7 +159,7 @@ if (!in_array($fullLocale, $supportedLanguages)) {
                     xhr.open('POST', imageUploadEndpoint, true);
                     xhr.setRequestHeader('Accept', 'application/json');
 
-                    xhr.onload = function() {
+                    xhr.onload = function () {
                         const response = JSON.parse(xhr.responseText);
                         if (xhr.status >= 200 && xhr.status < 300) {
                             element.summernote('insertImage', response.data.filePath);
@@ -187,7 +187,7 @@ if (!in_array($fullLocale, $supportedLanguages)) {
                         }
                     };
 
-                    xhr.onerror = function() {
+                    xhr.onerror = function () {
                         console.error('An error occurred during the upload process');
                     };
 
@@ -195,11 +195,11 @@ if (!in_array($fullLocale, $supportedLanguages)) {
                 }
             }
 
-            element.on('CrudField:disable', function(e) {
+            element.on('CrudField:disable', function (e) {
                 element.summernote('disable');
             });
 
-            element.on('CrudField:enable', function(e) {
+            element.on('CrudField:enable', function (e) {
                 element.summernote('enable');
             });
 
