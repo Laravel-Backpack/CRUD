@@ -8,7 +8,8 @@ final class TestConfigHelper
 {
     protected static array $operationSettingsCache = [];
 
-    public function __construct(public CrudFeatureTestCase $testCase) {
+    public function __construct(public CrudFeatureTestCase $testCase)
+    {
         $cacheKey = $this->getCacheKey();
 
         MockApplicationRoute::mockRoute($testCase->operation, $testCase->controller, $testCase->routeParameters);

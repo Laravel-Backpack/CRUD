@@ -10,7 +10,6 @@ use Attribute;
  * Usage:
  * #[TestingRouteParameters(['pet' => 1, 'owner' => 2])]
  * class MyCrudController { ... }
- *
  */
 #[Attribute(Attribute::TARGET_CLASS)]
 final class TestingRouteParameters

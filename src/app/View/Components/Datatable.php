@@ -61,10 +61,10 @@ class Datatable extends Component
     private function getParentCrudEntry()
     {
         $cruds = CrudManager::getCrudPanels();
-        
+
         $parentCrud = null;
         foreach ($cruds as $key => $crud) {
-            if($key !== \Backpack\CRUD\app\Http\Controllers\CrudController::class) {
+            if ($key !== \Backpack\CRUD\app\Http\Controllers\CrudController::class) {
                 $parentCrud = $crud;
                 break;
             }
