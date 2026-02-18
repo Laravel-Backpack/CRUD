@@ -45,7 +45,6 @@ class CrudTestBuilder
         if ($this->operation === 'create' || $this->operation === 'update') {
             $config['fields'] = $this->crudPanel->fields();
         }
-
         return $config;
     }
 }

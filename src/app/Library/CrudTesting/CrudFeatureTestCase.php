@@ -45,7 +45,6 @@ abstract class CrudFeatureTestCase extends IlluminateTestCase
     protected function setUp(): void
     {
         parent::setUp();
-        \Illuminate\Support\Facades\Log::info('CrudFeatureTestCase::setUp - ' . static::class);
 
         $this->testHelper = new TestConfigHelper($this);
 
@@ -53,5 +52,22 @@ abstract class CrudFeatureTestCase extends IlluminateTestCase
 
         // Disable CSRF protection for feature tests as they make direct requests
         $this->withoutMiddleware(\App\Http\Middleware\VerifyCsrfToken::class);
+    }
+
+    public function skipIfModelDoesNotHaveFactory()
+    {
+        if (! method_exists($this->model, 'factory')) {
+            $this->markTestSkipped("The model {$this->model} does not have a factory defined.");
+        }
+    }
+
+    public function createEntry(array $attributes = [])
+    {
+        return static::createTestEntry($this->model, $attributes);
+    }
+
+    public static function createTestEntry(string $model, array $attributes = [])
+    {
+        return $model::factory()->create($attributes);
     }
 }

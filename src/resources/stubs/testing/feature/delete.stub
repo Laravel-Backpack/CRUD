@@ -9,9 +9,7 @@ trait DefaultDeleteTests
      */
     public function test_delete_endpoint_removes_entry_from_database(): void
     {
-        if (! method_exists($this->model, 'factory')) {
-            $this->markTestSkipped('Factory not found for model ' . $this->model);
-        }
+        $this->skipIfModelDoesNotHaveFactory();
 
         $entry = $this->model::factory()->create();
 

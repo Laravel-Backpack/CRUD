@@ -3,6 +3,7 @@
 namespace Backpack\CRUD\app\Library\CrudTesting;
 
 use Backpack\CRUD\app\Http\Controllers\CrudController;
+use Backpack\CRUD\app\Library\CrudTesting\Support\MockApplicationRoute;
 use Backpack\CRUD\CrudManager;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
@@ -155,7 +156,7 @@ class CrudControllerDiscovery
     {
         self::clearCrudPanelBindings($controllerClass);
 
-        //TestConfigHelper::applyConfiguration($controllerClass, $operation);
+        MockApplicationRoute::mockRoute($operation, $controllerClass);
 
         $controller = app()->make($controllerClass);
 

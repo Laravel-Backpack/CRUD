@@ -2,15 +2,17 @@
 
 namespace Backpack\CRUD\app\Library\CrudTesting;
 
-use Illuminate\Routing\Route;
+use Backpack\CRUD\app\Library\CrudTesting\Support\MockApplicationRoute;
 
-class TestConfigHelper
+final class TestConfigHelper
 {
     protected static array $operationSettingsCache = [];
 
     public function __construct(public CrudFeatureTestCase $testCase) {
         $cacheKey = $this->getCacheKey();
-        $this->mockRoute($testCase);
+
+        MockApplicationRoute::mockRoute($testCase->operation, $testCase->controller, $testCase->routeParameters);
+
         if (! isset(static::$operationSettingsCache[$cacheKey])) {
             $controllerInfo = CrudControllerDiscovery::analyzeController($testCase->controller);
             $builder = new CrudTestBuilder($controllerInfo, $testCase->operation);
@@ -19,8 +21,6 @@ class TestConfigHelper
             static::$operationSettingsCache[$cacheKey] = $settings;
         }
     }
-
-
 
     public function actingAsAdmin(CrudFeatureTestCase $testCase)
     {
@@ -87,59 +87,6 @@ class TestConfigHelper
         }
 
         return $input;
-    }
-
-    /**
-     * Mock the current route with the given parameters.
-     *
-     * @param  array  $parameters
-     * @param  string  $operation
-     * @param  string  $uri
-     * @param  string  $method
-     * @return void
-     */
-    public function mockRoute(CrudFeatureTestCase $testCase): void
-    {
-        $action = ['uses' => 'Controller@method', 'operation' => $testCase->operation];
-
-        $route = new Route(['GET', 'POST', 'PUT', 'DELETE'], $testCase->route ?? '/', $action);
-        $route->setContainer(app());
-        $route->setRouter(app('router'));
-
-        $request = app('request')->merge(['operation' => $testCase->operation]);
-        $route->bind($request);
-
-        foreach ($testCase->routeParameters as $key => $value) {
-            $route->setParameter($key, $value);
-        }
-
-        $request->setRouteResolver(fn () => $route);
-
-        $router = app('router');
-
-        try {
-            $reflector = new \ReflectionClass($router);
-            $property = $reflector->getProperty('current');
-            $property->setValue($router, $route);
-        } catch (\ReflectionException $e) {
-            // Fallback
-        }
-
-        if (app()->bound('url')) {
-            app('url')->setRequest($request);
-        }
-
-        app()->instance('request', $request);
-    }
-
-    public function createEntry(array $attributes = [])
-    {
-        return static::createTestEntry($this->testCase->model, $attributes);
-    }
-
-    public static function createTestEntry(string $model, array $attributes = [])
-    {
-        return $model::factory()->create($attributes);
     }
 
     public function getOperationSettings(): array

@@ -52,6 +52,9 @@ class GenerateCrudTests extends Command
 
     public function handle(): int
     {
+        $this->info('Discovering CRUD controllers and generating tests...');
+        $this->line('This may take a moment depending on the number of controllers and operations.');
+
         config(['database.default' => 'sqlite']);
         config(['database.connections.sqlite' => [
             'driver' => 'sqlite',
@@ -59,6 +62,8 @@ class GenerateCrudTests extends Command
         ]]);
 
         $this->callSilent('migrate');
+
+        $this->callSilent('db:seed', ['--force' => true]);
 
         $controllers = collect($this->discoverControllers());
 

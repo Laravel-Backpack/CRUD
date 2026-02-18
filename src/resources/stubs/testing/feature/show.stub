@@ -9,9 +9,7 @@ trait DefaultShowTests
      */
     public function test_show_page_loads_successfully(): void
     {
-        if (! method_exists($this->model, 'factory')) {
-            $this->markTestSkipped('Factory not found for model ' . $this->model);
-        }
+        $this->skipIfModelDoesNotHaveFactory();
 
         $entry = $this->model::factory()->create();
 

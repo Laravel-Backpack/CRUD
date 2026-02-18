@@ -17,7 +17,10 @@ trait DefaultCreateTests
         $response->assertStatus(200);
         $response->assertSee($this->entityName ?? '');
 
-        // TODO: check if fields are present
+        $fields = $this->testHelper->getOperationSetting('fields', []);
+        foreach ($fields as $field) {
+            $response->assertSee('name="'.$field['name'].'"', false);
+        }
     }
 
     /**
@@ -25,9 +28,7 @@ trait DefaultCreateTests
      */
     public function test_create_endpoint_adds_entry_to_database(): void
     {
-        if (! method_exists($this->model, 'factory')) {
-            $this->markTestSkipped('Factory not found for model ' . $this->model);
-        }
+        $this->skipIfModelDoesNotHaveFactory();
 
         $data = $this->createInput ?? $this->model::factory()->make()->toArray();
 
@@ -35,7 +36,7 @@ trait DefaultCreateTests
         $response->assertSessionHasNoErrors();
         $response->assertStatus(302);
         
-        $this->assertDatabaseHas($this->model, $this->assertCreateInput ?? $data);
+        $this->assertDatabaseHas($this->model, $this->assertCreateInput ?? $this->testHelper->getDatabaseAssertInput($this->model, $data));
     }
 
     /**
