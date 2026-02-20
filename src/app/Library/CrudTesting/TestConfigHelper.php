@@ -91,6 +91,20 @@ final class TestConfigHelper
         return $this->getOperationSettings()[$key] ?? $default;
     }
 
+    /**
+     * Determine if the model uses the SoftDeletes trait.
+     */
+    public function modelUsesSoftDeletes(): bool
+    {
+        $model = $this->testCase->model;
+
+        if (! class_exists($model)) {
+            return false;
+        }
+
+        return in_array(\Illuminate\Database\Eloquent\SoftDeletes::class, class_uses_recursive($model));
+    }
+
     private function getCacheKey(): string
     {
         return $this->testCase->controller.':'.$this->testCase->operation;
