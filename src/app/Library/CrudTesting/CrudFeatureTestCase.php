@@ -12,31 +12,26 @@ abstract class CrudFeatureTestCase extends IlluminateTestCase
 {
     /**
      * The controller class being tested.
-     *
      */
     public string $controller;
 
     /**
      * The CRUD route being tested.
-     *
      */
     public string $route;
 
     /**
      * The model class being tested.
-     *
      */
     public string $model;
 
     /**
-    * The current CRUD operation being tested (e.g., 'list', 'create', 'update', 'delete').
-    *
-    */
-    public string $operation = 'list'; 
+     * The current CRUD operation being tested (e.g., 'list', 'create', 'update', 'delete').
+     */
+    public string $operation = 'list';
 
     /**
      * The parameters to mock the current route with.
-     *
      */
     public array $routeParameters = [];
 
