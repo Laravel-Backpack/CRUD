@@ -10,4 +10,6 @@ class DummyClass extends DummyBaseClass
     public string $controller = DummyControllerClass::class;
     public string $model = DummyModelClass::class;
     public string $route = 'DummyRoute';
+    // Pass additional parameters to controller routes. eg. ['owner' => 1]
+    public array $routeParameters = []; 
 }
