@@ -12,19 +12,4 @@ return [
     |
     */
     'controllers_path' => app_path('Http/Controllers'),
-
-    /*
-    |--------------------------------------------------------------------------
-    | Test Configurations
-    |--------------------------------------------------------------------------
-    |
-    | Here you can map your CrudControllers to a specific TestConfiguration class.
-    | This allows you to customize the data used for testing, mock dependencies,
-    | or define valid/invalid inputs for specific controllers.
-    |
-    | Example:
-    | App\Http\Controllers\Admin\ProductCrudController::class => Tests\Config\ProductConfig::class,
-    |
-    */
-    'configurations' => [],
 ];
