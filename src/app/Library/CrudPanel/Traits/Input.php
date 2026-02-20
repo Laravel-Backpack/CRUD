@@ -21,7 +21,7 @@ trait Input
      * @param  bool|string  $relationMethod
      * @return array
      */
-    public function splitInputIntoDirectAndRelations($inputs, $relationDetails = null, $relationMethod = false)
+    private function splitInputIntoDirectAndRelations($inputs, $relationDetails = null, $relationMethod = false)
     {
         $crudFields = $relationDetails['crudFields'] ?? [];
         $model = $relationDetails['model'] ?? false;
