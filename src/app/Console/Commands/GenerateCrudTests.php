@@ -5,7 +5,6 @@ namespace Backpack\CRUD\app\Console\Commands;
 use Backpack\CRUD\app\Library\CrudTesting\CrudControllerDiscovery;
 use Backpack\CRUD\app\Library\CrudTesting\CrudTestBuilder;
 use Illuminate\Console\Command;
-use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 
@@ -205,23 +204,24 @@ class GenerateCrudTests extends Command
             // 1. Ensure Default Traits and Base exist (in consolidated folder)
             $defaultsNamespace = $this->getDefaultsNamespace($type);
             $this->ensureDefaultArtifactsExist($defaultsNamespace, $type);
-            
+
             // Check if trait stub exists
             $traitStubName = strtolower($operation).'.stub';
-            if (!$this->getStubContent($type.'/'.$traitStubName)) {
+            if (! $this->getStubContent($type.'/'.$traitStubName)) {
                 $this->line("  ⏭️  Skipping {$operation} (no trait stub found)");
+
                 return;
             }
 
             $traitName = 'Default'.Str::studly($operation).'Tests';
 
             // Ensure the specific trait for this operation exists (beyond the default 5) if needed
-            // Actually ensureDefaultArtifactsExist handles standard ones. 
+            // Actually ensureDefaultArtifactsExist handles standard ones.
             // If it's a custom operation with a trait stub but not in standard 5, we should ensure it exists.
             $this->ensureTraitExists($defaultsNamespace, $operation, $type);
 
             // 2. Ensure Controller Specific Base exists
-            $baseClassName = 'TestBase'; 
+            $baseClassName = 'TestBase';
             $this->ensureControllerTestBaseExists($namespace, $baseClassName, $controllerInfo, $config, $type, $usingConventions);
 
             // 3. Generate the Operation Test Class
@@ -262,19 +262,19 @@ class GenerateCrudTests extends Command
         $basePath = $type === 'feature' ? base_path('tests/Feature') : base_path('tests/Browser');
         $relativePath = str_replace(['Tests\\Feature\\', 'Tests\\Browser\\'], '', $namespace);
         $relativePath = trim($relativePath, '\\');
-        
-        $targetDir = $basePath . ($relativePath ? DIRECTORY_SEPARATOR . str_replace('\\', DIRECTORY_SEPARATOR, $relativePath) : '');
 
-        if (!File::isDirectory($targetDir)) {
+        $targetDir = $basePath.($relativePath ? DIRECTORY_SEPARATOR.str_replace('\\', DIRECTORY_SEPARATOR, $relativePath) : '');
+
+        if (! File::isDirectory($targetDir)) {
             File::makeDirectory($targetDir, 0755, true);
         }
 
         // 1. Generate DefaultTestBase
         $baseClassName = 'DefaultTestBase';
-        $itemPath = $targetDir . DIRECTORY_SEPARATOR . $baseClassName . '.php';
+        $itemPath = $targetDir.DIRECTORY_SEPARATOR.$baseClassName.'.php';
 
         if (! in_array($itemPath, $this->generatedBaseClasses)) {
-            if (!File::exists($itemPath) || $this->option('force')) {
+            if (! File::exists($itemPath) || $this->option('force')) {
                 $stub = $this->getStubContent($type.'/default_base.stub');
                 $content = str_replace('DummyNamespace', $namespace, $stub);
                 File::put($itemPath, $content);
@@ -289,23 +289,23 @@ class GenerateCrudTests extends Command
             $this->ensureTraitExists($namespace, $op, $type);
         }
     }
-    
+
     protected function ensureTraitExists(string $namespace, string $operation, string $type): void
     {
         $basePath = $type === 'feature' ? base_path('tests/Feature') : base_path('tests/Browser');
         $relativePath = str_replace(['Tests\\Feature\\', 'Tests\\Browser\\'], '', $namespace);
         $relativePath = trim($relativePath, '\\');
-        
-        $targetDir = $basePath . ($relativePath ? DIRECTORY_SEPARATOR . str_replace('\\', DIRECTORY_SEPARATOR, $relativePath) : '');
+
+        $targetDir = $basePath.($relativePath ? DIRECTORY_SEPARATOR.str_replace('\\', DIRECTORY_SEPARATOR, $relativePath) : '');
 
         $traitName = 'Default'.Str::studly($operation).'Tests';
-        $traitPath = $targetDir . DIRECTORY_SEPARATOR . $traitName . '.php';
+        $traitPath = $targetDir.DIRECTORY_SEPARATOR.$traitName.'.php';
 
         if (in_array($traitPath, $this->generatedBaseClasses)) {
             return;
         }
 
-        if (!File::exists($traitPath) || $this->option('force')) {
+        if (! File::exists($traitPath) || $this->option('force')) {
             $stubName = strtolower($operation).'.stub';
             $stub = $this->getStubContent($type.'/'.$stubName);
             if ($stub) {
@@ -314,7 +314,7 @@ class GenerateCrudTests extends Command
                 $this->line("  ✅ Generated Default Trait: {$traitPath}");
             }
         }
-        
+
         $this->generatedBaseClasses[] = $traitPath;
     }
 
@@ -327,8 +327,9 @@ class GenerateCrudTests extends Command
             return;
         }
 
-        if (File::exists($filePath) && !$this->option('force')) {
+        if (File::exists($filePath) && ! $this->option('force')) {
             $this->generatedBaseClasses[] = $filePath;
+
             return;
         }
 
@@ -336,7 +337,7 @@ class GenerateCrudTests extends Command
         $defaultBaseClass = '\\'.$defaultsNamespace.'\\DefaultTestBase';
 
         $stub = $this->getStubContent($type.'/controller_base.stub');
-        
+
         $routeSegment = $this->normalizeRoute($config['route'] ?? '');
 
         $replacements = [
@@ -373,6 +374,7 @@ COMMENT;
     protected function getStubContent(string $name): string
     {
         $path = $this->getStubPath($name);
+
         return File::exists($path) ? File::get($path) : '';
     }
 
@@ -388,8 +390,6 @@ COMMENT;
         return true;
     }
 
-
-
     /**
      * Escape a string for inclusion inside single quotes.
      */
@@ -397,7 +397,6 @@ COMMENT;
     {
         return addslashes($value);
     }
-
 
     /**
      * Resolve the class name for a generated test.
