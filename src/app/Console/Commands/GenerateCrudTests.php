@@ -63,8 +63,6 @@ class GenerateCrudTests extends Command
 
         $this->callSilent('migrate');
 
-        $this->callSilent('db:seed', ['--force' => true]);
-
         $controllers = collect($this->discoverControllers());
 
         if ($controllers->isEmpty()) {
@@ -126,49 +124,6 @@ class GenerateCrudTests extends Command
     }
 
     /**
-     * Run the generated tests.
-     */
-    protected function runGeneratedTests(): void
-    {
-        $featureTests = $this->generatedFiles['feature'] ?? [];
-        $browserTests = $this->generatedFiles['browser'] ?? [];
-        $framework = $this->option('framework');
-
-        if (! empty($featureTests)) {
-            $this->line('');
-            $this->info("Running feature tests ({$framework})...");
-
-            $binary = $framework === 'pest' ? 'pest' : 'phpunit';
-            $binaryPath = base_path("vendor/bin/{$binary}");
-
-            if (file_exists($binaryPath)) {
-                $command = '"'.PHP_BINARY.'" "'.$binaryPath.'"';
-
-                if (file_exists(base_path('phpunit.xml'))) {
-                    $command .= ' --configuration "'.base_path('phpunit.xml').'"';
-                }
-
-                $command .= ' '.implode(' ', array_map(fn ($f) => '"'.$f.'"', $featureTests));
-                passthru($command);
-            } elseif ($framework === 'phpunit' && $this->getApplication()->has('test')) {
-                $this->call('test', ['args' => $featureTests]);
-            } else {
-                $this->error("Testing binary not found: {$binaryPath}");
-            }
-        }
-
-        if (! empty($browserTests)) {
-            $this->line('');
-            $this->info('Running browser tests...');
-            if ($this->getApplication()->has('dusk')) {
-                $this->call('dusk', ['args' => $browserTests]);
-            } else {
-                $this->warn('Dusk command not found. Please run "php artisan dusk" manually.');
-            }
-        }
-    }
-
-    /**
      * Discover CRUD controllers using configured paths.
      */
     protected function discoverControllers(): array
@@ -201,11 +156,19 @@ class GenerateCrudTests extends Command
 
         $types = $this->option('type') ? [$this->option('type')] : ['feature'];
 
-        foreach ($types as $type) {
-            $this->line("  Generating {$type} tests...");
+        // Probe whether the controller can be initialized or we need conventions
+        $probe = new CrudTestBuilder($controllerInfo, $operations->first());
+        $usingConventions = $probe->usedConventions();
 
-            $operations->each(function (string $operation) use ($controllerInfo, $type) {
-                $this->generateTestForOperation($controllerInfo, $operation, $type);
+        foreach ($types as $type) {
+            if ($usingConventions) {
+                $this->warn("  Generating {$type} tests using conventions...");
+            } else {
+                $this->line("  Generating {$type} tests...");
+            }
+
+            $operations->each(function (string $operation) use ($controllerInfo, $type, $usingConventions) {
+                $this->generateTestForOperation($controllerInfo, $operation, $type, $usingConventions);
             });
         }
     }
@@ -223,7 +186,7 @@ class GenerateCrudTests extends Command
     /**
      * Generate the test class for a controller operation.
      */
-    protected function generateTestForOperation(array $controllerInfo, string $operation, string $type): void
+    protected function generateTestForOperation(array $controllerInfo, string $operation, string $type, bool $usingConventions = false): void
     {
         try {
             $builder = new CrudTestBuilder($controllerInfo, $operation);
@@ -259,7 +222,7 @@ class GenerateCrudTests extends Command
 
             // 2. Ensure Controller Specific Base exists
             $baseClassName = 'TestBase'; 
-            $this->ensureControllerTestBaseExists($namespace, $baseClassName, $controllerInfo, $config, $type);
+            $this->ensureControllerTestBaseExists($namespace, $baseClassName, $controllerInfo, $config, $type, $usingConventions);
 
             // 3. Generate the Operation Test Class
             $filePath = $this->determineOutputPath($className, $controllerRelPath, $type);
@@ -355,7 +318,7 @@ class GenerateCrudTests extends Command
         $this->generatedBaseClasses[] = $traitPath;
     }
 
-    protected function ensureControllerTestBaseExists(string $namespace, string $className, array $controllerInfo, array $config, string $type): void
+    protected function ensureControllerTestBaseExists(string $namespace, string $className, array $controllerInfo, array $config, string $type, bool $usingConventions = false): void
     {
         $controllerRelPath = $this->getRelativeNamespace($controllerInfo['class']);
         $filePath = $this->determineOutputPath($className, $controllerRelPath, $type);
@@ -385,11 +348,20 @@ class GenerateCrudTests extends Command
             'DummyModelClass' => class_basename($config['model']),
             'DummyModel' => $config['model'],
             'DummyRoute' => $this->escapeString($routeSegment),
-            'DummyEntityNamePlural' => $this->escapeString($config['entity_name_plural'] ?? ''),
-            'DummyEntityName' => $this->escapeString($config['entity_name'] ?? ''),
         ];
 
         $content = str_replace(array_keys($replacements), array_values($replacements), $stub);
+
+        if ($usingConventions) {
+            $comment = <<<'COMMENT'
+/**
+ * NOTE: This test configuration was generated using naming conventions because
+ * the CrudController could not be initialized. Please verify that the model,
+ * route, and controller values below are correct before running your tests.
+ */
+COMMENT;
+            $content = str_replace('class '.$className, $comment."\n".'class '.$className, $content);
+        }
 
         File::ensureDirectoryExists(dirname($filePath));
         File::put($filePath, $content);

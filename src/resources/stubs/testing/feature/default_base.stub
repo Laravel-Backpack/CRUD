@@ -8,10 +8,12 @@ abstract class DefaultTestBase extends CrudFeatureTestCase
 {
     use \Illuminate\Foundation\Testing\RefreshDatabase;
 
-    // Common setup for all CRUD tests within this namespace
     protected function setUp(): void
     {
         parent::setUp();
-        $this->testHelper->actingAsAdmin($this);
+        
+        $userModel = config('backpack.base.user_model_fqn', 'App\Models\User');
+        $user = $userModel::find(1) ?? $userModel::factory()->create();
+        $this->actingAs($user, config('backpack.base.guard', 'web'));
     }
 }

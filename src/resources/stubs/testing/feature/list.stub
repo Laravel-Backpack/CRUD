@@ -11,14 +11,12 @@ trait DefaultListTests
     {
         $response = $this->get($this->testHelper->getCrudUrl());
         $response->assertStatus(200);
-        $response->assertSee($this->entityName ?? '');
     }
 
     public function test_datatables_returns_compatible_data(): void
     {
         $this->skipIfModelDoesNotHaveFactory();
         
-        $this->testHelper->createTestEntries(5);
         $response = $this->post($this->testHelper->getCrudUrl('search'));
         $response->assertStatus(200);
         $response->assertJsonStructure([

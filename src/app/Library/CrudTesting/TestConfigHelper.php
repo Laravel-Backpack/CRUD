@@ -22,14 +22,6 @@ final class TestConfigHelper
         }
     }
 
-    public function actingAsAdmin(CrudFeatureTestCase $testCase)
-    {
-        $userModel = config('backpack.base.user_model_fqn', 'App\Models\User');
-        $user = $userModel::find(1) ?? $userModel::factory()->create();
-
-        return $testCase->actingAs($user, config('backpack.base.guard', 'web'));
-    }
-
     public function getCrudUrl(?string $path = null): string
     {
         $url = backpack_url().'/'.$this->testCase->route;

@@ -10,6 +10,4 @@ class DummyClass extends DummyBaseClass
     public string $controller = DummyControllerClass::class;
     public string $model = DummyModelClass::class;
     public string $route = 'DummyRoute';
-    public ?string $entityName = 'DummyEntityName';
-    public ?string $entityNamePlural = 'DummyEntityNamePlural';
 }

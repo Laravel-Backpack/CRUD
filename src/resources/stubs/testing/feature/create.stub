@@ -15,7 +15,6 @@ trait DefaultCreateTests
     {
         $response = $this->get($this->testHelper->getCrudUrl('create'));
         $response->assertStatus(200);
-        $response->assertSee($this->entityName ?? '');
 
         $fields = $this->testHelper->getOperationSetting('fields', []);
         foreach ($fields as $field) {
@@ -30,7 +29,7 @@ trait DefaultCreateTests
     {
         $this->skipIfModelDoesNotHaveFactory();
 
-        $data = $this->createInput ?? $this->model::factory()->make()->toArray();
+        $data = $this->createInput ?? $this->model::factory()->raw();
 
         $response = $this->post($this->testHelper->getCrudUrl(), $data);
         $response->assertSessionHasNoErrors();

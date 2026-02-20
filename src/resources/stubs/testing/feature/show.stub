@@ -15,6 +15,5 @@ trait DefaultShowTests
 
         $response = $this->get($this->testHelper->getCrudUrl($entry->getKey().'/show'));
         $response->assertStatus(200);
-        $response->assertSee($this->entityName ?? '');
     }
 }

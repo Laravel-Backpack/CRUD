@@ -20,15 +20,6 @@ final class MockApplicationRoute
     {
         $action = ['uses' => 'Controller@method', 'operation' => $operation];
 
-        if (empty($parameters) && $controller) {
-            $reflectionClass = new \ReflectionClass($controller);
-            $attributes = $reflectionClass->getAttributes(\Backpack\CRUD\app\Library\CrudTesting\TestingRouteParameters::class);
-            if (! empty($attributes)) {
-                $instance = $attributes[0]->newInstance();
-                $parameters = $instance->getParameters();
-            }
-        }
-
         $route = new Route([$method], $url, $action);
 
         $route->setContainer(app());

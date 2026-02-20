@@ -15,6 +15,23 @@ trait DefaultDeleteTests
 
         $response = $this->delete($this->testHelper->getCrudUrl($entry->getKey()));
         $response->assertStatus(200);
-        $this->assertDatabaseMissing($this->model, [$entry->getKeyName() => $entry->getKey()]);
+
+        if ($this->modelUsesSoftDeletes()) {
+            $this->assertSoftDeleted($entry);
+        } else {
+            $this->assertDatabaseMissing($this->model, [$entry->getKeyName() => $entry->getKey()]);
+        }
+    }
+
+    /**
+     * Determine if the model uses the SoftDeletes trait.
+     */
+    protected function modelUsesSoftDeletes(): bool
+    {
+        if (! class_exists($this->model)) {
+            return false;
+        }
+
+        return in_array(\Illuminate\Database\Eloquent\SoftDeletes::class, class_uses_recursive($this->model));
     }
 }
