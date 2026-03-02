@@ -16,7 +16,7 @@ trait DefaultCreateTests
         $response = $this->get($this->testHelper->getCrudUrl('create'));
         $response->assertStatus(200);
 
-        $fields = $this->testHelper->getOperationSetting('fields', []);
+        $fields = $this->testHelper->getOperationSetting('fields', [], 'create');
         foreach ($fields as $field) {
             $response->assertSee('name="'.$field['name'].'"', false);
         }

@@ -82,14 +82,39 @@ final class TestConfigHelper
         return $input;
     }
 
-    public function getOperationSettings(): array
+    public function getOperationSettings(?string $operation = null): array
     {
+        if ($operation) {
+            $this->ensureOperationCached($operation);
+
+            return static::$operationSettingsCache[$this->testCase->controller.':'.$operation] ?? [];
+        }
+
         return static::$operationSettingsCache[$this->getCacheKey()] ?? [];
     }
 
-    public function getOperationSetting(string $key, $default = null)
+    public function getOperationSetting(string $key, $default = null, ?string $operation = null)
     {
-        return $this->getOperationSettings()[$key] ?? $default;
+        return $this->getOperationSettings($operation)[$key] ?? $default;
+    }
+
+    /**
+     * Ensure settings for a given operation are cached.
+     */
+    protected function ensureOperationCached(string $operation): void
+    {
+        $cacheKey = $this->testCase->controller.':'.$operation;
+
+        if (isset(static::$operationSettingsCache[$cacheKey])) {
+            return;
+        }
+
+        MockApplicationRoute::mockRoute($operation, $this->testCase->controller, $this->testCase->routeParameters);
+
+        $controllerInfo = CrudControllerDiscovery::analyzeController($this->testCase->controller);
+        $builder = new CrudTestBuilder($controllerInfo, $operation);
+
+        static::$operationSettingsCache[$cacheKey] = $builder->getTestConfiguration();
     }
 
     /**

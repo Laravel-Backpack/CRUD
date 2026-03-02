@@ -32,7 +32,7 @@ trait DefaultListTests
      */
     public function test_filters_are_on_page(): void
     {
-        $filters = $this->testHelper->getOperationSetting('filters', []);
+        $filters = $this->testHelper->getOperationSetting('filters', [], 'list');
 
         if (count($filters) > 0) {
              $response = $this->get($this->testHelper->getCrudUrl());

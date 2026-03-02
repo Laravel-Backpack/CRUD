@@ -20,7 +20,7 @@ trait DefaultUpdateTests
         $response = $this->get($this->testHelper->getCrudUrl($entry->getKey() . '/edit'));
         $response->assertStatus(200);
 
-        $fields = $this->testHelper->getOperationSetting('fields', []);
+        $fields = $this->testHelper->getOperationSetting('fields', [], 'update');
         foreach ($fields as $field) {
             $response->assertSee('name="'.$field['name'].'"', false);
         }

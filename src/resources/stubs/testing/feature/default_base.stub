@@ -14,6 +14,13 @@ abstract class DefaultTestBase extends CrudFeatureTestCase
             $userModel = config('backpack.base.user_model_fqn', 'App\Models\User');
             $user = $userModel::find(1) ?? $userModel::factory()->create();
             $guard = config('backpack.base.guard') ?? config('auth.defaults.guard');
+            
+            // In case your admin needs certain roles or permission to access the CRUDs,
+            // use this place to set up the necessary roles and permissions.
+            // Example for Spatie's Permission package with a "superadmin" role that has all permissions:
+            // $role = Role::firstOrCreate(['name' => 'superadmin', 'guard_name' => $guard]);
+            // $user->assignRole($role);
+            
             $this->actingAs($user, $guard);
         });
 

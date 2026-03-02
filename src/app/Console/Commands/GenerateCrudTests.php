@@ -166,9 +166,7 @@ class GenerateCrudTests extends Command
                 $this->line("  Generating {$type} tests...");
             }
 
-            $operations->each(function (string $operation) use ($controllerInfo, $type, $usingConventions) {
-                $this->generateTestForOperation($controllerInfo, $operation, $type, $usingConventions);
-            });
+            $this->generateControllerTestFile($controllerInfo, $operations->all(), $type, $usingConventions);
         }
     }
 
@@ -183,77 +181,105 @@ class GenerateCrudTests extends Command
     }
 
     /**
-     * Generate the test class for a controller operation.
+     * Generate a single test file for a controller with all operation traits.
      */
-    protected function generateTestForOperation(array $controllerInfo, string $operation, string $type, bool $usingConventions = false): void
+    protected function generateControllerTestFile(array $controllerInfo, array $operations, string $type, bool $usingConventions = false): void
     {
         try {
-            $builder = new CrudTestBuilder($controllerInfo, $operation);
-
+            // Get config from the first operation (for route/model info)
+            $builder = new CrudTestBuilder($controllerInfo, $operations[0] ?? 'list');
             $config = $builder->getTestConfiguration();
 
-            $className = $this->resolveClassName($controllerInfo, $operation);
-
-            $controllerShortName = Str::replaceLast('Controller', '', $controllerInfo['short_name']);
-            $controllerRelPath = $this->getRelativeNamespace($controllerInfo['class']);
-
-            $namespace = $type === 'feature'
-                ? 'Tests\\Feature\\'.$controllerRelPath
-                : 'Tests\\Browser\\'.$controllerRelPath;
-
-            // 1. Ensure Default Traits and Base exist (in consolidated folder)
             $defaultsNamespace = $this->getDefaultsNamespace($type);
             $this->ensureDefaultArtifactsExist($defaultsNamespace, $type);
 
-            // Check if trait stub exists
-            $traitStubName = strtolower($operation).'.stub';
-            if (! $this->getStubContent($type.'/'.$traitStubName)) {
-                $this->line("  ⏭️  Skipping {$operation} (no trait stub found)");
+            // Build traits list — only operations that have stubs
+            $traits = [];
+            $skipped = [];
+
+            foreach ($operations as $operation) {
+                $traitStubName = strtolower($operation).'.stub';
+
+                if (! $this->getStubContent($type.'/'.$traitStubName)) {
+                    $skipped[] = $operation;
+
+                    continue;
+                }
+
+                $this->ensureTraitExists($defaultsNamespace, $operation, $type);
+                $traits[] = 'Default'.Str::studly($operation).'Tests';
+            }
+
+            if (! empty($skipped)) {
+                $key = $controllerInfo['short_name'];
+                $this->skippedOperations[$key] = array_merge($this->skippedOperations[$key] ?? [], $skipped);
+            }
+
+            if (empty($traits)) {
+                $this->warn('  No operation traits available.');
 
                 return;
             }
 
-            $traitName = 'Default'.Str::studly($operation).'Tests';
+            // Determine class name and namespace
+            $controllerFolderNamespace = $this->getControllerFolderNamespace($controllerInfo['class']);
+            $className = $controllerInfo['short_name'].'Test';
 
-            // Ensure the specific trait for this operation exists (beyond the default 5) if needed
-            // Actually ensureDefaultArtifactsExist handles standard ones.
-            // If it's a custom operation with a trait stub but not in standard 5, we should ensure it exists.
-            $this->ensureTraitExists($defaultsNamespace, $operation, $type);
+            $namespace = $type === 'feature'
+                ? 'Tests\\Feature'.($controllerFolderNamespace ? '\\'.$controllerFolderNamespace : '')
+                : 'Tests\\Browser'.($controllerFolderNamespace ? '\\'.$controllerFolderNamespace : '');
 
-            // 2. Ensure Controller Specific Base exists
-            $baseClassName = 'TestBase';
-            $this->ensureControllerTestBaseExists($namespace, $baseClassName, $controllerInfo, $config, $type, $usingConventions);
-
-            // 3. Generate the Operation Test Class
-            $filePath = $this->determineOutputPath($className, $controllerRelPath, $type);
+            $filePath = $this->determineOutputPath($className, $controllerFolderNamespace, $type);
 
             if ($this->shouldSkipExisting($filePath)) {
-                $this->line("  ⏭️  Skipping {$operation} (file exists, use --force to overwrite)");
+                $this->line("  ⏭️  Skipping (file exists, use --force to overwrite)");
 
                 return;
             }
 
-            $traitName = 'Default'.Str::studly($operation).'Tests';
+            $defaultBaseClass = '\\'.$defaultsNamespace.'\\DefaultTestBase';
+            $routeSegment = $this->normalizeRoute($config['route'] ?? '');
 
-            $stub = $this->getStubContent($type.'/test_class.stub');
+            // Build traits string
+            $traitsStr = implode("\n", array_map(function ($trait) use ($defaultsNamespace) {
+                return '    use \\'.$defaultsNamespace.'\\'.$trait.';';
+            }, $traits));
+
+            $stub = $this->getStubContent($type.'/controller_base.stub');
 
             $replacements = [
                 'DummyNamespace' => $namespace,
                 'DummyClass' => $className,
-                'DummyBaseClass' => $baseClassName, // Short name e.g. TestBase
-                'DummyTrait' => '\\'.$defaultsNamespace.'\\'.$traitName, // FQCN with leading slash for direct use
+                'DummyBaseClass' => $defaultBaseClass,
+                'DummyControllerClass' => class_basename($config['controller']),
+                'DummyController' => $config['controller'],
+                'DummyModelClass' => class_basename($config['model']),
+                'DummyModel' => $config['model'],
+                'DummyRoute' => $this->escapeString($routeSegment),
+                'DummyTraits' => $traitsStr,
             ];
 
             $content = str_replace(array_keys($replacements), array_values($replacements), $stub);
+
+            if ($usingConventions) {
+                $comment = <<<'COMMENT'
+/**
+ * NOTE: This test configuration was generated using naming conventions because
+ * the CrudController could not be initialized. Please verify that the model,
+ * route, and controller values below are correct before running your tests.
+ */
+COMMENT;
+                $content = str_replace('class '.$className, $comment."\n".'class '.$className, $content);
+            }
 
             File::ensureDirectoryExists(dirname($filePath));
             File::put($filePath, $content);
 
             $this->generatedFiles[$type][] = $filePath;
 
-            $this->line("  ✅ Generated {$operation} test: {$filePath}");
+            $this->line("  ✅ Generated: {$filePath}");
         } catch (\Throwable $e) {
-            $this->error("  ❌ Failed generating {$operation}: {$e->getMessage()}");
+            $this->error("  ❌ Failed: {$e->getMessage()}");
         }
     }
 
@@ -318,59 +344,6 @@ class GenerateCrudTests extends Command
         $this->generatedBaseClasses[] = $traitPath;
     }
 
-    protected function ensureControllerTestBaseExists(string $namespace, string $className, array $controllerInfo, array $config, string $type, bool $usingConventions = false): void
-    {
-        $controllerRelPath = $this->getRelativeNamespace($controllerInfo['class']);
-        $filePath = $this->determineOutputPath($className, $controllerRelPath, $type);
-
-        if (in_array($filePath, $this->generatedBaseClasses)) {
-            return;
-        }
-
-        if (File::exists($filePath) && ! $this->option('force')) {
-            $this->generatedBaseClasses[] = $filePath;
-
-            return;
-        }
-
-        $defaultsNamespace = $this->getDefaultsNamespace($type);
-        $defaultBaseClass = '\\'.$defaultsNamespace.'\\DefaultTestBase';
-
-        $stub = $this->getStubContent($type.'/controller_base.stub');
-
-        $routeSegment = $this->normalizeRoute($config['route'] ?? '');
-
-        $replacements = [
-            'DummyNamespace' => $namespace,
-            'DummyClass' => $className,
-            'DummyBaseClass' => $defaultBaseClass,
-            'DummyControllerClass' => class_basename($config['controller']),
-            'DummyController' => $config['controller'],
-            'DummyModelClass' => class_basename($config['model']),
-            'DummyModel' => $config['model'],
-            'DummyRoute' => $this->escapeString($routeSegment),
-        ];
-
-        $content = str_replace(array_keys($replacements), array_values($replacements), $stub);
-
-        if ($usingConventions) {
-            $comment = <<<'COMMENT'
-/**
- * NOTE: This test configuration was generated using naming conventions because
- * the CrudController could not be initialized. Please verify that the model,
- * route, and controller values below are correct before running your tests.
- */
-COMMENT;
-            $content = str_replace('class '.$className, $comment."\n".'class '.$className, $content);
-        }
-
-        File::ensureDirectoryExists(dirname($filePath));
-        File::put($filePath, $content);
-        $this->line("  ✅ Generated Controller Base: {$filePath}");
-
-        $this->generatedBaseClasses[] = $filePath;
-    }
-
     protected function getStubContent(string $name): string
     {
         $path = $this->getStubPath($name);
@@ -399,17 +372,9 @@ COMMENT;
     }
 
     /**
-     * Resolve the class name for a generated test.
-     */
-    protected function resolveClassName(array $controllerInfo, string $operation): string
-    {
-        return Str::studly($operation).'Test';
-    }
-
-    /**
      * Decide where the generated file should be stored.
      */
-    protected function determineOutputPath(string $className, ?string $controllerName = null, ?string $type = null): string
+    protected function determineOutputPath(string $className, ?string $folderNamespace = null, ?string $type = null): string
     {
         // Use provided type or fallback to option (for backward compatibility if method called elsewhere)
         $testType = $type ?? $this->option('type');
@@ -418,9 +383,9 @@ COMMENT;
             ? base_path('tests/Feature')
             : base_path('tests/Browser');
 
-        if ($controllerName) {
+        if ($folderNamespace) {
             $pathFn = fn ($path) => str_replace('\\', DIRECTORY_SEPARATOR, $path);
-            $baseDir .= DIRECTORY_SEPARATOR.$pathFn($controllerName);
+            $baseDir .= DIRECTORY_SEPARATOR.$pathFn($folderNamespace);
         }
 
         if (! File::isDirectory($baseDir)) {
@@ -488,18 +453,26 @@ COMMENT;
     }
 
     /**
-     * Get the relative namespace for the test class based on controller structure.
+     * Get the folder namespace for the controller (excludes the class name itself).
+     *
+     * For example:
+     *  - App\Http\Controllers\Admin\MonsterCrudController → Admin
+     *  - App\Http\Controllers\Admin\PetShop\OwnerCrudController → Admin\PetShop
      */
-    protected function getRelativeNamespace(string $controllerClass): string
+    protected function getControllerFolderNamespace(string $controllerClass): string
     {
         $rootNamespace = 'App\\Http\\Controllers\\';
 
         if (Str::startsWith($controllerClass, $rootNamespace)) {
             $relative = Str::after($controllerClass, $rootNamespace);
         } else {
-            $relative = class_basename($controllerClass);
+            return '';
         }
 
-        return Str::replaceLast('Controller', '', $relative);
+        // Get just the folder part (everything except the class name)
+        $parts = explode('\\', $relative);
+        array_pop($parts); // Remove the class name
+
+        return implode('\\', $parts);
     }
 }

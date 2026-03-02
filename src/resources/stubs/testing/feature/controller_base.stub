@@ -7,6 +7,8 @@ use DummyModel;
 
 class DummyClass extends DummyBaseClass
 {
+DummyTraits
+
     public string $controller = DummyControllerClass::class;
     public string $model = DummyModelClass::class;
     public string $route = 'DummyRoute';
