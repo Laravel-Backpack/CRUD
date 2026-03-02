@@ -122,21 +122,16 @@ class Install extends Command
         $this->executeArtisanProcess('basset:install --no-check --no-interaction');
         $this->closeProgressBlock();
 
+        // Install default theme if none installed
+        $this->installTheme();
+
         // Optional commands
         if (! $this->option('no-interaction')) {
-            // Themes
-            $this->installTheme();
-
             // Create users
             $this->createUsers();
 
             // Addons
             $this->installAddons();
-        } elseif (! $this->isAnyThemeInstalled()) {
-            // Install default theme
-            $this->progressBlock('Installing default theme');
-            $this->executeArtisanProcess('backpack:require:theme-tabler');
-            $this->closeProgressBlock();
         }
 
         //execute basset checks
@@ -311,13 +306,6 @@ class Install extends Command
         }
     }
 
-    private function isEveryThemeInstalled()
-    {
-        return $this->themes()->every(function ($theme) {
-            return $theme->status == 'installed';
-        });
-    }
-
     private function isAnyThemeInstalled()
     {
         return $this->themes()->filter(function ($theme) {
@@ -327,51 +315,14 @@ class Install extends Command
 
     private function installTheme()
     {
-        // if all themes are installed do nothing
-        if ($this->isEveryThemeInstalled()) {
+        // if any theme is already installed do nothing
+        if ($this->isAnyThemeInstalled()) {
             return;
         }
 
-        $this->infoBlock('Installing a Theme.', 'Step 2');
-        $this->note('Choose your admin UI, depending on your project and preferences.');
-        $this->newLine();
-
-        // Calculate the printed line count
-        $printedLines = $this->themes()
-            ->map(function ($e) {
-                return count($e->description);
-            })
-            ->reduce(function ($sum, $item) {
-                return $sum + $item + 2;
-            }, 0);
-
-        $total = 0;
-        $input = (int) $this->listChoice('Which Backpack theme would you like to install? <fg=gray>(enter option number: 1, 2 or 3)</>', $this->themes()->toArray(), 1);
-
-        if ($input < 1 || $input > $this->themes()->count()) {
-            $this->deleteLines(3);
-            $this->note('Unknown theme. Using default theme value.');
-            $this->newLine();
-
-            $input = 1;
-        }
-
-        // Clear list
-        $this->deleteLines($printedLines + 4 + ($total ? 2 : 0));
-
-        try {
-            $addon = $this->themes()[$input - 1];
-
-            // Install addon (low verbose level)
-            $currentVerbosity = $this->output->getVerbosity();
-            $this->output->setVerbosity(OutputInterface::VERBOSITY_VERBOSE);
-            $this->call($addon->command);
-            $this->output->setVerbosity($currentVerbosity);
-
-            $total++;
-        } catch (\Throwable $e) {
-            $this->errorBlock($e->getMessage());
-        }
+        $this->progressBlock('Installing default theme (Theme-tabler)');
+        $this->executeArtisanProcess('backpack:require:theme-tabler');
+        $this->closeProgressBlock();
     }
 
     public function themes()
