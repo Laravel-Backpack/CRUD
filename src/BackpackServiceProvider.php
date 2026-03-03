@@ -37,7 +37,6 @@ class BackpackServiceProvider extends ServiceProvider
         app\Console\Commands\Themes\RequireThemeCoreuiv4::class,
         app\Console\Commands\Fix::class,
         app\Console\Commands\PublishHeaderMetas::class,
-        app\Console\Commands\GenerateCrudTests::class,
     ];
 
     // Indicates if loading of the provider is deferred.
@@ -181,7 +180,6 @@ class BackpackServiceProvider extends ServiceProvider
             __DIR__.'/resources/views/ui/inc/menu_items.blade.php' => resource_path('views/vendor/backpack/ui/inc/menu_items.blade.php'),
         ];
         $backpack_custom_routes_file = [__DIR__.$this->customRoutesFilePath => base_path($this->customRoutesFilePath)];
-        $backpack_stubs = [__DIR__.'/resources/stubs/testing' => resource_path('views/vendor/backpack/crud/stubs/testing')];
 
         // calculate the path from current directory to get the vendor path
         $vendorPath = dirname(__DIR__, 3);
@@ -203,7 +201,6 @@ class BackpackServiceProvider extends ServiceProvider
         $this->publishes($backpack_views, 'views');
         $this->publishes($backpack_menu_contents_view, 'menu_contents');
         $this->publishes($backpack_custom_routes_file, 'custom_routes');
-        $this->publishes($backpack_stubs, 'stubs');
         $this->publishes($gravatar_assets, 'gravatar');
         $this->publishes($minimum, 'minimum');
     }
@@ -283,7 +280,6 @@ class BackpackServiceProvider extends ServiceProvider
         $this->mergeConfigFrom(__DIR__.'/config/backpack/crud.php', 'backpack.crud');
         $this->mergeConfigFrom(__DIR__.'/config/backpack/base.php', 'backpack.base');
         $this->mergeConfigFrom(__DIR__.'/config/backpack/ui.php', 'backpack.ui');
-        $this->mergeConfigFrom(__DIR__.'/config/backpack/testing.php', 'backpack.testing');
         $this->mergeConfigsFromDirectory('operations');
 
         // add the root disk to filesystem configuration
