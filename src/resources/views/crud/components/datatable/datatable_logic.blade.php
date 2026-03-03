@@ -737,57 +737,52 @@ function setupTableEvents(tableId, config) {
         try {
             const tableElement = document.getElementById(tableId);
             if (tableElement) {
-                document.getElementById(tableId).querySelectorAll('script').forEach(function(script) {
-                    const scriptsToLoad = [];
-                            if (script.src) {
-                                // For external scripts with src attribute
-                                const srcUrl = script.src;
+                tableElement.querySelectorAll('script').forEach(function(script) {
+                    if (script.parentNode) {
+                        script.parentNode.removeChild(script);
+                    }
 
-                                // Only load the script if it's not already loaded
-                                if (!document.querySelector(`script[src="${srcUrl}"]`)) {
-                                    scriptsToLoad.push(new Promise((resolve, reject) => {
-                                        const newScript = document.createElement('script');
+                    if (script.src) {
+                        // For external scripts with src attribute
+                        const srcUrl = script.src;
 
-                                        // Copy all attributes from the original script
-                                        Array.from(script.attributes).forEach(attr => {
-                                            newScript.setAttribute(attr.name, attr.value);
-                                        });
+                        // Only load the script if it's not already loaded in <head>
+                        if (!document.querySelector(`script[src="${srcUrl}"]`)) {
+                            const newScript = document.createElement('script');
 
-                                        // Set up load and error handlers
-                                        newScript.onload = resolve;
-                                        newScript.onerror = reject;
+                            // Copy all attributes from the original script
+                            Array.from(script.attributes).forEach(attr => {
+                                newScript.setAttribute(attr.name, attr.value);
+                            });
 
-                                        // Append to document to start loading
-                                        try {
-                                            document.head.appendChild(newScript);
-                                        } catch (e) {
-                                            console.warn('Error appending external script:', e);
-                                            reject(e);
-                                        }
-                                    }));
-                                }
+                            newScript.onerror = function(e) {
+                                console.warn('Error loading script:', srcUrl, e);
+                            };
 
-                                // Remove the original script tag
-                                script.parentNode.removeChild(script);
-                            } else {
-                                // For inline scripts
-                                const newScript = document.createElement('script');
-
-                                // Copy all attributes from the original script
-                                Array.from(script.attributes).forEach(attr => {
-                                    newScript.setAttribute(attr.name, attr.value);
-                                });
-
-                                // Copy the content
-                                newScript.textContent = script.textContent;
-
-                                try {
-                                    document.head.appendChild(newScript);
-                                }catch (e) {
-                                    console.warn('Error appending inline script:', e);
-                                }
+                            try {
+                                document.head.appendChild(newScript);
+                            } catch (e) {
+                                console.warn('Error appending external script:', e);
                             }
-                        
+                        }
+                    } else {
+                        // For inline scripts
+                        const newScript = document.createElement('script');
+
+                        // Copy all attributes from the original script
+                        Array.from(script.attributes).forEach(attr => {
+                            newScript.setAttribute(attr.name, attr.value);
+                        });
+
+                        // Copy the content
+                        newScript.textContent = script.textContent;
+
+                        try {
+                            document.head.appendChild(newScript);
+                        } catch (e) {
+                            console.warn('Error appending inline script:', e);
+                        }
+                    }
                 });
             } else {
                 console.warn('Table element not found:', tableId);
