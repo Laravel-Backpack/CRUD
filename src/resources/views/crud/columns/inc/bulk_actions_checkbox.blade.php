@@ -143,61 +143,54 @@ if (typeof window.crud.markCheckboxAsCheckedIfPreviouslySelected !== 'function')
 window.crud.addBulkActionMainCheckboxesFunctionality = function(tableId = 'crudTable') {
     const tableConfig = window.crud.tableConfigs[tableId] || window.crud;
 
-    // Update initial state for all main checkboxes
-    const updateMainCheckboxState = () => {
-    const rowCheckboxes = document.querySelectorAll(`#${tableId} input.crud_bulk_actions_line_checkbox`);
-    const uncheckedCount = document.querySelectorAll(`#${tableId} input.crud_bulk_actions_line_checkbox:not(:checked)`).length;
-    const shouldBeChecked = rowCheckboxes.length > 0 && uncheckedCount === 0;
+    // Find the wrapper that contains both the original table AND any cloned headers
+    // (DataTables creates clones inside the wrapper for scrollX / fixedHeader)
+    const wrapper = document.querySelector(`#${tableId}_wrapper`) || document.querySelector(`#${tableId}`)?.parentElement;
+    if (!wrapper) return;
 
-    // Update ALL main checkboxes (including cloned ones from DataTables fixedHeader)
-    document.querySelectorAll(`input.crud_bulk_actions_general_checkbox`).forEach(cb => {
-        const wrapper = cb.closest(`#${tableId}_wrapper`) || cb.closest(`#${tableId}`);
-        if (wrapper || document.querySelector(`#${tableId}`)) {
+    // Helper: update checked state on ALL general checkboxes within the wrapper
+    const updateMainCheckboxState = () => {
+        const rowCheckboxes = document.querySelectorAll(`#${tableId} input.crud_bulk_actions_line_checkbox`);
+        const uncheckedCount = document.querySelectorAll(`#${tableId} input.crud_bulk_actions_line_checkbox:not(:checked)`).length;
+        const shouldBeChecked = rowCheckboxes.length > 0 && uncheckedCount === 0;
+
+        wrapper.querySelectorAll(`input.crud_bulk_actions_general_checkbox`).forEach(cb => {
             cb.checked = shouldBeChecked;
-        }
-    });
+        });
     };
 
-    // Initial state
+    // Set initial state
     updateMainCheckboxState();
 
-    // Use event delegation on the table wrapper to handle clicks on ANY general checkbox
-    // This works even when DataTables clones/replaces elements (fixedHeader, scroll)
-    const wrapper = document.querySelector(`#${tableId}_wrapper`) || document.querySelector(`#${tableId}`)?.closest('.table-responsive') || document.body;
+    // Attach direct click handlers to ALL general checkboxes in the wrapper
+    // (including clones created by DataTables for scrollX / fixedHeader).
+    // cloneNode removes previous handlers so we never stack duplicates – the
+    // same pattern used for line checkboxes in addOrRemoveCrudCheckedItem.
+    wrapper.querySelectorAll('input.crud_bulk_actions_general_checkbox').forEach(checkbox => {
+        const newCheckbox = checkbox.cloneNode(true);
+        checkbox.parentNode.replaceChild(newCheckbox, checkbox);
 
-    // Only attach delegation once per wrapper
-    if (!wrapper._bulkDelegationAttached) {
-        wrapper._bulkDelegationAttached = true;
+        newCheckbox.addEventListener('click', function(e) {
+            // Stop propagation immediately so the click never reaches the <th>,
+            // which would trigger a DataTables column sort / table redraw.
+            e.stopPropagation();
 
-        wrapper.addEventListener('click', function(event) {
-            const checkbox = event.target;
+            const isChecked = this.checked;
 
-            // Check if clicked element is a general checkbox
-            if (!checkbox.classList.contains('crud_bulk_actions_general_checkbox')) {
-                return;
-            }
-
-            const isChecked = checkbox.checked;
-
-            // Get all row checkboxes
-            const rowCheckboxes = Array.from(document.querySelectorAll(`#${tableId} input.crud_bulk_actions_line_checkbox`));
-
-            // Toggle checkboxes that need to change
-            rowCheckboxes
+            // Toggle row checkboxes that need to change
+            Array.from(document.querySelectorAll(`#${tableId} input.crud_bulk_actions_line_checkbox`))
                 .filter(elem => isChecked !== elem.checked)
                 .forEach(elem => elem.click());
 
-            // Sync all main checkboxes (including clones)
-            document.querySelectorAll(`input.crud_bulk_actions_general_checkbox`).forEach(cb => {
+            // Sync all main checkboxes (including clones) scoped to this table
+            wrapper.querySelectorAll(`input.crud_bulk_actions_general_checkbox`).forEach(cb => {
                 cb.checked = isChecked;
-                });
+            });
 
             // Update bulk buttons
             window.crud.enableOrDisableBulkButtons(tableId);
-
-            event.stopPropagation();
+        });
     });
-    }
 };
 
 if (typeof window.crud.enableOrDisableBulkButtons !== 'function') {
