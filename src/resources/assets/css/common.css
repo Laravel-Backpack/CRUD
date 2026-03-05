@@ -468,6 +468,10 @@ div[id$="_wrapper"] .dt-processing {
     background-color: white;
 }
 
+.navbar.navbar-filters + div:has(.dt-button-collection) {
+    overflow: visible !important;
+}
+
 .dataTables_wrapper .dt-buttons .dt-button-collection {
     width: auto;
 }
