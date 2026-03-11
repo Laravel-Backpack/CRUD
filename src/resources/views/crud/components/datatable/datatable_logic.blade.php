@@ -242,13 +242,17 @@ window.crud.initializeTable = function(tableId, customConfig = {}) {
         
         // Check if saved url has any parameter or is empty after clearing filters
         if (savedListUrl && savedListUrl.indexOf('?') >= 1) {
-            const persistentUrl = savedListUrl + '&persistent-table=true';
-            
-            const currentUrlHasParams = window.location.href.indexOf('?') >= 1 && window.location.href.split('?')[1] !== '';
             const isOurOwnPersistenceRedirect = window.location.search.indexOf('persistent-table=true') >= 1;
+            const currentUrlHasParams = window.location.search.length > 1;
 
-            if (!currentUrlHasParams) {
-                // No parameters in current URL - redirect to restore persistent state
+            if (isOurOwnPersistenceRedirect) {
+                // This is the result of our own redirect, nothing to do
+            } else if (currentUrlHasParams) {
+                localStorage.setItem(`${config.persistentTableSlug}_list_url`, window.location.href);
+            } else {
+                // No params in current URL — restore the persistent state
+                const persistentUrl = savedListUrl + '&persistent-table=true';
+                
                 if (config.persistentTableDuration) {
                     const savedListUrlTime = localStorage.getItem(`${config.persistentTableSlug}_list_url_time`);
                     
@@ -257,19 +261,14 @@ window.crud.initializeTable = function(tableId, customConfig = {}) {
                         const savedTime = new Date(parseInt(savedListUrlTime));
                         savedTime.setMinutes(savedTime.getMinutes() + config.persistentTableDuration);
                         
-                        // If the save time is not expired, redirect
                         if (savedTime > currentDate) {
                             window.location.href = persistentUrl;
                         }
                     }
                 } else {
-                    // No duration specified, just redirect
                     window.location.href = persistentUrl;
                 }
-            } else if (isOurOwnPersistenceRedirect) {
-                // This is our own persistence redirect looping back, do nothing
             }
-            // else: URL already has params the user explicitly navigated to — do not override them
         }
     }
     
