@@ -244,37 +244,32 @@ window.crud.initializeTable = function(tableId, customConfig = {}) {
         if (savedListUrl && savedListUrl.indexOf('?') >= 1) {
             const persistentUrl = savedListUrl + '&persistent-table=true';
             
-            const arr = window.location.href.split('?');
-            // Check if url has parameters
-            if (arr.length > 1 && arr[1] !== '') {
-                // Check if it is our own persistence redirect
-                if (window.location.search.indexOf('persistent-table=true') < 1) {
-                    // If not, we don't want to redirect the user
-                    if (persistentUrl != window.location.href) {
-                        // Check duration if specified
-                        if (config.persistentTableDuration) {
-                            const savedListUrlTime = localStorage.getItem(`${config.persistentTableSlug}_list_url_time`);
-                            
-                            if (savedListUrlTime) {
-                                const currentDate = new Date();
-                                const savedTime = new Date(parseInt(savedListUrlTime));
-                                savedTime.setMinutes(savedTime.getMinutes() + config.persistentTableDuration);
-                                
-                                // If the save time is not expired, redirect
-                                if (savedTime > currentDate) {
-                                    window.location.href = persistentUrl;
-                                }
-                            }
-                        } else {
-                            // No duration specified, just redirect
+            const currentUrlHasParams = window.location.href.indexOf('?') >= 1 && window.location.href.split('?')[1] !== '';
+            const isOurOwnPersistenceRedirect = window.location.search.indexOf('persistent-table=true') >= 1;
+
+            if (!currentUrlHasParams) {
+                // No parameters in current URL - redirect to restore persistent state
+                if (config.persistentTableDuration) {
+                    const savedListUrlTime = localStorage.getItem(`${config.persistentTableSlug}_list_url_time`);
+                    
+                    if (savedListUrlTime) {
+                        const currentDate = new Date();
+                        const savedTime = new Date(parseInt(savedListUrlTime));
+                        savedTime.setMinutes(savedTime.getMinutes() + config.persistentTableDuration);
+                        
+                        // If the save time is not expired, redirect
+                        if (savedTime > currentDate) {
                             window.location.href = persistentUrl;
                         }
                     }
+                } else {
+                    // No duration specified, just redirect
+                    window.location.href = persistentUrl;
                 }
-            } else {
-                // No parameters in current URL, redirect
-                window.location.href = persistentUrl;
+            } else if (isOurOwnPersistenceRedirect) {
+                // This is our own persistence redirect looping back, do nothing
             }
+            // else: URL already has params the user explicitly navigated to — do not override them
         }
     }
     
