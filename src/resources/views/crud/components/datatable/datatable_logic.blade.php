@@ -558,7 +558,19 @@ window.crud.initializeTable = function(tableId, customConfig = {}) {
     
     // Initialize the DataTable with the config
     window.crud.tables[tableId] = $('#'+tableId).DataTable(dataTableConfig);
-    
+
+    // Guarantee the processing overlay background is always correct on every show/hide.
+    // Using the CSS variable means it resolves at paint time, covering any cascade race.
+    var _proc = document.getElementById(tableId + '_processing');
+    if (_proc) {
+        new MutationObserver(function() {
+            var style = _proc.style.display;
+            if (style === 'block') {
+                _proc.style.setProperty('background', 'var(--bp-processing-bg, rgba(255,255,255,0.8))', 'important');
+            }
+        }).observe(_proc, { attributes: true, attributeFilter: ['style'] });
+    }
+
     // For backward compatibility
     if (!window.crud.table) {
         window.crud.table = window.crud.tables[tableId];

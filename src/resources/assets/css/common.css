@@ -791,7 +791,7 @@ table.dataTable td {
 .dataTables_processing,
 .dt-processing {
     position: absolute !important;
-    background: rgba(255, 255, 255, 0.8) !important;
+    background: var(--bp-processing-bg, rgba(255, 255, 255, 0.8)) !important;
     border: none !important;
     box-shadow: none !important;
     border-radius: 0 !important;
