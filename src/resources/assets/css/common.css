@@ -865,6 +865,13 @@ table.dataTable td {
     display: none !important;
 }
 
+.dataTables_processing.card,
+.dt-processing.card {
+    font-size: 0 !important;
+    color: transparent !important;
+    text-indent: -9999px !important;
+}
+
 .dtr-modal .details-control,
 .modal .details-control {
     display: none;
