@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\Validator;
 
 trait Search
 {
+    use TranslatableSearch;
+
     /*
     |--------------------------------------------------------------------------
     |                                   SEARCH
@@ -68,7 +70,11 @@ trait Search
                 case 'email':
                 case 'text':
                 case 'textarea':
-                    $query->orWhere($this->getColumnWithTableNamePrefixed($query, $column['name']), $searchOperator, '%'.$searchTerm.'%');
+                    if ($this->isTranslatableField($column['name']) && $this->isJsonColumn($column['name'])) {
+                        $this->applyTranslatableJsonSearch($query, $column, $searchTerm, $searchOperator);
+                    } else {
+                        $query->orWhere($this->getColumnWithTableNamePrefixed($query, $column['name']), $searchOperator, '%'.$searchTerm.'%');
+                    }
                     break;
 
                 case 'date':
