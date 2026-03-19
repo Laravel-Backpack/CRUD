@@ -32,6 +32,7 @@ class BackpackServiceProvider extends ServiceProvider
         app\Console\Commands\Addons\RequireDevTools::class,
         app\Console\Commands\Addons\RequireEditableColumns::class,
         app\Console\Commands\Addons\RequirePro::class,
+        app\Console\Commands\Addons\RequireTestGenerators::class,
         app\Console\Commands\Themes\RequireThemeTabler::class,
         app\Console\Commands\Themes\RequireThemeCoreuiv2::class,
         app\Console\Commands\Themes\RequireThemeCoreuiv4::class,
