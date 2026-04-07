@@ -130,7 +130,40 @@
             // replace the datatables ajax url with new_url and reload it
             table.ajax.url(url).load();
         }
-    }   
+    }
+
+    // Each filter navbar stores its own filter state in a `data-filter-params` attribute.
+    // This is the source of truth for consumers (e.g. report scripts) — they read from
+    // the navbar DOM element, not the browser URL. This supports future scenarios with
+    // multiple independent filter navbars on the same page.
+    // When there is only one navbar, the browser URL is also kept in sync as a convenience
+    // (bookmarkable URLs, shareable links).
+    document.addEventListener('backpack:filter:changed', function(event) {
+        if (!event.detail || !event.detail.shouldUpdateUrl) return;
+
+        // Find the navbar that owns this filter
+        var componentId = event.detail.componentId || '';
+        var navbar = componentId
+            ? document.querySelector('.navbar-filters[data-component-id="' + componentId + '"]')
+            : document.querySelector('.navbar-filters');
+
+        if (!navbar) return;
+
+        // Update the navbar's stored filter state
+        var params = new URLSearchParams(navbar.getAttribute('data-filter-params') || '');
+        if (event.detail.filterValue !== '' && event.detail.filterValue != null) {
+            params.set(event.detail.filterName, event.detail.filterValue);
+        } else {
+            params.delete(event.detail.filterName);
+        }
+        navbar.setAttribute('data-filter-params', params.toString());
+
+        // Mirror to the browser URL only when there is a single filter navbar
+        if (document.querySelectorAll('.navbar-filters').length <= 1) {
+            var newUrl = addOrUpdateUriParameter(window.location.href, event.detail.filterName, event.detail.filterValue);
+            window.history.replaceState({}, '', newUrl);
+        }
+    });
 
     // button to remove all filters
     document.addEventListener('DOMContentLoaded', function () {
@@ -150,6 +183,19 @@
             if(filters.length === 0) {
                 return;
             }
+
+            // Seed the navbar's data-filter-params from the URL, scoped to this navbar's own filters.
+            // This lets consumers read filter state from the navbar DOM element from the start,
+            // and ensures shared URLs with filter params are applied correctly on load.
+            var urlParams = new URLSearchParams(window.location.search);
+            var navbarParams = new URLSearchParams();
+            filters.forEach(function(filter) {
+                var filterName = filter.getAttribute('filter-name');
+                if (urlParams.has(filterName)) {
+                    navbarParams.set(filterName, urlParams.get(filterName));
+                }
+            });
+            navbar.setAttribute('data-filter-params', navbarParams.toString());
 
             // Add event listener only once per navbar to avoid duplication
             if (!navbar.hasAttribute('data-filter-events-bound')) {
@@ -249,14 +295,7 @@
                         }
                     }
                     
-                    document.dispatchEvent(new CustomEvent('backpack:filters:cleared', {
-                        detail: {
-                            navbar: navbar,
-                            filters: filters,
-                            tableId: tableId
-                        }
-                    }));
-
+                    // 1. Clear each filter's UI state
                     filters.forEach(function(filter) {
                         filter.dispatchEvent(new CustomEvent('backpack:filter:clear', {
                             detail: {
@@ -265,7 +304,27 @@
                         }));
                     });
 
-                    // After clearing filters, re-initialize them to ensure proper state
+                    // 2. Clear the navbar's stored filter state and clean the browser URL
+                    navbar.setAttribute('data-filter-params', '');
+                    if (document.querySelectorAll('.navbar-filters').length <= 1) {
+                        let cleanUrl = URI(window.location.href).search('').toString();
+                        if (window.crud && typeof window.crud.updateUrl === 'function') {
+                            window.crud.updateUrl(cleanUrl);
+                        } else {
+                            window.history.replaceState({}, '', cleanUrl);
+                        }
+                    }
+
+                    // 3. Notify consumers that all filters have been cleared
+                    document.dispatchEvent(new CustomEvent('backpack:filters:cleared', {
+                        detail: {
+                            navbar: navbar,
+                            filters: filters,
+                            tableId: tableId
+                        }
+                    }));
+
+                    // 4. Re-initialize filters to ensure proper state
                     setTimeout(function() {
                         filters.forEach(function(filter) {
                             let initFunction = filter.getAttribute('filter-init-function');
@@ -274,16 +333,6 @@
                             }
                         });
                     }, 50);
-
-                    // Force update the URL to remove all filter parameters after a short delay
-                    // to ensure all filters have processed the clear event
-                    setTimeout(function() {
-                        let currentUrl = window.location.href;
-                        let cleanUrl = URI(currentUrl).search('').toString();
-                        if (window.crud && window.crud.updateUrl) {
-                            window.crud.updateUrl(cleanUrl);
-                        }
-                    }, 100);
                 });
             }
 
