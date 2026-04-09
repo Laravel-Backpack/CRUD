@@ -617,7 +617,7 @@ function setupTableUI(tableId, config) {
     }
 
     if (config.resetButton !== false) {
-        var crudTableResetButton = `<a href="${config.urlStart}" class="ml-1 ms-1" id="${tableId}_reset_button">Reset</a>`;
+        var crudTableResetButton = `<a href="${config.urlStart}" class="ml-1 ms-1" id="${tableId}_reset_button">{{ trans('backpack::crud.reset') }}</a>`;
         $(`#datatable_info_stack_${tableId}`).append(crudTableResetButton);
 
         // when clicking in reset button we clear the localStorage for datatables
