@@ -2,6 +2,40 @@
   // Define the table ID - use the provided tableId or default to 'crudTable'
   $tableId = $tableId ?? 'crudTable';
   $fixedHeader = $useFixedHeader ?? $crud->getOperationSetting('useFixedHeader') ?? true;
+
+  $datatableLocalizedStrings = [
+      'emptyTable'     => trans('backpack::crud.emptyTable'),
+      'info'           => trans('backpack::crud.info'),
+      'infoEmpty'      => trans('backpack::crud.infoEmpty'),
+      'infoFiltered'   => trans('backpack::crud.infoFiltered'),
+      'infoPostFix'    => trans('backpack::crud.infoPostFix'),
+      'thousands'      => trans('backpack::crud.thousands'),
+      'lengthMenu'     => trans('backpack::crud.lengthMenu'),
+      'loadingRecords' => trans('backpack::crud.loadingRecords'),
+      'processing'     => trans('backpack::crud.processing'),
+      'search'         => trans('backpack::crud.search'),
+      'zeroRecords'    => trans('backpack::crud.zeroRecords'),
+      'paginate' => [
+          'first' => trans('backpack::crud.paginate.first'),
+          'last'  => trans('backpack::crud.paginate.last'),
+      ],
+      'aria' => [
+          'sortAscending'  => trans('backpack::crud.aria.sortAscending'),
+          'sortDescending' => trans('backpack::crud.aria.sortDescending'),
+      ],
+      'buttons' => [
+          'copy'   => trans('backpack::crud.export.copy'),
+          'excel'  => trans('backpack::crud.export.excel'),
+          'csv'    => trans('backpack::crud.export.csv'),
+          'pdf'    => trans('backpack::crud.export.pdf'),
+          'print'  => trans('backpack::crud.export.print'),
+          'colvis' => trans('backpack::crud.export.column_visibility'),
+      ],
+      'reset'          => trans('backpack::crud.reset'),
+      'actions'        => trans('backpack::crud.actions'),
+      'ajax_error_title'   => trans('backpack::crud.ajax_error_title'),
+      'ajax_error_text'    => trans('backpack::crud.ajax_error_text'),
+  ];
 @endphp
 <section class="header-operation datatable-header animated fadeIn d-flex mb-2 align-items-baseline d-print-none" bp-section="page-header">
           <h1 class="text-capitalize mb-0" bp-section="page-heading">{!! $crud->getHeading() ?? $crud->entity_name_plural !!}</h1>
@@ -59,6 +93,8 @@
       data-searchable-table="{{ var_export($crud->getOperationSetting('searchableTable') ?? true) }}"
       data-search-delay="{{ $crud->getOperationSetting('searchDelay') ?? 500 }}"
       data-total-entry-count="{{ var_export($crud->getOperationSetting('totalEntryCount') ?? false) }}"
+      data-language="{{ json_encode($datatableLocalizedStrings) }}"
+      data-spinner-url="{{ Basset::getUrl('vendor/backpack/crud/src/resources/assets/img/spinner.svg') }}"
       cellspacing="0">
     <thead>
       <tr>

@@ -206,6 +206,15 @@ window.crud.initializeTable = function(tableId, customConfig = {}) {
     config.modifiesUrl = tableElement.getAttribute('data-modifies-url') === 'true';
     config.searchDelay = parseInt(tableElement.getAttribute('data-search-delay')) || 500;
     config.defaultPageLength = parseInt(tableElement.getAttribute('data-default-page-length')) || 10;
+    config.spinnerUrl = tableElement.getAttribute('data-spinner-url') || '';
+    
+    // Parse language strings from data attribute
+    try {
+        config.language = JSON.parse(tableElement.getAttribute('data-language') || '{}');
+    } catch (e) {
+        console.error(`Error parsing language data attribute for table ${tableId}:`, e);
+        config.language = {};
+    }
     
     // Parse complex JSON structures from data attributes
     try {
@@ -305,35 +314,35 @@ window.crud.initializeTable = function(tableId, customConfig = {}) {
         lengthMenu: config.pageLengthMenu,
         aaSorting: [],
         language: {
-              "emptyTable":     "{{ trans('backpack::crud.emptyTable') }}",
-              "info":           "{{ trans('backpack::crud.info') }}",
-              "infoEmpty":      "{{ trans('backpack::crud.infoEmpty') }}",
-              "infoFiltered":   "{{ trans('backpack::crud.infoFiltered') }}",
-              "infoPostFix":    "{{ trans('backpack::crud.infoPostFix') }}",
-              "thousands":      "{{ trans('backpack::crud.thousands') }}",
-              "lengthMenu":     "{{ trans('backpack::crud.lengthMenu') }}",
-              "loadingRecords": "{{ trans('backpack::crud.loadingRecords') }}",
-              "processing":     "<img src='{{ Basset::getUrl('vendor/backpack/crud/src/resources/assets/img/spinner.svg') }}' alt='{{ trans('backpack::crud.processing') }}'>",
+              "emptyTable":     config.language.emptyTable || '',
+              "info":           config.language.info || '',
+              "infoEmpty":      config.language.infoEmpty || '',
+              "infoFiltered":   config.language.infoFiltered || '',
+              "infoPostFix":    config.language.infoPostFix || '',
+              "thousands":      config.language.thousands || '',
+              "lengthMenu":     config.language.lengthMenu || '',
+              "loadingRecords": config.language.loadingRecords || '',
+              "processing":     "<img src='" + config.spinnerUrl + "' alt='" + (config.language.processing || '') + "'>",
               "search": "_INPUT_",
-              "searchPlaceholder": "{{ trans('backpack::crud.search') }}...",
-              "zeroRecords":    "{{ trans('backpack::crud.zeroRecords') }}",
+              "searchPlaceholder": (config.language.search || '') + "...",
+              "zeroRecords":    config.language.zeroRecords || '',
               "paginate": {
-                  "first":      "{{ trans('backpack::crud.paginate.first') }}",
-                  "last":       "{{ trans('backpack::crud.paginate.last') }}",
+                  "first":      (config.language.paginate && config.language.paginate.first) || '',
+                  "last":       (config.language.paginate && config.language.paginate.last) || '',
                   "next":       '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M8 5l5 5l-5 5"></path></svg>',
                   "previous":   '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-5 5l5 5"></path></svg>'
               },
               "aria": {
-                  "sortAscending":  "{{ trans('backpack::crud.aria.sortAscending') }}",
-                  "sortDescending": "{{ trans('backpack::crud.aria.sortDescending') }}"
+                  "sortAscending":  (config.language.aria && config.language.aria.sortAscending) || '',
+                  "sortDescending": (config.language.aria && config.language.aria.sortDescending) || ''
               },
               "buttons": {
-                  "copy":   "{{ trans('backpack::crud.export.copy') }}",
-                  "excel":  "{{ trans('backpack::crud.export.excel') }}",
-                  "csv":    "{{ trans('backpack::crud.export.csv') }}",
-                  "pdf":    "{{ trans('backpack::crud.export.pdf') }}",
-                  "print":  "{{ trans('backpack::crud.export.print') }}",
-                  "colvis": "{{ trans('backpack::crud.export.column_visibility') }}"
+                  "copy":   (config.language.buttons && config.language.buttons.copy) || '',
+                  "excel":  (config.language.buttons && config.language.buttons.excel) || '',
+                  "csv":    (config.language.buttons && config.language.buttons.csv) || '',
+                  "pdf":    (config.language.buttons && config.language.buttons.pdf) || '',
+                  "print":  (config.language.buttons && config.language.buttons.print) || '',
+                  "colvis": (config.language.buttons && config.language.buttons.colvis) || ''
               },
           },
         layout: {
@@ -617,7 +626,8 @@ function setupTableUI(tableId, config) {
     }
 
     if (config.resetButton !== false) {
-        var crudTableResetButton = `<a href="${config.urlStart}" class="ml-1 ms-1" id="${tableId}_reset_button">Reset</a>`;
+        var resetLabel = config.language.reset || 'Reset';
+        var crudTableResetButton = `<a href="${config.urlStart}" class="ml-1 ms-1" id="${tableId}_reset_button">${resetLabel}</a>`;
         $(`#datatable_info_stack_${tableId}`).append(crudTableResetButton);
 
         // when clicking in reset button we clear the localStorage for datatables
@@ -681,9 +691,11 @@ function setupTableEvents(tableId, config) {
     // override ajax error message
     $.fn.dataTable.ext.errMode = 'none';
     $(`#${tableId}`).on('error.dt', function(e, settings, techNote, message) {
+        var errorTitle = config.language.ajax_error_title || 'Error';
+        var errorText = config.language.ajax_error_text || 'Something went wrong with the AJAX request.';
         new Noty({
             type: "error",
-            text: "<strong>Ajax Error</strong><br>Something went wrong with the AJAX request."
+            text: "<strong>" + errorTitle + "</strong><br>" + errorText
         }).show();
     });
 
@@ -1308,7 +1320,8 @@ function formatActionColumnAsDropdown(tableId) {
             actionCell.wrapInner('<div class="dropdown-menu"></div>');
             actionCell.wrapInner('<div class="dropdown"></div>');
 
-            actionCell.prepend('<button class="btn btn-sm px-2 py-1 btn-outline-primary dropdown-toggle actions-buttons-column" type="button" aria-expanded="false">{{trans("backpack::crud.actions")}}</button>');
+            var actionsLabel = (window.crud.tableConfigs[tableId] && window.crud.tableConfigs[tableId].language && window.crud.tableConfigs[tableId].language.actions) || 'Actions';
+            actionCell.prepend('<button class="btn btn-sm px-2 py-1 btn-outline-primary dropdown-toggle actions-buttons-column" type="button" aria-expanded="false">' + actionsLabel + '</button>');
             
             const remainingButtons = actionButtons.slice(0, buttonsToShowBeforeDropdown);
             actionCell.prepend(remainingButtons);
