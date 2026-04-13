@@ -68,7 +68,18 @@ trait Search
                 case 'email':
                 case 'text':
                 case 'textarea':
-                    $query->orWhere($this->getColumnWithTableNamePrefixed($query, $column['name']), $searchOperator, '%'.$searchTerm.'%');
+                case 'url':
+                case 'summernote':
+                    // Check if the column is translatable
+                    if (method_exists($this->model, 'translationEnabled') &&
+                        $this->model->translationEnabled() &&
+                        $this->model->isTranslatableAttribute($column['name']) &&
+                        $this->isJsonColumnType($column['name'])
+                    ) {
+                        $this->applyTranslatableSearch($query, $column['name'], $searchTerm, $searchOperator);
+                    } else {
+                        $query->orWhere($this->getColumnWithTableNamePrefixed($query, $column['name']), $searchOperator, '%'.$searchTerm.'%');
+                    }
                     break;
 
                 case 'date':
@@ -79,7 +90,16 @@ trait Search
                         break;
                     }
 
-                    $query->orWhereDate($this->getColumnWithTableNamePrefixed($query, $column['name']), Carbon::parse($searchTerm));
+                    // Check if the column is translatable
+                    if (method_exists($this->model, 'translationEnabled') &&
+                        $this->model->translationEnabled() &&
+                        $this->model->isTranslatableAttribute($column['name']) &&
+                        $this->isJsonColumnType($column['name'])
+                    ) {
+                        $this->applyTranslatableDateSearch($query, $column['name'], $searchTerm);
+                    } else {
+                        $query->orWhereDate($this->getColumnWithTableNamePrefixed($query, $column['name']), Carbon::parse($searchTerm));
+                    }
                     break;
 
                 case 'select':
@@ -422,6 +442,145 @@ trait Search
     public function getColumnWithTableNamePrefixed($query, $column)
     {
         return $query->getModel()->getTable().'.'.$column;
+    }
+
+    /**
+     * Apply case-insensitive search for translatable attributes.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @param  string  $searchColumn
+     * @param  string  $searchTerm
+     * @param  string  $searchOperator
+     * @return void
+     */
+    private function applyTranslatableSearch($query, $searchColumn, $searchTerm, $searchOperator)
+    {
+        $currentLocale = app()->getLocale();
+        $fallbackLocale = config('app.fallback_locale');
+        $availableLocales = array_keys(config('backpack.crud.locales', []));
+
+        $searchLocales = array_unique(array_filter([
+            $currentLocale,
+            $fallbackLocale,
+            ...$availableLocales,
+        ]));
+
+        $columnType = $this->model->getColumnType($searchColumn);
+        $isJsonColumn = $this->isJsonColumnType($searchColumn);
+
+        $query->orWhere(function ($subQuery) use ($searchColumn, $searchTerm, $searchOperator, $searchLocales, $isJsonColumn) {
+            $this->applyLocaleSearchConditions($subQuery, $searchColumn, $searchTerm, $searchOperator, $searchLocales, $isJsonColumn);
+        });
+    }
+
+    /**
+     * Apply date search for translatable attributes.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @param  string  $searchColumn
+     * @param  string  $searchTerm
+     * @return void
+     */
+    private function applyTranslatableDateSearch($query, $searchColumn, $searchTerm)
+    {
+        $currentLocale = app()->getLocale();
+        $fallbackLocale = config('app.fallback_locale');
+        $availableLocales = array_keys(config('backpack.crud.locales', []));
+
+        $searchLocales = array_unique(array_filter([
+            $currentLocale,
+            $fallbackLocale,
+            ...$availableLocales,
+        ]));
+
+        $isJsonColumn = $this->isJsonColumnType($searchColumn);
+        $parsedDate = Carbon::parse($searchTerm);
+
+        $query->orWhere(function ($subQuery) use ($searchColumn, $parsedDate, $searchLocales, $isJsonColumn) {
+            $isFirst = true;
+            foreach ($searchLocales as $locale) {
+                $localeOperation = $isFirst ? 'where' : 'orWhere';
+                $isFirst = false;
+
+                if ($isJsonColumn) {
+                    $subQuery->$localeOperation(function ($localeQuery) use ($searchColumn, $locale, $parsedDate) {
+                        $localeQuery->whereNotNull("{$searchColumn}->{$locale}")
+                                   ->whereDate("{$searchColumn}->{$locale}", $parsedDate);
+                    });
+                } else {
+                    // For non-JSON columns storing date as string in serialized data
+                    $subQuery->$localeOperation(function ($localeQuery) use ($searchColumn, $locale, $parsedDate) {
+                        $dateString = $parsedDate->format('Y-m-d');
+                        $localeQuery->whereRaw("LOWER({$searchColumn}) LIKE LOWER(?)", ['%"'.$locale.'":"'.$dateString.'%"%'])
+                                   ->orWhereRaw("LOWER({$searchColumn}) LIKE LOWER(?)", ['%s:'.strlen($locale).':"'.$locale.'"%'.$dateString.'%']);
+                    });
+                }
+            }
+        });
+    }
+
+    /**
+     * Apply locale-specific search conditions to a query.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @param  string  $searchColumn
+     * @param  string  $searchTerm
+     * @param  string  $searchOperator
+     * @param  array  $searchLocales
+     * @param  bool  $isJsonColumn
+     * @return void
+     */
+    private function applyLocaleSearchConditions($query, $searchColumn, $searchTerm, $searchOperator, $searchLocales, $isJsonColumn)
+    {
+        $isFirst = true;
+        foreach ($searchLocales as $locale) {
+            $localeOperation = $isFirst ? 'where' : 'orWhere';
+            $isFirst = false;
+
+            if ($searchOperator === 'LIKE' || strtolower($searchOperator) === 'like') {
+                $query->$localeOperation(function ($localeQuery) use ($searchColumn, $locale, $searchTerm, $isJsonColumn) {
+                    $this->applyLocaleSearch($localeQuery, $searchColumn, $locale, $searchTerm, $isJsonColumn);
+                });
+            } else {
+                $query->$localeOperation(function ($localeQuery) use ($searchColumn, $locale, $searchTerm, $searchOperator, $isJsonColumn) {
+                    if ($isJsonColumn) {
+                        $localeQuery->whereNotNull("{$searchColumn}->{$locale}")
+                                   ->where("{$searchColumn}->{$locale}", $searchOperator, $searchTerm);
+                    } else {
+                        // For non-JSON columns, we need to search within the serialized/JSON string
+                        $localeQuery->whereRaw("LOWER({$searchColumn}) LIKE LOWER(?)", ['%"'.$locale.'":"'.$searchTerm.'"%']);
+                    }
+                });
+            }
+        }
+    }
+
+    /**
+     * Apply case-insensitive locale-specific search based on column type.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @param  string  $searchColumn
+     * @param  string  $locale
+     * @param  string  $searchTerm
+     * @param  bool  $isJsonColumn
+     * @return void
+     */
+    private function applyLocaleSearch($query, $searchColumn, $locale, $searchTerm, $isJsonColumn)
+    {
+        if ($isJsonColumn) {
+            // Use proper JSON functions for JSON columns with case-insensitive search
+            $query->whereRaw("JSON_EXTRACT({$searchColumn}, '$.{$locale}') IS NOT NULL")
+                  ->whereRaw("LOWER(JSON_UNQUOTE(JSON_EXTRACT({$searchColumn}, '$.{$locale}'))) LIKE LOWER(?)", ['%'.$searchTerm.'%']);
+        } else {
+            // For text columns storing JSON as string, search within the serialized data
+            // This handles both PHP serialized arrays and JSON strings with case-insensitive search
+            $query->where(function ($subQuery) use ($searchColumn, $locale, $searchTerm) {
+                // Search for JSON format: "locale":"value" (case-insensitive)
+                $subQuery->whereRaw("LOWER({$searchColumn}) LIKE LOWER(?)", ['%"'.$locale.'":"%'.$searchTerm.'%"%'])
+                         // Also search for PHP serialized format (case-insensitive)
+                         ->orWhereRaw("LOWER({$searchColumn}) LIKE LOWER(?)", ['%s:'.strlen($locale).':"'.$locale.'"%'.$searchTerm.'%']);
+            });
+        }
     }
 
     private function isJsonColumnType(string $columnName)
