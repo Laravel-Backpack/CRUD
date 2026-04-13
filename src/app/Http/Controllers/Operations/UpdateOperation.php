@@ -58,7 +58,7 @@ trait UpdateOperation
     /**
      * Show the form for editing the specified resource.
      *
-     * @param  int  $id
+     * @param  int|string  $id
      * @return \Illuminate\Contracts\View\View
      */
     public function edit($id)
