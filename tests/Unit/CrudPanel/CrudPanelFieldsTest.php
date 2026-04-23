@@ -572,11 +572,11 @@ class CrudPanelFieldsTest extends BaseCrudPanel
     public function testAddFieldMergesWithExistingFieldAttributesInSameOperation()
     {
         $this->crudPanel->addField([
-            'name'   => 'spouse',
-            'label'  => 'Spouse',
-            'type'   => 'select2_from_ajax',
+            'name' => 'spouse',
+            'label' => 'Spouse',
+            'type' => 'select2_from_ajax',
             'method' => 'POST',
-            'hint'   => 'Original hint.',
+            'hint' => 'Original hint.',
         ]);
 
         $this->crudPanel->addField([
@@ -598,9 +598,9 @@ class CrudPanelFieldsTest extends BaseCrudPanel
     public function testAddFieldMergesWithExistingFieldAttributesViaFluentSyntax()
     {
         $this->crudPanel->addField([
-            'name'   => 'spouse',
-            'label'  => 'Spouse',
-            'type'   => 'select2_from_ajax',
+            'name' => 'spouse',
+            'label' => 'Spouse',
+            'type' => 'select2_from_ajax',
             'method' => 'POST',
         ]);
 
