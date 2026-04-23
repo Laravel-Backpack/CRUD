@@ -106,6 +106,15 @@ trait Fields
      */
     public function addField($field)
     {
+        $field = $this->makeSureFieldHasName($field);
+
+        // If the field already exists in the current operation, merge the incoming
+        // definition on top of the existing one so that only the attributes the
+        // developer explicitly provided are overridden and everything else is kept.
+        if ($existingField = $this->firstFieldWhere('name', $field['name'])) {
+            $field = array_merge($existingField, $field);
+        }
+
         $field = $this->makeSureFieldHasNecessaryAttributes($field);
 
         $this->enableTabsIfFieldUsesThem($field);

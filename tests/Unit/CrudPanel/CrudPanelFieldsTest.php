@@ -569,6 +569,52 @@ class CrudPanelFieldsTest extends BaseCrudPanel
         // TODO: the decode JSON method should not be in fields trait and should not be exposed in the public API.
     }
 
+    public function testAddFieldMergesWithExistingFieldAttributesInSameOperation()
+    {
+        $this->crudPanel->addField([
+            'name'   => 'spouse',
+            'label'  => 'Spouse',
+            'type'   => 'select2_from_ajax',
+            'method' => 'POST',
+            'hint'   => 'Original hint.',
+        ]);
+
+        $this->crudPanel->addField([
+            'name' => 'spouse',
+            'hint' => 'Updated hint for update only.',
+        ]);
+
+        $this->assertCount(1, $this->crudPanel->fields());
+
+        $field = $this->crudPanel->fields()['spouse'];
+
+        $this->assertEquals('Updated hint for update only.', $field['hint']);
+
+        $this->assertEquals('Spouse', $field['label']);
+        $this->assertEquals('select2_from_ajax', $field['type']);
+        $this->assertEquals('POST', $field['method']);
+    }
+
+    public function testAddFieldMergesWithExistingFieldAttributesViaFluentSyntax()
+    {
+        $this->crudPanel->addField([
+            'name'   => 'spouse',
+            'label'  => 'Spouse',
+            'type'   => 'select2_from_ajax',
+            'method' => 'POST',
+        ]);
+
+        $this->crudPanel->field('spouse')->method('GET');
+
+        $this->assertCount(1, $this->crudPanel->fields());
+
+        $field = $this->crudPanel->fields()['spouse'];
+
+        $this->assertEquals('GET', $field['method']);
+        $this->assertEquals('Spouse', $field['label']);
+        $this->assertEquals('select2_from_ajax', $field['type']);
+    }
+
     public function testFieldNameDotNotationIsRelationship()
     {
         $this->crudPanel->setModel(User::class);
