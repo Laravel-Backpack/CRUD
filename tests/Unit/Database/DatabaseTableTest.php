@@ -18,8 +18,11 @@ class DatabaseTableTest extends TestCase
 
         $mariaDbConn = $this->createStub(\Illuminate\Database\MariaDbConnection::class);
 
-        return new class($mariaDbConn) {
-            public function __construct(private object $conn) {}
+        return new class($mariaDbConn)
+        {
+            public function __construct(private object $conn)
+            {
+            }
 
             public function getConnection(): object
             {
@@ -106,11 +109,11 @@ class DatabaseTableTest extends TestCase
     {
         // A nullable VARCHAR column with a real string default must not be changed
         $column = $this->makeColumn([
-            'name'      => 'status',
-            'type'      => 'varchar',
+            'name' => 'status',
+            'type' => 'varchar',
             'type_name' => 'varchar',
-            'nullable'  => true,
-            'default'   => 'active',
+            'nullable' => true,
+            'default' => 'active',
         ]);
 
         $this->assertSame('active', $column->getDefault());

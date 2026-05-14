@@ -2176,7 +2176,7 @@ class CrudPanelCreateTest extends \Backpack\CRUD\Tests\config\CrudPanel\BaseDBCr
     }
 
     /**
-     * Regression test for https://github.com/Laravel-Backpack/community-forum/issues/932
+     * Regression test for https://github.com/Laravel-Backpack/community-forum/issues/932.
      */
     public function testHasManySelectableRelationshipRemoveRelationsWithMariaDbNullDefault()
     {
@@ -2188,8 +2188,11 @@ class CrudPanelCreateTest extends \Backpack\CRUD\Tests\config\CrudPanel\BaseDBCr
         // mock so that Table::getDefault()'s is_a() check passes, simulating a real
         // MariaDB connection returning 'NULL' (string) for nullable FK columns.
         $mariaDbConn = $this->createStub(\Illuminate\Database\MariaDbConnection::class);
-        $fakeSchemaManager = new class($mariaDbConn) {
-            public function __construct(private object $conn) {}
+        $fakeSchemaManager = new class($mariaDbConn)
+        {
+            public function __construct(private object $conn)
+            {
+            }
 
             public function getConnection(): object
             {
@@ -2207,7 +2210,8 @@ class CrudPanelCreateTest extends \Backpack\CRUD\Tests\config\CrudPanel\BaseDBCr
 
         // Replace the DatabaseSchema binding so that only the planets table
         // returns our MariaDB-like fake; everything else delegates to the real schema.
-        $this->app->instance('DatabaseSchema', new class($mariaDbLikeTable) {
+        $this->app->instance('DatabaseSchema', new class($mariaDbLikeTable)
+        {
             public function __construct(private \Backpack\CRUD\app\Library\Database\Table $fakeTable)
             {
             }
@@ -2247,18 +2251,18 @@ class CrudPanelCreateTest extends \Backpack\CRUD\Tests\config\CrudPanel\BaseDBCr
         $this->crudPanel->setModel(User::class);
         $this->crudPanel->addFields($this->userInputFieldsNoRelationships, 'both');
         $this->crudPanel->addField([
-            'name'        => 'planets',
+            'name' => 'planets',
             'force_delete' => false,
-            'fallback_id'  => false,
+            'fallback_id' => false,
         ], 'both');
 
         $faker = Factory::create();
         $inputData = [
-            'name'           => $faker->name,
-            'email'          => $faker->safeEmail,
-            'password'       => Hash::make($faker->password()),
+            'name' => $faker->name,
+            'email' => $faker->safeEmail,
+            'password' => Hash::make($faker->password()),
             'remember_token' => null,
-            'planets'        => [1, 2],
+            'planets' => [1, 2],
         ];
 
         $entry = $this->crudPanel->create($inputData);
