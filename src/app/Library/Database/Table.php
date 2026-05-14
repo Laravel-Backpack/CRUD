@@ -34,7 +34,7 @@ final class Table
                         (is_a($this->schemaManager->getConnection(), \Illuminate\Database\MariaDbConnection::class) &&
                             is_string($this->column['default']) &&
                             $this->column['nullable'] === true &&
-                            ($this->column['default'] === 'null' || $this->column['default'] === 'NULL') ? null : $this->column['default']) : $this->column['default'];
+                            (strtolower($this->column['default']) === 'null') ? null : $this->column['default']) : $this->column['default'];
                 }
 
                 public function getUnsigned()

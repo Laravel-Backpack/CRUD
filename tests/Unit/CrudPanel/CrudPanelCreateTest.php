@@ -2174,4 +2174,108 @@ class CrudPanelCreateTest extends \Backpack\CRUD\Tests\config\CrudPanel\BaseDBCr
             \Illuminate\Database\Eloquent\Model::preventSilentlyDiscardingAttributes($previousState);
         }
     }
+
+    /**
+     * Regression test for https://github.com/Laravel-Backpack/community-forum/issues/932
+     */
+    public function testHasManySelectableRelationshipRemoveRelationsWithMariaDbNullDefault()
+    {
+        if (! class_exists(\Illuminate\Database\MariaDbConnection::class)) {
+            $this->markTestSkipped('MariaDbConnection is not available in this Laravel version.');
+        }
+
+        // Build a fake schema manager whose getConnection() returns a MariaDbConnection
+        // mock so that Table::getDefault()'s is_a() check passes, simulating a real
+        // MariaDB connection returning 'NULL' (string) for nullable FK columns.
+        $mariaDbConn = $this->createStub(\Illuminate\Database\MariaDbConnection::class);
+        $fakeSchemaManager = new class($mariaDbConn) {
+            public function __construct(private object $conn) {}
+
+            public function getConnection(): object
+            {
+                return $this->conn;
+            }
+        };
+
+        // Build a Table that mimics what MariaDB's information_schema returns:
+        // nullable FK column whose COLUMN_DEFAULT is the *string* 'NULL'.
+        $mariaDbLikeTable = new \Backpack\CRUD\app\Library\Database\Table('planets', [
+            ['name' => 'id',      'nullable' => false, 'default' => null,   'type' => 'bigint unsigned', 'type_name' => 'bigint'],
+            ['name' => 'user_id', 'nullable' => true,  'default' => 'NULL', 'type' => 'bigint',          'type_name' => 'bigint'],
+            ['name' => 'title',   'nullable' => true,  'default' => null,   'type' => 'varchar',         'type_name' => 'varchar'],
+        ], $fakeSchemaManager);
+
+        // Replace the DatabaseSchema binding so that only the planets table
+        // returns our MariaDB-like fake; everything else delegates to the real schema.
+        $this->app->instance('DatabaseSchema', new class($mariaDbLikeTable) {
+            public function __construct(private \Backpack\CRUD\app\Library\Database\Table $fakeTable)
+            {
+            }
+
+            public function getForTable(string $table, string $connection): mixed
+            {
+                if ($table === 'planets') {
+                    return $this->fakeTable;
+                }
+
+                return \Backpack\CRUD\app\Library\Database\DatabaseSchema::getForTable($table, $connection);
+            }
+
+            public function listTableColumnsNames(string $connection, string $table): array
+            {
+                $tableObj = $this->getForTable($table, $connection);
+
+                return $tableObj ? array_keys($tableObj->getColumns()) : [];
+            }
+
+            public function listTableIndexes(string $connection, string $table): array
+            {
+                $tableObj = $this->getForTable($table, $connection);
+
+                if (! $tableObj) {
+                    return [];
+                }
+
+                $indexes = \Illuminate\Support\Arr::flatten(array_map(function ($index) {
+                    return is_string($index) ? $index : $index->getColumns();
+                }, $tableObj->getIndexes()));
+
+                return array_unique($indexes);
+            }
+        });
+
+        $this->crudPanel->setModel(User::class);
+        $this->crudPanel->addFields($this->userInputFieldsNoRelationships, 'both');
+        $this->crudPanel->addField([
+            'name'        => 'planets',
+            'force_delete' => false,
+            'fallback_id'  => false,
+        ], 'both');
+
+        $faker = Factory::create();
+        $inputData = [
+            'name'           => $faker->name,
+            'email'          => $faker->safeEmail,
+            'password'       => Hash::make($faker->password()),
+            'remember_token' => null,
+            'planets'        => [1, 2],
+        ];
+
+        $entry = $this->crudPanel->create($inputData);
+        $this->assertCount(2, $entry->planets);
+
+        $inputData['planets'] = [];
+        $this->crudPanel->update($entry->id, $inputData);
+
+        // Planets are kept in the DB (not deleted) but detached from the user.
+        $this->assertCount(0, $entry->fresh()->planets);
+
+        $allPlanets = Planet::all();
+        $this->assertCount(2, $allPlanets);
+
+        // The FK must be PHP null (SQL NULL), NOT the string 'NULL' or integer 0.
+        foreach ($allPlanets as $planet) {
+            $this->assertNull($planet->user_id, "Expected user_id to be NULL after detach, got: {$planet->user_id}");
+        }
+    }
 }
