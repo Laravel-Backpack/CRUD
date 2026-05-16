@@ -91,9 +91,13 @@ trait Stats
      */
     private function makeCurlRequest($method, $url, $payload)
     {
-        $cmd = 'curl -X '.$method." -H 'Content-Type: application/json'";
-        $cmd .= " -d '".json_encode($payload)."' "."'".$url."'";
-        $cmd .= ' > /dev/null 2>&1 &';
+        $cmd = sprintf(
+            'curl -X %s -H %s -d %s %s > /dev/null 2>&1 &',
+            escapeshellarg($method),
+            escapeshellarg('Content-Type: application/json'),
+            escapeshellarg(json_encode($payload)),
+            escapeshellarg($url),
+        );
 
         exec($cmd, $output, $exit);
 
