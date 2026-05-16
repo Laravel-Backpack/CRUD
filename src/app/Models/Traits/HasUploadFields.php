@@ -90,12 +90,15 @@ trait HasUploadFields
 
         // if a file has been marked for removal,
         // delete it from the disk and from the db
+        // only delete files that are actually owned by this model record
         if ($files_to_clear) {
-            foreach ($files_to_clear as $key => $filename) {
-                \Storage::disk($disk)->delete($filename);
-                $attribute_value = Arr::where($attribute_value, function ($value, $key) use ($filename) {
-                    return $value != $filename;
-                });
+            foreach ($attribute_value as $filename) {
+                if (in_array($filename, $files_to_clear)) {
+                    \Storage::disk($disk)->delete($filename);
+                    $attribute_value = Arr::where($attribute_value, function ($value, $key) use ($filename) {
+                        return $value != $filename;
+                    });
+                }
             }
         }
 
