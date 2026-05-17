@@ -47,11 +47,11 @@ class FakeColumnsModel extends Model
     ];
 
     protected $casts = [
-        'fake_object'                   => 'object',
-        'fake_object_translatable'      => 'object',
-        'fake_array'                    => 'array',
-        'fake_array_translatable'       => 'array',
-        'fake_assoc_array'              => 'array',
+        'fake_object' => 'object',
+        'fake_object_translatable' => 'object',
+        'fake_array' => 'array',
+        'fake_array_translatable' => 'array',
+        'fake_assoc_array' => 'array',
         'fake_assoc_array_translatable' => 'array',
     ];
 }

@@ -19,22 +19,22 @@ class MorphableSeeders extends Seeder
 
         DB::table('recommends')->insert([[
             'title' => $faker->title,
-            'created_at'     => $now,
-            'updated_at'     => $now,
+            'created_at' => $now,
+            'updated_at' => $now,
         ], [
             'title' => $faker->title,
-            'created_at'     => $now,
-            'updated_at'     => $now,
+            'created_at' => $now,
+            'updated_at' => $now,
         ]]);
 
         DB::table('bills')->insert([[
             'title' => $faker->title,
-            'created_at'     => $now,
-            'updated_at'     => $now,
+            'created_at' => $now,
+            'updated_at' => $now,
         ], [
             'title' => $faker->title,
-            'created_at'     => $now,
-            'updated_at'     => $now,
+            'created_at' => $now,
+            'updated_at' => $now,
         ]]);
 
         DB::table('planets')->insert([[

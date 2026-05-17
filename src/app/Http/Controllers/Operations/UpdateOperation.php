@@ -16,14 +16,14 @@ trait UpdateOperation
     protected function setupUpdateRoutes($segment, $routeName, $controller)
     {
         Route::get($segment.'/{id}/edit', [
-            'as'        => $routeName.'.edit',
-            'uses'      => $controller.'@edit',
+            'as' => $routeName.'.edit',
+            'uses' => $controller.'@edit',
             'operation' => 'update',
         ]);
 
         Route::put($segment.'/{id}', [
-            'as'        => $routeName.'.update',
-            'uses'      => $controller.'@update',
+            'as' => $routeName.'.update',
+            'uses' => $controller.'@update',
             'operation' => 'update',
         ]);
     }

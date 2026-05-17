@@ -116,7 +116,7 @@ trait PrettyCommandOutput
      *
      * @return void
      */
-    public function listChoice(string $question, array $options, string $default = 'no', string $hint = null)
+    public function listChoice(string $question, array $options, string $default = 'no', ?string $hint = null)
     {
         foreach ($options as $key => $option) {
             $value = $key + 1;

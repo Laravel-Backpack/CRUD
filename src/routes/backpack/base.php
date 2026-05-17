@@ -14,9 +14,9 @@ use Illuminate\Support\Facades\Route;
 
 Route::group(
     [
-        'namespace'  => 'Backpack\CRUD\app\Http\Controllers',
+        'namespace' => 'Backpack\CRUD\app\Http\Controllers',
         'middleware' => config('backpack.base.web_middleware', 'web'),
-        'prefix'     => config('backpack.base.route_prefix'),
+        'prefix' => config('backpack.base.route_prefix'),
     ],
     function () {
         // if not otherwise configured, setup the auth routes
