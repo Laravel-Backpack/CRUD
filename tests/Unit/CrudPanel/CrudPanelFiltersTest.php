@@ -13,13 +13,13 @@ use Config;
 class CrudPanelFiltersTest extends BaseCrudPanelTest
 {
     protected $testFilter = [[
-        'name'  => 'my_filter',
-        'type'  => 'simple',
+        'name' => 'my_filter',
+        'type' => 'simple',
         'label' => 'filter label',
     ], false, false, false];
 
     protected $testFilter_2 = [[
-        'name'  => 'my_filter_2',
+        'name' => 'my_filter_2',
         'label' => 'filter label 2',
     ], false, false, false];
 

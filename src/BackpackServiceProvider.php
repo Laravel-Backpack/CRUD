@@ -121,8 +121,8 @@ class BackpackServiceProvider extends ServiceProvider
 
         // sidebar content views, which are the only views most people need to overwrite
         $backpack_menu_contents_view = [
-            __DIR__.'/resources/views/base/inc/sidebar_content.blade.php'      => resource_path('views/vendor/backpack/base/inc/sidebar_content.blade.php'),
-            __DIR__.'/resources/views/base/inc/topbar_left_content.blade.php'  => resource_path('views/vendor/backpack/base/inc/topbar_left_content.blade.php'),
+            __DIR__.'/resources/views/base/inc/sidebar_content.blade.php' => resource_path('views/vendor/backpack/base/inc/sidebar_content.blade.php'),
+            __DIR__.'/resources/views/base/inc/topbar_left_content.blade.php' => resource_path('views/vendor/backpack/base/inc/topbar_left_content.blade.php'),
             __DIR__.'/resources/views/base/inc/topbar_right_content.blade.php' => resource_path('views/vendor/backpack/base/inc/topbar_right_content.blade.php'),
         ];
         $backpack_custom_routes_file = [__DIR__.$this->customRoutesFilePath => base_path($this->customRoutesFilePath)];
@@ -232,7 +232,7 @@ class BackpackServiceProvider extends ServiceProvider
         // add the root disk to filesystem configuration
         app()->config['filesystems.disks.'.config('backpack.base.root_disk_name')] = [
             'driver' => 'local',
-            'root'   => base_path(),
+            'root' => base_path(),
         ];
 
         /*
@@ -250,8 +250,8 @@ class BackpackServiceProvider extends ServiceProvider
         app()->config['auth.providers'] = app()->config['auth.providers'] +
         [
             'backpack' => [
-                'driver'  => 'eloquent',
-                'model'   => config('backpack.base.user_model_fqn'),
+                'driver' => 'eloquent',
+                'model' => config('backpack.base.user_model_fqn'),
             ],
         ];
 
@@ -265,10 +265,10 @@ class BackpackServiceProvider extends ServiceProvider
         app()->config['auth.passwords'] = $laravelAuthPasswordBrokers +
         [
             'backpack' => [
-                'provider'  => 'backpack',
-                'table'     => $backpackPasswordBrokerTable,
-                'expire'    => config('backpack.base.password_recovery_token_expiration', 60),
-                'throttle'  => config('backpack.base.password_recovery_throttle_notifications'),
+                'provider' => 'backpack',
+                'table' => $backpackPasswordBrokerTable,
+                'expire' => config('backpack.base.password_recovery_token_expiration', 60),
+                'throttle' => config('backpack.base.password_recovery_throttle_notifications'),
             ],
         ];
 
@@ -276,7 +276,7 @@ class BackpackServiceProvider extends ServiceProvider
         app()->config['auth.guards'] = app()->config['auth.guards'] +
         [
             'backpack' => [
-                'driver'   => 'session',
+                'driver' => 'session',
                 'provider' => 'backpack',
             ],
         ];

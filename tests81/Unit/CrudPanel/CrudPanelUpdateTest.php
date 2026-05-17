@@ -25,10 +25,10 @@ class CrudPanelUpdateTest extends BaseDBCrudPanelTest
         ], [
             'name' => 'tags',
         ], [
-            'label'     => 'Author',
-            'type'      => 'select',
-            'name'      => 'user_id',
-            'entity'    => 'user',
+            'label' => 'Author',
+            'type' => 'select',
+            'name' => 'user_id',
+            'entity' => 'user',
             'attribute' => 'name',
         ], [
             'name' => 'status',
@@ -42,16 +42,16 @@ class CrudPanelUpdateTest extends BaseDBCrudPanelTest
         ]);
         $faker = Factory::create();
         $inputData = [
-            'content'     => $faker->text(),
-            'tags'        => $faker->words(3, true),
-            'user_id'     => 1,
-            'metas'       => null,
-            'extras'      => null,
-            'status'      => 'publish',
-            'state'       => 'COLD',
-            'style'       => 'DRAFT',
-            'cast_metas'  => null,
-            'cast_tags'   => null,
+            'content' => $faker->text(),
+            'tags' => $faker->words(3, true),
+            'user_id' => 1,
+            'metas' => null,
+            'extras' => null,
+            'status' => 'publish',
+            'state' => 'COLD',
+            'style' => 'DRAFT',
+            'cast_metas' => null,
+            'cast_tags' => null,
             'cast_extras' => null,
         ];
         $article = $this->crudPanel->create($inputData);

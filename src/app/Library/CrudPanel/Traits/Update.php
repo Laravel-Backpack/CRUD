@@ -49,9 +49,9 @@ trait Update
         // always have a hidden input for the entry id
         if (! array_key_exists('id', $fields)) {
             $fields['id'] = [
-                'name'  => $entry->getKeyName(),
+                'name' => $entry->getKeyName(),
                 'value' => $entry->getKey(),
-                'type'  => 'hidden',
+                'type' => 'hidden',
             ];
         }
 

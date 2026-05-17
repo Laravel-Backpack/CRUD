@@ -13,37 +13,37 @@ class CrudPanelFakeColumnsTest extends BaseDBCrudPanelTest
 
     private $fakeFieldsArray = [
         [
-            'name'  => 'field',
+            'name' => 'field',
             'label' => 'Normal Field',
         ],
         [
-            'name'     => 'meta_title',
-            'label'    => 'Meta Title',
-            'fake'     => true,
+            'name' => 'meta_title',
+            'label' => 'Meta Title',
+            'fake' => true,
             'store_in' => 'metas',
         ],
         [
-            'name'     => 'meta_description',
-            'label'    => 'Meta Description',
-            'fake'     => true,
+            'name' => 'meta_description',
+            'label' => 'Meta Description',
+            'fake' => true,
             'store_in' => 'metas',
         ],
         [
-            'name'     => 'meta_keywords',
-            'label'    => 'Meta Keywords',
-            'fake'     => true,
+            'name' => 'meta_keywords',
+            'label' => 'Meta Keywords',
+            'fake' => true,
             'store_in' => 'metas',
         ],
         [
-            'name'     => 'tags',
-            'label'    => 'Tags',
-            'fake'     => true,
+            'name' => 'tags',
+            'label' => 'Tags',
+            'fake' => true,
             'store_in' => 'tags',
         ],
         [
-            'name'  => 'extra_details',
+            'name' => 'extra_details',
             'label' => 'Extra Details',
-            'fake'  => true,
+            'fake' => true,
         ],
     ];
 

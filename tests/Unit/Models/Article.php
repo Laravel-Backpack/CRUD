@@ -12,8 +12,8 @@ class Article extends Model
     protected $table = 'articles';
     protected $fillable = ['user_id', 'content', 'metas', 'tags', 'extras', 'cast_metas', 'cast_tags', 'cast_extras'];
     protected $casts = [
-        'cast_metas'  => 'object',
-        'cast_tags'   => 'object',
+        'cast_metas' => 'object',
+        'cast_tags' => 'object',
         'cast_extras' => 'object',
     ];
 

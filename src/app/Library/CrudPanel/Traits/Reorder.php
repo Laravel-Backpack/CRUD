@@ -23,9 +23,9 @@ trait Reorder
             if ($entry['item_id'] != '' && $entry['item_id'] != null) {
                 $item = $this->model->where($primaryKey, $entry['item_id'])->update([
                     'parent_id' => empty($entry['parent_id']) ? null : $entry['parent_id'],
-                    'depth'     => empty($entry['depth']) ? null : $entry['depth'],
-                    'lft'       => empty($entry['left']) ? null : $entry['left'],
-                    'rgt'       => empty($entry['right']) ? null : $entry['right'],
+                    'depth' => empty($entry['depth']) ? null : $entry['depth'],
+                    'lft' => empty($entry['left']) ? null : $entry['left'],
+                    'rgt' => empty($entry['right']) ? null : $entry['right'],
                 ]);
 
                 $count++;

@@ -16,7 +16,7 @@ return [
 
     // How would you like the validation errors to be shown?
     'groupedErrors' => true,
-    'inlineErrors'  => true,
+    'inlineErrors' => true,
 
     // when the page loads, put the cursor on the first input?
     'autoFocusOnFirstField' => true,

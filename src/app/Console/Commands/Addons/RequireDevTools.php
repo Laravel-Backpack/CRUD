@@ -30,11 +30,11 @@ class RequireDevTools extends Command
      * @var array
      */
     public static $addon = [
-        'name'        => 'DevTools',
+        'name' => 'DevTools',
         'description' => [
             'Helps generate models, migrations, operations and CRUDs',
         ],
-        'path'    => 'vendor/backpack/devtools',
+        'path' => 'vendor/backpack/devtools',
         'command' => 'backpack:require:devtools',
     ];
 

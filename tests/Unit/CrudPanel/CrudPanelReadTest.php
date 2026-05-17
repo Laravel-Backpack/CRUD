@@ -16,33 +16,33 @@ use Illuminate\Support\Facades\DB;
 class CrudPanelReadTest extends BaseDBCrudPanelTest
 {
     private $relationshipColumn = [
-        'name'      => 'user_id',
-        'type'      => 'select',
-        'entity'    => 'user',
+        'name' => 'user_id',
+        'type' => 'select',
+        'entity' => 'user',
         'attribute' => 'name',
     ];
 
     private $relationshipMultipleColumn = [
-        'name'      => 'roles',
-        'type'      => 'select',
-        'entity'    => 'roles',
+        'name' => 'roles',
+        'type' => 'select',
+        'entity' => 'roles',
         'attribute' => 'name',
-        'model'     => Role::class,
+        'model' => Role::class,
     ];
 
     private $nonRelationshipColumn = [
-        'name'  => 'field1',
+        'name' => 'field1',
         'label' => 'Field1',
     ];
 
     private $articleFieldsArray = [
         [
-            'name'  => 'content',
+            'name' => 'content',
             'label' => 'The Content',
-            'type'  => 'text',
+            'type' => 'text',
         ],
         [
-            'name'  => 'metas',
+            'name' => 'metas',
             'label' => 'Metas',
         ],
         [
@@ -55,78 +55,78 @@ class CrudPanelReadTest extends BaseDBCrudPanelTest
 
     private $expectedCreateFormArticleFieldsArray = [
         'content' => [
-            'name'   => 'content',
-            'label'  => 'The Content',
-            'type'   => 'text',
+            'name' => 'content',
+            'label' => 'The Content',
+            'type' => 'text',
             'entity' => false,
         ],
         'metas' => [
-            'name'   => 'metas',
-            'label'  => 'Metas',
-            'type'   => 'text',
+            'name' => 'metas',
+            'label' => 'Metas',
+            'type' => 'text',
             'entity' => false,
         ],
         'tags' => [
-            'name'   => 'tags',
-            'label'  => 'Tags',
-            'type'   => 'text',
+            'name' => 'tags',
+            'label' => 'Tags',
+            'type' => 'text',
             'entity' => false,
         ],
         'extras' => [
-            'name'   => 'extras',
-            'label'  => 'Extras',
-            'type'   => 'text',
+            'name' => 'extras',
+            'label' => 'Extras',
+            'type' => 'text',
             'entity' => false,
         ],
     ];
 
     private $expectedUpdateFormArticleFieldsArray = [
         'content' => [
-            'name'   => 'content',
-            'label'  => 'The Content',
-            'type'   => 'text',
-            'value'  => 'Some Content',
+            'name' => 'content',
+            'label' => 'The Content',
+            'type' => 'text',
+            'value' => 'Some Content',
             'entity' => false,
         ],
         'metas' => [
-            'name'   => 'metas',
-            'label'  => 'Metas',
-            'type'   => 'text',
-            'value'  => '{"meta_title":"Meta Title Value","meta_description":"Meta Description Value"}',
+            'name' => 'metas',
+            'label' => 'Metas',
+            'type' => 'text',
+            'value' => '{"meta_title":"Meta Title Value","meta_description":"Meta Description Value"}',
             'entity' => false,
         ],
         'tags' => [
-            'name'   => 'tags',
-            'label'  => 'Tags',
-            'type'   => 'text',
-            'value'  => '{"tags":["tag1","tag2","tag3"]}',
+            'name' => 'tags',
+            'label' => 'Tags',
+            'type' => 'text',
+            'value' => '{"tags":["tag1","tag2","tag3"]}',
             'entity' => false,
         ],
         'extras' => [
-            'name'   => 'extras',
-            'label'  => 'Extras',
-            'type'   => 'text',
-            'value'  => '{"extra_details":["detail1","detail2","detail3"]}',
+            'name' => 'extras',
+            'label' => 'Extras',
+            'type' => 'text',
+            'value' => '{"extra_details":["detail1","detail2","detail3"]}',
             'entity' => false,
         ],
         'id' => [
-            'name'  => 'id',
-            'type'  => 'hidden',
+            'name' => 'id',
+            'type' => 'hidden',
             'value' => 1,
         ],
     ];
 
     private $uploadField = [
-        'name'   => 'image',
-        'label'  => 'Image',
-        'type'   => 'upload',
+        'name' => 'image',
+        'label' => 'Image',
+        'type' => 'upload',
         'upload' => true,
     ];
 
     private $multipleUploadField = [
-        'name'   => 'photos',
-        'label'  => 'Photos',
-        'type'   => 'upload_multiple',
+        'name' => 'photos',
+        'label' => 'Photos',
+        'type' => 'upload_multiple',
         'upload' => true,
     ];
 
