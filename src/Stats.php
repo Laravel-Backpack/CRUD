@@ -43,7 +43,7 @@ trait Stats
         }
 
         // only send stats on admin panel requests
-        if (! request()->is(config('backpack.base.route_prefix') . '*')) {
+        if (! request()->is(config('backpack.base.route_prefix').'*')) {
             return;
         }
 
