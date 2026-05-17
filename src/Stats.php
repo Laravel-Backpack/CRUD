@@ -42,6 +42,11 @@ trait Stats
             return;
         }
 
+        // only send stats on admin panel requests
+        if (! request()->is(config('backpack.base.route_prefix') . '*')) {
+            return;
+        }
+
         // only send stats every ~100 pageloads
         if (rand(1, 100) != 1) {
             return;
@@ -70,38 +75,7 @@ trait Stats
             'BACKPACK_URL' => backpack_url('') ?? false,
         ];
 
-        // send this info to the main website to store it in the db
-        if (function_exists('exec') && extension_loaded('curl')) {
-            $this->makeCurlRequest($method, $url, $stats);
-        } else {
-            $this->makeGuzzleRequest($method, $url, $stats);
-        }
-    }
-
-    /**
-     * Make a request using CURL.
-     *
-     * It spins up a separate process for this, and doesn't listen for a response,
-     * so it has minimal to no impact on pageload.
-     *
-     * @param  string  $method  HTTP Method to use for the request.
-     * @param  string  $url  URL to point the request at.
-     * @param  array  $payload  The data you want sent to the URL.
-     * @return void
-     */
-    private function makeCurlRequest($method, $url, $payload)
-    {
-        $cmd = sprintf(
-            'curl -X %s -H %s -d %s %s > /dev/null 2>&1 &',
-            escapeshellarg($method),
-            escapeshellarg('Content-Type: application/json'),
-            escapeshellarg(json_encode($payload)),
-            escapeshellarg($url),
-        );
-
-        exec($cmd, $output, $exit);
-
-        return $exit == 0;
+        $this->makeGuzzleRequest($method, $url, $stats);
     }
 
     /**
