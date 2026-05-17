@@ -71,33 +71,7 @@ trait Stats
         ];
 
         // send this info to the main website to store it in the db
-        if (function_exists('exec') && extension_loaded('curl')) {
-            $this->makeCurlRequest($method, $url, $stats);
-        } else {
-            $this->makeGuzzleRequest($method, $url, $stats);
-        }
-    }
-
-    /**
-     * Make a request using CURL.
-     *
-     * It spins up a separate process for this, and doesn't listen for a reponse,
-     * so it has minimal to no impact on pageload.
-     *
-     * @param  string  $method  HTTP Method to use for the request.
-     * @param  string  $url  URL to point the request at.
-     * @param  array  $payload  The data you want sent to the URL.
-     * @return void
-     */
-    private function makeCurlRequest($method, $url, $payload)
-    {
-        $cmd = 'curl -X '.$method." -H 'Content-Type: application/json'";
-        $cmd .= " -d '".json_encode($payload)."' "."'".$url."'";
-        $cmd .= ' > /dev/null 2>&1 &';
-
-        exec($cmd, $output, $exit);
-
-        return $exit == 0;
+        $this->makeGuzzleRequest($method, $url, $stats);
     }
 
     /**
