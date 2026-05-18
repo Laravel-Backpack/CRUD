@@ -13,7 +13,6 @@ use Illuminate\Support\Arr;
 */
 trait HasUploadFields
 {
-
     private function getDangerousExtensions(): array
     {
         return [
@@ -25,6 +24,7 @@ trait HasUploadFields
             'htaccess',
         ];
     }
+
     /**
      * Handle file upload and DB storage for a file:
      * - on CREATE
