@@ -20,7 +20,18 @@ class FileNameGenerator implements FileNameGeneratorInterface
 
     private function getExtensionFromFile(string|UploadedFile $file): string
     {
-        return is_a($file, UploadedFile::class, true) ? $file->extension() : Str::after(mime_content_type($file), '/');
+        if (is_a($file, UploadedFile::class, true)) {
+            return $file->extension();
+        }
+
+        if (Str::startsWith($file, 'data:')) {
+            preg_match('#^data:([^;]+);#', $file, $m);
+            return Str::after($m[1] ?? '', '/');
+        }
+
+        $mime = mime_content_type($file);
+
+        return $mime !== false ? Str::after($mime, '/') : '';
     }
 
     private function getFileName(string|UploadedFile $file): string

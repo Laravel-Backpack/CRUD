@@ -20,6 +20,6 @@ trait HasUploadedFiles
 
     protected function getBase64Image()
     {
-        return 'data:image/jpg;base64,'.base64_encode(file_get_contents(__DIR__.'/assets/avatar1.jpg'));
+        return 'data:image/jpeg;base64,'.base64_encode(file_get_contents(__DIR__.'/assets/avatar1.jpg'));
     }
 }

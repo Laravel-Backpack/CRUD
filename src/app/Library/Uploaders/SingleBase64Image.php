@@ -10,6 +10,25 @@ use Illuminate\Support\Str;
 /** @codeCoverageIgnore */
 class SingleBase64Image extends Uploader
 {
+    private const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/avif'];
+
+    private function validateAndDecodeBase64Image(string $value): string|false
+    {
+        if (! preg_match('#^data:image/(jpeg|png|gif|webp|avif);base64,#i', $value)) {
+            return false;
+        }
+
+        $decoded = base64_decode(Str::after($value, ';base64,'), true);
+        if ($decoded === false) {
+            return false;
+        }
+
+        $detected = (new \finfo(FILEINFO_MIME_TYPE))->buffer($decoded);
+
+        return in_array($detected, self::ALLOWED_MIME_TYPES, true) ? $decoded : false;
+    }
+
+
     public function uploadFiles(Model $entry, $value = null)
     {
         $previousImage = $this->getPreviousFiles($entry);
@@ -20,15 +39,14 @@ class SingleBase64Image extends Uploader
             return null;
         }
 
-        if (Str::startsWith($value, 'data:image')) {
+        $decoded = $this->validateAndDecodeBase64Image((string) $value);
+        if ($decoded !== false) {
             if ($previousImage) {
                 Storage::disk($this->getDisk())->delete($previousImage);
             }
 
-            $base64Image = Str::after($value, ';base64,');
             $finalPath = $this->getPath().$this->getFileName($value);
-
-            Storage::disk($this->getDisk())->put($finalPath, base64_decode($base64Image));
+            Storage::disk($this->getDisk())->put($finalPath, $decoded);
 
             return $finalPath;
         }
@@ -39,14 +57,14 @@ class SingleBase64Image extends Uploader
     public function uploadRepeatableFiles($values, $previousRepeatableValues, $entry = null)
     {
         foreach ($values as $row => $rowValue) {
-            if ($rowValue) {
-                if (Str::startsWith($rowValue, 'data:image')) {
-                    $base64Image = Str::after($rowValue, ';base64,');
+            if ($rowValue && Str::startsWith($rowValue, 'data:')) {
+                $decoded = $this->validateAndDecodeBase64Image((string) $rowValue);
+                if ($decoded !== false) {
                     $finalPath = $this->getPath().$this->getFileName($rowValue);
-                    Storage::disk($this->getDisk())->put($finalPath, base64_decode($base64Image));
+                    Storage::disk($this->getDisk())->put($finalPath, $decoded);
                     $values[$row] = $previousRepeatableValues[] = $finalPath;
-
-                    continue;
+                } else {
+                    $values[$row] = null;
                 }
             }
         }
@@ -62,7 +80,7 @@ class SingleBase64Image extends Uploader
 
     public function shouldUploadFiles($value): bool
     {
-        return $value && is_string($value) && Str::startsWith($value, 'data:image');
+        return $value && is_string($value) && (bool) preg_match('#^data:image/(jpeg|png|gif|webp|avif);base64,#i', $value);
     }
 
     public function shouldKeepPreviousValueUnchanged(Model $entry, $entryValue): bool
