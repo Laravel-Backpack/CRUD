@@ -50,8 +50,13 @@ trait HasUploadFields
             // 1. Generate a new file name
             $file = request()->file($attribute_name);
 
+            $ext = strtolower($file->getClientOriginalExtension());
+            if (in_array($ext, static::getDangerousExtensions(), true)) {
+                throw new \InvalidArgumentException("File type '.$ext' is not allowed.");
+            }
+
             // use the provided file name or generate a random one
-            $new_file_name = $fileName ?? md5($file->getClientOriginalName().random_int(1, 9999).time()).'.'.$file->getClientOriginalExtension();
+            $new_file_name = $fileName ?? md5($file->getClientOriginalName().random_int(1, 9999).time()).'.'.$ext;
 
             // 2. Move the new file to the correct path
             $file_path = $file->storeAs($destination_path, $new_file_name, $disk);
@@ -76,6 +81,12 @@ trait HasUploadFields
      * @param  string  $disk  Filesystem disk used to store files.
      * @param  string  $destination_path  Path in disk where to store the files.
      */
+    protected static function getDangerousExtensions(): array
+    {
+        return ['php', 'php3', 'php4', 'php5', 'php7', 'phtml', 'phar', 'phps',
+                'pl', 'py', 'rb', 'jsp', 'cgi', 'asp', 'aspx', 'sh', 'htaccess'];
+    }
+
     public function uploadMultipleFilesToDisk($value, $attribute_name, $disk, $destination_path)
     {
         $originalModelValue = $this->getOriginal()[$attribute_name] ?? [];
@@ -107,7 +118,11 @@ trait HasUploadFields
             foreach (request()->file($attribute_name) as $file) {
                 if ($file->isValid()) {
                     // 1. Generate a new file name
-                    $new_file_name = md5($file->getClientOriginalName().random_int(1, 9999).time()).'.'.$file->getClientOriginalExtension();
+                    $ext = strtolower($file->getClientOriginalExtension());
+                    if (in_array($ext, static::getDangerousExtensions(), true)) {
+                        throw new \InvalidArgumentException("File type '.$ext' is not allowed.");
+                    }
+                    $new_file_name = md5($file->getClientOriginalName().random_int(1, 9999).time()).'.'.$ext;
 
                     // 2. Move the new file to the correct path
                     $file_path = $file->storeAs($destination_path, $new_file_name, $disk);
