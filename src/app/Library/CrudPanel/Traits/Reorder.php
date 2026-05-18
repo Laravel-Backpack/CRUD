@@ -25,7 +25,7 @@ trait Reorder
         // it has the drawback of creating new entries when the id is not found
         // for that reason we get a list of all the ids and filter the ones
         // sent in the request that are not in the database
-        $itemKeys = $this->model->query()->select($primaryKey)->get()->pluck($primaryKey);
+        $itemKeys = $this->getModelWithCrudPanelQuery()->select($primaryKey)->get()->pluck($primaryKey);
 
         // filter the items that are not in the database and map the request
         $reorderItems = collect($request)->filter(function ($item) use ($itemKeys) {

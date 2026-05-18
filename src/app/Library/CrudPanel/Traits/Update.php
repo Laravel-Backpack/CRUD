@@ -24,7 +24,7 @@ trait Update
      */
     public function update($id, $input)
     {
-        $item = $this->model->findOrFail($id);
+        $item = $this->getModelWithCrudPanelQuery()->findOrFail($id);
 
         [$directInputs, $relationInputs] = $this->splitInputIntoDirectAndRelations($input);
         if ($this->get('update.useDatabaseTransactions') ?? config('backpack.base.useDatabaseTransactions', false)) {

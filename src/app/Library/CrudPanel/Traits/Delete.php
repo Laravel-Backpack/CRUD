@@ -22,7 +22,7 @@ trait Delete
      */
     public function delete($id)
     {
-        return (string) $this->model->findOrFail($id)->delete();
+        return (string) $this->getModelWithCrudPanelQuery()->findOrFail($id)->delete();
     }
 
     /**
