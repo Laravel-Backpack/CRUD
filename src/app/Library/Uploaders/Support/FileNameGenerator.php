@@ -18,21 +18,35 @@ class FileNameGenerator implements FileNameGeneratorInterface
         return $this->getFileName($file).'.'.$this->getExtensionFromFile($file);
     }
 
+    public static function getDangerousExtensions(): array
+    {
+        return [
+            'php', 'php3', 'php4', 'php5', 'php7', 'php8',
+            'phtml', 'phar', 'phps', 'shtml',
+            'pl', 'py', 'rb', 'jsp', 'cgi',
+            'asp', 'aspx',
+            'sh', 'bash', 'bat', 'cmd', 'exe',
+            'htaccess',
+        ];
+    }
+
     private function getExtensionFromFile(string|UploadedFile $file): string
     {
         if (is_a($file, UploadedFile::class, true)) {
-            return $file->extension();
-        }
-
-        if (Str::startsWith($file, 'data:')) {
+            $ext = $file->extension();
+        } elseif (Str::startsWith($file, 'data:')) {
             preg_match('#^data:([^;]+);#', $file, $m);
-
-            return Str::after($m[1] ?? '', '/');
+            $ext = Str::after($m[1] ?? '', '/');
+        } else {
+            $mime = mime_content_type($file);
+            $ext = $mime !== false ? Str::after($mime, '/') : '';
         }
 
-        $mime = mime_content_type($file);
+        if (in_array(strtolower((string) $ext), self::getDangerousExtensions(), true)) {
+            throw new \InvalidArgumentException("File type '.$ext' is not allowed.");
+        }
 
-        return $mime !== false ? Str::after($mime, '/') : '';
+        return (string) $ext;
     }
 
     private function getFileName(string|UploadedFile $file): string

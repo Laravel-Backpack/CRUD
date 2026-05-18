@@ -2,6 +2,7 @@
 
 namespace Backpack\CRUD\app\Models\Traits;
 
+use Backpack\CRUD\app\Library\Uploaders\Support\FileNameGenerator;
 use DB;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Arr;
@@ -49,9 +50,13 @@ trait HasUploadFields
         if (request()->hasFile($attribute_name) && request()->file($attribute_name)->isValid()) {
             // 1. Generate a new file name
             $file = request()->file($attribute_name);
+            $ext = strtolower($file->extension());
+            if (in_array($ext, FileNameGenerator::getDangerousExtensions(), true)) {
+                throw new \InvalidArgumentException("File type '.$ext' is not allowed.");
+            }
 
             // use the provided file name or generate a random one
-            $new_file_name = $fileName ?? md5($file->getClientOriginalName().random_int(1, 9999).time()).'.'.$file->getClientOriginalExtension();
+            $new_file_name = $fileName ?? md5($file->getClientOriginalName().random_int(1, 9999).time()).'.'.$ext;
 
             // 2. Move the new file to the correct path
             $file_path = $file->storeAs($destination_path, $new_file_name, $disk);
@@ -107,7 +112,11 @@ trait HasUploadFields
             foreach (request()->file($attribute_name) as $file) {
                 if ($file->isValid()) {
                     // 1. Generate a new file name
-                    $new_file_name = md5($file->getClientOriginalName().random_int(1, 9999).time()).'.'.$file->getClientOriginalExtension();
+                    $ext = strtolower($file->extension());
+                    if (in_array($ext, FileNameGenerator::getDangerousExtensions(), true)) {
+                        throw new \InvalidArgumentException("File type '.$ext' is not allowed.");
+                    }
+                    $new_file_name = md5($file->getClientOriginalName().random_int(1, 9999).time()).'.'.$ext;
 
                     // 2. Move the new file to the correct path
                     $file_path = $file->storeAs($destination_path, $new_file_name, $disk);
