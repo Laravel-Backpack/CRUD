@@ -28,7 +28,6 @@ class SingleBase64Image extends Uploader
         return in_array($detected, self::ALLOWED_MIME_TYPES, true) ? $decoded : false;
     }
 
-
     public function uploadFiles(Model $entry, $value = null)
     {
         $previousImage = $this->getPreviousFiles($entry);

@@ -26,6 +26,7 @@ class FileNameGenerator implements FileNameGeneratorInterface
 
         if (Str::startsWith($file, 'data:')) {
             preg_match('#^data:([^;]+);#', $file, $m);
+
             return Str::after($m[1] ?? '', '/');
         }
 
