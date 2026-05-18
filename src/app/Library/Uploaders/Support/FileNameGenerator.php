@@ -23,7 +23,7 @@ class FileNameGenerator implements FileNameGeneratorInterface
         $ext = is_a($file, UploadedFile::class, true) ? $file->extension() : Str::after(mime_content_type($file), '/');
 
         $blocked = ['php', 'php3', 'php4', 'php5', 'php7', 'phtml', 'phar', 'phps',
-                    'pl', 'py', 'rb', 'jsp', 'cgi', 'asp', 'aspx', 'sh', 'htaccess'];
+            'pl', 'py', 'rb', 'jsp', 'cgi', 'asp', 'aspx', 'sh', 'htaccess'];
         if (in_array(strtolower((string) $ext), $blocked, true)) {
             throw new \InvalidArgumentException("File type '.$ext' is not allowed.");
         }

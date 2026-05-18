@@ -84,7 +84,7 @@ trait HasUploadFields
     protected static function getDangerousExtensions(): array
     {
         return ['php', 'php3', 'php4', 'php5', 'php7', 'phtml', 'phar', 'phps',
-                'pl', 'py', 'rb', 'jsp', 'cgi', 'asp', 'aspx', 'sh', 'htaccess'];
+            'pl', 'py', 'rb', 'jsp', 'cgi', 'asp', 'aspx', 'sh', 'htaccess'];
     }
 
     public function uploadMultipleFilesToDisk($value, $attribute_name, $disk, $destination_path)
