@@ -25,6 +25,7 @@ return [
     'username' => 'Username',
     'password' => 'Password',
     'old_password' => 'Old password',
+    'current_password' => 'Current password',
     'new_password' => 'New password',
     'confirm_password' => 'Confirm password',
     'remember_me' => 'Remember me',

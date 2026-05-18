@@ -13,6 +13,18 @@ use Illuminate\Support\Arr;
 */
 trait HasUploadFields
 {
+    private function getDangerousExtensions(): array
+    {
+        return [
+            'php', 'php3', 'php4', 'php5', 'php7', 'php8',
+            'phtml', 'phar', 'phps', 'shtml',
+            'pl', 'py', 'rb', 'jsp', 'cgi',
+            'asp', 'aspx',
+            'sh', 'bash', 'bat', 'cmd', 'exe',
+            'htaccess',
+        ];
+    }
+
     /**
      * Handle file upload and DB storage for a file:
      * - on CREATE
@@ -50,9 +62,14 @@ trait HasUploadFields
             // 1. Generate a new file name
             $file = request()->file($attribute_name);
 
-            // use the provided file name or generate a random one
-            $new_file_name = $fileName ?? md5($file->getClientOriginalName().random_int(1, 9999).time()).'.'.$file->getClientOriginalExtension();
+            $ext = strtolower($file->extension());
 
+            if (in_array($ext, $this->getDangerousExtensions(), true)) {
+                throw new \InvalidArgumentException("File type '.$ext' is not allowed.");
+            }
+
+            // use the provided file name or generate a random one
+            $new_file_name = $fileName ?? md5($file->getClientOriginalName().random_int(1, 9999).time()).'.'.$ext;
             // 2. Move the new file to the correct path
             $file_path = $file->storeAs($destination_path, $new_file_name, $disk);
 
@@ -106,8 +123,11 @@ trait HasUploadFields
         if (request()->hasFile($attribute_name)) {
             foreach (request()->file($attribute_name) as $file) {
                 if ($file->isValid()) {
-                    // 1. Generate a new file name
-                    $new_file_name = md5($file->getClientOriginalName().random_int(1, 9999).time()).'.'.$file->getClientOriginalExtension();
+                    $ext = strtolower($file->extension());
+                    if (in_array($ext, $this->getDangerousExtensions(), true)) {
+                        throw new \InvalidArgumentException("File type '.$ext' is not allowed.");
+                    }
+                    $new_file_name = md5($file->getClientOriginalName().random_int(1, 9999).time()).'.'.$ext;
 
                     // 2. Move the new file to the correct path
                     $file_path = $file->storeAs($destination_path, $new_file_name, $disk);

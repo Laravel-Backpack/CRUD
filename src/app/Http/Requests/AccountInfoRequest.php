@@ -3,6 +3,7 @@
 namespace Backpack\CRUD\app\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 
 class AccountInfoRequest extends FormRequest
@@ -25,7 +26,7 @@ class AccountInfoRequest extends FormRequest
      */
     public function validationData()
     {
-        return $this->only(backpack_authentication_column(), 'name');
+        return $this->only(backpack_authentication_column(), 'name', 'current_password');
     }
 
     /**
@@ -36,15 +37,35 @@ class AccountInfoRequest extends FormRequest
     public function rules()
     {
         $user = backpack_auth()->user();
+        $authCol = backpack_authentication_column();
 
-        return [
-            backpack_authentication_column() => [
+        $rules = [
+            $authCol => [
                 'required',
-                backpack_authentication_column() == 'email' ? 'email' : '',
+                $authCol == 'email' ? 'email' : '',
                 Rule::unique($user->getConnectionName().'.'.$user->getTable())
                     ->ignore($user->getKey(), $user->getKeyName()),
             ],
             'name' => 'required',
         ];
+
+        if ($this->input($authCol) !== $user->{$authCol}) {
+            $rules['current_password'] = 'required';
+        }
+
+        return $rules;
+    }
+
+    public function withValidator($validator)
+    {
+        $user = backpack_auth()->user();
+        $authCol = backpack_authentication_column();
+
+        $validator->after(function ($validator) use ($user, $authCol) {
+            if ($this->input($authCol) !== $user->{$authCol}
+                && ! Hash::check($this->input('current_password'), $user->password)) {
+                $validator->errors()->add('current_password', trans('backpack::base.old_password_incorrect'));
+            }
+        });
     }
 }
