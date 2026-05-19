@@ -65,7 +65,7 @@
             }
 
             if(element.data('upload-enabled') === true){
-                let imageUploadEndpoint =  element.data('upload-endpoint') !== false ? element.data('upload-endpoint') : '{{ url($crud->route. '/ajax-upload') }}';
+                let imageUploadEndpoint =  element.data('upload-endpoint') !== false ? element.data('upload-endpoint') : "{{ url($crud->route. '/ajax-upload') }}";
                 let paramName = typeof element.attr('data-repeatable-input-name') !== 'undefined' ? element.closest('[data-repeatable-identifier]').attr('data-repeatable-identifier')+'#'+element.attr('data-repeatable-input-name') : element.attr('name');
                 summernotCallbacks.onImageUpload = function(file) {
                     var data = new FormData();
@@ -113,7 +113,7 @@
 
                     xhr.send(data);
                 }
-                
+
             }
 
             element.on('CrudField:disable', function(e) {
