@@ -34,6 +34,10 @@ class Datatable extends Component
 
         $this->tableId = $this->generateTableId();
 
+        if (! $this->modifiesUrl) {
+            $this->crud->setOperationSetting('backToAllEntriesUrl', url()->current());
+        }
+
         if ($this->setup) {            // Apply the configuration using DatatableCache
             DatatableCache::applyAndStoreSetupClosure(
                 $this->tableId,

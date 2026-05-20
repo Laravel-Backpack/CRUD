@@ -55,6 +55,15 @@ trait CreateOperation
     {
         $this->crud->hasAccessOrFail('create');
 
+        if ($backToAllEntriesUrl = request('_backToAllEntriesUrl')) {
+            $parsed = parse_url($backToAllEntriesUrl) ?: [];
+            $isRelativePath = !isset($parsed['scheme']) && !isset($parsed['host']);
+            $isInternalAbsolute = isset($parsed['host']) && $parsed['host'] === parse_url(url('/'), PHP_URL_HOST);
+            if ($isRelativePath || $isInternalAbsolute) {
+                $this->crud->setOperationSetting('backToAllEntriesUrl', $backToAllEntriesUrl);
+            }
+        }
+
         // prepare the fields you need to show
         $this->data['crud'] = $this->crud;
         $this->data['saveAction'] = $this->crud->getSaveAction();

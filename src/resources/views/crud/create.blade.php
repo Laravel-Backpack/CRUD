@@ -18,7 +18,7 @@
         @if ($crud->hasAccess('list'))
             <p class="mb-0 ms-2 ml-2" bp-section="page-subheading-back-button">
                 <small>
-                    <a href="{{ url($crud->route) }}" class="d-print-none font-sm">
+                    <a href="{{ $crud->getOperationSetting('backToAllEntriesUrl') ?? url($crud->route) }}" class="d-print-none font-sm">
                         <span><i class="la la-angle-double-{{ config('backpack.base.html_direction') == 'rtl' ? 'right' : 'left' }}"></i> {{ trans('backpack::crud.back_to_all') }} <span>{{ $crud->entity_name_plural }}</span></span>
                     </a>
                 </small>
