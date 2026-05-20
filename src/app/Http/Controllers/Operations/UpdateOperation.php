@@ -67,7 +67,7 @@ trait UpdateOperation
 
         if ($backToAllEntriesUrl = request('_backToAllEntriesUrl')) {
             $parsed = parse_url($backToAllEntriesUrl) ?: [];
-            $isRelativePath = !isset($parsed['scheme']) && !isset($parsed['host']);
+            $isRelativePath = ! isset($parsed['scheme']) && ! isset($parsed['host']);
             $isInternalAbsolute = isset($parsed['host']) && $parsed['host'] === parse_url(url('/'), PHP_URL_HOST);
             if ($isRelativePath || $isInternalAbsolute) {
                 $this->crud->setOperationSetting('backToAllEntriesUrl', $backToAllEntriesUrl);
