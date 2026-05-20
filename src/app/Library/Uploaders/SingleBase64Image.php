@@ -65,6 +65,8 @@ class SingleBase64Image extends Uploader
                 } else {
                     $values[$row] = null;
                 }
+            } elseif ($rowValue && isset($previousRepeatableValues[$row])) {
+                $values[$row] = $previousRepeatableValues[$row];
             }
         }
 

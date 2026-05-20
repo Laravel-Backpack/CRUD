@@ -89,10 +89,18 @@ class MultipleFiles extends Uploader
 
         foreach ($previousRepeatableValues as $previousRow => $previousFiles) {
             foreach ($previousFiles ?? [] as $key => $file) {
-                $previousFileInArray = array_filter($tempFileOrder, function ($items, $key) use ($file, $tempFileOrder) {
+                $fileBasename = $this->getValueWithoutPath($file);
+                $previousFileInArray = array_filter($tempFileOrder, function ($items, $rowKey) use ($file, $fileBasename, $tempFileOrder, &$fileOrder) {
                     $found = array_search($file, $items ?? [], true);
+                    if ($found === false) {
+                        $found = array_search($fileBasename, $items ?? [], true);
+                        if ($found !== false && isset($fileOrder[$rowKey][$found]) && $fileOrder[$rowKey][$found] !== $file) {
+                            // Restore the full path so the DB stores the complete path.
+                            $fileOrder[$rowKey][$found] = $file;
+                        }
+                    }
                     if ($found !== false) {
-                        Arr::forget($tempFileOrder, $key.'.'.$found);
+                        Arr::forget($tempFileOrder, $rowKey.'.'.$found);
 
                         return true;
                     }

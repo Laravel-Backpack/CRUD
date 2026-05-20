@@ -57,8 +57,14 @@ class SingleFile extends Uploader
                 if (! isset($orderedFiles[$row])) {
                     $orderedFiles[$row] = null;
                 }
-                if (! in_array($file, $orderedFiles)) {
+                $foundKey = array_search($file, $orderedFiles);
+                if ($foundKey === false) {
+                    $foundKey = array_search($this->getValueWithoutPath($file), $orderedFiles);
+                }
+                if ($foundKey === false) {
                     Storage::disk($this->getDisk())->delete($file);
+                } elseif ($orderedFiles[$foundKey] !== $file) {
+                    $orderedFiles[$foundKey] = $file;
                 }
             }
         }
