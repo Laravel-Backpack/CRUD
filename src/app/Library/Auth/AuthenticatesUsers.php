@@ -12,7 +12,7 @@ trait AuthenticatesUsers
 {
     use RedirectsUsers, ThrottlesLogins;
 
-        /**
+    /**
      * Show the application's login form.
      *
      * @return \Illuminate\Http\Response|\Illuminate\Http\View
@@ -67,7 +67,7 @@ trait AuthenticatesUsers
         </script>
         HTML;
 
-        return str_replace('</body>', $script . "\n</body>", $html);
+        return str_replace('</body>', $script."\n</body>", $html);
     }
 
     /**
