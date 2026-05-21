@@ -15,6 +15,7 @@
         data-options="{{ json_encode($field['options']) }}"
         data-upload-enabled="{{ isset($field['withFiles']) || isset($field['withMedia']) || isset($field['imageUploadEndpoint']) ? 'true' : 'false'}}"
         data-upload-endpoint="{{ isset($field['imageUploadEndpoint']) ? $field['imageUploadEndpoint'] : 'false'}}"
+        data-default-upload-url="{{ url($crud->route.'/ajax-upload') }}"
         data-upload-operation="{{ $crud->get('ajax-upload.formOperation') }}"
         bp-field-main-input
         @include('crud::fields.inc.attributes', ['default_class' =>  'form-control summernote'])
@@ -65,7 +66,7 @@
             }
 
             if(element.data('upload-enabled') === true){
-                let imageUploadEndpoint =  element.data('upload-endpoint') !== false ? element.data('upload-endpoint') : "{{ url($crud->route. '/ajax-upload') }}";
+                let imageUploadEndpoint =  element.data('upload-endpoint') !== false ? element.data('upload-endpoint') : element.data('default-upload-url');
                 let paramName = typeof element.attr('data-repeatable-input-name') !== 'undefined' ? element.closest('[data-repeatable-identifier]').attr('data-repeatable-identifier')+'#'+element.attr('data-repeatable-input-name') : element.attr('name');
                 summernotCallbacks.onImageUpload = function(file) {
                     var data = new FormData();
@@ -113,7 +114,7 @@
 
                     xhr.send(data);
                 }
-
+                
             }
 
             element.on('CrudField:disable', function(e) {

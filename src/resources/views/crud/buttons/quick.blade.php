@@ -51,6 +51,8 @@
             $wrapper['data-bulk-no-entries-message'] = $bulkConfiguration['no_entries_message'] ?? trans('backpack::crud.bulk_no_entries_selected_message');
             $wrapper['data-bulk-confirm-title'] = $bulkConfiguration['confirm_title'] ?? trans('backpack::base.warning');
             $wrapper['data-bulk-confirm-message'] = $bulkConfiguration['confirm_message'] ?? trans('backpack::crud.bulk_operation_are_you_sure');
+            $wrapper['data-confirm-no'] = trans('backpack::crud.no');
+            $wrapper['data-confirm-yes'] = trans('backpack::crud.yes');
         } else {
             $wrapper['onclick'] = 'sendQuickButtonAjaxRequest(this)';
             $wrapper['data-button-type'] = 'quick-ajax';
@@ -166,14 +168,14 @@
                     icon: "warning",
                     buttons: {
                         cancel: {
-                            text: "{{ trans('backpack::crud.no') }}",
+                            text: button.getAttribute('data-confirm-no'),
                             value: null,
                             visible: true,
                             className: "bg-secondary",
                             closeModal: true,
                         },
                         confirm: {
-                            text: "{{ trans('backpack::crud.yes') }}",
+                            text: button.getAttribute('data-confirm-yes'),
                             value: true,
                             visible: true,
                             className: "bg-primary",
