@@ -87,6 +87,30 @@ final class DatatableCache extends SetupCache
      * @param  CrudPanel  $crud  The CRUD panel instance
      * @return bool Whether the operation was successful
      */
+    /**
+     * Cache the backToAllEntriesUrl for a datatable so it can be restored during AJAX search requests.
+     * This is stored separately from the setup closure cache to handle the zero-config (no closure) case.
+     */
+    public static function cacheBackToAllEntriesUrl(string $tableId, ?string $url): void
+    {
+        if (! $url) {
+            return;
+        }
+
+        $instance = new self();
+        \Illuminate\Support\Facades\Cache::put(
+            $instance->cachePrefix.$tableId.'_back_url',
+            $url,
+            now()->addMinutes($instance->cacheDuration)
+        );
+    }
+
+    /**
+     * Apply cached setup to a CRUD instance using the request's datatable_id.
+     *
+     * @param  CrudPanel  $crud  The CRUD panel instance
+     * @return bool Whether the operation was successful
+     */
     public static function applyFromRequest(CrudPanel $crud): bool
     {
         $instance = new self();
@@ -97,6 +121,10 @@ final class DatatableCache extends SetupCache
             \Log::debug('Missing datatable_id in request parameters');
 
             return false;
+        }
+
+        if ($backUrl = \Illuminate\Support\Facades\Cache::get($instance->cachePrefix.$tableId.'_back_url')) {
+            $crud->setOperationSetting('backToAllEntriesUrl', $backUrl);
         }
 
         return $instance->apply($tableId, $crud);

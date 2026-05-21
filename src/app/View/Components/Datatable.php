@@ -49,6 +49,13 @@ class Datatable extends Component
             );
         }
 
+        if (! $this->modifiesUrl) {
+            DatatableCache::cacheBackToAllEntriesUrl(
+                $this->tableId,
+                $this->crud->getOperationSetting('backToAllEntriesUrl')
+            );
+        }
+
         if (! $this->crud->has('list.datatablesUrl')) {
             $route = $this->crud->getRoute();
             // If route is not set, generate it from the controller

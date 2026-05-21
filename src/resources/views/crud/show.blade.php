@@ -18,7 +18,7 @@
             <p class="ms-2 ml-2 mb-0" bp-section="page-subheading">{!! $crud->getSubheading() ?? mb_ucfirst(trans('backpack::crud.preview')).' '.$crud->entity_name !!}</p>
             @if ($crud->hasAccess('list'))
                 <p class="ms-2 ml-2 mb-0" bp-section="page-subheading-back-button">
-                    <small><a href="{{ url($crud->route) }}" class="font-sm"><i class="la la-angle-double-left"></i> {{ trans('backpack::crud.back_to_all') }} <span>{{ $crud->entity_name_plural }}</span></a></small>
+                    <small><a href="{{ $crud->getOperationSetting('backToAllEntriesUrl') ?? url($crud->route) }}" class="font-sm"><i class="la la-angle-double-left"></i> {{ trans('backpack::crud.back_to_all') }} <span>{{ $crud->entity_name_plural }}</span></a></small>
                 </p>
             @endif
         </section>
