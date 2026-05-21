@@ -37,7 +37,6 @@ trait AuthenticatesUsers
         $reloadAfterMs = (int) round(config('session.lifetime', 120) * 60 * 1000 * 0.85);
 
         $script = <<<HTML
-
         <script>
         (function () {
             var loadedAt = Date.now();
@@ -54,11 +53,18 @@ trait AuthenticatesUsers
                 timer = setTimeout(function () { window.location.reload(); }, remaining);
             }
 
-            // Reload when the tab becomes visible again after being hidden or sleeping.
+            // Covers tab switching (tab becomes visible after being hidden).
             document.addEventListener('visibilitychange', function () {
-                if (!document.hidden) {
-                    scheduleReload();
-                }
+                if (!document.hidden) { scheduleReload(); }
+            });
+
+            // Covers window minimize/restore and Alt+Tab — fires even when
+            // visibilitychange does not (OS/browser dependent).
+            window.addEventListener('focus', function () { scheduleReload(); });
+
+            // Covers pages restored from the back-forward cache (bfcache).
+            window.addEventListener('pageshow', function (e) {
+                if (e.persisted) { scheduleReload(); }
             });
 
             // Start the countdown immediately (handles the tab staying open in the foreground).
