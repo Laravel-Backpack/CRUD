@@ -118,7 +118,9 @@ final class RegisterUploadEvents
         }
         // if the entry is already retrieved from database, don't register the event
         // just process the uploader on the crud entry we already got.
-        if (app('crud')->entry) {
+        // For relationship uploaders the files live on child models that are loaded later,
+        // so we must always register the retrieved event on the child model class.
+        if (app('crud')->entry && ! $uploader->isRelationship()) {
             app('crud')->entry = $uploader->retrieveUploadedFiles(app('crud')->entry);
         } else {
             // the retrieve model may differ from the deleting and saving models because retrieved event
@@ -132,7 +134,16 @@ final class RegisterUploadEvents
                         $entry->setLocale($locale);
                     }
                 }
-                $entry = $uploader->retrieveUploadedFiles($entry);
+                $containerName = $uploader->getRepeatableContainerName();
+                if ($uploader->isRelationship() && $containerName) {
+                    foreach (app('UploadersRepository')->getRepeatableUploadersFor($containerName) as $siblingUploader) {
+                        if ($siblingUploader->getPath()) {
+                            $entry = $siblingUploader->retrieveUploadedFiles($entry);
+                        }
+                    }
+                } else {
+                    $entry = $uploader->retrieveUploadedFiles($entry);
+                }
             });
         }
 
