@@ -171,6 +171,7 @@ return [
     'new_item' => 'New Item',
     'select_entry' => 'Select an entry',
     'select_entries' => 'Select entries',
+    'select_value_not_in_options' => 'The current value is not available in the list of options.',
     'upload_multiple_files_selected' => 'Files selected. After save, they will show up above.',
 
     //Table field

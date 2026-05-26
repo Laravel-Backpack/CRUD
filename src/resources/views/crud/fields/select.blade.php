@@ -14,6 +14,11 @@
     } else {
         $options = call_user_func($field['options'], $field['model']::query());
     }
+
+    $field['orphaned_value'] = null;
+    if (!empty($current_value) && !$options->contains(fn($o) => $o->getKey() == $current_value)) {
+        $field['orphaned_value'] = $current_value;
+    }
 @endphp
 
 @include('crud::fields.inc.wrapper_start')
@@ -41,9 +46,16 @@
                     @endif
                 @endforeach
             @endif
+            @if($field['orphaned_value'])
+                <option value="{{ $field['orphaned_value'] }}" selected>#{{ $field['orphaned_value'] }}</option>
+            @endif
         </select>
         @if(isset($field['suffix'])) <span class="input-group-text">{!! $field['suffix'] !!}</span> @endif
     @if(isset($field['prefix']) || isset($field['suffix'])) </div> @endif
+
+    @if($field['orphaned_value'])
+        <p class="help-block text-warning"><small>{{ trans('backpack::crud.select_value_not_in_options') }}</small></p>
+    @endif
 
     {{-- HINT --}}
     @if (isset($field['hint']))
