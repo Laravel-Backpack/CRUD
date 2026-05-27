@@ -173,6 +173,13 @@ return [
     'select_entries' => 'Select entries',
     'select_value_not_in_options' => 'The current value is not available in the list of options.',
     'upload_multiple_files_selected' => 'Files selected. After save, they will show up above.',
+    'image_file_too_big' => 'Please pick an image smaller than :size bytes.',
+    'image_not_an_image' => '<strong>Please choose an image file</strong><br>The file you\'ve chosen does not look like an image.',
+    'date_picker_wrong_format' => '<strong>Whoops!</strong><br>Sorry we did not recognise that date format, please make sure it uses a yyyy mm dd combination.',
+    'video_unknown_error' => 'An unknown error occurred, please try again.',
+    'video_invalid_url' => 'Please post a valid YouTube or Vimeo URL.',
+    'video_id_not_detected' => 'We could not detect a YouTube or Vimeo ID, please try obtaining the URL again.',
+    'video_still_loading' => '<strong>Please wait.</strong><br>Video details are still loading, please wait a moment or try again.',
 
     //Table field
     'table_cant_add' => 'Cannot add new :entity',
