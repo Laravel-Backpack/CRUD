@@ -589,11 +589,36 @@ jQuery(document).ready(function($) {
 
 function setupTableUI(tableId, config) {    
     const searchInput = $(`#datatable_search_stack_${tableId} input.datatable-search-input`);
-    
+    const searchClear = $(`#datatable_search_stack_${tableId} .datatable-search-clear`);
+
+    const toggleSearchClear = function(value) {
+        if (value && value.length > 0) {
+            searchClear.removeAttr('hidden');
+        } else {
+            searchClear.attr('hidden', 'hidden');
+        }
+    };
+
     if (searchInput.length > 0) {
         searchInput.val(window.crud.tables[tableId].search());
+        toggleSearchClear(searchInput.val());
         searchInput.on('keyup', function() {
+            toggleSearchClear(this.value);
             window.crud.tables[tableId].search(this.value).draw();
+        });
+        searchInput.on('search', function() {
+            toggleSearchClear(this.value);
+        });
+
+        searchClear.on('click keydown', function(e) {
+            if (e.type === 'keydown' && e.key !== 'Enter' && e.key !== ' ') {
+                return;
+            }
+            e.preventDefault();
+            searchInput.val('');
+            toggleSearchClear('');
+            window.crud.tables[tableId].search('').draw();
+            searchInput.trigger('focus');
         });
     }
     

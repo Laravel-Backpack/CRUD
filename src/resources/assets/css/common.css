@@ -4,6 +4,7 @@
     --select2-selected-item-color: #fff;
     --btn-close-bg: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23000000'%3e%3cpath d='M.293.293a1 1 0 0 1 1.414 0L8 6.586 14.293.293a1 1 0 1 1 1.414 1.414L9.414 8l6.293 6.293a1 1 0 0 1-1.414 1.414L8 9.414l-6.293 6.293a1 1 0 0 1-1.414-1.414L6.586 8 .293 1.707a1 1 0 0 1 0-1.414z'/%3e%3c/svg%3e");
     --datatable-search-icon-color: #999;
+    --datatable-search-icon-hover-color: #495057;
 
     --bp-select2-container-border-color: rgba(0, 40, 100, 0.12);
     --bp-select2-focus-bg: #fff;
@@ -623,6 +624,12 @@ div[id$="_wrapper"] .dt-processing {
 
 .datatable_search_stack .input-icon input[type=search] {
     padding-left: 2.5rem;
+    padding-right: 2.5rem;
+}
+
+.datatable_search_stack .input-icon input[type=search]::-webkit-search-cancel-button {
+    -webkit-appearance: none;
+    appearance: none;
 }
 
 .datatable_search_stack .input-icon {
@@ -631,6 +638,22 @@ div[id$="_wrapper"] .dt-processing {
 
 .datatable_search_stack .input-icon .input-icon-addon .icon {
     fill: none;
+}
+
+.datatable_search_stack .input-icon .datatable-search-clear {
+    left: auto;
+    right: 0;
+    pointer-events: auto;
+    cursor: pointer;
+}
+
+.datatable_search_stack .input-icon .datatable-search-clear[hidden] {
+    display: none;
+}
+
+.datatable_search_stack .input-icon .datatable-search-clear:hover {
+    color: var(--datatable-search-icon-hover-color);
+    opacity: 0.85;
 }
 
 .input-icon-addon {
