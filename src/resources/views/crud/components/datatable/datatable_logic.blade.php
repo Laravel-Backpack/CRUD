@@ -467,22 +467,6 @@ window.crud.initializeTable = function(tableId, customConfig = {}) {
         dataTableConfig.stateSave = true;
         dataTableConfig.stateSaveParams = function(settings, data) {
             localStorage.setItem(`${config.persistentTableSlug}_list_url_time`, data.time);
-
-            // Get the table ID from the settings
-            var tableId = settings.sTableId;
-            var table = window.crud.tables[tableId];
-            
-            if (!table || typeof table.columns !== 'function') {
-                return;
-            }
-            
-            data.columns.forEach(function(item, index) {
-                var columnHeading = table.columns().header()[index];
-                if ($(columnHeading).attr('data-visible-in-table') == 'true') {
-                    item.visible = true;
-                    return true;
-                }
-            });
         };
         
         if (config.persistentTableDuration) {
