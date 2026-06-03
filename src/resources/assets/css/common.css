@@ -24,6 +24,10 @@
     --bp-select2-choice-color: #3c4858;
     --bp-select2-choice-border-color: #aaa;
     --bp-select2-selection-border-color: rgba(0, 40, 100, 0.12);
+
+    --bp-range-bubble-bg: #7c69ef;
+    --bp-range-bubble-color: #fff;
+    --bp-range-label-color: #6c757d;
 }
 
 .sidebar .nav-dropdown-items .nav-dropdown {
