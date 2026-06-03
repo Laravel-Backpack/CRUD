@@ -16,8 +16,8 @@ trait BulkDeleteOperation
     protected function setupBulkDeleteRoutes($segment, $routeName, $controller)
     {
         Route::post($segment.'/bulk-delete', [
-            'as'        => $routeName.'.bulkDelete',
-            'uses'      => $controller.'@bulkDelete',
+            'as' => $routeName.'.bulkDelete',
+            'uses' => $controller.'@bulkDelete',
             'operation' => 'bulkDelete',
         ]);
     }

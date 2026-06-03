@@ -80,6 +80,7 @@ trait HasRelationshipFields
             $column = $conn->getDoctrineColumn($table, $column_name);
             // check for NOT NULL
             $notNull = $column->getNotnull();
+
             // return the value of nullable (aka the inverse of NOT NULL)
             return ! $notNull;
         } catch (\Exception $e) {

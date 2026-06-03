@@ -64,7 +64,6 @@ trait HasIdentifiableAttribute
         // that is NOT indexed (usually primary, foreign keys)
         foreach ($columns as $columnName => $columnProperties) {
             if (! in_array($columnName, $indexedColumns)) {
-
                 //check for convention "field<_id>" in case developer didn't add foreign key constraints.
                 if (strpos($columnName, '_id') !== false) {
                     continue;

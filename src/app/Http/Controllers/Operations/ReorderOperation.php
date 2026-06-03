@@ -16,14 +16,14 @@ trait ReorderOperation
     protected function setupReorderRoutes($segment, $routeName, $controller)
     {
         Route::get($segment.'/reorder', [
-            'as'        => $routeName.'.reorder',
-            'uses'      => $controller.'@reorder',
+            'as' => $routeName.'.reorder',
+            'uses' => $controller.'@reorder',
             'operation' => 'reorder',
         ]);
 
         Route::post($segment.'/reorder', [
-            'as'        => $routeName.'.save.reorder',
-            'uses'      => $controller.'@saveReorder',
+            'as' => $routeName.'.save.reorder',
+            'uses' => $controller.'@saveReorder',
             'operation' => 'reorder',
         ]);
     }
@@ -50,7 +50,7 @@ trait ReorderOperation
      *
      *  Database columns needed: id, parent_id, lft, rgt, depth, name/title
      *
-     *  @return Response
+     * @return Response
      */
     public function reorder()
     {

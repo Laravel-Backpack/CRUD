@@ -17,13 +17,13 @@ trait InlineCreateOperation
     protected function setupInlineCreateRoutes($segment, $routeName, $controller)
     {
         Route::post($segment.'/inline/create/modal', [
-            'as'        => $segment.'-inline-create',
-            'uses'      => $controller.'@getInlineCreateModal',
+            'as' => $segment.'-inline-create',
+            'uses' => $controller.'@getInlineCreateModal',
             'operation' => 'InlineCreate',
         ]);
         Route::post($segment.'/inline/create', [
-            'as'        => $segment.'-inline-create-save',
-            'uses'      => $controller.'@storeInlineCreate',
+            'as' => $segment.'-inline-create-save',
+            'uses' => $controller.'@storeInlineCreate',
             'operation' => 'InlineCreate',
         ]);
     }

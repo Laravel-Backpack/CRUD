@@ -10,16 +10,16 @@ use Backpack\CRUD\Tests\Unit\Models\User;
 class CrudPanelFieldsTest extends BaseDBCrudPanelTest
 {
     private $oneTextFieldArray = [
-        'name'  => 'field1',
+        'name' => 'field1',
         'label' => 'Field1',
-        'type'  => 'text',
+        'type' => 'text',
     ];
 
     private $expectedOneTextFieldArray = [
         'field1' => [
-            'name'  => 'field1',
+            'name' => 'field1',
             'label' => 'Field1',
-            'type'  => 'text',
+            'type' => 'text',
         ],
     ];
 
@@ -40,37 +40,37 @@ class CrudPanelFieldsTest extends BaseDBCrudPanelTest
 
     private $twoTextFieldsArray = [
         [
-            'name'  => 'field1',
+            'name' => 'field1',
             'label' => 'Field1',
-            'type'  => 'text',
+            'type' => 'text',
         ],
         [
-            'name'  => 'field2',
+            'name' => 'field2',
             'label' => 'Field2',
         ],
     ];
 
     private $expectedTwoTextFieldsArray = [
         'field1' => [
-            'name'  => 'field1',
+            'name' => 'field1',
             'label' => 'Field1',
-            'type'  => 'text',
+            'type' => 'text',
         ],
         'field2' => [
-            'name'  => 'field2',
+            'name' => 'field2',
             'label' => 'Field2',
-            'type'  => 'text',
+            'type' => 'text',
         ],
     ];
 
     private $threeTextFieldsArray = [
         [
-            'name'  => 'field1',
+            'name' => 'field1',
             'label' => 'Field1',
-            'type'  => 'text',
+            'type' => 'text',
         ],
         [
-            'name'  => 'field2',
+            'name' => 'field2',
             'label' => 'Field2',
         ],
         [
@@ -80,25 +80,25 @@ class CrudPanelFieldsTest extends BaseDBCrudPanelTest
 
     private $expectedThreeTextFieldsArray = [
         'field1' => [
-            'name'  => 'field1',
+            'name' => 'field1',
             'label' => 'Field1',
-            'type'  => 'text',
+            'type' => 'text',
         ],
         'field2' => [
-            'name'  => 'field2',
+            'name' => 'field2',
             'label' => 'Field2',
-            'type'  => 'text',
+            'type' => 'text',
         ],
         'field3' => [
-            'name'  => 'field3',
+            'name' => 'field3',
             'label' => 'Field3',
-            'type'  => 'text',
+            'type' => 'text',
         ],
     ];
 
     private $multipleFieldTypesArray = [
         [
-            'name'  => 'field1',
+            'name' => 'field1',
             'label' => 'Field1',
         ],
         [
@@ -149,63 +149,63 @@ class CrudPanelFieldsTest extends BaseDBCrudPanelTest
 
     private $expectedMultipleFieldTypesArray = [
         'field1' => [
-            'name'  => 'field1',
+            'name' => 'field1',
             'label' => 'Field1',
-            'type'  => 'text',
+            'type' => 'text',
         ],
         'field2' => [
-            'name'  => 'field2',
-            'type'  => 'address',
+            'name' => 'field2',
+            'type' => 'address',
             'label' => 'Field2',
         ],
         'field3' => [
-            'name'  => 'field3',
-            'type'  => 'address',
+            'name' => 'field3',
+            'type' => 'address',
             'label' => 'Field3',
         ],
         'field4' => [
-            'name'  => 'field4',
-            'type'  => 'checkbox',
+            'name' => 'field4',
+            'type' => 'checkbox',
             'label' => 'Field4',
         ],
         'field5' => [
-            'name'  => 'field5',
-            'type'  => 'date',
+            'name' => 'field5',
+            'type' => 'date',
             'label' => 'Field5',
         ],
         'field6' => [
-            'name'  => 'field6',
-            'type'  => 'email',
+            'name' => 'field6',
+            'type' => 'email',
             'label' => 'Field6',
         ],
         'field7' => [
-            'name'  => 'field7',
-            'type'  => 'hidden',
+            'name' => 'field7',
+            'type' => 'hidden',
             'label' => 'Field7',
         ],
         'field8' => [
-            'name'  => 'field8',
-            'type'  => 'password',
+            'name' => 'field8',
+            'type' => 'password',
             'label' => 'Field8',
         ],
         'field9' => [
-            'name'  => 'field9',
-            'type'  => 'select2',
+            'name' => 'field9',
+            'type' => 'select2',
             'label' => 'Field9',
         ],
         'field10' => [
-            'name'  => 'field10',
-            'type'  => 'select2_multiple',
+            'name' => 'field10',
+            'type' => 'select2_multiple',
             'label' => 'Field10',
         ],
         'field11' => [
-            'name'  => 'field11',
-            'type'  => 'table',
+            'name' => 'field11',
+            'type' => 'table',
             'label' => 'Field11',
         ],
         'field12' => [
-            'name'  => 'field12',
-            'type'  => 'url',
+            'name' => 'field12',
+            'type' => 'url',
             'label' => 'Field12',
         ],
     ];

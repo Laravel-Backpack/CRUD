@@ -29,23 +29,23 @@ class CrudPanelUpdateTest extends BaseDBCrudPanelTest
 
     private $expectedUpdatedFields = [
         'id' => [
-            'name'  => 'id',
-            'type'  => 'hidden',
+            'name' => 'id',
+            'type' => 'hidden',
             'label' => 'Id',
         ],
         'name' => [
-            'name'  => 'name',
+            'name' => 'name',
             'label' => 'Name',
-            'type'  => 'text',
+            'type' => 'text',
         ],
         'email' => [
-            'name'  => 'email',
-            'type'  => 'email',
+            'name' => 'email',
+            'type' => 'email',
             'label' => 'Email',
         ],
         'password' => [
-            'name'  => 'password',
-            'type'  => 'password',
+            'name' => 'password',
+            'type' => 'password',
             'label' => 'Password',
         ],
     ];
@@ -56,8 +56,8 @@ class CrudPanelUpdateTest extends BaseDBCrudPanelTest
         $this->crudPanel->addFields($this->userInputFields);
         $faker = Factory::create();
         $inputData = [
-            'name'     => $faker->name,
-            'email'    => $faker->safeEmail,
+            'name' => $faker->name,
+            'email' => $faker->safeEmail,
             'password' => bcrypt($faker->password()),
         ];
 
@@ -75,8 +75,8 @@ class CrudPanelUpdateTest extends BaseDBCrudPanelTest
         $this->crudPanel->addFields($this->userInputFields);
         $faker = Factory::create();
         $inputData = [
-            'name'     => $faker->name,
-            'email'    => $faker->safeEmail,
+            'name' => $faker->name,
+            'email' => $faker->safeEmail,
             'password' => bcrypt($faker->password()),
         ];
 
@@ -90,8 +90,8 @@ class CrudPanelUpdateTest extends BaseDBCrudPanelTest
         $this->crudPanel->addFields($this->userInputFields);
         $faker = Factory::create();
         $inputData = [
-            'name'     => $faker->name,
-            'email'    => $faker->safeEmail,
+            'name' => $faker->name,
+            'email' => $faker->safeEmail,
             'password' => bcrypt($faker->password()),
         ];
         $entry = $this->crudPanel->create($inputData);

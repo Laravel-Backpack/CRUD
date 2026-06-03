@@ -8,6 +8,7 @@ use Unit\CrudPanel\Models\FakeColumnsModel;
  * Class CrudTraitFakeFieldsTest.
  *
  * @group CrudTraitFakeFields
+ *
  * @covers Backpack\CRUD\app\Models\Traits\HasFakeFields
  */
 class CrudTraitFakeFieldsTest extends BaseCrudTraitTest
@@ -21,29 +22,29 @@ class CrudTraitFakeFieldsTest extends BaseCrudTraitTest
     // DEFINE THE DATA
 
     private $extras = [
-        'extras_first'  => 'Extras first',
+        'extras_first' => 'Extras first',
         'extras_second' => 'Extras second',
     ];
 
     private $extras_translatable = [
         'en' => [
-            'extras_translatable_first'  => 'extras_translatable first en',
+            'extras_translatable_first' => 'extras_translatable first en',
             'extras_translatable_second' => 'extras_translatable second en',
         ],
         'ro' => [
-            'extras_translatable_first'  => 'extras_translatable first ro',
+            'extras_translatable_first' => 'extras_translatable first ro',
             'extras_translatable_second' => 'extras_translatable second ro',
         ],
 
     ];
 
     private $fake_object = [
-        'fake_object_first'  => 'fake_object first',
+        'fake_object_first' => 'fake_object first',
         'fake_object_second' => 'fake_object second',
     ];
 
     private $fake_assoc_array = [
-        'fake_assoc_array_first'  => 'fake_assoc_array first',
+        'fake_assoc_array_first' => 'fake_assoc_array first',
         'fake_assoc_array_second' => 'fake_assoc_array second',
     ];
 
