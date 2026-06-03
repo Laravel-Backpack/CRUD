@@ -42,6 +42,11 @@ trait Stats
             return;
         }
 
+        // only send stats on admin panel requests
+        if (! request()->is(config('backpack.base.route_prefix').'*')) {
+            return;
+        }
+
         // only send stats every ~100 pageloads
         if (rand(1, 100) != 1) {
             return;
@@ -69,11 +74,7 @@ trait Stats
         ];
 
         // send this info to the main website to store it in the db
-        if (function_exists('exec') && extension_loaded('curl')) {
-            $this->makeCurlRequest($method, $url, $stats);
-        } else {
-            $this->makeGuzzleRequest($method, $url, $stats);
-        }
+        $this->makeGuzzleRequest($method, $url, $stats);
     }
 
     /**
