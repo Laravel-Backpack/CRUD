@@ -99,6 +99,21 @@
       data-language="{{ json_encode($datatableLocalizedStrings) }}"
       data-spinner-url="{{ Basset::getUrl('vendor/backpack/crud/src/resources/assets/img/spinner.svg') }}"
       cellspacing="0">
+    @php
+        // index of the first column visible in the table; first-column buttons render here.
+        // $crud->columns() is keyed by name, so we track the numeric position manually.
+        $bp_firstVisibleColumnIndex = 0;
+        $bp_position = 0;
+        foreach ($crud->columns() as $bp_col) {
+            $bp_exportOnly = $bp_col['exportOnlyColumn'] ?? false;
+            $bp_visInTable = $bp_col['visibleInTable'] ?? ($bp_exportOnly ? false : true);
+            if (! $bp_exportOnly && $bp_visInTable !== false) {
+                $bp_firstVisibleColumnIndex = $bp_position;
+                break;
+            }
+            $bp_position++;
+        }
+    @endphp
     <thead>
       <tr>
         {{-- Table columns --}}
@@ -131,7 +146,7 @@
             data-force-export="{{ var_export($forceExport) }}"
           >
             {{-- Bulk checkbox --}}
-            @if($loop->first && $crud->getOperationSetting('bulkActions'))
+            @if($loop->index === $bp_firstVisibleColumnIndex && $crud->getOperationSetting('bulkActions'))
                 {!! View::make('crud::columns.inc.bulk_actions_checkbox')->render() !!}
             @endif
             {!! $column['label'] !!}
@@ -155,7 +170,7 @@
         @foreach ($crud->columns() as $column)
           <th>
             {{-- Bulk checkbox --}}
-            @if($loop->first && $crud->getOperationSetting('bulkActions'))
+            @if($loop->index === $bp_firstVisibleColumnIndex && $crud->getOperationSetting('bulkActions'))
                 {!! View::make('crud::columns.inc.bulk_actions_checkbox')->render() !!}
             @endif
             {!! $column['label'] !!}

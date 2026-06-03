@@ -275,25 +275,51 @@ trait Search
                                 ->render();
         }
 
-        // add the bulk actions checkbox to the first column - but only if we have columns
-        if ($this->getOperationSetting('bulkActions') && ! empty($row_items)) {
-            $bulk_actions_checkbox = \View::make('crud::columns.inc.bulk_actions_checkbox', ['entry' => $entry])->render();
-            $row_items[0] = $bulk_actions_checkbox.$row_items[0];
+        // first column visible in the table; the client may override via
+        // `_bp_first_visible_column` to account for runtime hides (colvis, persisted state)
+        $firstVisibleColumnIndex = 0;
+        $columnPosition = 0;
+        foreach ($this->columns() as $col) {
+            $exportOnly = $col['exportOnlyColumn'] ?? false;
+            $visibleInTable = $col['visibleInTable'] ?? ($exportOnly ? false : true);
+            if (! $exportOnly && $visibleInTable !== false) {
+                $firstVisibleColumnIndex = $columnPosition;
+                break;
+            }
+            $columnPosition++;
+        }
+        // strict validation: scalar digit string within the row_items index range
+        $clientHint = request()->input('_bp_first_visible_column');
+        if (is_scalar($clientHint) && ctype_digit((string) $clientHint)) {
+            $clientHint = (int) $clientHint;
+            $maxIndex = count($row_items) - 1;
+            if ($clientHint >= 0 && $clientHint <= $maxIndex) {
+                $firstVisibleColumnIndex = $clientHint;
+            }
+        }
+        if (! isset($row_items[$firstVisibleColumnIndex])) {
+            $firstVisibleColumnIndex = 0;
         }
 
-        // add the details_row button to the first column - but only if we have columns
+        // add the bulk actions checkbox to the first visible column - but only if we have columns
+        if ($this->getOperationSetting('bulkActions') && ! empty($row_items)) {
+            $bulk_actions_checkbox = \View::make('crud::columns.inc.bulk_actions_checkbox', ['entry' => $entry])->render();
+            $row_items[$firstVisibleColumnIndex] = $bulk_actions_checkbox.$row_items[$firstVisibleColumnIndex];
+        }
+
+        // add the details_row button to the first visible column - but only if we have columns
         if ($this->getOperationSetting('detailsRow') && ! empty($row_items)) {
             $details_row_button = \View::make('crud::columns.inc.details_row_button')
                                            ->with('crud', $this)
                                            ->with('entry', $entry)
                                            ->with('row_number', $rowNumber)
                                            ->render();
-            $row_items[0] = $details_row_button.$row_items[0];
+            $row_items[$firstVisibleColumnIndex] = $details_row_button.$row_items[$firstVisibleColumnIndex];
         }
 
         if ($this->getResponsiveTable() && ! empty($row_items)) {
             $responsiveTableTrigger = '<div class="dtr-control d-none cursor-pointer"></div>';
-            $row_items[0] = $responsiveTableTrigger.$row_items[0];
+            $row_items[$firstVisibleColumnIndex] = $responsiveTableTrigger.$row_items[$firstVisibleColumnIndex];
         }
 
         return $row_items;

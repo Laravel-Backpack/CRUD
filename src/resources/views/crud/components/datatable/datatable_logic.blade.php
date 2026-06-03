@@ -507,9 +507,17 @@ window.crud.initializeTable = function(tableId, customConfig = {}) {
             "url": ajaxUrl,
             "type": "POST",
             "data": function(d) {
-                // Add table-specific parameters
                 d.totalEntryCount = tableElement.getAttribute('data-total-entry-count') || false;
                 d.datatable_id = tableId;
+                // first-visible column index, so the server injects first-column buttons
+                // into a cell that will survive the next DataTables draw
+                if (window.crud
+                    && window.crud.tables
+                    && window.crud.tables[tableId]
+                    && typeof window.crud.tables[tableId].__firstVisibleColumnHint === 'number'
+                    && window.crud.tables[tableId].__firstVisibleColumnHint >= 0) {
+                    d._bp_first_visible_column = window.crud.tables[tableId].__firstVisibleColumnHint;
+                }
                 return d;
             },
             "dataSrc": function(json) {
@@ -540,17 +548,70 @@ window.crud.initializeTable = function(tableId, customConfig = {}) {
             processingIndicator.style.zIndex = '1000';
         }
         
-        // Call any existing initComplete function
         if (typeof window.crud.initCompleteCallback === 'function') {
             window.crud.initCompleteCallback.call(this, settings, json);
         }
+        try {
+            if (window.crud.tables[tableId] && typeof window.crud.tables[tableId].__updateFirstColButtonsHint === 'function') {
+                window.crud.tables[tableId].__updateFirstColButtonsHint();
+            }
+            if (window.crud.tables[tableId] && typeof window.crud.tables[tableId].__repositionFirstColButtons === 'function') {
+                window.crud.tables[tableId].__repositionFirstColButtons();
+            }
+        } catch (e) { /* noop */ }
     };
     
     // Store the dataTableConfig in the config object for future reference
     config.dataTableConfig = dataTableConfig;
-    
+
+    // Seed __firstVisibleColumnHint before DT init so the first ajax call already carries it.
+    // Baseline from <th data-visible>, then overlay persisted column visibility from localStorage
+    // (DT restores it before init.dt fires).
+    (function seedFirstVisibleColumnHint() {
+        const placeholder = { __firstVisibleColumnHint: -1 };
+        window.crud.tables[tableId] = placeholder;
+
+        const headerCells = Array.from(tableElement.querySelectorAll(':scope > thead > tr > th'));
+        const visibility = headerCells.map(th => th.getAttribute('data-visible') !== 'false');
+
+        try {
+            let raw = localStorage.getItem(`DataTables_${tableId}_/${config.urlStart}`);
+            if (!raw) {
+                for (let i = 0; i < localStorage.length; i++) {
+                    const k = localStorage.key(i);
+                    if (k && k.startsWith(`DataTables_${tableId}_`)) {
+                        raw = localStorage.getItem(k);
+                        if (raw) break;
+                    }
+                }
+            }
+            if (raw) {
+                const state = JSON.parse(raw);
+                if (state && Array.isArray(state.columns)) {
+                    state.columns.forEach((col, i) => {
+                        if (i < visibility.length && col && col.visible === false) {
+                            visibility[i] = false;
+                        }
+                    });
+                }
+            }
+        } catch (e) { /* noop */ }
+
+        for (let i = 0; i < visibility.length; i++) {
+            if (visibility[i]) {
+                placeholder.__firstVisibleColumnHint = i;
+                break;
+            }
+        }
+    })();
+
     // Initialize the DataTable with the config
-    window.crud.tables[tableId] = $('#'+tableId).DataTable(dataTableConfig);
+    const dtInstance = $('#'+tableId).DataTable(dataTableConfig);
+    const seededHint = (window.crud.tables[tableId] && typeof window.crud.tables[tableId].__firstVisibleColumnHint === 'number')
+        ? window.crud.tables[tableId].__firstVisibleColumnHint
+        : -1;
+    dtInstance.__firstVisibleColumnHint = seededHint;
+    window.crud.tables[tableId] = dtInstance;
 
     // For backward compatibility
     if (!window.crud.table) {
@@ -696,7 +757,156 @@ function setupTableUI(tableId, config) {
 // Function to set up table event handlers
 function setupTableEvents(tableId, config) {
     const table = window.crud.tables[tableId];
-    
+
+    // First-column buttons (bulk-actions checkbox, details-row trigger, .dtr-control)
+    // must follow the first VISIBLE column when the natural first column is hidden
+    // (visibleInTable=false, colvis, responsive, or persisted state).
+    const FIRST_COL_BUTTONS_SELECTOR = '.dtr-control, .crud_bulk_actions_checkbox, span.details-control';
+    const detachedFirstColButtons = new WeakMap();
+
+    function getTableEl() {
+        return document.getElementById(tableId);
+    }
+
+    function getDirectRowCells(row) {
+        return Array.from(row.children).filter(c => c.tagName === 'TD' || c.tagName === 'TH');
+    }
+
+    function getDirectFirstColButtons(row) {
+        // skip nested tables (e.g. responsive-details modal)
+        return Array.from(row.querySelectorAll(FIRST_COL_BUTTONS_SELECTOR)).filter(el => {
+            const cell = el.closest('th, td');
+            return cell && cell.parentElement === row;
+        });
+    }
+
+    function moveFirstColButtonsToCell(row, targetCell) {
+        if (!row || !targetCell) return;
+        getDirectFirstColButtons(row).forEach(el => {
+            const parentCell = el.closest('th, td');
+            if (!parentCell || parentCell === targetCell) return;
+            targetCell.insertBefore(el, targetCell.firstChild);
+            // keep .details-control on whichever cell hosts the trigger
+            if (el.matches('span.details-control') && parentCell.classList.contains('details-control')) {
+                parentCell.classList.remove('details-control');
+                targetCell.classList.add('details-control');
+            }
+        });
+    }
+
+    function getFirstVisibleColumnIndex() {
+        let firstVisibleIdx = -1;
+        try {
+            table.columns().every(function (i) {
+                if (firstVisibleIdx !== -1) return;
+                if (!this.visible()) return;
+                const headerCell = this.header();
+                if (headerCell && headerCell.classList && headerCell.classList.contains('dtr-hidden')) return;
+                firstVisibleIdx = i;
+            });
+        } catch (e) { /* noop */ }
+        return firstVisibleIdx;
+    }
+
+    function repositionFirstColButtons() {
+        const tableEl = getTableEl();
+        if (!tableEl) return;
+        const firstVisibleIdx = getFirstVisibleColumnIndex();
+        if (firstVisibleIdx < 0) return;
+
+        try {
+            const headerNode = table.column(firstVisibleIdx).header();
+            if (headerNode && headerNode.parentElement) {
+                moveFirstColButtonsToCell(headerNode.parentElement, headerNode);
+            }
+        } catch (e) { /* noop */ }
+
+        try {
+            const footerNode = table.column(firstVisibleIdx).footer();
+            if (footerNode && footerNode.parentElement) {
+                moveFirstColButtonsToCell(footerNode.parentElement, footerNode);
+            }
+        } catch (e) { /* noop */ }
+
+        try {
+            table.rows({ page: 'current' }).every(function () {
+                const rowNode = this.node();
+                if (!rowNode) return;
+                let cellNode = null;
+                try { cellNode = table.cell(this.index(), firstVisibleIdx).node(); } catch (e) { /* noop */ }
+                if (cellNode) moveFirstColButtonsToCell(rowNode, cellNode);
+            });
+        } catch (e) { /* noop */ }
+    }
+    window.crud.tables[tableId].__repositionFirstColButtons = repositionFirstColButtons;
+
+    // colvis with redraw removes the toggled <td> before column-visibility.dt fires,
+    // so detach the buttons on mousedown (capture phase) and reattach after the toggle.
+    function onColvisMousedown(e) {
+        const trigger = e.target.closest('.buttons-columnVisibility');
+        if (!trigger) return;
+        const tableEl = getTableEl();
+        if (!tableEl) return;
+        if (!tableEl.querySelector(FIRST_COL_BUTTONS_SELECTOR)) return;
+
+        ['thead', 'tbody', 'tfoot'].forEach(section => {
+            const sectionEl = tableEl.querySelector(':scope > ' + section);
+            if (!sectionEl) return;
+            Array.from(sectionEl.children).forEach(row => {
+                if (row.tagName !== 'TR') return;
+                const buttons = getDirectFirstColButtons(row);
+                if (buttons.length) {
+                    buttons.forEach(el => el.parentNode && el.parentNode.removeChild(el));
+                    detachedFirstColButtons.set(row, buttons);
+                }
+            });
+        });
+    }
+    document.addEventListener('mousedown', onColvisMousedown, true);
+
+    function reattachDetachedFirstColButtons() {
+        const tableEl = getTableEl();
+        if (!tableEl) return;
+        ['thead', 'tbody', 'tfoot'].forEach(section => {
+            const sectionEl = tableEl.querySelector(':scope > ' + section);
+            if (!sectionEl) return;
+            Array.from(sectionEl.children).forEach(row => {
+                if (row.tagName !== 'TR') return;
+                const stash = detachedFirstColButtons.get(row);
+                if (!stash || !stash.length) return;
+                detachedFirstColButtons.delete(row);
+
+                const cells = getDirectRowCells(row);
+                let target = null;
+                for (const c of cells) {
+                    if (target) break;
+                    if (c.classList.contains('dtr-hidden')) continue;
+                    if (getComputedStyle(c).display === 'none') continue;
+                    target = c;
+                }
+                if (!target) target = cells[0];
+                if (!target) return;
+
+                for (let i = stash.length - 1; i >= 0; i--) {
+                    target.insertBefore(stash[i], target.firstChild);
+                }
+                if (stash.some(el => el.matches && el.matches('span.details-control'))) {
+                    target.classList.add('details-control');
+                }
+            });
+        });
+    }
+    window.crud.tables[tableId].__reattachDetachedFirstColButtons = reattachDetachedFirstColButtons;
+
+    // refresh the hint sent to the server on the next ajax draw
+    function updateFirstColButtonsHint() {
+        const idx = getFirstVisibleColumnIndex();
+        if (window.crud.tables[tableId] && idx >= 0) {
+            window.crud.tables[tableId].__firstVisibleColumnHint = idx;
+        }
+    }
+    window.crud.tables[tableId].__updateFirstColButtonsHint = updateFirstColButtonsHint;
+
     // override ajax error message
     $.fn.dataTable.ext.errMode = 'none';
     $(`#${tableId}`).on('error.dt', function(e, settings, techNote, message) {
@@ -827,6 +1037,9 @@ function setupTableEvents(tableId, config) {
             $('.dtr-control').addClass('d-inline');
             $(`#${tableId}`).removeClass('has-hidden-columns').addClass('has-hidden-columns');
         }
+
+        // move first-column buttons to the first visible cell
+        repositionFirstColButtons();
     }).dataTable();
 
     $(`#${tableId}`).on('processing.dt', function(e, settings, processing) {
@@ -878,11 +1091,17 @@ function setupTableEvents(tableId, config) {
         }
     });
 
-    // when datatables-colvis (column visibility) is toggled
     $(`#${tableId}`).on('column-visibility.dt', function(event) {
-        if (table.responsive) {
-            table.responsive.rebuild();
-        }
+        // defer past DataTables/Responsive's own listeners
+        setTimeout(function () {
+            reattachDetachedFirstColButtons();
+            if (table.responsive) {
+                try { table.responsive.rebuild(); } catch (e) { /* noop */ }
+                try { table.responsive.recalc(); } catch (e) { /* noop */ }
+            }
+            repositionFirstColButtons();
+            updateFirstColButtonsHint();
+        }, 0);
     }).dataTable();
 
     // Handle responsive table if enabled
@@ -907,6 +1126,9 @@ function setupTableEvents(tableId, config) {
                 $('.dtr-control').removeClass('d-none').removeClass('d-inline').addClass('d-none');
                 $(`#${tableId}`).removeClass('has-hidden-columns');
             }
+
+            // bulk checkbox and details-row trigger follow the first visible cell
+            repositionFirstColButtons();
         });
     } else if (!config.responsiveTable) {
         // make sure the column headings have the same width as the actual columns
