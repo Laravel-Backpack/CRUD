@@ -97,7 +97,7 @@ trait Tabs
     }
 
     /**
-     * @param $label
+     * @param  $label
      * @return bool
      */
     public function isLastTab($label)
@@ -120,7 +120,7 @@ trait Tabs
     }
 
     /**
-     * @param $label
+     * @param  $label
      * @return array|\Illuminate\Support\Collection
      */
     public function getTabFields($label)

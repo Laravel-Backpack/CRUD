@@ -240,10 +240,8 @@ trait Fields
         $casted_attributes = $this->model->getCastedAttributes();
 
         foreach ($fields as $field) {
-
             // Test the field is castable
             if (isset($field['name']) && is_string($field['name']) && array_key_exists($field['name'], $casted_attributes)) {
-
                 // Handle JSON field types
                 $jsonCastables = ['array', 'object', 'json'];
                 $fieldCasting = $casted_attributes[$field['name']];

@@ -23,8 +23,8 @@ trait FetchOperation
         if (count($matches[1])) {
             foreach ($matches[1] as $methodName) {
                 Route::post($segment.'/fetch/'.Str::kebab($methodName), [
-                    'as'        => $segment.'.fetch'.Str::studly($methodName),
-                    'uses'      => $controller.'@fetch'.$methodName,
+                    'as' => $segment.'.fetch'.Str::studly($methodName),
+                    'uses' => $controller.'@fetch'.$methodName,
                     'operation' => 'FetchOperation',
                 ]);
             }
@@ -101,6 +101,7 @@ trait FetchOperation
                         $tempQuery = $query->{$operation}($searchColumn, $search_string);
                     }
                 }
+
                 // If developer provide an empty searchable_attributes array it means they don't want us to search
                 // in any specific column, or try to guess the column from model identifiableAttribute.
                 // In that scenario we will not have any $tempQuery here, so we just return the query, is up to the developer

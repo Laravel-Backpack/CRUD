@@ -207,7 +207,7 @@ trait HasTranslations
                 return parent::__call($method, $parameters);
                 break;
 
-            // do not translate any other methods
+                // do not translate any other methods
             default:
                 return parent::__call($method, $parameters);
                 break;

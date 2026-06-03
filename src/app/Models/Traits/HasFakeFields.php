@@ -30,7 +30,7 @@ trait HasFakeFields
                 $column_contents = json_decode($column_contents);
             }
 
-            if ((is_array($column_contents) || is_object($column_contents) || $column_contents instanceof Traversable)) {
+            if (is_array($column_contents) || is_object($column_contents) || $column_contents instanceof Traversable) {
                 foreach ($column_contents as $fake_field_name => $fake_field_value) {
                     $this->setAttribute($fake_field_name, $fake_field_value);
                 }
@@ -62,7 +62,7 @@ trait HasFakeFields
     /**
      * Determine if this fake column should be json_decoded.
      *
-     * @param $column string fake column name
+     * @param  $column  string fake column name
      * @return bool
      */
     public function shouldDecodeFake($column)
@@ -73,7 +73,7 @@ trait HasFakeFields
     /**
      * Determine if this fake column should get json_encoded or not.
      *
-     * @param $column string fake column name
+     * @param  $column  string fake column name
      * @return bool
      */
     public function shouldEncodeFake($column)

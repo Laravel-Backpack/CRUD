@@ -483,21 +483,21 @@ class CrudFilter
                 $this->crud()->addClause($operator);
                 break;
 
-            // TODO:
-            // whereBetween
-            // whereNotBetween
-            // whereIn
-            // whereNotIn
-            // whereNull
-            // whereNotNull
-            // whereDate
-            // whereMonth
-            // whereDay
-            // whereYear
-            // whereColumn
-            // like
+                // TODO:
+                // whereBetween
+                // whereNotBetween
+                // whereIn
+                // whereNotIn
+                // whereNull
+                // whereNotNull
+                // whereDate
+                // whereMonth
+                // whereDay
+                // whereYear
+                // whereColumn
+                // like
 
-            // sql comparison operators
+                // sql comparison operators
             case '=':
             case '<=>':
             case '<>':

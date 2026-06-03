@@ -41,9 +41,9 @@ trait Columns
                     $this->addColumn($column);
                 } else {
                     $this->addColumn([
-                        'name'  => $column,
+                        'name' => $column,
                         'label' => mb_ucfirst($column),
-                        'type'  => 'text',
+                        'type' => 'text',
                     ]);
                 }
             }
@@ -51,9 +51,9 @@ trait Columns
 
         if (is_string($columns)) {
             $this->addColumn([
-                'name'  => $columns,
+                'name' => $columns,
                 'label' => mb_ucfirst($columns),
-                'type'  => 'text',
+                'type' => 'text',
             ]);
         }
     }

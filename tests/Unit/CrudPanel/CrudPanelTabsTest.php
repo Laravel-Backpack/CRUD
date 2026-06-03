@@ -16,29 +16,29 @@ class CrudPanelTabsTest extends BaseDBCrudPanelTest
 
     private $threeTextFieldsArray = [
         [
-            'name'  => 'field1',
+            'name' => 'field1',
             'label' => 'Field1',
         ],
         [
-            'name'  => 'field2',
+            'name' => 'field2',
             'label' => 'Field2',
-            'tab'   => 'First Tab',
+            'tab' => 'First Tab',
         ],
         [
-            'name'  => 'field3',
+            'name' => 'field3',
             'label' => 'Field3',
-            'tab'   => 'First Tab',
-            'type'  => 'email',
+            'tab' => 'First Tab',
+            'type' => 'email',
         ],
         [
-            'name'  => 'field4',
+            'name' => 'field4',
             'label' => 'Field4',
-            'tab'   => 'Second Tab',
+            'tab' => 'Second Tab',
         ],
         [
-            'name'  => 'field5',
+            'name' => 'field5',
             'label' => 'Field5',
-            'tab'   => 'Third Tab',
+            'tab' => 'Third Tab',
         ],
     ];
 
@@ -46,34 +46,34 @@ class CrudPanelTabsTest extends BaseDBCrudPanelTest
 
     private $expectedFieldsInFirstTab = [
         'field2' => [
-            'name'  => 'field2',
+            'name' => 'field2',
             'label' => 'Field2',
-            'tab'   => 'First Tab',
-            'type'  => 'text',
+            'tab' => 'First Tab',
+            'type' => 'text',
         ],
         'field3' => [
-            'name'  => 'field3',
+            'name' => 'field3',
             'label' => 'Field3',
-            'tab'   => 'First Tab',
-            'type'  => 'email',
+            'tab' => 'First Tab',
+            'type' => 'email',
         ],
     ];
 
     private $expectedFieldsInSecondTab = [
         'field2' => [
-            'name'  => 'field4',
+            'name' => 'field4',
             'label' => 'Field4',
-            'tab'   => 'Second Tab',
-            'type'  => 'text',
+            'tab' => 'Second Tab',
+            'type' => 'text',
         ],
     ];
 
     private $expectedFieldsInThirdTab = [
         'field2' => [
-            'name'  => 'field5',
+            'name' => 'field5',
             'label' => 'Field5',
-            'tab'   => 'Third Tab',
-            'type'  => 'text',
+            'tab' => 'Third Tab',
+            'type' => 'text',
         ],
     ];
 

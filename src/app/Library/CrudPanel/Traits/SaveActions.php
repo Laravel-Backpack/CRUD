@@ -253,7 +253,6 @@ trait SaveActions
      */
     public function getCurrentSaveAction($saveOptions)
     {
-
         //get save action from session if exists, or get the developer defined order
         $saveAction = session($this->getCurrentOperation().'.saveAction', $this->getFallBackSaveAction());
         if (isset($saveOptions[$saveAction])) {
@@ -290,7 +289,7 @@ trait SaveActions
         }
 
         return [
-            'active'  => $saveCurrent,
+            'active' => $saveCurrent,
             'options' => $dropdownOptions,
         ];
     }
@@ -347,8 +346,8 @@ trait SaveActions
         // if the request is AJAX, return a JSON response
         if ($this->getRequest()->ajax()) {
             return [
-                'success'      => true,
-                'data'         => $this->entry,
+                'success' => true,
+                'data' => $this->entry,
                 'redirect_url' => $redirectUrl,
                 'referrer_url' => $referrer_url ?? false,
             ];

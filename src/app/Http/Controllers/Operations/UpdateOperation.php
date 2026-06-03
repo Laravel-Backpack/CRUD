@@ -16,14 +16,14 @@ trait UpdateOperation
     protected function setupUpdateRoutes($segment, $routeName, $controller)
     {
         Route::get($segment.'/{id}/edit', [
-            'as'        => $routeName.'.edit',
-            'uses'      => $controller.'@edit',
+            'as' => $routeName.'.edit',
+            'uses' => $controller.'@edit',
             'operation' => 'update',
         ]);
 
         Route::put($segment.'/{id}', [
-            'as'        => $routeName.'.update',
-            'uses'      => $controller.'@update',
+            'as' => $routeName.'.update',
+            'uses' => $controller.'@update',
             'operation' => 'update',
         ]);
     }
@@ -91,7 +91,7 @@ trait UpdateOperation
         $request = $this->crud->validateRequest();
         // update the row in the db
         $item = $this->crud->update($request->get($this->crud->model->getKeyName()),
-                            $this->crud->getStrippedSaveRequest());
+            $this->crud->getStrippedSaveRequest());
         $this->data['entry'] = $this->crud->entry = $item;
 
         // show a success message
