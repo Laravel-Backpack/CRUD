@@ -649,6 +649,7 @@ div[id$="_wrapper"] .dt-processing {
     right: 0;
     pointer-events: auto;
     cursor: pointer;
+    z-index: 1;
 }
 
 .datatable_search_stack .input-icon .datatable-search-clear[hidden] {
