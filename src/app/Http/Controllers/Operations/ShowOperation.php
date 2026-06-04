@@ -88,7 +88,8 @@ trait ShowOperation
 
         // get the info for that entry (include softDeleted items if the trait is used)
         if ($this->crud->get('show.softDeletes') && in_array('Illuminate\Database\Eloquent\SoftDeletes', class_uses($this->crud->model))) {
-            $this->data['entry'] = $this->crud->getModel()->withTrashed()->findOrFail($id);
+            $this->data['entry'] = $this->crud->getModelWithCrudPanelQuery()->withTrashed()->findOrFail($id);
+            $this->data['entry'] = $this->crud->setLocaleOnModel($this->data['entry']);
         } else {
             $this->data['entry'] = $this->crud->getEntryWithLocale($id);
         }
