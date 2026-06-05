@@ -18,7 +18,7 @@ trait Update
     /**
      * Update a row in the database.
      *
-     * @param  int  $id  The entity's id
+     * @param  int|string  $id  The entity's id
      * @param  array  $input  All inputs to be updated.
      * @return object
      */
@@ -45,7 +45,7 @@ trait Update
     /**
      * Get all fields needed for the EDIT ENTRY form.
      *
-     * @param  int  $id  The id of the entry that is being edited.
+     * @param  int|string  $id  The id of the entry that is being edited.
      * @return array The fields with attributes, fake attributes and values.
      */
     public function getUpdateFields($id = false)

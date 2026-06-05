@@ -94,7 +94,7 @@ trait Read
      * Find and retrieve an entry in the database or fail.
      * When found, make sure we set the Locale on it.
      *
-     * @param int The id of the row in the db to fetch.
+     * @param int|string The id of the row in the db to fetch.
      * @return \Illuminate\Database\Eloquent\Model The row in the db.
      */
     public function getEntryWithLocale($id)
