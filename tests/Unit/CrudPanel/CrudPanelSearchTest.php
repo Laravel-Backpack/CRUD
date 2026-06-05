@@ -306,6 +306,99 @@ class CrudPanelSearchTest extends \Backpack\CRUD\Tests\config\CrudPanel\BaseCrud
         $this->assertEquals('select * from "users" order by "name" asc, "id" desc', $this->crudPanel->query->toRawSql());
     }
 
+    /**
+     * Translatable JSON columns should use case-insensitive JSON path search
+     * for each active locale instead of searching the raw JSON string.
+     */
+    public function testItAppliesTranslatableSearchForJsonColumns()
+    {
+        $this->crudPanel->setModel(UserWithTranslations::class);
+
+        $this->crudPanel->addColumn([
+            'name' => 'json',
+            'type' => 'text',
+            'searchLogic' => 'text',
+            'tableColumn' => true,
+        ]);
+
+        $this->crudPanel->applySearchTerm('Smith');
+
+        $sql = $this->crudPanel->query->toRawSql();
+
+        $this->assertStringContainsString('lower(', $sql);
+        $this->assertStringContainsString('json_extract', $sql);
+        $this->assertStringContainsString('"en"', $sql);
+        $this->assertStringContainsString('like lower(', $sql);
+    }
+
+    public function testTranslatableAttributesAlwaysUseJsonPathSearch()
+    {
+        $this->crudPanel->setModel(UserWithTranslations::class);
+
+        $this->crudPanel->addColumn([
+            'name' => 'name',
+            'type' => 'text',
+            'searchLogic' => 'text',
+            'tableColumn' => true,
+        ]);
+
+        $this->crudPanel->applySearchTerm('test');
+
+        $this->assertStringContainsString(
+            'json_extract("users"."name"',
+            $this->crudPanel->query->toRawSql()
+        );
+    }
+
+    /**
+     * When the app fallback locale differs from the current locale, both should
+     * be searched so results are not missed when content is stored in either locale.
+     */
+    public function testItSearchesAcrossCurrentAndFallbackLocales()
+    {
+        $this->crudPanel->setModel(UserWithTranslations::class);
+
+        config(['app.fallback_locale' => 'fr']);
+
+        $this->crudPanel->addColumn([
+            'name' => 'json',
+            'type' => 'text',
+            'searchLogic' => 'text',
+            'tableColumn' => true,
+        ]);
+
+        $this->crudPanel->applySearchTerm('smith');
+
+        $sql = $this->crudPanel->query->toRawSql();
+
+        // Both the current locale (en) and fallback locale (fr) must be searched
+        $this->assertStringContainsString('"en"', $sql);
+        $this->assertStringContainsString('"fr"', $sql);
+    }
+
+    /**
+     * Non-translatable models should be unaffected and continue using standard LIKE search.
+     */
+    public function testTranslatableSearchDoesNotAffectNonTranslatableModels()
+    {
+        // Uses the default User model (no HasTranslations trait, translationEnabled() = false)
+        // Use a column name that doesn't exist in the table (like other search tests) with explicit searchLogic
+        $this->crudPanel->addColumn([
+            'name' => 'title',
+            'type' => 'text',
+            'searchLogic' => 'text',
+            'tableColumn' => true,
+        ]);
+
+        $this->crudPanel->applySearchTerm('test');
+
+        // Regular User (not translatable) → standard LIKE, no JSON path extraction
+        $this->assertEquals(
+            'select * from "users" where ("users"."title" like \'%test%\')',
+            $this->crudPanel->query->toRawSql()
+        );
+    }
+
     public static function columnsDefaultSearchLogic()
     {
         return [

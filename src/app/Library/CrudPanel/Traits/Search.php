@@ -68,7 +68,11 @@ trait Search
                 case 'email':
                 case 'text':
                 case 'textarea':
-                    $query->orWhere($this->getColumnWithTableNamePrefixed($query, $column['name']), $searchOperator, '%'.$searchTerm.'%');
+                    if ($this->isTranslatableColumn($column['name'])) {
+                        $this->applyTranslatableTextSearch($query, $column['name'], $searchTerm);
+                    } else {
+                        $query->orWhere($this->getColumnWithTableNamePrefixed($query, $column['name']), $searchOperator, '%'.$searchTerm.'%');
+                    }
                     break;
 
                 case 'date':
@@ -448,6 +452,33 @@ trait Search
     public function getColumnWithTableNamePrefixed($query, $column)
     {
         return $query->getModel()->getTable().'.'.$column;
+    }
+
+    private function isTranslatableColumn(string $columnName): bool
+    {
+        return $this->model->translationEnabled()
+            && method_exists($this->model, 'isTranslatableAttribute')
+            && $this->model->isTranslatableAttribute($columnName);
+    }
+
+    private function getTranslatableSearchLocales(): array
+    {
+        return array_values(array_unique(array_filter([
+            app()->getLocale(),
+            config('app.fallback_locale'),
+            ...array_keys(config('backpack.crud.locales', [])),
+        ])));
+    }
+
+    private function applyTranslatableTextSearch($query, string $columnName, string $searchTerm): void
+    {
+        $table = $this->model->getTable();
+        $grammar = $this->model->getConnection()->getQueryGrammar();
+
+        foreach ($this->getTranslatableSearchLocales() as $locale) {
+            $wrapped = $grammar->wrap("{$table}.{$columnName}->{$locale}");
+            $query->orWhereRaw("lower({$wrapped}) like lower(?)", ['%'.$searchTerm.'%']);
+        }
     }
 
     private function isJsonColumnType(string $columnName)
