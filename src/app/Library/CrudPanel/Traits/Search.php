@@ -475,10 +475,12 @@ trait Search
         $table = $this->model->getTable();
         $grammar = $this->model->getConnection()->getQueryGrammar();
 
-        foreach ($this->getTranslatableSearchLocales() as $locale) {
-            $wrapped = $grammar->wrap("{$table}.{$columnName}->{$locale}");
-            $query->orWhereRaw("lower({$wrapped}) like lower(?)", ['%'.$searchTerm.'%']);
-        }
+        $query->orWhere(function ($q) use ($table, $columnName, $searchTerm, $grammar) {
+            foreach ($this->getTranslatableSearchLocales() as $locale) {
+                $wrapped = $grammar->wrap("{$table}.{$columnName}->{$locale}");
+                $q->orWhereRaw("lower({$wrapped}) like lower(?)", ['%'.$searchTerm.'%']);
+            }
+        });
     }
 
     private function isJsonColumnType(string $columnName)
