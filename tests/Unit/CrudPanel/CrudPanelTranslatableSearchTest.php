@@ -29,7 +29,7 @@ class CrudPanelTranslatableSearchTest extends BaseDBCrudPanel
 
     /**
      * Create a TranslatableModel with per-locale title values.
-     * Accepts: ['en' => 'Smith Electric', 'fr' => 'Électricité Smith']
+     * Accepts: ['en' => 'Smith Electric', 'fr' => 'Électricité Smith'].
      */
     private function makeRecord(array $titlesByLocale): TranslatableModel
     {
