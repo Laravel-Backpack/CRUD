@@ -228,43 +228,90 @@
 		        	$("<input type='hidden' class='clear-files' name='clear_"+fieldName+"[]' value='"+$(this).data('filename')+"'>").insertAfter(fileInput);
 		        });
 
+		        // accumulate files across multiple picks (browser replaces FileList before change fires)
+		        var accumulatedDt = new DataTransfer();
+
 		        fileInput.change(function() {
-					let selectedFiles = [];
 					let existingFiles = fileInput.parent().siblings('.existing-file');
 
-					Array.from($(this)[0].files).forEach(file => {
-						selectedFiles.push({name: file.name, type: file.type})
+					// capture newly picked files first (fileInput.files is already replaced by browser)
+					let newlyPicked = Array.from($(this)[0].files);
+
+					// add to accumulated DataTransfer, skip duplicates by name
+					newlyPicked.forEach(function(file) {
+						var alreadyAdded = Array.from(accumulatedDt.files).some(function(f) { return f.name === file.name; });
+						if (!alreadyAdded) {
+							accumulatedDt.items.add(file);
+						}
 					});
 
-					element.find('input').first().val(JSON.stringify(selectedFiles)).trigger('change');
+					// assign the full accumulated list back to the input
+					fileInput[0].files = accumulatedDt.files;
 
-					// create a bunch of span elements with the selected files names to display in the label
+					let allFiles = Array.from(accumulatedDt.files).map(function(file) {
+						return {name: file.name, type: file.type};
+					});
+
+					element.find('input').first().val(JSON.stringify(allFiles)).trigger('change');
+
+					// create badges only for the newly picked files
 					let files = '';
-					selectedFiles.forEach(file => {
-						files += '<span class="badge mt-1 mb-1 text-bg-secondary badge-primary">'+file.name+'</span> ';
+					newlyPicked.forEach(file => {
+						files += '<span class="badge mt-1 mb-1 text-bg-secondary badge-primary new-file-badge" data-filename="'+file.name+'">'
+						       + file.name
+						       + ' <a href="#" class="new-file-remove" data-filename="'+file.name+'" style="color:inherit;margin-left:4px;text-decoration:none;">&times;</a>'
+						       + '</span> ';
 					});
-					
-					// if existing files is not on the page, create a new div a prepend it to the fileInput
+
+					// if existing files container is not on the page, create it
 					if(existingFiles.length === 0) {
 						existingFiles = $('<div class="well well-sm existing-file mb-2"></div>');
 						existingFiles.insertBefore(element.find('input[type=hidden]').first());
 						existingFiles.html(files);
 					}else {
-						// if existing files is on page show the added files after the uploaded ones
 						existingFiles.append(files);
 					}
 
 		        	// remove the hidden input, so that the setXAttribute method is no longer triggered
 					$(this).next("input[type=hidden]:not([name='clear_"+fieldName+"[]']):not([name='_order_"+fieldName+"'])").remove();
 		        });
+				// handle removal of newly selected (not yet uploaded) files
+				element.on('click', '.new-file-remove', function(e) {
+					e.preventDefault();
+					var filenameToRemove = $(this).data('filename');
 
+					// rebuild both accumulatedDt and FileList without the removed file
+					var dt = new DataTransfer();
+					Array.from(accumulatedDt.files).forEach(function(file) {
+						if (file.name !== filenameToRemove) {
+							dt.items.add(file);
+						}
+					});
+					accumulatedDt = dt;
+					fileInput[0].files = accumulatedDt.files;
+
+					// remove the badge from the DOM
+					$(this).closest('.new-file-badge').remove();
+
+					// remove the existing-file container if now empty
+					var existingFilesEl = fileInput.parent().siblings('.existing-file');
+					if (existingFilesEl.length && $.trim(existingFilesEl.html()) === '') {
+						existingFilesEl.remove();
+					}
+
+					// update the hidden input with remaining files
+					var remainingFiles = Array.from(fileInput[0].files).map(function(file) {
+						return {name: file.name, type: file.type};
+					});
+					element.find('input').first().val(JSON.stringify(remainingFiles)).trigger('change');
+				});
 				element.find('input').on('CrudField:disable', function(e) {
 					element.children('.backstrap-file').find('input').prop('disabled', 'disabled');
 					element.children('.existing-file').find('.file-preview').each(function(i, el) {
 
 						let $deleteButton = $(el).find('a.file-clear-button');
 
-						if(deleteButton.length > 0) {
+						if($deleteButton.length > 0) {
 							$deleteButton.on('click.prevent', function(e) {
 								e.stopImmediatePropagation();
 								return false;
