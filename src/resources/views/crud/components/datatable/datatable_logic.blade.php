@@ -1607,12 +1607,7 @@ function initDatatableDropdowns(tableId) {
                             'left': buttonRect.left + 'px',
                             'z-index': '999999',
                             'display': 'block',
-                            'background': 'white',
-                            'border': '1px solid #dee2e6',
-                            'border-radius': '0.375rem',
-                            'box-shadow': '0 0.5rem 1rem rgba(0, 0, 0, 0.15)',
                             'min-width': '160px',
-                            'padding': '0.5rem 0'
                         });
                         
                         return;
@@ -1649,12 +1644,7 @@ function initDatatableDropdowns(tableId) {
                     'left': left + 'px',
                     'z-index': '999999',
                     'display': 'block',
-                    'background': 'white',
-                    'border': '1px solid #dee2e6',
-                    'border-radius': '0.375rem',
-                    'box-shadow': '0 0.5rem 1rem rgba(0, 0, 0, 0.15)',
                     'min-width': '160px',
-                    'padding': '0.5rem 0'
                 };
                 
                 $menu.css(cssProps);
