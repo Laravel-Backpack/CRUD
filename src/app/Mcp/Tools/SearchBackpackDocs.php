@@ -65,8 +65,8 @@ class SearchBackpackDocs extends Tool
             // this is just an hacky solution, because we have backpack docs with over 100kb
             // token usage with docs like this will be HUGE HUGE.
             // i've set a 10x token limit higher than the default laravel, and even then some files
-            // do not fully fit. just for testing this was consuming tons of tokens, so I just 
-            // cut the hair of the file a bit, some things will obviously not work. 
+            // do not fully fit. just for testing this was consuming tons of tokens, so I just
+            // cut the hair of the file a bit, some things will obviously not work.
             if (strlen($content) > $remaining) {
                 $content = substr($content, 0, $remaining);
             }
