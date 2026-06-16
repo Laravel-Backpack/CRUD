@@ -54,6 +54,7 @@ trait Input
         }
         $input = $this->excludeRelationFieldsExceptBelongsTo($input, $fields, $relationMethod);
         $input = $this->changeBelongsToNamesFromRelationshipToForeignKey($input, $fields);
+        $input = $this->getVerifiedBelongsToInputs($input, $fields);
 
         return $input;
     }

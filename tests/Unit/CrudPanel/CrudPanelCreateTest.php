@@ -1487,6 +1487,217 @@ class CrudPanelCreateTest extends \Backpack\CRUD\Tests\config\CrudPanel\BaseDBCr
         $this->assertCount(2, $planets);
     }
 
+    public function testHasManySelectableRelationshipIgnoresValuesOutsideOptionsConstraint()
+    {
+        $this->crudPanel->setModel(User::class);
+        $this->crudPanel->addFields($this->userInputFieldsNoRelationships, 'both');
+        $this->crudPanel->addField([
+            'name' => 'planets',
+            'force_delete' => false,
+            'fallback_id' => false,
+            // only planet #1 is ever selectable in this field
+            'options' => function ($query) {
+                return $query->where('id', 1)->get();
+            },
+        ], 'both');
+
+        $faker = Factory::create();
+        $inputData = [
+            'name' => $faker->name,
+            'email' => $faker->safeEmail,
+            'password' => Hash::make($faker->password()),
+            'remember_token' => null,
+            // the request is tampered to also attach planet #2, which is not selectable
+            'planets' => [1, 2],
+        ];
+
+        $entry = $this->crudPanel->create($inputData);
+
+        // only the allowed planet (#1) is attached, the tampered key (#2) is dropped
+        $this->assertCount(1, $entry->planets);
+        $this->assertEquals([1], $entry->planets->pluck('id')->all());
+
+        // the out-of-scope planet is left untouched in the database
+        $this->assertNull(Planet::find(2)->user_id);
+    }
+
+    public function testHasManySelectableRelationshipRejectsFullyOutOfScopeValues()
+    {
+        $this->crudPanel->setModel(User::class);
+        $this->crudPanel->addFields($this->userInputFieldsNoRelationships, 'both');
+        $this->crudPanel->addField([
+            'name' => 'planets',
+            'force_delete' => false,
+            'fallback_id' => false,
+            // only planet #1 is selectable in this field
+            'options' => function ($query) {
+                return $query->where('id', 1)->get();
+            },
+        ], 'both');
+
+        $faker = Factory::create();
+        $inputData = [
+            'name' => $faker->name,
+            'email' => $faker->safeEmail,
+            'password' => Hash::make($faker->password()),
+            'remember_token' => null,
+            // every submitted key is outside the option scope
+            'planets' => [2],
+        ];
+
+        $entry = $this->crudPanel->create($inputData);
+
+        // nothing is attached because no submitted key was actually selectable
+        $this->assertCount(0, $entry->planets);
+        $this->assertNull(Planet::find(2)->user_id);
+    }
+
+    public function testHasManySelectableRelationshipUsesRelationOptionsQueryHook()
+    {
+        $this->crudPanel->setModel(User::class);
+        $this->crudPanel->addFields($this->userInputFieldsNoRelationships, 'both');
+        $this->crudPanel->addField([
+            'name' => 'planets',
+            'force_delete' => false,
+            'fallback_id' => false,
+            // explicit allowed-options query (eg. the query an ajax/fetch field uses)
+            'relation_options_query' => function ($query) {
+                return $query->whereIn('id', [2]);
+            },
+        ], 'both');
+
+        $faker = Factory::create();
+        $inputData = [
+            'name' => $faker->name,
+            'email' => $faker->safeEmail,
+            'password' => Hash::make($faker->password()),
+            'remember_token' => null,
+            // planet #1 is tampered in, only planet #2 is allowed by the hook
+            'planets' => [1, 2],
+        ];
+
+        $entry = $this->crudPanel->create($inputData);
+
+        $this->assertCount(1, $entry->planets);
+        $this->assertEquals([2], $entry->planets->pluck('id')->all());
+        $this->assertNull(Planet::find(1)->user_id);
+    }
+
+    public function testManyToManySelectableRelationshipIgnoresValuesOutsideOptionsConstraint()
+    {
+        $this->crudPanel->setModel(User::class);
+        $this->crudPanel->addFields($this->userInputFieldsNoRelationships, 'both');
+        $this->crudPanel->addField([
+            'label' => 'Roles',
+            'type' => 'select_multiple',
+            'name' => 'roles',
+            'entity' => 'roles',
+            'attribute' => 'name',
+            'pivot' => true,
+            // only role #1 is ever selectable in this field
+            'options' => function ($query) {
+                return $query->where('id', 1)->get();
+            },
+        ], 'both');
+
+        $faker = Factory::create();
+        $inputData = [
+            'name' => $faker->name,
+            'email' => $faker->safeEmail,
+            'password' => Hash::make($faker->password()),
+            'remember_token' => null,
+            // the request is tampered to also attach role #2, which is not selectable
+            'roles' => [1, 2],
+        ];
+
+        $entry = $this->crudPanel->create($inputData);
+
+        // only the allowed role (#1) is attached, the tampered key (#2) is dropped
+        $this->assertCount(1, $entry->roles);
+        $this->assertEquals([1], $entry->roles->pluck('id')->all());
+    }
+
+    public function testManyToManySelectableRelationshipUsesRelationOptionsQueryHook()
+    {
+        $this->crudPanel->setModel(User::class);
+        $this->crudPanel->addFields($this->userInputFieldsNoRelationships, 'both');
+        $this->crudPanel->addField([
+            'label' => 'Roles',
+            'type' => 'select_multiple',
+            'name' => 'roles',
+            'entity' => 'roles',
+            'attribute' => 'name',
+            'pivot' => true,
+            // explicit allowed-options query (eg. the query an ajax/fetch field uses)
+            'relation_options_query' => function ($query) {
+                return $query->whereIn('id', [2]);
+            },
+        ], 'both');
+
+        $faker = Factory::create();
+        $inputData = [
+            'name' => $faker->name,
+            'email' => $faker->safeEmail,
+            'password' => Hash::make($faker->password()),
+            'remember_token' => null,
+            // role #1 is tampered in, only role #2 is allowed by the hook
+            'roles' => [1, 2],
+        ];
+
+        $entry = $this->crudPanel->create($inputData);
+
+        $this->assertCount(1, $entry->roles);
+        $this->assertEquals([2], $entry->roles->pluck('id')->all());
+    }
+
+    public function testCreateBelongsToKeepsValueInsideOptionsConstraint()
+    {
+        $this->crudPanel->setModel(Article::class);
+        $this->crudPanel->addFields($this->articleInputFieldsOneToMany);
+        // only user #1 is ever selectable in this field
+        $this->crudPanel->modifyField('user_id', [
+            'options' => function ($query) {
+                return $query->where('id', 1);
+            },
+        ]);
+
+        $faker = Factory::create();
+        $entry = $this->crudPanel->create([
+            'content' => $faker->text(),
+            'tags' => null,
+            // user #1 is allowed, so it is saved as-is
+            'user_id' => 1,
+        ]);
+
+        $this->assertEquals(1, $entry->user_id);
+    }
+
+    public function testCreateBelongsToRejectsValueOutsideOptionsConstraint()
+    {
+        $this->crudPanel->setModel(Article::class);
+        $this->crudPanel->addFields($this->articleInputFieldsOneToMany);
+        // only user #1 is ever selectable in this field
+        $this->crudPanel->modifyField('user_id', [
+            'options' => function ($query) {
+                return $query->where('id', 1);
+            },
+        ]);
+
+        $faker = Factory::create();
+
+        // user #2 was never selectable; the tampered value is rejected with a
+        // validation error (fail-closed) instead of being silently persisted or
+        // surfacing as an opaque database error.
+        $this->expectException(\Illuminate\Validation\ValidationException::class);
+
+        $this->crudPanel->create([
+            'content' => $faker->text(),
+            'tags' => null,
+            // user #2 is tampered in and outside the option scope
+            'user_id' => 2,
+        ]);
+    }
+
     public function testHasManyWithRelationScoped()
     {
         $this->crudPanel->setModel(User::class);

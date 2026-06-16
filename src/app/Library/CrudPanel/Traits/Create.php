@@ -2,11 +2,19 @@
 
 namespace Backpack\CRUD\app\Library\CrudPanel\Traits;
 
+use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
+use Illuminate\Database\Eloquent\Relations\Relation;
+use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Collection as SupportCollection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 trait Create
 {
@@ -136,6 +144,9 @@ trait Create
                     $values = is_string($values) ? (json_decode($values, true) ?? []) : $values;
                     $field = $relationDetails['crudFields'][0] ?? [];
 
+                    // keep only the keys that were actually selectable in the field
+                    $values = $this->getVerifiedPivotValues($relation->getRelated(), $field, $values, $relationMethod);
+
                     // if the values are multidimensional, we have additional pivot data.
                     if (is_array($values) && is_multidimensional_array($values)) {
                         // if the field allow duplicated pivots, we can't use sync or attach from laravel, we need to manually handle the pivot data.
@@ -210,7 +221,7 @@ trait Create
      * (C) save an entire related entry (eg. passport)
      * (D) delete the entire related entry (eg. passport)
      *
-     * @param  \Illuminate\Database\Eloquent\Relations\HasOne|\Illuminate\Database\Eloquent\Relations\MorphOne  $relation
+     * @param  HasOne|MorphOne  $relation
      * @param  string  $relationMethod  The name of the relationship method on the main Model.
      * @param  array  $relationDetails  Details about that relationship. For example:
      *                                  [
@@ -274,8 +285,11 @@ trait Create
         $relationForeignKey = $relation->getForeignKeyName();
         $relationLocalKey = $relation->getLocalKeyName();
 
+        // keep only the keys that were actually selectable in the field
+        $relationValues = $this->getVerifiedRelationKeys($modelInstance, $relationDetails['crudFields'][0] ?? [], $relationValues);
+
         if (empty($relationValues)) {
-            // the developer cleared the selection
+            // the developer cleared the selection (or every submitted key was rejected)
             // we gonna clear all related values by setting up the value to the fallback id, to null or delete.
             return $this->handleManyRelationItemRemoval($modelInstance, $relation, $relationDetails, $relationForeignKey);
         }
@@ -295,7 +309,7 @@ trait Create
         // if column is nullable we set it to null if developer didn't specify `force_delete => true`
         // if none of the above we delete the model from database
         $removedEntries = $modelInstance->whereNotIn($modelInstance->getKeyName(), $relationValues)
-                            ->where($relationForeignKey, $item->{$relationLocalKey});
+            ->where($relationForeignKey, $item->{$relationLocalKey});
 
         // if relation is MorphMany we also match by morph type.
         if ($relationDetails['relation_type'] === 'MorphMany') {
@@ -303,6 +317,253 @@ trait Create
         }
 
         return $this->handleManyRelationItemRemoval($modelInstance, $removedEntries, $relationDetails, $relationForeignKey);
+    }
+
+    /**
+     * Keep only the keys that were actually selectable in a "selectable" relation field
+     * (HasMany, MorphMany, BelongsToMany, MorphToMany), by replaying the field's option
+     * query on top of a fresh related-model query.
+     *
+     * Fields without an option constraint are returned unchanged.
+     *
+     * @param  Model  $modelInstance  The related model.
+     * @param  array  $field  The crud field that defines the relation's selectable options.
+     * @param  mixed  $relationValues  The keys submitted for this relation.
+     * @return mixed The submitted keys, filtered down to the allowed ones.
+     */
+    private function getVerifiedRelationKeys($modelInstance, array $field, $relationValues)
+    {
+        if (empty($relationValues)) {
+            return $relationValues;
+        }
+
+        $allowedKeys = $this->getAllowedRelationKeys($modelInstance, $field);
+
+        // no option constraint on the field: keep the submitted values untouched
+        if ($allowedKeys === null) {
+            return $relationValues;
+        }
+
+        $submittedKeys = array_values(array_filter(
+            (array) $relationValues,
+            fn ($value) => $value !== null && $value !== ''
+        ));
+
+        if (empty($submittedKeys)) {
+            return [];
+        }
+
+        // keep the submitted order, but only the keys that were actually selectable
+        return array_values(array_filter(
+            $submittedKeys,
+            fn ($key) => in_array((string) $key, $allowedKeys, true)
+        ));
+    }
+
+    /**
+     * Verify the single key submitted for a BelongsTo "selectable" field against the keys
+     * that were selectable in the field. An out-of-scope key is rejected with a validation
+     * error so the admin gets a clear 422 on the field instead of a database error.
+     *
+     * @param  Model  $modelInstance  The related (parent) model.
+     * @param  array  $field  The crud field that defines the relation's selectable options.
+     * @param  mixed  $value  The key submitted for this relation.
+     * @return mixed The submitted key, when it is allowed (or the field is unconstrained).
+     *
+     * @throws \Illuminate\Validation\ValidationException When the submitted key is out of scope.
+     */
+    private function getVerifiedBelongsToValue($modelInstance, array $field, $value)
+    {
+        if ($value === null || $value === '') {
+            return $value;
+        }
+
+        $allowedKeys = $this->getAllowedRelationKeys($modelInstance, $field);
+
+        if ($allowedKeys === null) {
+            return $value;
+        }
+
+        if (in_array((string) $value, $allowedKeys, true)) {
+            return $value;
+        }
+
+        $attribute = $field['label'] ?? $field['name'];
+
+        throw ValidationException::withMessages([
+            $field['name'] => "The selected {$attribute} is invalid.",
+        ]);
+    }
+
+    /**
+     * Verify the foreign keys submitted for the BelongsTo "selectable" fields of a save.
+     *
+     * BelongsTo fields store their foreign key directly on the entry, so they never reach
+     * createRelationsForItem(); we verify them here, on the direct input, after the relation
+     * names have been resolved to foreign keys. Only fields with an option constraint are
+     * checked. An out-of-scope value aborts the save (see getVerifiedBelongsToValue).
+     *
+     * @param  array  $input  The direct input, with BelongsTo names already resolved to foreign keys.
+     * @param  array  $fields  The fields in scope (empty means the main entity).
+     * @return array
+     *
+     * @throws \Illuminate\Validation\ValidationException When a submitted foreign key is out of scope.
+     */
+    private function getVerifiedBelongsToInputs($input, $fields = [])
+    {
+        $belongsToFields = empty($fields)
+            ? $this->getFieldsWithRelationType('BelongsTo')
+            : array_filter($fields, fn ($field) => ($field['relation_type'] ?? null) === 'BelongsTo');
+
+        foreach ($belongsToFields as $field) {
+            // only fields that constrain their selectable options need verifying
+            if ($this->getRelationOptionsConstraint($field) === null) {
+                continue;
+            }
+
+            $foreignKey = $this->getOverwrittenNameForBelongsTo($field);
+
+            if (! Arr::has($input, $foreignKey)) {
+                continue;
+            }
+
+            $relatedModel = $this->getRelationInstance($field)->getRelated();
+            $verifiedValue = $this->getVerifiedBelongsToValue($relatedModel, $field, Arr::get($input, $foreignKey));
+
+            Arr::set($input, $foreignKey, $verifiedValue);
+        }
+
+        return $input;
+    }
+
+    /**
+     * Keep only the selectable values for a BelongsToMany/MorphToMany field, preserving any
+     * pivot data. Handles both shapes Backpack produces: a plain list of related keys, or a
+     * list of rows carrying pivot data (each keyed by the relation method). Unconstrained
+     * fields are returned untouched.
+     *
+     * @param  Model  $modelInstance  The related model.
+     * @param  array  $field  The crud field that defines the relation's selectable options.
+     * @param  mixed  $values  The submitted relation values.
+     * @param  string  $relationMethod  The relation method name (holds the related id in pivot rows).
+     * @return mixed
+     */
+    private function getVerifiedPivotValues($modelInstance, array $field, $values, $relationMethod)
+    {
+        if (! is_array($values) || empty($values)) {
+            return $values;
+        }
+
+        $allowedKeys = $this->getAllowedRelationKeys($modelInstance, $field);
+
+        if ($allowedKeys === null) {
+            return $values;
+        }
+
+        // list of rows carrying pivot data: filter by each row's related key
+        if (is_multidimensional_array($values)) {
+            return array_values(array_filter($values, function ($row) use ($allowedKeys, $relationMethod) {
+                return isset($row[$relationMethod])
+                    && in_array((string) $row[$relationMethod], $allowedKeys, true);
+            }));
+        }
+
+        // plain list of related keys
+        return array_values(array_filter($values, function ($key) use ($allowedKeys) {
+            return $key !== null && $key !== '' && in_array((string) $key, $allowedKeys, true);
+        }));
+    }
+
+    /**
+     * Resolve the list of related-model keys selectable for a field, or null when the field
+     * defines no option constraint (every key is allowed, no extra query needed).
+     *
+     * @param  Model  $modelInstance  The related model.
+     * @param  array  $field  The crud field that defines the relation's selectable options.
+     * @return array<string>|null
+     */
+    private function getAllowedRelationKeys($modelInstance, array $field)
+    {
+        $optionsConstraint = $this->getRelationOptionsConstraint($field);
+
+        if ($optionsConstraint === null) {
+            return null;
+        }
+
+        return array_map(
+            'strval',
+            $this->getAllowedKeysFromOptionsResult($optionsConstraint($modelInstance->newQuery()), $modelInstance)
+        );
+    }
+
+    /**
+     * Get the closure that constrains the selectable options of a relation field, if any.
+     *
+     * `options` is the closure Backpack already uses to build the field's `<select>` options.
+     * `relation_options_query` is an explicit hook a field/operation can set to declare the
+     * allowed options when they are not rendered on the page (eg. ajax/fetch fields).
+     *
+     * @return callable|null
+     */
+    private function getRelationOptionsConstraint(array $field)
+    {
+        foreach (['relation_options_query', 'options'] as $attribute) {
+            if (isset($field[$attribute]) && is_callable($field[$attribute])) {
+                return $field[$attribute];
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Normalize the result of an option constraint closure to a plain list of allowed keys.
+     *
+     * The closure may return a query builder, a relation, an Eloquent/Support collection or
+     * a plain array (a list of keys/models or an associative `[key => label]` options array).
+     *
+     * @param  mixed  $result
+     * @param  Model  $modelInstance
+     */
+    private function getAllowedKeysFromOptionsResult($result, $modelInstance): array
+    {
+        $keyName = $modelInstance->getKeyName();
+
+        if ($result instanceof EloquentBuilder
+            || $result instanceof QueryBuilder
+            || $result instanceof Relation) {
+            return $result->pluck($keyName)->all();
+        }
+
+        if ($result instanceof EloquentCollection) {
+            return $result->modelKeys();
+        }
+
+        if ($result instanceof SupportCollection) {
+            $result = $result->all();
+        }
+
+        if (! is_array($result)) {
+            return [];
+        }
+
+        // associative options array: [key => label]
+        if (! array_is_list($result)) {
+            return array_keys($result);
+        }
+
+        // list of keys or models
+        return array_map(function ($option) use ($keyName) {
+            if ($option instanceof Model) {
+                return $option->getKey();
+            }
+
+            if (is_array($option) && array_key_exists($keyName, $option)) {
+                return $option[$keyName];
+            }
+
+            return $option;
+        }, $result);
     }
 
     private function handleManyRelationItemRemoval($modelInstance, $removedEntries, $relationDetails, $relationForeignKey)
