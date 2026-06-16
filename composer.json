@@ -84,5 +84,14 @@
         "backpack/generators": "Required on localhost to easily generate CRUDs, models, controllers etc.",
         "backpack/filemanager": "Required to use the browse and browse_multiple fields.",
         "backpack/revise-operation": "Optional operation to remember all entry changes, undo and redo them (aka audit trait)."
+    },
+    "config": {
+        "audit": {
+            "ignore": {
+                "PKSA-mdq4-51ck-6kdq": "Laravel v10/v11 security advisory - tests still run to support users on older Laravel versions",
+                "PKSA-8qx3-n5y5-vvnd": "Laravel v10/v11 security advisory - tests still run to support users on older Laravel versions",
+                "PKSA-w7xr-vk7n-rstm": "Laravel v10/v11 security advisory - tests still run to support users on older Laravel versions"
+            }
+        }
     }
 }
