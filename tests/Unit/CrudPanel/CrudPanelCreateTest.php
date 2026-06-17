@@ -1699,10 +1699,37 @@ class CrudPanelCreateTest extends \Backpack\CRUD\Tests\config\CrudPanel\BaseDBCr
         ]);
     }
 
+    /**
+     * Put a controller exposing a fetch query behind the current request, the way the
+     * CrudController is the route's controller during a real save. v6 has no
+     * setController(), so the guard reads the controller from request()->route().
+     */
+    private function bindFetchControllerToRequest(): void
+    {
+        $controller = new FetchSourceCrudController();
+
+        $request = \Illuminate\Http\Request::create('/admin/fetch-source', 'POST');
+        $request->setRouteResolver(function () use ($controller) {
+            return new class($controller)
+            {
+                public function __construct(private $controller)
+                {
+                }
+
+                public function getController()
+                {
+                    return $this->controller;
+                }
+            };
+        });
+
+        $this->crudPanel->setRequest($request);
+    }
+
     public function testHasManySelectableRelationshipUsesRelationOptionsQuerySource()
     {
         $this->crudPanel->setModel(User::class);
-        $this->crudPanel->setController(FetchSourceCrudController::class);
+        $this->bindFetchControllerToRequest();
         $this->crudPanel->addFields($this->userInputFieldsNoRelationships, 'both');
         $this->crudPanel->addField([
             'name' => 'planets',
@@ -1732,7 +1759,7 @@ class CrudPanelCreateTest extends \Backpack\CRUD\Tests\config\CrudPanel\BaseDBCr
     public function testRelationOptionsQuerySourceAcceptsShortEntityName()
     {
         $this->crudPanel->setModel(User::class);
-        $this->crudPanel->setController(FetchSourceCrudController::class);
+        $this->bindFetchControllerToRequest();
         $this->crudPanel->addFields($this->userInputFieldsNoRelationships, 'both');
         $this->crudPanel->addField([
             'name' => 'planets',
@@ -1760,7 +1787,7 @@ class CrudPanelCreateTest extends \Backpack\CRUD\Tests\config\CrudPanel\BaseDBCr
     public function testManyToManySelectableRelationshipUsesRelationOptionsQuerySource()
     {
         $this->crudPanel->setModel(User::class);
-        $this->crudPanel->setController(FetchSourceCrudController::class);
+        $this->bindFetchControllerToRequest();
         $this->crudPanel->addFields($this->userInputFieldsNoRelationships, 'both');
         $this->crudPanel->addField([
             'label' => 'Roles',
@@ -1791,7 +1818,7 @@ class CrudPanelCreateTest extends \Backpack\CRUD\Tests\config\CrudPanel\BaseDBCr
     public function testCreateBelongsToKeepsValueInsideRelationOptionsQuerySource()
     {
         $this->crudPanel->setModel(Article::class);
-        $this->crudPanel->setController(FetchSourceCrudController::class);
+        $this->bindFetchControllerToRequest();
         $this->crudPanel->addFields($this->articleInputFieldsOneToMany);
         $this->crudPanel->modifyField('user_id', [
             'relation_options_query_source' => 'fetchModeratorUser',
@@ -1811,7 +1838,7 @@ class CrudPanelCreateTest extends \Backpack\CRUD\Tests\config\CrudPanel\BaseDBCr
     public function testCreateBelongsToRejectsValueOutsideRelationOptionsQuerySource()
     {
         $this->crudPanel->setModel(Article::class);
-        $this->crudPanel->setController(FetchSourceCrudController::class);
+        $this->bindFetchControllerToRequest();
         $this->crudPanel->addFields($this->articleInputFieldsOneToMany);
         $this->crudPanel->modifyField('user_id', [
             'relation_options_query_source' => 'fetchModeratorUser',
@@ -1832,7 +1859,7 @@ class CrudPanelCreateTest extends \Backpack\CRUD\Tests\config\CrudPanel\BaseDBCr
     public function testRelationOptionsQuerySourceWithUnknownFetchMethodLeavesFieldUnconstrained()
     {
         $this->crudPanel->setModel(User::class);
-        $this->crudPanel->setController(FetchSourceCrudController::class);
+        $this->bindFetchControllerToRequest();
         $this->crudPanel->addFields($this->userInputFieldsNoRelationships, 'both');
         $this->crudPanel->addField([
             'name' => 'planets',

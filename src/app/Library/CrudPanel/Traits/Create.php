@@ -525,13 +525,15 @@ trait Create
      */
     private function getRelationOptionsConstraintFromFetchSource($source)
     {
-        $controller = $this->controller ?? null;
-
-        if (! is_string($source) || ! $controller || ! method_exists($controller, 'getRelationFetchQuery')) {
+        if (! is_string($source)) {
             return null;
         }
 
-        $controller = is_string($controller) ? app($controller) : $controller;
+        $controller = $this->getControllerInstanceForFetchSource();
+
+        if (! $controller || ! method_exists($controller, 'getRelationFetchQuery')) {
+            return null;
+        }
 
         $fetchMethod = Str::startsWith($source, 'fetch')
             ? $source
@@ -540,6 +542,22 @@ trait Create
         $closure = $controller->getRelationFetchQuery($fetchMethod);
 
         return is_callable($closure) ? $closure : null;
+    }
+
+    /**
+     * Get the controller handling the current request, if it exposes a fetch query.
+     *
+     * The save process runs inside the CrudController action, so the route's controller
+     * is the instance whose `fetchXxx()` methods (added by the PRO FetchOperation) define
+     * the allowed options. Returns null when there is no route/controller in context.
+     *
+     * @return object|null
+     */
+    private function getControllerInstanceForFetchSource()
+    {
+        $route = $this->getRequest()?->route();
+
+        return $route && method_exists($route, 'getController') ? $route->getController() : null;
     }
 
     /**
