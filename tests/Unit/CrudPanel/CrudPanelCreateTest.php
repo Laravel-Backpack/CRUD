@@ -2,6 +2,7 @@
 
 namespace Backpack\CRUD\Tests\Unit\CrudPanel;
 
+use Backpack\CRUD\Tests\config\Http\Controllers\FetchSourceCrudController;
 use Backpack\CRUD\Tests\config\Models\Article;
 use Backpack\CRUD\Tests\config\Models\Bang;
 use Backpack\CRUD\Tests\config\Models\Comet;
@@ -1696,6 +1697,164 @@ class CrudPanelCreateTest extends \Backpack\CRUD\Tests\config\CrudPanel\BaseDBCr
             // user #2 is tampered in and outside the option scope
             'user_id' => 2,
         ]);
+    }
+
+    public function testHasManySelectableRelationshipUsesRelationOptionsQuerySource()
+    {
+        $this->crudPanel->setModel(User::class);
+        $this->crudPanel->setController(FetchSourceCrudController::class);
+        $this->crudPanel->addFields($this->userInputFieldsNoRelationships, 'both');
+        $this->crudPanel->addField([
+            'name' => 'planets',
+            'force_delete' => false,
+            'fallback_id' => false,
+            // the field points to the fetch method whose query defines its allowed options
+            'relation_options_query_source' => 'fetchPlanet',
+        ], 'both');
+
+        $faker = Factory::create();
+        $inputData = [
+            'name' => $faker->name,
+            'email' => $faker->safeEmail,
+            'password' => Hash::make($faker->password()),
+            'remember_token' => null,
+            // planet #2 is tampered in, only planet #1 is allowed by the fetch query
+            'planets' => [1, 2],
+        ];
+
+        $entry = $this->crudPanel->create($inputData);
+
+        $this->assertCount(1, $entry->planets);
+        $this->assertEquals([1], $entry->planets->pluck('id')->all());
+        $this->assertNull(Planet::find(2)->user_id);
+    }
+
+    public function testRelationOptionsQuerySourceAcceptsShortEntityName()
+    {
+        $this->crudPanel->setModel(User::class);
+        $this->crudPanel->setController(FetchSourceCrudController::class);
+        $this->crudPanel->addFields($this->userInputFieldsNoRelationships, 'both');
+        $this->crudPanel->addField([
+            'name' => 'planets',
+            'force_delete' => false,
+            'fallback_id' => false,
+            // a short name is normalized to its "fetchXxx" method
+            'relation_options_query_source' => 'planet',
+        ], 'both');
+
+        $faker = Factory::create();
+        $inputData = [
+            'name' => $faker->name,
+            'email' => $faker->safeEmail,
+            'password' => Hash::make($faker->password()),
+            'remember_token' => null,
+            'planets' => [1, 2],
+        ];
+
+        $entry = $this->crudPanel->create($inputData);
+
+        $this->assertCount(1, $entry->planets);
+        $this->assertEquals([1], $entry->planets->pluck('id')->all());
+    }
+
+    public function testManyToManySelectableRelationshipUsesRelationOptionsQuerySource()
+    {
+        $this->crudPanel->setModel(User::class);
+        $this->crudPanel->setController(FetchSourceCrudController::class);
+        $this->crudPanel->addFields($this->userInputFieldsNoRelationships, 'both');
+        $this->crudPanel->addField([
+            'label' => 'Roles',
+            'type' => 'select_multiple',
+            'name' => 'roles',
+            'entity' => 'roles',
+            'attribute' => 'name',
+            'pivot' => true,
+            'relation_options_query_source' => 'fetchRole',
+        ], 'both');
+
+        $faker = Factory::create();
+        $inputData = [
+            'name' => $faker->name,
+            'email' => $faker->safeEmail,
+            'password' => Hash::make($faker->password()),
+            'remember_token' => null,
+            // role #2 is tampered in, only role #1 is allowed by the fetch query
+            'roles' => [1, 2],
+        ];
+
+        $entry = $this->crudPanel->create($inputData);
+
+        $this->assertCount(1, $entry->roles);
+        $this->assertEquals([1], $entry->roles->pluck('id')->all());
+    }
+
+    public function testCreateBelongsToKeepsValueInsideRelationOptionsQuerySource()
+    {
+        $this->crudPanel->setModel(Article::class);
+        $this->crudPanel->setController(FetchSourceCrudController::class);
+        $this->crudPanel->addFields($this->articleInputFieldsOneToMany);
+        $this->crudPanel->modifyField('user_id', [
+            'relation_options_query_source' => 'fetchModeratorUser',
+        ]);
+
+        $faker = Factory::create();
+        $entry = $this->crudPanel->create([
+            'content' => $faker->text(),
+            'tags' => null,
+            // user #1 is allowed, so it is saved as-is
+            'user_id' => 1,
+        ]);
+
+        $this->assertEquals(1, $entry->user_id);
+    }
+
+    public function testCreateBelongsToRejectsValueOutsideRelationOptionsQuerySource()
+    {
+        $this->crudPanel->setModel(Article::class);
+        $this->crudPanel->setController(FetchSourceCrudController::class);
+        $this->crudPanel->addFields($this->articleInputFieldsOneToMany);
+        $this->crudPanel->modifyField('user_id', [
+            'relation_options_query_source' => 'fetchModeratorUser',
+        ]);
+
+        $faker = Factory::create();
+
+        // user #2 was never selectable through the fetch query; rejected (fail-closed)
+        $this->expectException(\Illuminate\Validation\ValidationException::class);
+
+        $this->crudPanel->create([
+            'content' => $faker->text(),
+            'tags' => null,
+            'user_id' => 2,
+        ]);
+    }
+
+    public function testRelationOptionsQuerySourceWithUnknownFetchMethodLeavesFieldUnconstrained()
+    {
+        $this->crudPanel->setModel(User::class);
+        $this->crudPanel->setController(FetchSourceCrudController::class);
+        $this->crudPanel->addFields($this->userInputFieldsNoRelationships, 'both');
+        $this->crudPanel->addField([
+            'name' => 'planets',
+            'force_delete' => false,
+            'fallback_id' => false,
+            // the controller has no such fetch method, so the field stays unconstrained
+            'relation_options_query_source' => 'fetchMissing',
+        ], 'both');
+
+        $faker = Factory::create();
+        $inputData = [
+            'name' => $faker->name,
+            'email' => $faker->safeEmail,
+            'password' => Hash::make($faker->password()),
+            'remember_token' => null,
+            'planets' => [1, 2],
+        ];
+
+        $entry = $this->crudPanel->create($inputData);
+
+        $this->assertCount(2, $entry->planets);
+        $this->assertEquals([1, 2], $entry->planets->pluck('id')->sort()->values()->all());
     }
 
     public function testHasManyWithRelationScoped()
