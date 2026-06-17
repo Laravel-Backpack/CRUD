@@ -14,6 +14,7 @@ use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection as SupportCollection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 trait Create
@@ -499,10 +500,6 @@ trait Create
     /**
      * Get the closure that constrains the selectable options of a relation field, if any.
      *
-     * `options` is the closure Backpack already uses to build the field's `<select>` options.
-     * `relation_options_query` is an explicit hook a field/operation can set to declare the
-     * allowed options when they are not rendered on the page (eg. ajax/fetch fields).
-     *
      * @return callable|null
      */
     private function getRelationOptionsConstraint(array $field)
@@ -513,7 +510,36 @@ trait Create
             }
         }
 
+        if (isset($field['relation_options_query_source'])) {
+            return $this->getRelationOptionsConstraintFromFetchSource($field['relation_options_query_source']);
+        }
+
         return null;
+    }
+
+    /**
+     * Resolve the options-constraining closure from a FetchOperation method name.
+     *
+     * @param  string  $source  The fetch method name, eg. "fetchCategory" (or the entity "category").
+     * @return callable|null
+     */
+    private function getRelationOptionsConstraintFromFetchSource($source)
+    {
+        $controller = $this->controller ?? null;
+
+        if (! is_string($source) || ! $controller || ! method_exists($controller, 'getRelationFetchQuery')) {
+            return null;
+        }
+
+        $controller = is_string($controller) ? app($controller) : $controller;
+
+        $fetchMethod = Str::startsWith($source, 'fetch')
+            ? $source
+            : 'fetch'.Str::studly(Str::afterLast($source, '.'));
+
+        $closure = $controller->getRelationFetchQuery($fetchMethod);
+
+        return is_callable($closure) ? $closure : null;
     }
 
     /**

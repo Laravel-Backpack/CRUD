@@ -67,9 +67,6 @@
         "test-coverage": "XDEBUG_MODE=coverage vendor/bin/phpunit --coverage-text"
     },
     "extra": {
-        "branch-alias": {
-            "dev-master": "4.0-dev"
-        },
         "laravel": {
             "providers": [
                 "Backpack\\CRUD\\BackpackServiceProvider"
