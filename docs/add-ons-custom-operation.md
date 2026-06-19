@@ -1,15 +1,9 @@
 # Create an Add-On for a Custom Operation
 
------
-
 This tutorial will help you package a custom operation into a Composer package, so that you (or other people) can use it in multiple Laravel projects. If you haven't already, please [create your custom operation](/docs/{{version}}/crud-operations#creating-a-custom-operation) first, and make sure it's working well, before you move it to a package. It's just easier that way.
 
-
-<a name="create-the-package"></a>
 ## Part A. Create The Package
 
-
-<a name="generate-package-folder"></a>
 ### Step 1. Generate the package folder
 
 Install this excellent package that will create the boilerplate code for you:
@@ -34,7 +28,6 @@ This will create a ```/packages/MyName/SomeCustomOperation``` folder in your roo
 
 It will also modify your project's ```composer.json``` file to point to this new folder.
 
-<a name="define-dependencies"></a>
 ### Step 2. Define dependencies
 
 Inside your ```/packages/MyName/SomeCustomOperation/composer.json``` file, make sure you require the version of Backpack your package will support. If unsure, copy-paste the requirement from your project's ```composer.json``` file. 
@@ -54,7 +47,6 @@ Notice that this ```composer.json``` will also:
 - define your package namespace (in ```autoload/psr-4```);
 - set up Laravel package autoloading (in ```extra/laravel/providers```);
 
-<a name="instruct-laravel-to-use-your-package"></a>
 ### Step 3. Instruct your Laravel Project to use your package
 
 ```sh
@@ -68,8 +60,6 @@ Congratulations! Now you have a basic package, installed in ```packages/MyName/S
 
 > If you want to test that your package is being loaded, you can do a ```dd('got here')``` inside your package's ```ServiceProvider::boot``` method. If you refresh the page, you should see that ```dd()``` statement executed.
 
-
-<a name="move-the-files-needed-for-the-operation"></a>
 ### Step 4. Move the files needed for the operation
 
 You can choose whatever folder structure you want for your package. But within Backpack add-ons, we follow the convention that the package folder should look as much as possible like a Laravel project folder. That way, when someone looks at the addon's source code, they instantly understand where everything is.
@@ -121,23 +111,17 @@ $this->loadTranslationsFrom(__DIR__.'/../resources/lang', 'backpack');
 - create a PHP file with a shorter representative name inside that folder, for example ```somecustom.php```, with the translation lines there;
 - you'll be able to use ```trans('somecustomoperation::somecustom.line_key')``` throughout your operation's controller/views;
 
-
-<a name="delete-files-you-dont-need"></a>
 ### Step 5. Delete the package files you don't need
 
 - in most cases you won't need a Facade for the operation, so you can delete the ```src/Facades``` folder; if you do that, also remove the alias to that Facade, at the bottom of your package's ```composer.json``` file;
 - in most cases you won't need the ```register()```, ```provides()``` methods in your ServiceProvider; it's best to remove them;
 
-
-<a name="customize-markdown-files"></a>
 ### Step 6. Customize Markdown Files
 
 Inside your package folder, go through all markdown files and make them your own. At the very least, go through:
 - LICENSE.md - use the [MIT license](https://opensource.org/licenses/MIT) if unsure;
 - README.md - write a clear description and instructions for how to use your operation; if you include clear documentation and screenshots, more people will use your package, guaranteed;
 
-
-<a name="make-your-first-git-commit"></a>
 ### Step 7. Make your first git commit
 
 Inside your package folder, run:
@@ -148,12 +132,8 @@ git add .
 git commit -m "first commit"
 ```
 
-
-<a name="put-the-package-online"></a>
 ## Part B. Put The Package Online
 
-
-<a name="put-it-on-github"></a>
 ### Put it on GitHub
 
 First, [create a new GitHub Repository](https://github.com/new) for it. Remember to use the same name you defined in your package's ```composer.json```. If in doubt, double-check.
@@ -169,7 +149,6 @@ git push --tags
 
 The tags are the way you will version your package, so it's important you do it.
 
-<a name="put-it-on-packagist"></a>
 ### Put it on Packagist
 
 In order for people to be able to install your package using composer, your package needs to be registered with Packagist, Composer's free package registry.
@@ -180,7 +159,6 @@ On [Packagist.org](https://packagist.org/), submit a new package. Enter your pac
 
 Note: On the package page, you might get a notice like this: _This package is not auto-updated. Please set up the [GitHub Service Hook](https://packagist.org/profile/) for Packagist so that it gets updated whenever you push!_ Let's take care of that. Click that link, get your API token and go to your package's GitHub page, in Settings / Webhooks & Services / Add a new service. Search for Packagist. Enter your username and the token and hit Submit. Your error in Packagist should disappear in 5–10 minutes.
 
-<a name="feedback-and-promotion"></a>
 ### Feedback and Promotion
 
 Congratulations on your new Backpack addon! 

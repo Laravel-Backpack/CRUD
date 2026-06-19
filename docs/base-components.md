@@ -1,24 +1,17 @@
 # Blade Components
 
----
-
-<a name="about"></a>
 ## About
 
 [Blade components](https://laravel.com/docs/blade#components) are a quick way for you to output a bit of HTML... that can then be customized by each Backpack theme. It's a clean way of echoing theme-agnostic components, because for each Component that Backpack provides, the theme itself can customize and make it pretty in their own way.
 
-<a name="how-to-use-components"></a>
 ### How to Use
 
 Anywhere in your blade files, you can use the Blade components we have. But most likely you'll be using them in your `resources/views/vendor/backpack/ui/inc/menu_items.blade.php`, because all our components currently are concerned with outputting menu items in a theme-agnostic way.
 
-
-<a name="mandatory-attributes"></a>
 ### Mandatory Attributes
 
 There are no mandatory attributes.
 
-<a name="optional-attributes"></a>
 ### Optional Attributes
 
 All components also allow you to specify custom attributes. When you specify a custom attribute, that attribute will be placed on the most likely element of that component. In most cases, that is the anchor element. For example:
@@ -29,11 +22,8 @@ All components also allow you to specify custom attributes. When you specify a c
 
 Even though the 'target' attribute doesn't _technically_ exist in the component, that attribute will be placed on that component's `a` element.
 
-
-<a name="ui-components"></a>
 ## UI Components
 
-<a name="menu-item"></a>
 ### Menu Item
 
 Shows a menu item, with the title and link you specify:
@@ -44,9 +34,6 @@ Shows a menu item, with the title and link you specify:
 
 Note that you can further customize this using custom attributes. If you define a `target` on it, that will be passed down to the `a` element.
 
-<hr>
-
-<a name="menu-separator"></a>
 ### Menu Separator
 
 Shows a menu separator, with the title you specify:
@@ -57,10 +44,6 @@ Shows a menu separator, with the title you specify:
 
 Note that you can further customize this using custom attributes. If you define a `class` on it, that will be passed down to the `li` element.
 
-<hr>
-
-
-<a name="menu-dropdown-and-menu-dropdown-item"></a>
 ### Menu Dropdown & Menu Dropdown Item
 
 To show a dropdown menu, with elements, you can use the `menu-dropdown` and `menu-dropdown-item` components:
@@ -77,20 +60,13 @@ Notes:
 - on `menu-dropdown` you can define `nested="true"` to flag that dropdown as nested (aka. having a parent); so you can have dropdown in dropdown in dropdown;
 - on both components, you can also define custom attributes; eg. if you define a `target` on one, that will be passed down to the `a` element;
 
-<hr>
-
-<a name="data-components"></a>
 ## Data Components
 
 These are the components that Backpack uses inside the default CRUD operations. Starting Backpack v7, they are exposed as components, so that you can also use them _outside_ the CrudControllers, or in your custom operations.
 
-
-<a name="dataform"></a>
 ### Dataform
 
-![Backpack v7 Dataform component](https://backpackforlaravel.com/uploads/v7/dataform_component.jpg)
-
-This component helps you show a form _anywhere you want_, so the admin can easily create or edit an entries for an Eloquent model. The dataform component is a extension of a CrudController - so a CrudController for that entity needs to be already set up, and passed to this component as a parameter:
+This component helps you show a form _anywhere you want_, so the admin can create or edit an entries for an Eloquent model. The dataform component is a extension of a CrudController - so a CrudController for that entity needs to be already set up, and passed to this component as a parameter:
 
 ```html
 <x-bp-dataform controller="\App\Http\Controllers\Admin\InvoiceCrudController" />
@@ -117,7 +93,6 @@ This component helps you show a form _anywhere you want_, so the admin can easil
  />
 ```
 
-<a name="dataform-custom-save-actions"></a>
 #### Custom save actions
 
 The Dataform component can swap out the default `Save and back / edit / new` buttons with your own logic. Pass an array to the `:save-actions` attribute containing save action classes (or definitions) that implement Backpack's `SaveActionInterface`:
@@ -144,16 +119,11 @@ Each entry in the array can be:
 
 Backpack will replace the default actions for that form, honour the order defined by each class, and fallback to the first action if no default applies.
 
-<hr>
-
-<a name="dataform-modal"></a>
 ### Dataform Modal
 
 > IMPORTANT: This is a **PAID** package. You can get access to it by purchasing [our Everything bundle](https://backpackforlaravel.com/pricing) or by [buying separate access to dataform-modal here](https://backpackforlaravel.com/products/dataform-modal).
 
-![Backpack v7 Dataform Modal component](https://backpackforlaravel.com/uploads/v7/dataform_component.jpg)
-
-This component helps you show a form _anywhere you want_ inside a modal, so the admin can easily create or edit an entry for an Eloquent model without having to refresh the whole page.
+This component helps you show a form _anywhere you want_ inside a modal, so the admin can create or edit an entry for an Eloquent model without having to refresh the whole page.
 
 To use this component you are required to add `CreateInModalOperation` and/or `UpdateInModalOperation` in your CrudController. The dataform modal component is a extension of a CrudController - so a CrudController for that entity needs to be already set up, and passed to this component as a parameter:
 
@@ -187,16 +157,12 @@ use \Backpack\DataformModal\Http\Controllers\Operations\CreateInModalOperation;
     }"
  />
 ```
-<hr>
 
 > **NOTE**: The date_picker (jquery version) does not properly work in this context. Please use any alternative. 
 
-<a name="datatable"></a>
 ### Datatable
 
-![Backpack v7 Datatable component](https://backpackforlaravel.com/uploads/v7/datatable_component.jpg)
-
-Useful if you want to show the entries in the database, for an Eloquent model. This component shows a datatable _anywhere you want_, so the admin to easily list, filter, search and perform other operations on entries of an Eloquent model. The datatable component is a extension of a CrudController - so a CrudController for that entity needs to be already set up, and passed to this component as a parameter:
+Useful if you want to show the entries in the database, for an Eloquent model. This component shows a datatable _anywhere you want_, so the admin to list, filter, search and perform other operations on entries of an Eloquent model. The datatable component is a extension of a CrudController - so a CrudController for that entity needs to be already set up, and passed to this component as a parameter:
 
 ```html
 <x-bp-datatable controller="\App\Http\Controllers\Admin\InvoiceCrudController" />
@@ -224,12 +190,7 @@ Useful if you want to show the entries in the database, for an Eloquent model. T
  />
 ```
 
-<hr>
-
-<a name="datagrid"></a>
 ### Datagrid
-
-![Backpack v7 Datagrid component](https://backpackforlaravel.com/uploads/v7/datagrid_component.jpg)
 
 Useful if you want to show the attributes of an entry in the database (the attributes of an Eloquent model). This components shows a grid view with all attributes that are configured using CRUD columns.
 
@@ -238,7 +199,6 @@ There are two ways to use the Datagrid component:
 #### Datagrid for an existing CrudController
 
 Your datagrid will pick up the configuration in your CrudController automatically.
-
 
 ```html
 <x-bp-datagrid
@@ -283,13 +243,7 @@ If you want to show a datagrid component for a entity that does _not_ have a Cru
     ]" />
 ```
 
-
-<hr>
-
-<a name="datalist"></a>
 ### Datalist
-
-![Backpack v7 Datalist component](https://backpackforlaravel.com/uploads/v7/datalist_component.jpg)
 
 Useful if you want to show the attributes of an entry in the database (the attributes of an Eloquent model). This components shows a table with all attributes that are configured using CRUD columns.
 
@@ -298,7 +252,6 @@ There are two ways to use the Datalist component:
 #### Datalist for an existing CrudController
 
 Your datalist will pick up the configuration in your CrudController automatically.
-
 
 ```html
 <x-bp-datalist
@@ -343,10 +296,6 @@ If you want to show a datalist component for a entity that does _not_ have a Cru
     ]" />
 ```
 
-
-<hr>
-
-<a name="syntaxes-for-using-components"></a>
 ## Syntaxes for Using Components
 
 All components that Backpack provides are available to use both using the "full namespace" syntax:
@@ -363,15 +312,12 @@ and using the slightly shorter "alias" syntax:
 
 You can use whichever one you prefer. But please note that if you need to pass the components to a dynamic Laravel Blade component, only the "alias" syntax will work (eg. you will pass `:component='bp-datagrid'`). This is a limitation from Laravel, not Backpack.
 
-
-<a name="overwriting-default-components"></a>
 ## Overriding Default Components
 
 You can override a component by placing a file with the same name in your ```resources\views\vendor\backpack\ui\components``` directory. When a file is there, Backpack will pick that one up, instead of the one in the package.
 
 >**Avoid doing this.** When you're overwriting a component, you're forfeiting any future updates for that component. We can't push updates to a file that you're no longer using.
 
-<a name="creating-a-custom-component"></a>
 ## Creating a Custom Component
 
 We do not support creating custom components within the `backpack` namespace. If you want to create a custom component, please create one in the `app` namespace. The [Laravel docs on Blade Components](https://laravel.com/docs/blade#components) will teach you everything you need to know.

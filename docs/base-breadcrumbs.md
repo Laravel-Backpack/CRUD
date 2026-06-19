@@ -1,15 +1,11 @@
 # Breadcrumbs
 
----
-
-<a name="about"></a>
 ## About
 
 Breadcrumbs show a path to the current page in the top-right corner of the screen, and can be a useful part of the UI for deeply nested admin panels.
 
 Breadcrumbs are loaded in the default layout _before_ the ```header``` section.
 
-<a name="enable-disable-breadcrumbs"></a>
 ## Enable / Disable Breadcrumbs
 
 You can hide or show breadcrumbs on ALL of your admin panel pages by changing a boolean variable in your ```config/backpack/ui.php``` to change it for any active Backpack theme, or in that theme's config file:
@@ -19,7 +15,6 @@ You can hide or show breadcrumbs on ALL of your admin panel pages by changing a 
     'breadcrumbs' => true,
 ```
 
-<a name="how-breadcrumbs-work"></a>
 ## How Breadcrumbs Work
 
 The ```inc.breadcrumbs``` view will show all breadcrumbs from the ```$breadcrumbs``` variable, if it's present on the page. The ```$breadcrumbs``` variable should be a simple associative array ```[ $label1 => $link1, $label2 => $link2 ]```. Examples:
@@ -43,7 +38,6 @@ The ```inc.breadcrumbs``` view will show all breadcrumbs from the ```$breadcrumb
 
 Notice the last item should NOT have a link, it should be ```false```.
 
-<a name="how-to-define-breadcrumbs"></a>
 ## How to Define Breadcrumbs
 
 <a href="define-breadcrumbs-in-the-controller"></a>

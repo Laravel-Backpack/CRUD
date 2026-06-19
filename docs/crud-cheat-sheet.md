@@ -1,15 +1,11 @@
 # CRUD API Cheat Sheet
 
----
-
 Here are all the functions you will be using **inside your EntityCrudController's ```setup()``` method**, grouped by the operation you will most likely use them for.
 
 ## Operations
 
-<a name="list-entries-api"></a>
 ### List
 
-<a name="columns-api"></a>
 #### Columns
 
 <small>Methods: column(), addColumn(), addColumns(), modifyColumn(), removeColumn(), removeColumns(), setColumnDetails(), setColumnsDetails(), setColumns(), beforeColumn(), afterColumn(), makeFirstColumn()</small>
@@ -38,7 +34,6 @@ CRUD::setColumns([$firstColumnDefinitionArray, $secondColumnDefinitionArray]); /
 CRUD::setColumnsDetails(['column_1', 'column_2'], ['attribute' => 'value']); // change attributes for multiple columns at once
 ```
 
-<a name="buttons-api"></a>
 #### Buttons
 
 <small>Methods: button(), buttons(), addButton(), addButtonFromModelFunction(), addButtonFromView(), removeButton(), removeButtonFromStack(), removeButtons(), removeAllButtons(), removeAllButtonsFromStack(), modifyButton(), moveButton()</small>
@@ -79,7 +74,6 @@ CRUD::removeButton($name);
 CRUD::removeButtonFromStack($name, $stack);
 ```
 
-<a name="filters-api"></a>
 #### Filters
 
 <small>Methods: addFilter(), modifyFilter(), removeFilter(), removeAllFilters(), filters()</small>
@@ -125,7 +119,6 @@ CRUD::modifyFilter($name, $modifs_array);
 CRUD::removeFilter($name);
 ```
 
-<a name="details-row-api"></a>
 #### Details Row
 
 <small>Methods: enableDetailsRow(), disableDetailsRow()</small>
@@ -139,7 +132,6 @@ CRUD::enableDetailsRow();
 CRUD::disableDetailsRow();
 ```
 
-<a name="export-buttons-api"></a>
 #### Export Buttons
 
 <small>Methods: enableExportButtons()</small>
@@ -149,7 +141,6 @@ CRUD::disableDetailsRow();
 CRUD::enableExportButtons();
 ```
 
-<a name="responsive-table-api"></a>
 #### Responsive Table
 
 <small>Methods: enableResponsiveTable(), disableResponsiveTable()</small>
@@ -159,7 +150,6 @@ CRUD::disableResponsiveTable();
 CRUD::enableResponsiveTable();
 ```
 
-<a name="persistent-table-api"></a>
 #### Persistent Table
 
 <small>Methods: enablePersistentTable(), disablePersistentTable()</small>
@@ -169,7 +159,6 @@ CRUD::disablePersistentTable();
 CRUD::enablePersistentTable();
 ```
 
-<a name="page-length"></a>
 #### Page Length
 
 <small>Methods: setDefaultPageLength(), setPageLengthMenu()</small>
@@ -196,7 +185,6 @@ CRUD::setPageLengthMenu(10);
 
 <small>NOTE: Do not use 0 as a key, if you want to represent "ALL" use -1 instead.</small>
 
-<a name="action-column-api"></a>
 #### Actions Column
 
 <small>Methods: setActionsColumnPriority()</small>
@@ -206,7 +194,6 @@ CRUD::setPageLengthMenu(10);
 CRUD::setActionsColumnPriority(10000);
 ```
 
-<a name="custom-queries-api"></a>
 #### Custom / Advanced Queries
 
 <small>Methods: addClause(), groupBy(), limit(), orderBy()</small>
@@ -229,12 +216,10 @@ CRUD::orderBy();
 // please note it's generally a good idea to use crud->orderBy() inside "if (!CRUD::getRequest()->has('order')) {}"; that way, your custom order is applied ONLY IF the user hasn't forced another order (by clicking a column heading)
 ```
 
-<a name="show-api"></a>
 ### Show
 
 Use the same Columns API as for the ListEntries operation, but inside your ```show()``` method.
 
-<a name="create-and-update-api"></a>
 ### Create & Update Operations
 
 <small>Methods: field(), addField(), addFields(), modifyField(), modifyFields(), removeField(), removeFields(), removeAllFields(), beforeField(), afterField() </small>
@@ -262,7 +247,6 @@ CRUD::removeFields($array_of_names);
 CRUD::removeAllFields();
 ```
 
-<a name="reorder-api"></a>
 ### Reorder
 
 <small>Methods: enableReorder(), disableReorder(), isReorderEnabled()</small>
@@ -281,7 +265,6 @@ CRUD::removeAllFields();
     }
 ```
 
-<a name="revisions-api"></a>
 ### Revisions
 
 ```php
@@ -295,7 +278,6 @@ CRUD::removeAllFields();
 CRUD::allowAccess('revisions');
 ```
 
-<a name="all-operations-api"></a>
 ## All Operations
 
 <small>Methods: allowAccess(), denyAccess(), hasAccess(), setAccessCondition(), hasAccessOrFail(), hasAccessToAll(), hasAccessToAny(), setShowView(), setEditView(), setCreateView(), setListView(), setReorderView(), setRevisionsView, setRevisionsTimelineView(), setDetailsRowView(), getEntry(), getFields(), getColumns(), getCurrentEntry(), getTitle(), setTitle(), getHeading(), setHeading(), getSubheading(), setSubheading(), </small>

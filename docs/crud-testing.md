@@ -1,8 +1,5 @@
 # Testing
 
----
-
-<a name="about-testing"></a>
 ## About
 
 Testing your CRUD panels ensures that your admin interfaces work as expected and continue to function correctly as your application evolves. Backpack provides a dedicated command to generate **Feature** tests for your CrudControllers automatically.
@@ -16,7 +13,6 @@ These generated tests cover standard operations like:
 
 The tests are designed to be "smart" — they inspect your CrudController's configuration (fields, columns, validation rules) to generate relevant assertions.
 
-<a name="generating-tests"></a>
 ## Generate Tests
 
 **Step 1.** Generate feature tests for your CRUD controllers using the artisan command:
@@ -29,7 +25,7 @@ This will scan your controllers directory (configurable via `backpack.testing.co
 
 **Step 2.** Configure `tests/Feature/Backpack/DefaultTestBase.php` to make sure the admin user that is used for testing... can actually do the things you're testing. Otherwise all your generator tests will fail (403 http status code instead of 200). This most likely means giving that admin user the correct roles/permissions. If you're using PermissionManager, that file includes some commented code for you, as example.
 
-**Step 3.** The generated tests for CrudControllers need Factories and Seeders for those Eloquent Models, in order to work. If you're using [our DevTools package](https://backpackforlaravel.com/products/devtools), they should already be there. Otherwise, frontier LLMs will do a reasonable job of generating Factories and Seeders, here's a prompt you can use to get you started:
+**Step 3.** The generated tests for CrudControllers need Factories and Seeders for those Eloquent Models, to work. If you're using [our DevTools package](https://backpackforlaravel.com/products/devtools), they should already be there. Otherwise, frontier LLMs will do a reasonable job of generating Factories and Seeders, here's a prompt you can use to get you started:
 
 ```
 In this Laravel application, not all Eloquent Models that have a CrudController have factories and seeders. Please do a full evaluation of CrudControllers, Models and Factories and make sure we have a full suite of Factories for any model that has a CrudController, so that we can build a test suite on top of them.
@@ -75,7 +71,6 @@ Generate only list operation tests:
 php artisan backpack:tests --operation=list
 ```
 
-<a name="test-status"></a>
 ## Test Status
 
 You can check which of your CrudControllers have tests generated and which operations are covered using:
@@ -101,7 +96,6 @@ Total: 2  Tested: 1  Missing: 1
 | `--controller=Name` | Show status for a specific controller |
 | `--type=feature` | Type of tests to check |
 
-<a name="generated-file-structure"></a>
 ## Generated test file structure
 
 Generated tests rely on a small hierarchy of base classes, reusable traits and on per-controller test files inside your app's `tests/Feature` folder. 
@@ -124,7 +118,6 @@ tests/Feature/Admin/PetShop/
 ├─ PetCrudControllerTest.php
 ```
 
-<a name="configurations-available-in-test-traits"></a>
 ## Operation test traits and configuration variables
 
 The operation test traits implement the assert logic and expose variables you can set in your test `setUp()` to customise behaviour:
@@ -147,7 +140,7 @@ $this->createInput = array_merge($this->model::factory()->make()->toArray(), [
     'avatar' => ['url' => 'https://lorempixel.com/400/200/animals'],
 ]);
 ```
-<a name="route-parameters-and-controller-initialization"></a>
+
 ## Route parameters and controller initialization
 
 Controllers that require route parameters for their routes (for example nested resources like an owner ID) should define those parameters directly in the generated test class using the `$routeParameters` array and the `$route` property. Example from `tests/Feature/Admin/PetShop/OwnerPetsCrudControllerTest.php`:
@@ -159,8 +152,6 @@ public array $routeParameters = ['owner' => 1];
 
 The `$routeParameters` array provides route parameter values when the test helpers mock the current route, while the `$route` property ensures trait requests target the correct URL with concrete values.
 
-
-<a name="overriding-the-traits-behaviour"></a>
 ## Overriding trait behaviour
 
 If the default trait behaviour doesn't match your controller logic (e.g., you need to attach relationships before asserting the edit page), override the trait methods inside your test class. You can keep the original trait implementation available by aliasing it when importing the trait. Example from `tests/Feature/Admin/PetShop/OwnerPetsCrudControllerTest.php`:
@@ -190,12 +181,10 @@ public function test_update_page_loads_successfully(): void
 - Use `$assertCreateInput` / `$assertUpdateInput` to shape the expected DB assertion.
 - Override trait methods only when you need custom assertions; alias the trait method if you still want to call the default behaviour.
 
-<a name="publish-the-configuration"></a>
 ## Publishing the Configuration
 
 You can publish the configuration by running `php artisan vendor:publish --provider="Backpack\CRUD\BackpackServiceProvider" --tag=config`. There you will be able to change your controllers path. 
 
-<a name="customizing-or-creating-test-stubs"></a>
 ## Customizing or creating test stubs
 
 You can customize or add new operation test stubs used by the generator by publishing them to your application.
@@ -226,7 +215,6 @@ trait DefaultCloneTests
 }
 ```
 
-<a name="troubleshooting"></a>
 ## Troubleshooting
 
 The test generation highly relies on your Model Factories. It's highly important that your Factories are up-to-date with the database/model requirements. That being said, here are a few of the most common failures people see in their generated tests, and how to fix them:
@@ -313,5 +301,3 @@ One way to fix this would be to hard-code the for input that gets created/update
         ];
     }
 ```
-
-

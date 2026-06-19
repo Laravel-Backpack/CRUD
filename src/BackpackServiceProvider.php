@@ -15,8 +15,6 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Illuminate\View\Compilers\BladeCompiler;
-use Illuminate\View\Component;
-use Laravel\Boost\BoostServiceProvider;
 
 class BackpackServiceProvider extends ServiceProvider
 {
@@ -114,28 +112,28 @@ class BackpackServiceProvider extends ServiceProvider
         });
 
         $this->app->scoped('CrudManager', function ($app) {
-            return new CrudPanelManager;
+            return new CrudPanelManager();
         });
 
         $this->app->scoped('DatabaseSchema', function ($app) {
-            return new DatabaseSchema;
+            return new DatabaseSchema();
         });
 
         $this->app->scoped('BackpackLifecycleHooks', function ($app) {
-            return new app\Library\CrudPanel\Hooks\LifecycleHooks;
+            return new app\Library\CrudPanel\Hooks\LifecycleHooks();
         });
 
         $this->app->singleton('BackpackViewNamespaces', function ($app) {
-            return new ViewNamespaces;
+            return new ViewNamespaces();
         });
 
         // Bind the widgets collection object to Laravel's service container
         $this->app->singleton('widgets', function ($app) {
-            return new Collection;
+            return new Collection();
         });
 
         $this->app->scoped('UploadersRepository', function ($app) {
-            return new UploadersRepository;
+            return new UploadersRepository();
         });
 
         // register the helper functions
@@ -145,7 +143,7 @@ class BackpackServiceProvider extends ServiceProvider
         $this->commands($this->commands);
 
         // Inject search-backpack-docs into the laravel-boost MCP server when boost is installed
-        if (class_exists(BoostServiceProvider::class)) {
+        if (class_exists(\Laravel\Boost\BoostServiceProvider::class)) {
             $this->mergeConfigFrom(
                 __DIR__.'/config/backpack-boost.php',
                 'boost'
@@ -219,6 +217,7 @@ class BackpackServiceProvider extends ServiceProvider
     /**
      * Define the routes for the application.
      *
+     * @param  Router  $router
      * @return void
      */
     public function setupRoutes(Router $router)
@@ -237,6 +236,7 @@ class BackpackServiceProvider extends ServiceProvider
     /**
      * Load custom routes file.
      *
+     * @param  Router  $router
      * @return void
      */
     public function setupCustomRoutes(Router $router)
@@ -380,7 +380,7 @@ class BackpackServiceProvider extends ServiceProvider
 
             // Check if the class exists and is a subclass of Illuminate\View\Component
             // This ensures that only valid Blade components are registered.
-            if (class_exists($class) && is_subclass_of($class, Component::class)) {
+            if (class_exists($class) && is_subclass_of($class, \Illuminate\View\Component::class)) {
                 Blade::component('bp-'.Str::kebab(class_basename($class)), $class);
             }
         }

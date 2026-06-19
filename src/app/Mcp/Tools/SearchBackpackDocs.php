@@ -57,18 +57,8 @@ class SearchBackpackDocs extends Tool
                 continue;
             }
 
-            $remaining = $charLimit - $totalChars;
-            if ($remaining <= 0) {
+            if ($totalChars >= $charLimit) {
                 break;
-            }
-
-            // this is just an hacky solution, because we have backpack docs with over 100kb
-            // token usage with docs like this will be HUGE HUGE.
-            // i've set a 10x token limit higher than the default laravel, and even then some files
-            // do not fully fit. just for testing this was consuming tons of tokens, so I just
-            // cut the hair of the file a bit, some things will obviously not work.
-            if (strlen($content) > $remaining) {
-                $content = substr($content, 0, $remaining);
             }
 
             $results[] = $content;
@@ -83,35 +73,89 @@ class SearchBackpackDocs extends Tool
     }
 
     /**
+     * Collect all .md files recursively under docsPath.
+     *
+     * @return string[]
+     */
+    private function collectMdFiles(string $docsPath): array
+    {
+        $files = [];
+        $rit = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($docsPath));
+
+        foreach ($rit as $file) {
+            if ($file->isDir() || $file->getExtension() !== 'md') {
+                continue;
+            }
+
+            $files[] = $file->getPathname();
+        }
+
+        return $files;
+    }
+
+    /**
+     * Build a scoring key from a file path: relative path with / and _ replaced by -,
+     * leading underscores stripped from filename part.
+     *
+     * Example: fields/select2-from-ajax.md → fields-select2-from-ajax
+     */
+    private function scoringKey(string $filePath, string $docsPath): string
+    {
+        $rel = ltrim(str_replace([$docsPath, DIRECTORY_SEPARATOR], ['', '-'], $filePath), '-');
+        $rel = str_replace(['.md', '_'], ['', '-'], $rel);
+        // Remove leading underscores from filename part (overview files start with _)
+        $rel = preg_replace('/-_/', '-', $rel) ?? $rel;
+
+        return strtolower($rel);
+    }
+
+    /**
      * Score and rank docs files by relevance to the given queries.
+     *
+     * Scoring strategy:
+     *  - +3000 per query word that exactly matches the file basename
+     *          (e.g. "create" → operations/create.md beats inline-create.md)
+     *  - +2000 per query word that exactly matches a path segment
+     *  - +500  per query word that is a substring of any segment
+     *  - For files that score on path, content word frequency is added
+     *  - Root-level files (no subdir) also get a light content-only pass
+     *          (threshold ≥5 hits) so conceptual files like crud-testing.md
+     *          still surface for queries whose words aren't in the filename
      *
      * @return string[]
      */
     private function findRelevantFiles(string $docsPath, array $queries): array
     {
-        $files = glob($docsPath.DIRECTORY_SEPARATOR.'*.md') ?: [];
+        $files = $this->collectMdFiles($docsPath);
         $scored = [];
 
         foreach ($files as $file) {
-            $filename = strtolower(basename($file, '.md'));
+            $key = $this->scoringKey($file, $docsPath);
+            $basename = strtolower(basename($file, '.md'));
+            $segments = preg_split('/[-]+/', $key, -1, PREG_SPLIT_NO_EMPTY) ?: [];
+            // Is this file directly in the docs root (no subdir)?
+            $isRoot = dirname($file) === $docsPath;
             $score = 0;
 
             foreach ($queries as $rawQuery) {
-                $query = strtolower((string) $rawQuery);
-                $words = preg_split('/[\s\-_]+/', $query, -1, PREG_SPLIT_NO_EMPTY) ?: [];
+                $words = preg_split('/[\s\-_]+/', strtolower((string) $rawQuery), -1, PREG_SPLIT_NO_EMPTY) ?: [];
 
                 foreach ($words as $word) {
                     if (strlen($word) < 3) {
                         continue;
                     }
 
-                    if (str_contains($filename, $word)) {
-                        $score += 10;
+                    if ($word === $basename) {
+                        $score += 3000;
+                    } elseif (in_array($word, $segments, true)) {
+                        $score += 2000;
+                    } elseif (str_contains($key, $word)) {
+                        $score += 500;
                     }
                 }
             }
 
-            // For files that scored on filename, also count content hits
+            // For files that scored on path, also add content frequency
             if ($score > 0) {
                 $content = strtolower(file_get_contents($file) ?: '');
 
@@ -128,8 +172,9 @@ class SearchBackpackDocs extends Tool
                 }
             }
 
-            // Light content pass for files that didn't match filename
-            if ($score === 0) {
+            // Light content-only pass for root files that got no path score.
+            // Subdirectory files are skipped — their paths are descriptive enough.
+            if ($score === 0 && $isRoot) {
                 $content = strtolower(file_get_contents($file) ?: '');
 
                 foreach ($queries as $rawQuery) {
@@ -141,7 +186,7 @@ class SearchBackpackDocs extends Tool
                         }
 
                         $hits = substr_count($content, $word);
-                        $score += $hits > 3 ? $hits : 0;
+                        $score += $hits >= 5 ? $hits : 0;
                     }
                 }
             }

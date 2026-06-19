@@ -1,29 +1,24 @@
 # Save Actions
 
----
-
-<a name="about"></a>
 ## About
 
 `Create` and `Update` forms end in a Save button with a drop menu. Every option in that dropdown is a save action - they determine where the user is redirected after the saving is complete.
 
-<a name="defaults"></a>
 ## Default Save Actions
 
 There are four save actions registered by Backpack by default. They are:
-  - `save_and_back` (Save your entity and go back to previous URL)
-  - `save_and_edit` (Save and edit the current entry)
-  - `save_and_new` (Save and go to create new entity page)
-  - `save_and_preview` (Save and go to show the current entity)
+ - `save_and_back` (Save your entity and go back to previous URL)
+ - `save_and_edit` (Save and edit the current entry)
+ - `save_and_new` (Save and go to create new entity page)
+ - `save_and_preview` (Save and go to show the current entity)
 
 > **Note:** The `save_and_preview` action is only visible if the `show` operation is enabled for the entity.
 
-<a name="save-action-classes"></a>
 ## Save Action Classes
 
 You can define save actions either as simple arrays (inside the API methods) or as classes (starting with Backpack v7). Creating classes for your save actions has multiple benefits:
 - any call will only occupy one line in your CrudController (instead of 10);
-- you can easily re-use that save action in other CrudControllers;
+- you can re-use that save action in other CrudControllers;
 
 Backpack ships with a few save action classes itself:
 - `SaveAndBack`, `SaveAndEdit`, `SaveAndNew` and `SaveAndPreview` are the default;
@@ -114,7 +109,6 @@ The `bp-dataform` component accept save action classes through the `:save-action
 
 When no save actions are provided, Backpack falls back to the defaults registered on the controller.
 
-<a name="save-actions-api"></a>
 ## Save Actions API
 
 Inside your CrudController, inside your ```setupCreateOperation()``` or ```setupUpdateOperation()``` methods, you can change what save buttons are shown for each operation by using the methods below:
@@ -196,7 +190,6 @@ CRUD::replaceSaveActions([
     ],
 ]);
 ```
-
 
 #### removeSaveAction(string $saveAction)
 

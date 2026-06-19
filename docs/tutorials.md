@@ -1,8 +1,5 @@
 # Tutorials for the admin UI
 
----
-
-<a name="tutorials"></a>
 ## Tutorials
 - [How to create an AJAX Operation with Quick Button.](https://backpackforlaravel.com/articles/tutorials/how-to-create-an-ajax-operation-with-quick-button)
 - [Edit Laravel Translations from Your Admin Panel.](https://backpackforlaravel.com/articles/tutorials/new-addon-edit-laravel-translations-from-your-admin-panel)
@@ -36,11 +33,9 @@
 - [How to Add Impersonate Functionality to Your Backpack v4 Admin Panel](https://backpackforlaravel.com/articles/tutorials/how-to-add-impersonate-functionality-to-your-admin-panel)
 - [Nested resources in Backpack CRUD](https://backpackforlaravel.com/articles/tutorials/nested-resources-in-backpack-crud)
 
-
-<a name="submit-tutorial"></a>
 ## Submit Your Tutorial
 
-We are always excited to see new contributions from our community. If you have created a tutorial that you think would benefit others, we'd love to hear about it!
+If you have created a tutorial, [let us know](https://github.com/Laravel-Backpack/community-forum).
 
 To submit your tutorial:
 

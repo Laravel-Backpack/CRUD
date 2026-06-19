@@ -1,19 +1,14 @@
 # Alerts
 
----
-
-<a name="about"></a>
 ## About
 
-When building custom functionality, you'll probably need to give feedback to the admin for something that happened in the background. You can easily do that in Backpack by triggering alerts (aka notification bubbles, aka notifications). You can do that both from JavaScript and from PHP - and they will look exactly the same. In fact, Backpack operations use this same API. By using Alerts in your custom pages too, you make sure your alerts look the same across your admin panel - and your UI will be consistent.
+When building custom functionality, you'll probably need to give feedback to the admin for something that happened in the background. You can do that in Backpack by triggering alerts (aka notification bubbles, aka notifications). You can do that both from JavaScript and from PHP - and they will look exactly the same. In fact, Backpack operations use this same API. By using Alerts in your custom pages too, you make sure your alerts look the same across your admin panel - and your UI will be consistent.
 
-
-<a name="notification-bubbles-in-php"></a>
 ### Triggering Alerts in PHP
 
 We use [prologue/alerts](https://github.com/prologuephp/alerts#adding-alerts-through-alert-levels) to trigger notifications. Check out its documentation for the entire syntax. 
 
-Most of the time, all you need to do is trigger a notification of a certain type, or trigger a notification using flash data, so that it shows after a redirect:
+Most of the time, trigger a notification of a certain type, or trigger a notification using flash data, so that it shows after a redirect:
 
 ```php
 public function foo() 
@@ -40,7 +35,6 @@ public function bar()
 }
 ```
 
-<a name="notification-bubbles-in-javascript"></a>
 ### Triggering Alerts in JavaScript
 
 We use [Noty](https://ned.im/noty/#/) to show notifications from JavaScript, on the same page. Check out its docs for detailed use. Most of the time you'll only need to do:

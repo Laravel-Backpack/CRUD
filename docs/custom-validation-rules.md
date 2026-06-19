@@ -1,13 +1,9 @@
 # Custom Validation Rules
 
----
-
-<a name="about"></a>
 ## About
 
 Some Backpack fields are more difficult to validate using standard Laravel validation rules. So we've created a few custom validation rules, that will make validation them dead-simple.
 
-<a name="valid-upload-validation-rule"></a>
 ## `ValidUpload` for `upload` field type
 
 The `ValidUpload` rule is used to validate the `upload` field type. Using the custom rule helps developer avoid to setting different validation rules for different operations, (create/update).
@@ -25,7 +21,6 @@ use Backpack\CRUD\app\Library\Validation\Rules\ValidUpload;
 
 The `::field()` constructor accepts the rules for the field, while `->file()` accepts the specific rules for files sent in field. The validation rule handles the `sometimes` case for you.
 
-<a name="valid-upload-multiple-validation-rule"></a>
 ## `ValidUploadMultiple` for `upload_multiple` field type
 
 You can use this validation rule to handle validation for your `upload_multiple` field - both for the Create and the Update operation in one go:
@@ -44,7 +39,6 @@ use Backpack\CRUD\app\Library\Validation\Rules\ValidUploadMultiple;
 
 ```
 
-<a name="valid-dropzone-validation-rule"></a>
 ## `ValidDropzone` for `dropzone` field type
 
 You can use this validation rule to handle validation for your `dropzone` field - both for the Create and the Update operation in one go:
@@ -63,7 +57,6 @@ use Backpack\Pro\Uploads\Validation\ValidDropzone;
 
 ```
 
-<a name="valid-easymde-validation-rule"></a>
 ## `ValidEasyMDE` for `easymde` field type
 
 You can use this validation rule to handle validation for your `easymde` field - both for the Create and the Update operation in one go:

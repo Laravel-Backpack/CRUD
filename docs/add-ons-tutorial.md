@@ -1,8 +1,5 @@
 # How to Create a Backpack Add-on
 
----
-
-
 ### Intro
 
 So you've created a custom field, column, filter, or an entire CRUD. Great! If you want to re-use it across projects, or you think _other people_ would like to use it too, there's a good way to do that. 
@@ -16,8 +13,6 @@ Requirements:
 - a GitHub account (free or paid);
 - 15-30 minutes;
 
-
-<a name="scope-and-constants"></a>
 ## Step 0. Scope and Constants
 
 **Decide what your package is going to do.** Try to keep the package as small as possible. If you're trying to share multiple fields/columns/etc, we recommend you create a different package for each field type. This will make it:
@@ -38,8 +33,6 @@ Since in this example we're trying to build a package for the new ```dummy``` fi
 
 **Class Namespace.** When people reference your package's classes, this is what they see first. It's a good practice to use VendorName/PackageName as the namespace for your package. But notice it's no longer kebab-case (using dashes - ```my-company/dummy-field-for-backpack```), it is PascalCase (```MyCompany/DummyFieldForBackpack```).
 
-
-<a name="fork-the-skeleton-package"></a>
 ## Step 1. Clone the skeleton package
 
 To get your package online ASAP, we've prepared a few "skeleton" packages, that you can fork and modify:
@@ -57,7 +50,6 @@ Pick the skeleton package that's as similar as possible to what you want to buil
 git clone git@github.com:DigitallyHappy/toggle-field-for-backpack.git packages/my-company/dummy-field-for-backpack
 ```
 
-<a name="make-it-your-own"></a>
 ## Step 2. Make it your own
 
 Take a look at the files you've copied - it's a very simple package. In you package's root folder we have:
@@ -67,8 +59,8 @@ Take a look at the files you've copied - it's a very simple package. In you pack
 - ```LICENSE.md``` - so that people know how they're allowed to use your package (MIT is the default); 
 
 Take a look at all of them and modify to fit your needs. It should be faster to modify by hand, and pretty intuitive. But, if it's the first time you create a PHP package, you can use the process below, to make sure you don't mess up anything, since making a casing mistake somewhere (```my-vendor``` instead of ```MyVendor```) could take you very long to debug:
-- **namespace**  - find ```DigitallyHappy\ToggleFieldForBackpack``` and replace with your _VendorName\PackageName_ (ex: ```MyCompany\DummyFieldForBackpack```);
-- **escaped namespace**  - find ```DigitallyHappy\\ToggleFieldForBackpack``` and replace with your _VendorName\\PackageName_ (ex: ```MyCompany\\DummyFieldForBackpack```);
+- **namespace** - find ```DigitallyHappy\ToggleFieldForBackpack``` and replace with your _VendorName\PackageName_ (ex: ```MyCompany\DummyFieldForBackpack```);
+- **escaped namespace** - find ```DigitallyHappy\\ToggleFieldForBackpack``` and replace with your _VendorName\\PackageName_ (ex: ```MyCompany\\DummyFieldForBackpack```);
 - **vendor and package name** - find ```digitallyhappy/toggle-field-for-backpack``` and replace with your _vendor-name/package-name_ (ex: ```my-company/dummy-field-for-backpack```);
 - **package name** - find ```toggle-field-for-backpack``` and replace with your _package-name_ (ex: ```dummy-field-for-backpack```);
 - **vendor name** - find ```digitallyhappy``` and replace with your _vendor-name_ (ex: ```my-company```);
@@ -83,7 +75,6 @@ In ```/src/``` you'll find your service provider, which does one thing: it loads
 
 Also in ```/src/``` you'll notice ```src/resources/views/fields/toggle.blade.php```. This is the example field, which you can rename and use to start coding you field. Or if you already have your field ready, you can just delete this file, and copy-paste the finished blade file from your project
 
-<a name="step-3-put-it-on-github"></a>
 ## Step 3. Put it on GitHub
 
 ```
@@ -117,17 +108,12 @@ git push --tags
 ```
 
 You might not have used git tags until now. Tags are the way you will version your package, so it's important you do it. For every new version, you need to:
-- write your changes inside the ```changelog.md``` file, so people can easily see what's new;
+- write your changes inside the ```changelog.md``` file, so people can see what's new;
 - tag your release with the proper tag, so that Packagist will know you've pushed a new version;
 
----
-
-<a name="step-4-put-it-on-packagist"></a>
 ## Step 4. Put it on Packagist
 
 On [Packagist.org](http://packagist.org), create an account if you don't have one already, then click "Submit package" in the top-right corner. Enter your package's GitHub URL and click Check. If any errors occur, follow the onscreen instructions.
-
-When you're done, you'll be taken to your Packagist page, where you'll probably get a notice like this:
 
 >This package is not auto-updated. Please set up the [GitHub Service Hook](https://packagist.org/profile/) for Packagist so that it gets updated whenever you push!
 
@@ -135,10 +121,6 @@ Let's take care of that. Click [that link](https://packagist.org/profile/), clic
 
 Congrats! You now have a working package online. You can now require it with composer.
 
-
----
-
-<a name="step-5-install-it"></a>
 ## Step 5. Install it
 
 Since your package is now online, you can now install it using composer.
@@ -162,8 +144,6 @@ git checkout master
 
 **That's it. Your package is online and installable!** You have most of the knowledge needed to build and maintain a PHP package.
 
-
-<a name="step-6-double-and-triple-check"></a>
 ## Step 6. Double-check, then triple-check
 
 ### Are you sure it's working?
@@ -188,7 +168,6 @@ git tag 1.0.1
 git push origin master --tags
 ```
 
-<a name="step-7-feedback-and-promotion"></a>
 ## Step 7. Feedback and Promotion
 
 Congratulations on your new Backpack addon! 
@@ -204,20 +183,19 @@ After you've got some feedback, and a few users have installed your package and 
 - show it off in the [Laracasts forum](https://laracasts.com/discuss)
 - ask people to try it in [laravel.io](https://laravel.io/forum)
 
-
 ## Extra Credits
 
 If you're building a bigger package, with one CRUD or more, we recommend you follow the simple folder structure we use across all Backpack packages. Our rule of thumb: **organize your ```src``` folder like it were a Laravel application**. We do this because it's easier for developers to understand how the package works, and it makes it easy to copy-paste the code inside their apps and modify, for complicated use cases. That way, add-ons can be kept super-simple, with everybody adding functionality _in their own apps_. Example folder structure:
 - [src]
-    - [app]
-      - [Http]
-      - [Models]
-      - [Requests]
-    - [database]
-      - [migrations]
-      - [seeds]
-    - [routes]
-    - AddonServiceProvider.php
+ - [app]
+ - [Http]
+ - [Models]
+ - [Requests]
+ - [database]
+ - [migrations]
+ - [seeds]
+ - [routes]
+ - AddonServiceProvider.php
 - [tests]
 - composer.json
 - CHANGELOG.md

@@ -1,14 +1,10 @@
 # Create a new Backpack Theme
 
------
-
 This tutorial will create and package a Backpack theme, so that you can use it in multiple Laravel projects. And if you open-source it, others can do the same.
 
-
-<a name="create-working-code"></a>
 ## Part A. Build the Theme in Your Project
 
-Here are the steps to easily build a **Backpack** theme using a template you got from **GetBootstrap**, **WrapBootstrap** or **ThemeForest**.
+Here are the steps to build a **Backpack** theme using a template you got from **GetBootstrap**, **WrapBootstrap** or **ThemeForest**.
 
 ### Step 1. Create theme directory
 
@@ -32,7 +28,7 @@ In your `config/backpack/ui.php`, add that as the primary view namespace:
 
 ### Step 3. Choose and use a fallback theme
 
-A fallback theme is needed in cases when Backpack attempts to load a view that doesn't exist in your theme. It means you don't need to create all the views in order to create a theme... Phew! You can easily rely on your fallback theme and only create the views you need to customize. In order to do so, edit your config file `config/backpack/ui.php` as it follows:
+A fallback theme is needed in cases when Backpack attempts to load a view that doesn't exist in your theme. It means you don't need to create all the views to create a theme... Phew! You can rely on your fallback theme and only create the views you need to customize. To do so, edit your config file `config/backpack/ui.php` as it follows:
 
 ```php
     'view_namespace' => 'my-cool-theme.',
@@ -167,7 +163,6 @@ We recommend you copy-paste your own HTML above it, then include the `@directive
 
 Next up, we'll have to drill down. And move any custom content that's needed for the layout... for example for the sidebar, the header, the topbar... into their own respective views.
 
-
 #### Head
 
 There should be no reason for you to create and customize a `my-cool-theme/inc/head.blade.php` file.
@@ -217,11 +212,8 @@ If you're proud of how your theme looks and want to share it with others in the 
 - consider adding the rest of the views from your fallback theme to yours; there's a choice here - either you make your package depend on your fallback theme (add it to `composer.json`)... or you copy-paste their files in yours, so that your theme be independent;
 - follow the steps below to create a Backpack add-on using your theme;
 
-<a name="create-the-package"></a>
 ## Part B. Create The Package
 
-
-<a name="generate-package-folder"></a>
 ### Step 1. Generate the package folder
 
 Let's install this excellent package that will make everything a lot faster:
@@ -238,10 +230,10 @@ php artisan packager:new --i --skeleton="https://github.com/Laravel-Backpack/the
 It will then ask you some basic information about the package. Keep in mind:
 - the ```vendor-name``` should probably be your GitHub handle (or organisation), in kebab-case (ex: `company-name`); it will be used for folder names, but also for GitHub and Packagist links;
 - the ```package-name``` should be in `kebab-case` too (ex: ```moderate-operation```);
-- the `skeleton`, if you haven't copied the entire command above, should probably be the one we provide: `https://github.com/Laravel-Backpack/addon-skeleton/archive/master.zip`, which has everything you need to quickly create a Backpack add-on, including an innovative `AddonServiceProvider` that "_just works_";
+- the `skeleton`, if you haven't copied the entire command above, should probably be the one we provide: `https://github.com/Laravel-Backpack/addon-skeleton/archive/master.zip`, which has everything you need to create a Backpack add-on, including an innovative `AddonServiceProvider` that "_just works_";
 - the ```website``` should be a valid URL, so include the protocol too: ```http://example.com```;
 - the ```description``` should be pretty short; you can change it later in `composer.json`;
-- the ```license``` is just the license name, if it's a common one (ex: ```MIT```, ```GPLv2```); our skeleton assumes you want `MIT` but you can easily change it;
+- the ```license``` is just the license name, if it's a common one (ex: ```MIT```, ```GPLv2```); our skeleton assumes you want `MIT` but you can change it;
 
 OK great. The command has:
 - created a ```/packages/vendor-name/package-name``` folder in your root directory;
@@ -251,7 +243,6 @@ This new folder should hold all your package files. You're off to a great start,
 
 > If you want to test that your package is being loaded, you can do a ```dd('got here')``` inside your package's ```AddonServiceProvider::boot``` method. If you refresh the page, you should see that ```dd()``` statement executed.
 
-<a name="initialize-git-repo-and-make-first-commit"></a>
 ### Step 1. Initialize a git repo and make your first package commit
 
 Let's save what we have so far - the generated files:
@@ -285,24 +276,16 @@ Excellent. Now we have _two_ git repos, that we can use as a progress indicator:
 
 If you've used a git client you can even place them side-by-side, and see the progress as you move files from the project (left) to the package (right). But you don't _have to_ do that, it's just a nice visual indicator if it's your first package:
 
-![Two git repos - the project and the new package](https://user-images.githubusercontent.com/1032474/101024271-85af3100-357c-11eb-9a51-605b003a0a53.png)
-
-<a name="define-dependencies"></a>
 ### Step 2. Define any extra dependencies
 
 Your ```/packages/vendor-name/package-name/composer.json``` file already requires the latest version of Backpack (thanks to the addon skeleton). If your package needs any third-party packages apart from Backpack and Laravel, make sure to add them to the `require` section. If you theme does NOT provide all needed files, and still sues something from a fallback theme, you MUST require that theme in your package's `composer.json` and instruct people to use it as the fallback.
 
-<a name="move-the-files-needed-for-the-theme"></a>
 ### Step 3. Move the blade files from your project to your package
 
 Time to move files from your _project_ to your _package_. You can use whatever you want for that - drag&drop, the command line, your IDE or editor, whatever you want.
 
-![Moving files from your project to your package](https://user-images.githubusercontent.com/1032474/101025619-821ca980-357e-11eb-82fb-0d0e57ad6e3f.gif)
-
-
 As you do that, your `git status` or git client should show fewer and fewer files in your _project_, and more and more files in your _package_.
 
-<a name="test-that-it-works"></a>
 ### Step 4. Test that the package works
 
 To use the blade files from your _package_ instead of your _project_, change the view namespace in `config/backpack/ui.php` to point to this new package you created:
@@ -316,13 +299,10 @@ That's pretty much it. You've created your package! 🥳 All the files your pack
 
 Go ahead and test it in the browser. Make sure the functionality that was working inside your _project_ is still working now that it's inside a _package_. You might have forgotten something - we all do sometimes.
 
-<a name="delete-files-you-dont-need"></a>
 ### Step 5. Delete the package files you don't need
 
 Now that you know your package is working, go through the package folder and delete whatever your package isn't actually using: empty directories, empty files, placeholder files. Clean it up a little bit.
 
-
-<a name="customize-markdown-files"></a>
 ### Step 6. Customize Markdown Files
 
 Inside your package folder, go through all markdown files and make them your own. At the very least, open the `README.md` file and spend a little time on it, give it some love:
@@ -334,10 +314,7 @@ Inside your package folder, go through all markdown files and make them your own
 
 If you plan to make this package public, take the `README.md` seriously, because it's a HUGE factor in how popular your package can become. If you include clear documentation and screenshots, more people will use your package - guaranteed.
 
-
-<a name="put-the-package-online"></a>
 ## Part C. Put The Package Online
-
 
 First, [create a new GitHub Repository](https://github.com/new) for it. Remember to use the same name you defined in your package's ```composer.json```. If in doubt, double-check.
 
@@ -358,8 +335,6 @@ git push --tags
 
 The tags are the way you will version your package, so it's important you do it.
 
-
-<a name="make-the-package-public"></a>
 ## Part D. Make the package public (on Packagist)
 
 In order for people to be able to install your package using Composer, your package needs to be registered with [Packagist.org](https://packagist.org/), Composer's free package registry.
@@ -370,8 +345,6 @@ On [Packagist.org](https://packagist.org/), submit a new package. Enter your pac
 
 Note: On the package page, you might get a notice like this: _This package is not auto-updated. Please set up the [GitHub Service Hook](https://packagist.org/profile/) for Packagist so that it gets updated whenever you push!_ Let's take care of that. Click that link, get your API token and go to your package's GitHub page, in Settings / Webhooks & Services / Add a new service. Search for Packagist. Enter your username and the token and hit Submit. Your error in Packagist should disappear in 5–10 minutes.
 
-
-<a name="install-the-repo-from-github"></a>
 ## Part E. Install the repo from GitHub
 
 If you look close to your project's `composer.json` file, you'll notice your project is loading the package from `packages/vendor-name/package-name`. Which is fine, it's worked fine until now. But it's now time to install the package like your users will, and have it in `vendor/vendor-name/package-name`. That way:
@@ -408,8 +381,6 @@ composer require vendor-name/package-name --prefer-source
 
 That's it. It should be working fine now, but from the `vendor/vendor-name/package-name` directory. You can `cd vendor/vendor-name/package-name` and you'll see that you can `git checkout master`, make changes, tag releases, push to GitHub, everything.
 
-
-<a name="feedback-and-promotion"></a>
 ### Feedback and Promotion
 
 Congratulations on your new Backpack theme! To get feedback, ask people to try it by opening a Discussion in the [Backpack Community Forum](https://github.com/Laravel-Backpack/community-forum/discussions). After you've gotten some feedback, and a few users have installed your package and everything seems fine, time to promote it big time:

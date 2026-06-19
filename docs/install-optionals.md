@@ -1,12 +1,9 @@
 # Install Optional Packages
 
----
-
 Each Backpack package has its own installation instructions in its readme file. We duplicate them here for easy access.
 
 Everything else is optional. Your project might use them or it might not. Only do each of the following steps if you need the functionality that package provides.
 
-<a name="backup-manager"></a>
 ## BackupManager
 
 [>> See screenshots and installation](https://github.com/Laravel-Backpack/BackupManager)
@@ -58,11 +55,9 @@ protected function schedule(Schedule $schedule)
 ]
 ```
 
-<a name="log-manager"></a>
 ## LogManager
 
 [>> See screenshots and installation](https://github.com/Laravel-Backpack/logmanager)
-
 
 1) Install via composer:
 
@@ -80,7 +75,7 @@ composer require backpack/logmanager
 ],
 ```
 
-3) Configure Laravel to create a new log file for every day, in your .ENV file, if it's not already. Otherwise there will only be one file at all times.
+3) Configure Laravel to create a new log file for every day, in your.ENV file, if it's not already. Otherwise there will only be one file at all times.
 
 ```
 APP_LOG=daily
@@ -96,10 +91,10 @@ or directly in your config/app.php file:
 ```bash
 php artisan backpack:add-menu-content "<x-backpack::menu-item title='Logs' icon='la la-terminal' :link=\"backpack_url('log')\" />"
 ```
-<a name="settings-manager"></a>
+
 ## Settings
 
-An interface for the administrator to easily change application settings. Uses Laravel Backpack.
+An interface for the administrator to change application settings. Uses Laravel Backpack.
 
 [>> See screenshots and installation](https://github.com/Laravel-Backpack/settings)
 
@@ -120,36 +115,30 @@ php artisan backpack:add-menu-content "<x-backpack::menu-item title='Settings' i
 php artisan db:seed --class="Backpack\Settings\database\seeds\SettingsTableSeeder"
 ```
 
-<a name="page-manager"></a>
 ## PageManager
 
 An admin panel where you, as a developer, can define templates with different fields, and the admin can choose between those templates to create/edit pages with content.
 
 [>> See screenshots and installation](https://github.com/Laravel-Backpack/pagemanager)
 
-<a name="permission-manager"></a>
 ## PermissionManager
 
 An admin panel for user authentication on Laravel 5, using Backpack\CRUD. Add, edit, delete users, roles and permission.
 
 [>> See screenshots and installation](https://github.com/Laravel-Backpack/PermissionManager)
 
-<a name="menu-crud"></a>
 ## MenuCrud
 
 An admin panel for menu items on Laravel 5, using Backpack\CRUD. Add, edit, reorder, nest, rename menu items and link them to Backpack\PageManager pages, external link or custom internal link.
 
 [>> GitHub](https://github.com/Laravel-Backpack/MenuCRUD)
 
-<a name="news-crud"></a>
 ## NewsCrud
 
-Since NewsCRUD does not provide any extra functionality other than Backpack\CRUD, it is not a package. It's just a tutorial to show you how this can be achieved. In the future, CRUD examples like this one will be easily installed from the command line, from a central repository. Until then, you will need to manually create the files.
+Since NewsCRUD does not provide any extra functionality other than Backpack\CRUD, it is not a package. It's just a tutorial to show you how this can be achieved. In the future, CRUD examples like this one will be installed from the command line, from a central repository. Until then, you will need to manually create the files.
 
 [>> GitHub](https://github.com/Laravel-Backpack/NewsCRUD)
 
-
-<a name="file-manager"></a>
 ## FileManager
 
 Backpack admin interface for files and folders, using [barryvdh/laravel-elfinder](https://github.com/barryvdh/laravel-elfinder).

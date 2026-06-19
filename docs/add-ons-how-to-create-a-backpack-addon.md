@@ -1,23 +1,20 @@
 # How to Create an Add-on
 
----
-
-
 ### Intro
 
 There's nothing special about add-ons. They are simple Composer packages. 
 
 But for consistency, we recommend you follow our simple folder structure. Our rule of thumb: **organize your ```src``` folder like it were a Laravel application**. We do this because it's easier for users to understand how the package works, and it makes it easy to copy-paste the code inside their apps and modify, for complicated use cases. That way, add-ons can be kept super-simple, with everybody adding functionality _in their own apps_. Example folder structure:
 - [src]
-    - [app]
-      - [Http]
-      - [Models]
-      - [Requests]
-    - [database]
-      - [migrations]
-      - [seeds]
-    - [routes]
-    - YourPackageNameServiceProvider.php
+ - [app]
+ - [Http]
+ - [Models]
+ - [Requests]
+ - [database]
+ - [migrations]
+ - [seeds]
+ - [routes]
+ - YourPackageNameServiceProvider.php
 - [tests]
 - composer.json
 - CHANGELOG.md
@@ -28,7 +25,6 @@ Requirements:
 - a working installation of the [Backpack demo](https://github.com/laravel-backpack/demo)
 - 1-2 hours
 
-<a name="create-a-package"></a>
 ## Step 1. Create a package
 
 ### Install Backpack Demo
@@ -36,7 +32,6 @@ Requirements:
 We're going to use [the Backpack demo project](https://github.com/laravel-backpack/demo) to create a new package. Follow the instructions in [the Installation chapter](https://github.com/laravel-backpack/demo#install). 
 
 Any Laravel & Backpack app would work. But since you're going to require packages that you only need during package development, and make various changes to app files, we recommended you _create_ the package using a Backpack demo. After the package is online (with zero functionality), you will _install_ it in a real application, and _modify_ it right there, in the ```vendor``` folder. You will then delete this Backpack demo project.
-
 
 ### Install CLI tool
 
@@ -136,9 +131,6 @@ php artisan vendor:publish
 
 Now test it. Start by doing a ```dd('testing)``` in your service provider's ```boot()``` method. If your package is working fine, I recommend you put it online first, even before it does _anything useful_. You'll get the setup out of the way, and be able to focus on code. Plus, you'll be able to install it in a _real_ Backpack application, and edit it from the ```vendor/myvendor/mypackage``` folder (and push to your git remote).
 
----
-
-<a name="step-2-put-it-on-github"></a>
 ## Step 2. Put it on GitHub
 
 ```
@@ -159,14 +151,9 @@ git push --tags
 
 Tags are the way you will version your package, so it's important you do it. People will only be able to get updates if you tag them.
 
----
-
-<a name="step-3-put-it-on-packagist"></a>
 ## Step 3. Put it on Packagist
 
 On [Packagist.org](https://packagist.org), submit a new package. Enter your package's GitHub URL and click Check. If any errors occur, follow the onscreen instructions.
-
-When you're done, you'll be taken to your packagist page, where you'll probably get a notice like this:
 
 >This package is not auto-updated. Please set up the [GitHub Service Hook](https://packagist.org/profile/) for Packagist so that it gets updated whenever you push!
 
@@ -174,10 +161,6 @@ Let's take care of that. Click that link, get your API token and go to your pack
 
 Congrats! You now have a working package online. You can now require it with composer.
 
-
----
-
-<a name="step-4-install-in-a-real-project"></a>
 ## Step 4. Install in a Real Project
 
 We've instructed you to create the package in a disposable backpack-demo install. If you've done so, you can now install your package **in your _real_ project**:
@@ -202,11 +185,7 @@ git tag 1.0.3
 git push origin master --tags
 ```
 
----
-
 **That's it. Go build your package!** If you end up with something you like, please share it with the community in the [Gitter Chatroom](https://gitter.im/BackpackForLaravel/Lobby), and add it to [the Community Add-Ons page](/docs/{{version}}/add-ons-community), so other people know about it (_login, then click Edit in the top-right corner of the page_).
-
-You can now delete the Backpack project, and the database you've created for it (if any).
 
 For extra reading credits, these are the resources we've used to create this guide:
 - https://laravel.com/docs/packages

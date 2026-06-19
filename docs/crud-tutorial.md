@@ -1,17 +1,10 @@
 # CRUD Crash Course
 
----
+This guide creates a `Tag` entity (just `id` and `name`) with a full CRUD panel.
 
-What's the simplest entity you can think of? It will probably be something like ```Tag```, which only holds an ```id``` and a ```name```. Let's create this new entity in the database, the model for it, then create a CRUD Panel to let admins manage entries for this entity.
-
-We assume:
-- you've [installed Backpack](/docs/{{version}}/installation);
-- you don't already have a ```Tag``` model in your project;
-
-<a name="generate-files"></a>
 ## Generate Files
 
-In order to build a CRUD, we need an Eloquent model. So let's create a migration and model, using [Jeffrey Way's Generators](https://github.com/laracasts/Laravel-5-Generators-Extended):
+To build a CRUD, we need an Eloquent model. So let's create a migration and model, using [Jeffrey Way's Generators](https://github.com/laracasts/Laravel-5-Generators-Extended):
 
 ```zsh
 # install a 3rd party tool to generate migrations from the command line
@@ -22,16 +15,7 @@ php artisan make:migration:schema create_tags_table --schema="name:string:unique
 php artisan migrate
 ```
 
-> **Note:** If you have a lot of database tables to generate, we heavily recommend **our paid addon - [Backpack DevTools](https://backpackforlaravel.com/products/devtools).** It's a GUI that helps you generate Migrations, Models (complete with relationships) and CRUDs from the browser. It does cost extra, but it's well worth the price if you use Backpack regularly or your models are not dead-simple.
-
-Now that we have the ```tags``` table in the database, let's generate the actual files we'll be using:
-
-```zsh
-php artisan backpack:crud tag  #use singular, not plural
-```
-
-The code above will have generated:
-- a migration (```database/migrations/yyyy_mm_dd_xyz_create_tags_table.php```);
+`php artisan backpack:crud tag` generates:- a migration (```database/migrations/yyyy_mm_dd_xyz_create_tags_table.php```);
 - a database table (```tags``` with just two columns: ```id``` and ```name```);
 - a model (```app/Models/Tag.php```);
 - a controller (```app/Http/Controllers/Admin/TagCrudController.php```);
@@ -39,17 +23,11 @@ The code above will have generated:
 - a resource route, as a line inside ```routes/backpack/custom.php```;
 - a new menu item in ```resources/views/vendor/backpack/ui/inc/menu_items.blade.php```;
 
-**Next up:** we'll need to go through the generated files, and customize for our needs.
+Customize the generated files:
 
-<a name="customize-generated-files"></a>
 ## Customize Generated Files
 
-We'll skip the migration and database table, since there's nothing there specific to Backpack, nothing to customize, and we've already run the migration.
-
-<a name="the-model"></a>
 ### The Model
-
-Let's take a look at the generated model:
 
 ```php
 <?php
@@ -122,7 +100,6 @@ This is all _standard procedure_ for new Laravel models - nothing Backpack-speci
 
 We're now done configuring the model - because we didn't already have a valid Eloquent model to use for our CRUD Panel. If we _did have_ a working Eloquent model, we only needed to add ```use \Backpack\CRUD\app\Models\Traits\CrudTrait;```
 
-<a name="the-controller"></a>
 ### The Controller
 
 Let's take a look at ```app/Http/Controllers/Admin/TagCrudController.php```. It should look something like this:
@@ -186,7 +163,7 @@ The best way to configure operations is to define each operation inside its ```s
 
 #### Operation Setup Closures
 
-An alternative to defining operations inside ```setupXxxOperation()``` methods is to do everything inside the ```setup()``` method. However, as we've mentioned before, everything you run in your ```setup()``` method is run for ALL operations. So you can easily end up bloating your operation with unnecessary operations. If you don't like having a method to configure each operation, and want to define everything in ```setup()```, you should do so inside an ```operation()``` closure. Whatever's inside that closure will only be run for that operation. For example, everything we've done above would look like this if done inside operation closures:
+An alternative to defining operations inside ```setupXxxOperation()``` methods is to do everything inside the ```setup()``` method. However, as we've mentioned before, everything you run in your ```setup()``` method is run for ALL operations. So you can end up bloating your operation with unnecessary operations. If you don't like having a method to configure each operation, and want to define everything in ```setup()```, you should do so inside an ```operation()``` closure. Whatever's inside that closure will only be run for that operation. For example, everything we've done above would look like this if done inside operation closures:
 
 ```php
     public function setup()
@@ -205,7 +182,6 @@ An alternative to defining operations inside ```setupXxxOperation()``` methods i
         });
     }
 
-
 }
 ```
 
@@ -215,7 +191,6 @@ Here, inside your ```setup()``` or ```setupXxxOperation``` methods, you can also
 
 Next, let's continue to another generated file.
 
-<a name="the-request"></a>
 ### The Request
 
 Backpack can also generate a [standard FormRequest file](https://laravel.com/docs/master/validation#form-request-validation), that you can use for validation of the Create and Update forms. There is nothing Backpack-specific in here, but let's take a look at the generated ```app/Http/Requests/TagRequest.php``` file:
@@ -280,7 +255,7 @@ class TagRequest extends FormRequest
 
 ```
 
-This file is a 100% pure FormRequest file - all Laravel, nothing particular to Backpack. In generated FormRequest files, no validation rules are imposed by default - unless you've generated requests using [Backpack DevTools](https://backpackforlaravel.com/products/devtools), which does its best to populate the validation rules from the database schema - just saying, it will save you time here too 😉.  But we do want ```name``` to be ```required``` and ```unique```, so let's do that, using the [standard Laravel validation rules](https://laravel.com/docs/master/validation#available-validation-rules):
+This file is a 100% pure FormRequest file - all Laravel, nothing particular to Backpack. In generated FormRequest files, no validation rules are imposed by default - unless you've generated requests using [Backpack DevTools](https://backpackforlaravel.com/products/devtools), which does its best to populate the validation rules from the database schema - just saying, it will save you time here too 😉. But we do want ```name``` to be ```required``` and ```unique```, so let's do that, using the [standard Laravel validation rules](https://laravel.com/docs/master/validation#available-validation-rules):
 
 ```diff
     /**
@@ -297,9 +272,8 @@ This file is a 100% pure FormRequest file - all Laravel, nothing particular to B
     }
 ```
 
-> If your validation needs to be different between the Create and Update operations, [you can easily do that too](/docs/{{version}}/crud-operation-create#separate-requests-for-create-and-update), by specifying different FormRequest files for each operation.
+> If your validation needs to be different between the Create and Update operations, [you can do that too](/docs/{{version}}/crud-operation-create#separate-requests-for-create-and-update), by specifying different FormRequest files for each operation.
 
-<a name="the-route"></a>
 ### The Route
 
 We have already generated our CRUD route, and we don't need to do anything about it, but let's check our ```routes/backpack/custom.php```. It should look like this:
@@ -333,7 +307,6 @@ Here, we can see that our routes have been placed:
 - all your admin panel functionality is protected by the same middleware;
 - all your admin panel controllers live in one place (```App\Http\Controllers\Admin```);
 
-<a name="the-menu-item"></a>
 ### The Menu Item
 
 We've previously generated a menu item in the ```resources/views/vendor/backpack/ui/inc/menu_items.blade.php``` file. That is using our menu item Blade components. The "active" state of the menu is done with JavaScript, based on the ```href``` attribute.
@@ -346,7 +319,6 @@ This is the bit that has been generated for you:
 
 You can of course change anything here, if you want. For example, change `la la-question` to `la la-tag`.
 
-<a name="the-result"></a>
 ## The result
 
 You are now ready to go to ```your-app-name.domain/admin/tag``` and see your fully functional admin panel for ```Tags```.

@@ -1,25 +1,18 @@
 # Buttons
 
----
-
-<a name="about"></a>
 ## About
 
 Buttons are used inside the [List operation](/docs/{{version}}/crud-operation-list-entries) and [Show operation](/docs/{{version}}/crud-operation-show), to allow the admin to trigger other operations. Some buttons point to entirely new routes (eg. `create`, `update`, `show`), others perform the operation on the current page using AJAX (eg. `delete`).
 
-<a name="button-stacks"></a>
 ### Button Stacks
 
 The ShowList operation has 3 places where buttons can be placed:
-  - `top` (where the Add button is)
-  - `line` (where the Edit and Delete buttons are)
-  - `bottom` (after the table)
-
-![](https://backpackforlaravel.com/uploads/docs-4-0/getting_started/backpack_buttons.png)
+ - `top` (where the Add button is)
+ - `line` (where the Edit and Delete buttons are)
+ - `bottom` (after the table)
 
 When adding a button to the stack, you can choose whether to insert it at the `beginning` or `end` of the stack by specifying that as a last parameter.
 
-<a name="default-buttons"></a>
 ### Default Buttons
 
 There are no "default buttons". But each operation can add buttons to other operations. Most commonly, operations add their own button to the List operation, since that's the "home page" for performing operations on entries. So if you go to a CRUD where you're using the most common operations (Create, Update, List, Show) you will notice in the List operation that:
@@ -30,8 +23,6 @@ Most buttons are invisible if an operation has been disabled. For example, you c
 - hide the "delete" button using `CRUD::denyAccess('delete')`;
 - show a "preview" button by using `CRUD::allowAccess('show')`;
 
-
-<a name="buttons-api"></a>
 ### Buttons API
 
 Here are a few things you can call in your EntityCrudController's `setupListOperation()` method, to manipulate buttons:
@@ -77,14 +68,12 @@ CRUD::modifyButton($name, $modifications);
 CRUD::moveButton($target, $where, $destination);
 ```
 
-<a name="overwriting-a-default-button"></a>
 ### Overriding a Button
 
 Before showing any buttons, Backpack will check your ```resources\views\vendor\backpack\crud\buttons``` directory, to see if you've overriden any buttons. If it finds a blade file with the same name there as the operation buttons, it will use your blade file, instead of the one in the package.
 
 That means **you can override an existing button simply by creating a blade file with the same name inside this directory**.
 
-<a name="creating-a-quick-button"></a>
 ### Creating a Quick Button
 
 Most of the times, the buttons you want to create aren't complex at all. They're just an `<a>` element, with a `href` and `class` that is show **if the admin has access** to that particular operation. That's why we've created the `quick.blade.php` button, that allows you to _quickly_ create a button, right from your Operation or CrudController. This covers most simple use cases:
@@ -138,10 +127,9 @@ CRUD::button('email')->stack('line')->view('crud::buttons.quick')->meta([
 
 > You should always control the access of your buttons. The key for access by default is the button name `->studly()` with a fallback to the button name without modifications. It means that for a button named `some_button`, the access key will be either `SomeButton` or `some_button`. Eg: `CRUD::allowAccess('some_button')` or `CRUD::allowAccess('SomeButton')`.
 
-<a name="creating-a-quick-button-with-ajax"></a>
 #### Create a Quick Button with Ajax
 
-Quick Buttons can be easily configured to make an AJAX request. This is useful when you want to perform an operation without leaving the page. For example, you can send an email to a user without leaving the page.
+Quick Buttons can be configured to make an AJAX request. This is useful when you want to perform an operation without leaving the page. For example, you can send an email to a user without leaving the page.
 
 ```php
 // enable ajax
@@ -193,7 +181,6 @@ public function email($id)
 }
 ```
 
-<a name="creating-a-custom-button"></a>
 ### Creating a Custom Button
 
 To create a completely custom button:
@@ -213,10 +200,8 @@ In the blade file, you can use:
 
 Note: If you've opted to add a button from a model function (not a blade file), inside your model function you can use `$this` to get the current entry (so for example, you can do `$this->id`.
 
-<a name="examples"></a>
 ## Examples
 
-<a name="adding-a-custom-button-with-a-blade-file"></a>
 ### Adding a Custom Button with a Blade File
 
 Let's say we want to create a simple ```moderate.blade.php``` button. This button would just open a ```user/{id}/moderate/``` route, which would point to ```UserCrudController::moderate()```. The steps would be:
@@ -245,7 +230,6 @@ public function moderate()
 CRUD::addButtonFromView('line', 'moderate', 'moderate', 'beginning');
 ```
 
-<a name="adding-a-custom-button-without-a-blade-file"></a>
 ### Adding a Custom Button without a Blade File
 
 Instead of creating a blade file for your button, you can use a function on your model to output the button's HTML.
@@ -265,13 +249,11 @@ public function openGoogle($crud = false)
 }
 ```
 
-
-<a name="adding-a-custom-button-with-a-blade-file"></a>
 ### Adding a Custom Button with JavaScript to the "top" stack
 
 Let's say we want to create an ```import.blade.php``` button. For simplicity, this button would just run an AJAX call which handles everything, and shows a status report to the user through notification bubbles.
 
-The "top" buttons are not bound to any certain entry, like buttons from the "list" stack. They can only do general things. And if they do general things, it's _generally_ recommended that you move their JavaScript to the bottom of the page. You can easily do that with ```@push('after_scripts')```, because the Backpack default layout has an ```after_scripts``` stack. This way, you can make sure your JavaScript is moved at the bottom of the page, after all other JavaScript has been loaded (jQuery, DataTables, etc). Check out the example below.
+The "top" buttons are not bound to any certain entry, like buttons from the "list" stack. They can only do general things. And if they do general things, it's _generally_ recommended that you move their JavaScript to the bottom of the page. You can do that with ```@push('after_scripts')```, because the Backpack default layout has an ```after_scripts``` stack. This way, you can make sure your JavaScript is moved at the bottom of the page, after all other JavaScript has been loaded (jQuery, DataTables, etc). Check out the example below.
 
 The steps would be:
 
@@ -342,7 +324,6 @@ public function import()
 CRUD::addButtonFromView('top', 'import', 'import', 'end');
 ```
 
-<a name="adding-a-custom-button-that-is-visible-only-for-some-entries"></a>
 ### Adding a Custom Button That Is Visible Only for Some Entries
 
 Let's say we want to create a simple ```approve.blade.php``` button. But not all entries can be approved. In that case, you will want your `approve` button to pass the `$entry` as a second parameter, when checking for access:
@@ -383,5 +364,3 @@ CRUD::orderButtons('line', ['update', 'delete', 'show']);
 ```php
 CRUD::moveButton('show', 'after', 'delete');
 ```
-
-

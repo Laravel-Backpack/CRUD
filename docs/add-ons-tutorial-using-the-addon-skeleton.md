@@ -1,11 +1,7 @@
 # Create an Add-On using our Addon Skeleton
 
------
-
 This tutorial will help you package a Backpack operation or entire CRUD into a Composer package, so that you can use it in multiple Laravel projects. And if you open-source it, others can do the same.
 
-
-<a name="create-working-code"></a>
 ## Part A. Build the Functionality in Your Project
 
 Make sure you have working code in your project. Code everything the package will need, the same way you normally do. Before even _thinking_ about turning it into a package, you should have working code. This is easier because:
@@ -14,20 +10,14 @@ Make sure you have working code in your project. Code everything the package wil
 - you don't have to think about what to make configurable or translatable
 - you can test the functionality alone (without the package wiring and stuff)
 
-**(optional) Hot tip:** Don't commit the code to your package yet. Or, if you've already done a commit (and it's the last commit), run `git reset HEAD^` to undo the commit (but keep the changes). This is _not necessary_ but we find it super-helpful. If you changes are inside your project, but uncommitted, you can easily see the files that have changed using `git status`, hence... the files that contain the functionality you should move to the package. It's like a progress screen - everything here should disappear - that's how you know you're done. 
+**(optional) Hot tip:** Don't commit the code to your package yet. Or, if you've already done a commit (and it's the last commit), run `git reset HEAD^` to undo the commit (but keep the changes). This is _not necessary_ but we find it super-helpful. If you changes are inside your project, but uncommitted, you can see the files that have changed using `git status`, hence... the files that contain the functionality you should move to the package. It's like a progress screen - everything here should disappear - that's how you know you're done. 
 
 **(optional) Bonus points:** You can use a Git client (like [Git Fork](https://git-fork.com/)) instead of `git status`, because that'll also show the atomic changes you've made to route files, sidebar etc... not only the file names:
 
-![Using Git Fork to see the files and changes that need to be moved to a package or Backpack add-on](https://user-images.githubusercontent.com/1032474/101012182-78d61180-356b-11eb-8aa9-85d6959468ea.png)
-
 As you move things to your new package, they'll disappear from here. You know you're done when you only have the changes the users of your package need to make, to use it. Normally that's just a change to the `composer.json` and (maybe) a configuration file.
 
-
-<a name="create-the-package"></a>
 ## Part B. Create The Package
 
-
-<a name="generate-package-folder"></a>
 ### Step 1. Generate the package folder
 
 Let's install this excellent package that will make everything a lot faster:
@@ -44,10 +34,10 @@ php artisan packager:new --i --skeleton="https://github.com/Laravel-Backpack/add
 It will then ask you some basic information about the package. Keep in mind:
 - the ```vendor-name``` should probably be your GitHub handle (or organisation), in kebab-case (ex: `company-name`); it will be used for folder names, but also for GitHub and Packagist links;
 - the ```package-name``` should be in `kebab-case` too (ex: ```moderate-operation```);
-- the `skeleton`, if you haven't copied the entire command above, should probably be the one we provide: `https://github.com/Laravel-Backpack/addon-skeleton/archive/master.zip`, which has everything you need to quickly create a Backpack add-on, including an innovative `AddonServiceProvider` that "_just works_"; 
+- the `skeleton`, if you haven't copied the entire command above, should probably be the one we provide: `https://github.com/Laravel-Backpack/addon-skeleton/archive/master.zip`, which has everything you need to create a Backpack add-on, including an innovative `AddonServiceProvider` that "_just works_"; 
 - the ```website``` should be a valid URL, so include the protocol too: ```http://example.com```;
 - the ```description``` should be pretty short; you can change it later in `composer.json`;
-- the ```license``` is just the license name, if it's a common one (ex: ```MIT```, ```GPLv2```); our skeleton assumes you want `MIT` but you can easily change it;
+- the ```license``` is just the license name, if it's a common one (ex: ```MIT```, ```GPLv2```); our skeleton assumes you want `MIT` but you can change it;
 
 OK great. The command has:
 - created a ```/packages/vendor-name/package-name``` folder in your root directory;
@@ -57,21 +47,17 @@ This new folder should hold all your package files. You're off to a great start,
 
 Let's take a look at the generated files inside ```/packages/vendor-name/package-name```: 
 
-![Blank Backpack addon as generated using the addon skeleton](https://user-images.githubusercontent.com/1032474/101022657-5992b080-357a-11eb-8f85-8e0718b66fb2.png)
-
-
 You'll notice that it looks _exactly_ like a Laravel project, with a few exceptions: 
 - PHP classes live in `src` instead of `app`;
 - inside that `src` folder you also have an `AddonServiceProvider`; so let's take a moment to explain why it's there, and what it does:
-    - normally a package needs a ServiceProvider to tell Laravel "load the views from here", "load the migrations from here", "load configs from here", things like that; because a Composer package can also be a general PHP package (non-Laravel), normally you have to code a ServiceProvider for your package, that tells Laravel how to use your package - you have to write all that wiring logic;
-    - but thanks to `AddonServiceProvicer`, you don't have to do any of that; it's all done _automatically_ if the files are in the right directories, just like Laravel does itself, in your project's folders; 
-    - the only thing you should worry about is placing your route files in `routes`, your migrations in `database/migrations` etc. and the `AddonServiceProvider` will understand and tell Laravel to load them; easy-peasy;
+ - normally a package needs a ServiceProvider to tell Laravel "load the views from here", "load the migrations from here", "load configs from here", things like that; because a Composer package can also be a general PHP package (non-Laravel), normally you have to code a ServiceProvider for your package, that tells Laravel how to use your package - you have to write all that wiring logic;
+ - but thanks to `AddonServiceProvicer`, you don't have to do any of that; it's all done _automatically_ if the files are in the right directories, just like Laravel does itself, in your project's folders; 
+ - the only thing you should worry about is placing your route files in `routes`, your migrations in `database/migrations` etc. and the `AddonServiceProvider` will understand and tell Laravel to load them; easy-peasy;
 
 Excited by how easy it'll be to make it work? Excellent, let's do it.
 
 > If you want to test that your package is being loaded, you can do a ```dd('got here')``` inside your package's ```AddonServiceProvider::boot``` method. If you refresh the page, you should see that ```dd()``` statement executed.
 
-<a name="initialize-git-repo-and-make-first-commit"></a>
 ### Step 1. Initialize a git repo and make your first package commit
 
 Let's save what we have so far - the generated files:
@@ -105,21 +91,13 @@ Excellent. Now we have _two_ git repos, that we can use as a progress indicator:
 
 If you've used a git client you can even place them side-by-side, and see the progress as you move files from the project (left) to the package (right). But you don't _have to_ do that, it's just a nice visual indicator if it's your first package:
 
-![Two git repos - the project and the new package](https://user-images.githubusercontent.com/1032474/101024271-85af3100-357c-11eb-9a51-605b003a0a53.png)
-
-<a name="define-dependencies"></a>
 ### Step 2. Define any extra dependencies
 
 Your ```/packages/vendor-name/package-name/composer.json``` file already requires the latest version of Backpack (thanks to the addon skeleton). If your package needs any third-party packages apart from Backpack and Laravel, make sure to add them to the `require` section. Normally this just means cutting&pasting the line from your project's `composer.json` to your package's `composer.json`.
 
-
-<a name="move-the-files-needed-for-the-operation"></a>
 ### Step 3. Move the functionality from your project to your package
 
 Time to move files from your _project_ to your _package_. You can use whatever you want for that - drag&drop, the command line, your IDE or editor, whatever you want.
-
-![Moving files from your project to your package](https://user-images.githubusercontent.com/1032474/101025619-821ca980-357e-11eb-82fb-0d0e57ad6e3f.gif)
-
 
 As you do that, your `git status` or git client should show fewer and fewer files in your _project_, and more and more files in your _package_. 
 
@@ -128,11 +106,11 @@ Below we'll take each project directory, one by one, and explain where its files
 #### Files inside your project's ```app``` directory
 
 Move from the subdirectory there to the same subdirectory inside your package's `src`; that means:
-    - controllers go inside `src/Http/Controllers`;
-    - requests go inside `src/Http/Requests`;
-    - models go inside `src/Models`;
-    - commands go inside `src/Commands`;
-    - etc.
+ - controllers go inside `src/Http/Controllers`;
+ - requests go inside `src/Http/Requests`;
+ - models go inside `src/Models`;
+ - commands go inside `src/Commands`;
+ - etc.
 
 IMPORTANT: Since you're moving PHP classes, **after moving them you must also change their namespaces**. Your class is no longer `App\Http\Controllers\Admin\ExampleCrudController` but `VendorName\PackageName\Http\Controllers\ExampleCrudController`. 
 
@@ -159,7 +137,6 @@ That means:
 - `database/seeds` or `database/seeders`
 - `database/factories`
 
-
 #### Files inside your project's `resources\views` directory
 
 You have the same directory in your package, just move them there. Views moved in your package folder will be automatically available in the `vendor-name.package-name` namespace, so you can load them using `view('vendor-name.package-name::path.to.file')`.
@@ -184,20 +161,16 @@ If you've added any functions there that you need inside the package, you'll not
 
 If your package does not any extra need helper functions, just delete the entire `bootstrap` directory in the package.
 
-<a name="test-that-it-works"></a>
 ### Step 4. Test that the package works
 
 That's pretty much it. You've created your package! 🥳 All the files your package need are inside your package, and the only remaining changes in your project (as reflected by `git status`) should be the minimal changes that users need to do to install your package.
 
 Go ahead and test it in the browser. Make sure the functionality that was working inside your _project_ is still working now that it's inside a _package_. You might have forgotten something - we all do sometimes.
 
-<a name="delete-files-you-dont-need"></a>
 ### Step 5. Delete the package files you don't need
 
 Now that you know your package is working, go through the package folder and delete whatever your package isn't actually using: empty directories, empty files, placeholder files. Clean it up a little bit.
 
-
-<a name="customize-markdown-files"></a>
 ### Step 6. Customize Markdown Files
 
 Inside your package folder, go through all markdown files and make them your own. At the very least, open the `README.md` file and spend a little time on it, give it some love:
@@ -209,10 +182,7 @@ Inside your package folder, go through all markdown files and make them your own
 
 If you plan to make this package public, take the `README.md` seriously, because it's a HUGE factor in how popular your package can become. If you include clear documentation and screenshots, more people will use your package - guaranteed.
 
-
-<a name="put-the-package-online"></a>
 ## Part C. Put The Package Online
-
 
 First, [create a new GitHub Repository](https://github.com/new) for it. Remember to use the same name you defined in your package's ```composer.json```. If in doubt, double-check.
 
@@ -233,8 +203,6 @@ git push --tags
 
 The tags are the way you will version your package, so it's important you do it.
 
-
-<a name="make-the-package-public"></a>
 ## Part D. Make the package public (on Packagist)
 
 In order for people to be able to install your package using Composer, your package needs to be registered with [Packagist.org](https://packagist.org/), Composer's free package registry.
@@ -245,8 +213,6 @@ On [Packagist.org](https://packagist.org/), submit a new package. Enter your pac
 
 Note: On the package page, you might get a notice like this: _This package is not auto-updated. Please set up the [GitHub Service Hook](https://packagist.org/profile/) for Packagist so that it gets updated whenever you push!_ Let's take care of that. Click that link, get your API token and go to your package's GitHub page, in Settings / Webhooks & Services / Add a new service. Search for Packagist. Enter your username and the token and hit Submit. Your error in Packagist should disappear in 5–10 minutes.
 
-
-<a name="install-the-repo-from-github"></a>
 ## Part E. Install the repo from GitHub 
 
 If you look close to your project's `composer.json` file, you'll notice your project is loading the package from `packages/vendor-name/package-name`. Which is fine, it's worked fine until now. But it's now time to install the package like your users will, and have it in `vendor/vendor-name/package-name`. That way:
@@ -283,8 +249,6 @@ composer require vendor-name/package-name --prefer-source
 
 That's it. It should be working fine now, but from the `vendor/vendor-name/package-name` directory. You can `cd vendor/vendor-name/package-name` and you'll see that you can `git checkout master`, make changes, tag releases, push to GitHub, everything.
 
-
-<a name="feedback-and-promotion"></a>
 ### Feedback and Promotion
 
 Congratulations on your new Backpack addon! 
