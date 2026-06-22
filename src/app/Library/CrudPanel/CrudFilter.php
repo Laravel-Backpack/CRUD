@@ -39,6 +39,10 @@ class CrudFilter
 
     public $applied = false;
 
+    public $showFilterValues; // whether to show this filter's value as a badge (null = inherit from parent)
+    
+    public $filterValuesLabel; // custom label template with :value placeholder
+
     public function __construct($options, $values, $logic, $fallbackLogic)
     {
         if (! backpack_pro()) {
@@ -64,6 +68,8 @@ class CrudFilter
             $this->options = $options;
             $this->logic = $logic;
             $this->fallbackLogic = $fallbackLogic;
+            $this->showFilterValues = $options['showFilterValues'] ?? null;
+            $this->filterValuesLabel = $options['filterValuesLabel'] ?? null;
         }
 
         if (request()->has($this->name)) {
@@ -358,6 +364,34 @@ class CrudFilter
     public function viewNamespace($value)
     {
         $this->viewNamespace = $value;
+
+        return $this->save();
+    }
+
+    /**
+     * Show or hide this filter's value badge. Overrides any parent setting.
+     *
+     * @param  bool  $value  True to show, false to hide.
+     * @return CrudFilter
+     */
+    public function showFilterValues($value = true)
+    {
+        $this->showFilterValues = $value;
+
+        return $this->save();
+    }
+
+    /**
+     * Set a custom label template for the filter value badge.
+     * Use ':value' as a placeholder for the filter's current value.
+     * Example: 'Category: :value' or ':value selected'
+     *
+     * @param  string  $value  Label template with :value placeholder.
+     * @return CrudFilter
+     */
+    public function filterValuesLabel($value)
+    {
+        $this->filterValuesLabel = $value;
 
         return $this->save();
     }

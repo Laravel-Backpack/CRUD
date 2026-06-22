@@ -83,4 +83,8 @@ return [
     // when list operation load the information from database, should Backpack eager load the relations ?
     // this setting is enabled by default as it reduces the amount of queries required to load the page
     'eagerLoadRelationships' => true,
+
+    // Show active filter values as badges/chips below the filter navbar?
+    // Can be overridden per datatable, per filters_navbar include, or per filter.
+    'showFilterValues' => false,
 ];

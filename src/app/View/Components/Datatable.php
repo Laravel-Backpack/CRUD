@@ -22,6 +22,7 @@ class Datatable extends Component
         private ?\Closure $setup = null,
         private ?string $name = null,
         private ?bool $useFixedHeader = null,
+        private ?bool $showFilterValues = null,
     ) {
         // Set active controller for proper context
         CrudManager::setActiveController($controller);
@@ -105,6 +106,7 @@ class Datatable extends Component
     public function render()
     {
         $useFixedHeader = $this->useFixedHeader ?? $this->crud->getOperationSetting('useFixedHeader') ?? true;
+        $showFilterValues = $this->showFilterValues ?? $this->crud->getOperationSetting('showFilterValues') ?? false;
 
         return view('crud::components.datatable.datatable', [
             'crud' => $this->crud,
@@ -112,6 +114,7 @@ class Datatable extends Component
             'tableId' => $this->tableId,
             'datatablesUrl' => url($this->crud->get('list.datatablesUrl')),
             'useFixedHeader' => $useFixedHeader,
+            'showFilterValues' => $showFilterValues,
         ]);
     }
 }

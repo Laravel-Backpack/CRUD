@@ -1469,9 +1469,19 @@ function updateDatatablesOnFilterChange(filterName, filterValue, shouldUpdateUrl
     // Set the new URL for the table
     table.ajax.url(newUrl);
     
-    // Update the browser URL if needed - use browser URL, not AJAX URL
+    // Update the browser URL if needed - use navbar's data-filter-params as source of truth
+    // so that accumulated state from multiple events (e.g. select2_ajax) is included
     if (shouldUpdateUrl) {
-        let browserUrl = addOrUpdateUriParameter(window.location.href, filterName, filterValue);
+        var browserUrl;
+        var navbar = document.querySelector('.navbar-filters[data-component-id="' + tableId + '"]');
+        if (navbar) {
+            var accumulatedParams = new URLSearchParams(navbar.getAttribute('data-filter-params') || '');
+            var paramsObj = {};
+            accumulatedParams.forEach(function(value, key) { paramsObj[key] = value; });
+            browserUrl = addOrUpdateUriParameter(window.location.href, paramsObj);
+        } else {
+            browserUrl = addOrUpdateUriParameter(window.location.href, filterName, filterValue);
+        }
         tableConfig.updateUrl(browserUrl);
     }
     

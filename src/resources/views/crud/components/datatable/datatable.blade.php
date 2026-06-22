@@ -68,7 +68,7 @@
 
 {{-- Backpack List Filters --}}
 @if ($crud->filtersEnabled())
-  @include('crud::inc.filters_navbar', ['componentId' => $tableId])
+  @include('crud::inc.filters_navbar', ['componentId' => $tableId, 'showFilterValues' => $showFilterValues ?? false])
 @endif
 <div class="{{ backpack_theme_config('classes.tableWrapper') }}">
   <table

@@ -24,6 +24,16 @@
         </ul>
     </div>{{-- /.navbar-collapse --}}
 </nav>
+
+@php
+    $showFilterValues = $showFilterValues ?? config('backpack.operations.list.showFilterValues', false);
+@endphp
+
+<div class="active-filter-badges d-flex flex-wrap align-items-center gap-1 px-3 pb-2"
+     id="filter-badges-{{ $componentId ?? '' }}"
+     data-show-filter-values-default="{{ var_export($showFilterValues, true) }}"
+     style="display:none;">
+</div>
   
 @push('after_scripts')
     @basset('https://cdn.jsdelivr.net/npm/urijs@1.19.11/src/URI.min.js')
@@ -38,12 +48,26 @@
                 new_url.removeQuery('persistent-table');
             }
 
-            if (new_url.hasQuery(parameter)) {
-                new_url.removeQuery(parameter);
-            }
-
-            if (value !== '' && value != null) {
-                new_url = new_url.addQuery(parameter, value);
+            // When parameter is an object, treat it as {key: value} pairs to add/update all at once.
+            // Otherwise fall back to the original single-parameter behavior.
+            if (typeof parameter === 'object' && parameter !== null) {
+                for (var key in parameter) {
+                    if (!parameter.hasOwnProperty(key)) continue;
+                    var val = parameter[key];
+                    if (new_url.hasQuery(key)) {
+                        new_url.removeQuery(key);
+                    }
+                    if (val !== '' && val != null) {
+                        new_url = new_url.addQuery(key, val);
+                    }
+                }
+            } else {
+                if (new_url.hasQuery(parameter)) {
+                    new_url.removeQuery(parameter);
+                }
+                if (value !== '' && value != null) {
+                    new_url = new_url.addQuery(parameter, value);
+                }
             }
 
             // Update all remove filter buttons visibility
@@ -52,6 +76,142 @@
             });
 
             return new_url.normalizeQuery().toString();
+        }
+    }
+
+    /**
+     * Get a human-readable display value for a filter's current value.
+     */
+    if(typeof getFilterDisplayValue !== 'function') {
+        function getFilterDisplayValue(filter, rawValue, filterName) {
+            var filterType = filter.getAttribute('filter-type');
+            var filterOptions = {};
+
+            // If the filter has a data-display-filter-attribute-name, use that key
+            // to look up the display value in data-filter-params. This allows filters
+            // like select2_ajax to show the human-readable text instead of the raw ID.
+            var displayAttribute = filter.getAttribute('data-display-filter-attribute-name');
+            if (displayAttribute) {
+                var displayNavbar = filter.closest('.navbar-filters');
+                if (displayNavbar) {
+                    var displayParams = new URLSearchParams(displayNavbar.getAttribute('data-filter-params') || '');
+                    var displayValue = displayParams.get(displayAttribute);
+                    if (displayValue) return displayValue;
+                }
+            }
+
+            try {
+                filterOptions = JSON.parse(filter.getAttribute('data-filter-options') || '{}');
+            } catch(e) {}
+
+            switch(filterType) {
+                case 'text':
+                case 'date':
+                case 'view':
+                    return rawValue;
+                case 'dropdown':
+                case 'select2':
+                    return filterOptions[rawValue] || rawValue;
+                case 'select2_multiple':
+                    try {
+                        var values = JSON.parse(rawValue);
+                        return values.map(function(v) { return filterOptions[v] || v; }).join(', ');
+                    } catch(e) {
+                        return rawValue;
+                    }
+                case 'date_range':
+                    try {
+                        var dates = JSON.parse(rawValue);
+                        return (dates.from || '') + ' \u2192 ' + (dates.to || '');
+                    } catch(e) {
+                        return rawValue;
+                    }
+                case 'range':
+                    try {
+                        var range = JSON.parse(rawValue);
+                        return (range.from || '') + ' \u2192 ' + (range.to || '');
+                    } catch(e) {
+                        return rawValue;
+                    }
+                case 'simple':
+                case 'trashed':
+                    return '';
+                default:
+                    return rawValue;
+            }
+        }
+    }
+
+    /**
+     * Sync the active filter badges below the navbar from data-filter-params.
+     */
+    if(typeof syncFilterBadges !== 'function') {
+        function syncFilterBadges(navbar) {
+            var badgesContainer = document.getElementById('filter-badges-' + (navbar.getAttribute('data-component-id') || ''));
+            if (!badgesContainer) return;
+
+            var params = new URLSearchParams(navbar.getAttribute('data-filter-params') || '');
+            var filters = navbar.querySelectorAll('li[filter-name]');
+            var html = '';
+            // Default from the navbar-level setting (on the badges container)
+            var defaultShow = badgesContainer.getAttribute('data-show-filter-values-default') === 'true';
+
+            filters.forEach(function(filter) {
+                var filterName = filter.getAttribute('filter-name');
+                if (!params.has(filterName)) return;
+
+                // Check per-filter showFilterValues; if absent (NULL/empty), inherit from default
+                var filterShow = filter.getAttribute('data-show-filter-values');
+                if (filterShow === 'false') return;
+                if (filterShow !== 'true' && !defaultShow) return;
+
+                var rawValue = params.get(filterName);
+                var displayValue = getFilterDisplayValue(filter, rawValue, filterName);
+                var label = filter.querySelector('a') ? filter.querySelector('a').textContent.trim().replace(/\s*\u25BE\s*$/, '') : filterName;
+
+                // Use custom label template if set
+                var labelTemplate = filter.getAttribute('data-filter-values-label');
+                if (labelTemplate && displayValue) {
+                    label = labelTemplate.replace(':value', displayValue);
+                } else {
+                    label = displayValue ? label + ': ' + displayValue : label;
+                }
+
+                html += '<span class="filter-badge me-1 mb-1" data-filter-name="' + filterName + '">'
+                    + label
+                    + ' <button type="button" class="filter-badge-close" aria-label="Remove ' + label + ' filter">&times;</button>'
+                    + '</span>';
+            });
+
+            badgesContainer.innerHTML = html;
+            badgesContainer.style.display = html ? '' : 'none';
+
+            // Wire up badge dismiss buttons
+            badgesContainer.querySelectorAll('.filter-badge button').forEach(function(btn) {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    var badge = btn.closest('.filter-badge');
+                    var filterName = badge.getAttribute('data-filter-name');
+                    var filter = navbar.querySelector('li[filter-name="' + filterName + '"]');
+                    if (filter) {
+                        // Clear the filter via its own event so the UI resets
+                        filter.dispatchEvent(new CustomEvent('backpack:filter:clear'));
+
+                        // Dispatch changed event with null value to trigger table refresh
+                        // The global backpack:filter:changed handler will update data-filter-params and sync badges
+                        document.dispatchEvent(new CustomEvent('backpack:filter:changed', {
+                            detail: {
+                                filterName: filterName,
+                                filterValue: null,
+                                shouldUpdateUrl: true,
+                                debounce: filter.getAttribute('filter-debounce') || 0,
+                                componentId: navbar.getAttribute('data-component-id') || '',
+                            }
+                        }));
+                    }
+                });
+            });
         }
     }
 
@@ -133,13 +293,16 @@
     }
 
     // Each filter navbar stores its own filter state in a `data-filter-params` attribute.
-    // This is the source of truth for consumers (e.g. report scripts) — they read from
-    // the navbar DOM element, not the browser URL. This supports future scenarios with
+    // This is the source of truth for consumers (e.g. report scripts, badges) — they read from
+    // the navbar DOM element, not the browser URL. This supports scenarios with
     // multiple independent filter navbars on the same page.
-    // When there is only one navbar, the browser URL is also kept in sync as a convenience
-    // (bookmarkable URLs, shareable links).
+    // When there is only one navbar and shouldUpdateUrl is true, the browser URL is also kept
+    // in sync as a convenience (bookmarkable URLs, shareable links).
+    // The URL is built from the accumulated data-filter-params (not the single event param)
+    // so filters that dispatch multiple events (e.g. select2_ajax) result in a single URL update
+    // containing all params.
     document.addEventListener('backpack:filter:changed', function(event) {
-        if (!event.detail || !event.detail.shouldUpdateUrl) return;
+        if (!event.detail) return;
 
         // Find the navbar that owns this filter
         var componentId = event.detail.componentId || '';
@@ -149,7 +312,8 @@
 
         if (!navbar) return;
 
-        // Update the navbar's stored filter state
+        // Always update the navbar's stored filter state (source of truth),
+        // regardless of shouldUpdateUrl, so that accumulated state is available
         var params = new URLSearchParams(navbar.getAttribute('data-filter-params') || '');
         if (event.detail.filterValue !== '' && event.detail.filterValue != null) {
             params.set(event.detail.filterName, event.detail.filterValue);
@@ -158,9 +322,17 @@
         }
         navbar.setAttribute('data-filter-params', params.toString());
 
-        // Mirror to the browser URL only when there is a single filter navbar
-        if (document.querySelectorAll('.navbar-filters').length <= 1) {
-            var newUrl = addOrUpdateUriParameter(window.location.href, event.detail.filterName, event.detail.filterValue);
+        // Sync the active filter badges
+        syncFilterBadges(navbar);
+
+        // Mirror to the browser URL only when shouldUpdateUrl is true AND there is a single filter navbar.
+        // Build the URL from the navbar's accumulated data-filter-params so that all params
+        // are included in a single URL update, even when multiple events contributed to the state.
+        if (event.detail.shouldUpdateUrl && document.querySelectorAll('.navbar-filters').length <= 1) {
+            var accumulatedParams = new URLSearchParams(navbar.getAttribute('data-filter-params') || '');
+            var paramsObj = {};
+            accumulatedParams.forEach(function(value, key) { paramsObj[key] = value; });
+            var newUrl = addOrUpdateUriParameter(window.location.href, paramsObj);
             window.history.replaceState({}, '', newUrl);
         }
     });
@@ -194,8 +366,16 @@
                 if (urlParams.has(filterName)) {
                     navbarParams.set(filterName, urlParams.get(filterName));
                 }
+                // Also seed any display attribute (e.g. category_text for select2_ajax filters)
+                var displayAttr = filter.getAttribute('data-display-filter-attribute-name');
+                if (displayAttr && urlParams.has(displayAttr)) {
+                    navbarParams.set(displayAttr, urlParams.get(displayAttr));
+                }
             });
             navbar.setAttribute('data-filter-params', navbarParams.toString());
+
+            // Sync badges on initial load
+            syncFilterBadges(navbar);
 
             // Add event listener only once per navbar to avoid duplication
             if (!navbar.hasAttribute('data-filter-events-bound')) {
@@ -306,6 +486,10 @@
 
                     // 2. Clear the navbar's stored filter state and clean the browser URL
                     navbar.setAttribute('data-filter-params', '');
+
+                    // Sync badges after clearing all filters
+                    syncFilterBadges(navbar);
+
                     if (document.querySelectorAll('.navbar-filters').length <= 1) {
                         let cleanUrl = URI(window.location.href).search('').toString();
                         if (window.crud && typeof window.crud.updateUrl === 'function') {
@@ -348,6 +532,9 @@
                     if (anyActiveFilters === false) {
                         removeFiltersButton?.classList.add('invisible');
                     }
+
+                    // Sync badges when individual filter is cleared
+                    syncFilterBadges(navbar);
                 });
             });
         });
