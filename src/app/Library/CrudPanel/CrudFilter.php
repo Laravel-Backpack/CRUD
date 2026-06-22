@@ -40,7 +40,7 @@ class CrudFilter
     public $applied = false;
 
     public $showFilterValues; // whether to show this filter's value as a badge (null = inherit from parent)
-    
+
     public $filterValuesLabel; // custom label template with :value placeholder
 
     public function __construct($options, $values, $logic, $fallbackLogic)
@@ -384,7 +384,7 @@ class CrudFilter
     /**
      * Set a custom label template for the filter value badge.
      * Use ':value' as a placeholder for the filter's current value.
-     * Example: 'Category: :value' or ':value selected'
+     * Example: 'Category: :value' or ':value selected'.
      *
      * @param  string  $value  Label template with :value placeholder.
      * @return CrudFilter
