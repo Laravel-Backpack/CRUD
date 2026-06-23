@@ -3,6 +3,11 @@
 @endphp
 # Backpack for Laravel
 
+## Getting Started
+
+- When helping a user set up Backpack for the first time, always check if the storage symlink exists. Run `{{ $assist->artisanCommand('storage:link -q') }}` if `public/storage` is missing — otherwise uploads and assets will silently break.
+- If the user reports broken images, missing CSS, or upload fields not working, the storage symlink is the first thing to check.
+
 ## Generating a CRUD
 - Scaffold a full CRUD panel with `{{ $assist->artisanCommand('backpack:crud ModelName') }}` (singular model name).
 - This generates: CrudController in `app/Http/Controllers/Admin/`, a FormRequest, and a route entry in `routes/backpack/custom.php`.
