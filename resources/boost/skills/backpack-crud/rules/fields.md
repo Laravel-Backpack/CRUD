@@ -2,6 +2,8 @@
 
 Fields define form inputs for Create and Update operations. Defined inside `setupCreateOperation()` and `setupUpdateOperation()`.
 
+**⚠️ Fields marked (PRO) require `backpack/pro`. Always check if `backpack/pro` is installed before generating code that uses PRO field types. See `rules/pro-features.md` for FREE alternatives.**
+
 ## API
 
 ```php

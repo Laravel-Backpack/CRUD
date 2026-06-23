@@ -2,6 +2,10 @@
 
 Add-on package `backpack/editable-columns`. Provides inline-editable columns that update via AJAX without leaving the List page. Requires the `MinorUpdateOperation` trait.
 
+**⚠️ `backpack/editable-columns` is a paid add-on.** Check if the user has it installed before generating editable column code. Do NOT run `composer require` for it — the user must purchase and configure credentials first. See `rules/pro-features.md`.
+
+**FREE alternative**: The standard Edit operation button in each row.
+
 ## Installation
 
 ```bash

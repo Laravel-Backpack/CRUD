@@ -2,6 +2,10 @@
 
 Automatically generated Feature tests for CrudControllers. Requires `backpack/test-generators`.
 
+**⚠️ `backpack/test-generators` is a paid add-on.** Check if the user has it installed before suggesting `backpack:tests`. Do NOT run `composer require` for it — the user must purchase and configure credentials first. See `rules/pro-features.md`.
+
+The FREE alternative is writing Pest/PHPUnit tests manually — this file includes templates and patterns you can use.
+
 ## Setup
 
 ```bash

@@ -2,6 +2,10 @@
 
 Add-on package `backpack/dataform-modal`. Opens Create/Update forms inside a Bootstrap modal via AJAX. Provides `CreateInModalOperation` and `UpdateInModalOperation` traits.
 
+**⚠️ `backpack/dataform-modal` is a paid add-on.** Check if the user has it installed before generating modal form code. Do NOT run `composer require` for it — the user must purchase and configure credentials first. See `rules/pro-features.md`.
+
+**FREE alternative**: Standard Create/Update pages with `CreateOperation` and `UpdateOperation`.
+
 ## Installation
 
 ```bash

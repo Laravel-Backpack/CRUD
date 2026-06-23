@@ -1,5 +1,7 @@
 # Backpack CRUD — Operations
 
+**⚠️ Operations marked PRO require `backpack/pro`. Operations marked as add-ons require their respective paid packages (`backpack/editable-columns`, `backpack/dataform-modal`, `backpack/report-operation`). Check installation before generating code. See `rules/pro-features.md`.**
+
 ## Built-in Operations
 
 Enable by using the trait on your CrudController:

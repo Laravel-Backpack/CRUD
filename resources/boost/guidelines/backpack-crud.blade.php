@@ -8,6 +8,36 @@
 - When helping a user set up Backpack for the first time, always check if the storage symlink exists. Run `{{ $assist->artisanCommand('storage:link -q') }}` if `public/storage` is missing — otherwise uploads and assets will silently break.
 - If the user reports broken images, missing CSS, or upload fields not working, the storage symlink is the first thing to check.
 
+## Paid Features — Check Before Using
+
+**CRITICAL: Before generating code that uses any PRO or paid feature, check if the required package is installed.** Never assume the user has access to paid packages. If a package is missing, stop and tell the user — do NOT attempt to install it yourself.
+
+### How to check
+- Read the project's `composer.json` and look for the package in `require` or `require-dev`.
+- Or check if the vendor directory exists (e.g., `vendor/backpack/pro/composer.json`).
+
+### Paid packages and their features
+
+| Package | Provides |
+|---------|----------|
+| `backpack/pro` | PRO fields (select2, select2_from_ajax, relationship, repeatable, dropzone, etc.), PRO columns, ALL filters, FetchOperation, CloneOperation, BulkDeleteOperation, BulkCloneOperation, InlineCreateOperation, TrashOperation, AjaxUploadOperation, CustomViewOperation, chart widgets |
+| `backpack/editable-columns` | Inline editing in the List view (`MinorUpdateOperation`, `editable_text`, `editable_select`, etc.) |
+| `backpack/dataform-modal` | Modal Create/Update forms (`CreateInModalOperation`, `UpdateInModalOperation`) |
+| `backpack/devtools` | Web UI for generating migrations, models, CRUDs |
+| `backpack/report-operation` | Dashboard with stat/chart metrics per entity |
+| `backpack/test-generators` | Auto-generate tests for CrudControllers |
+| `backpack/calendar-operation` | Calendar interface for date-based entries |
+| `backpack/auto-translate` | Auto-translate content to multiple languages |
+
+### If a paid package is not installed
+Inform the user clearly:
+1. What feature they asked for requires which paid package
+2. How to purchase: `https://backpackforlaravel.com/pricing`
+3. How to set up the composer repository and credentials (link to their Backpack account for instructions)
+4. Offer a FREE alternative if one exists (e.g., use FREE `select` field instead of PRO `select2` field, FREE `upload` field instead of PRO `image` field). **There is no free alternative for filters — all filter types require `backpack/pro`. Do NOT suggest `addClause` as a filter substitute; it permanently scopes the query and is not toggleable.**
+
+**Never** run `composer require` for paid packages. The user must set up authentication credentials themselves.
+
 ## Generating a CRUD
 - Scaffold a full CRUD panel with `{{ $assist->artisanCommand('backpack:crud ModelName') }}` (singular model name).
 - This generates: CrudController in `app/Http/Controllers/Admin/`, a FormRequest, and a route entry in `routes/backpack/custom.php`.
@@ -61,9 +91,10 @@
 - FREE traits: ListOperation, CreateOperation, UpdateOperation, ShowOperation, DeleteOperation, ReorderOperation.
 - PRO traits (in crud, require backpack/pro): CloneOperation, BulkDeleteOperation, BulkCloneOperation, FetchOperation, InlineCreateOperation.
 - PRO-only traits (in backpack/pro): TrashOperation, BulkTrashOperation, CustomViewOperation, AjaxUploadOperation.
-- Add-on traits: ReportOperation, MinorUpdateOperation (EditableColumns), CreateInModalOperation, UpdateInModalOperation (DataFormModal).
+- Add-on traits (require separate paid packages): ReportOperation (backpack/report-operation), MinorUpdateOperation (backpack/editable-columns), CreateInModalOperation + UpdateInModalOperation (backpack/dataform-modal).
 - Each operation has: `setupXxxOperation()` for config, `setupXxxRoutes()` for routes, `setupXxxDefaults()` for defaults.
 - Custom operations: `{{ $assist->artisanCommand('backpack:operation OperationName') }}`.
+- **Before using any PRO or add-on operation trait, check the Paid Features section above.**
 
 ## Fetch Operation (PRO)
 - The Fetch Operation is the recommended way to build AJAX data endpoints for `select2_from_ajax`, `select2_from_ajax_multiple`, and `relationship` fields. Use it instead of creating separate API controllers.
@@ -95,14 +126,14 @@
 - `spatie/laravel-translatable` is a separate composer package.
 
 ## Ecosystem Packages (first-party Backpack add-ons)
-- `backpack/pro` — 28+ fields, 10+ filters, 5 extra operations (Clone, BulkDelete, BulkClone, InlineCreate, Fetch), chart widgets.
+- `backpack/pro` — 28+ fields, 10+ filters, 5 extra operations (Clone, BulkDelete, BulkClone, InlineCreate, Fetch), chart widgets. **Paid.**
 - `backpack/permissionmanager` — CRUD interface for users, roles, permissions (spatie/laravel-permission based). Free.
-- `backpack/editable-columns` — inline editing of columns in List view. Paid.
-- `backpack/dataform-modal` — Create/Update forms in Bootstrap modals. Paid.
-- `backpack/report-operation` — dashboard with stat/chart metrics per entity. Paid.
-- `backpack/devtools` — web interface for generating migrations, models, CRUDs. Paid.
-- `backpack/test-generators` — auto-generate tests for CrudControllers. Paid.
-- `backpack/calendar-operation` — calendar interface for date-based entries. Paid.
+- `backpack/editable-columns` — inline editing of columns in List view. **Paid.**
+- `backpack/dataform-modal` — Create/Update forms in Bootstrap modals. **Paid.**
+- `backpack/report-operation` — dashboard with stat/chart metrics per entity. **Paid.**
+- `backpack/devtools` — web interface for generating migrations, models, CRUDs. **Paid.**
+- `backpack/test-generators` — auto-generate tests for CrudControllers. **Paid.**
+- `backpack/calendar-operation` — calendar interface for date-based entries. **Paid.**
 - `backpack/translation-manager` — UI to translate multi-language apps. Free.
 - `backpack/settings` — interface for website settings stored as config. Free.
 - `backpack/pagemanager` — admin panel for presentation pages with templates. Free.
@@ -114,7 +145,7 @@
 - `backpack/logmanager` — preview, download, delete Laravel logs. Free.
 - `backpack/backupmanager` — database and file backups via spatie/laravel-backup. Free.
 - `backpack/revise-operation` — audit log with undo via venturecraft/revisionable. Free.
-- `backpack/auto-translate` — auto-translate content to multiple languages. Paid.
+- `backpack/auto-translate` — auto-translate content to multiple languages. **Paid.**
 - Temp file cleanup (PRO): schedule `backpack:purge-temporary-folder` daily.
 
 ## Queries & Access Control
@@ -141,10 +172,11 @@
 - Custom: extend AbstractSaveAction, implement `order()` and `getActionButtonHtml()`.
 
 ## Testing
-- Package: `composer require --dev backpack/test-generators`.
+- Package: `backpack/test-generators` is a **paid add-on**. Check if installed before suggesting `backpack:tests`.
 - Generate: `{{ $assist->artisanCommand('backpack:tests') }}`.
 - Status: `{{ $assist->artisanCommand('backpack:tests:status') }}`.
 - Options: `--controller=Name`, `--operation=list`, `--framework=pest|phpunit`, `--force`.
+- FREE alternative: Write Pest/PHPUnit tests manually — `rules/testing.md` has templates and examples.
 - Requires factories and seeders for models with CrudControllers.
 - Customize stubs: `php artisan vendor:publish --provider="Backpack\CRUD\BackpackServiceProvider" --tag=stubs`.
 
