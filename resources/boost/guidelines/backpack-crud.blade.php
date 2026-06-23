@@ -86,6 +86,16 @@ Inform the user clearly:
 - Order: `CRUD::orderButtons('line', ['edit', 'delete'])`.
 - Remove: `CRUD::removeButton('name')`, `CRUD::removeAllButtons()`.
 - Per-entry access: `CRUD::button('name')->stack('line')->view('...')->setAccessCondition(fn($entry) => $entry->user_id === backpack_user()->id)`.
+- **Line buttons as dropdown**: Group line buttons into a dropdown when there are many. Enable with `CRUD::setOperationSetting('lineButtonsAsDropdown', true)`. Control minimum count with `lineButtonsAsDropdownMinimum` (default: 1) and show first N inline with `lineButtonsAsDropdownShowBefore` (default: 0).
+
+## List Operation
+- **Line buttons as dropdown**: See Buttons section above.
+- **Export buttons**: `CRUD::enableExportButtons()`. Control per-column with `visibleInExport`, `exportOnlyColumn`.
+- **Responsive table**: `CRUD::setOperationSetting('responsiveTable', true)`.
+- **Persistent table**: `CRUD::setPersistentTable(true)` — saves filters, sorting, page length across visits.
+- **Details row**: `CRUD::enableDetailsRow()` then `Widget::add()->to('details_row')...`.
+- **Custom views**: `CRUD::setListView('path.to.view')`, `CRUD::setCreateView()`, `CRUD::setEditView()`.
+- **Page length**: `CRUD::setDefaultPageLength(25)`. Options: `CRUD::setPageLengthMenu([10, 25, 50, 100])`.
 
 ## Operations
 - FREE traits: ListOperation, CreateOperation, UpdateOperation, ShowOperation, DeleteOperation, ReorderOperation.

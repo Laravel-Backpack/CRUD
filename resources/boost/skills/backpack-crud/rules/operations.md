@@ -60,10 +60,10 @@ CRUD::setOperationSetting('someKey', 'value');
 
 ### List Operation
 - **Details row**: `CRUD::enableDetailsRow()` then `Widget::add()->to('details_row')...`. Override view with `CRUD::setDetailsRowView('view.name')`.
-- **Export buttons (PRO)**: `CRUD::enableExportButtons()`. Control per-column with `visibleInExport`, `exportOnlyColumn`.
+- **Export buttons**: `CRUD::enableExportButtons()`. Control per-column with `visibleInExport`, `exportOnlyColumn`.
 - **Responsive table**: `CRUD::setOperationSetting('responsiveTable', true)`.
 - **Persistent table**: `CRUD::setPersistentTable(true)` — saves filters, sorting, page length.
-- **Custom views (PRO)**: `CRUD::setListView('path.to.view')`, `CRUD::setCreateView()`, `CRUD::setEditView()`.
+- **Custom views**: `CRUD::setListView('path.to.view')`, `CRUD::setCreateView()`, `CRUD::setEditView()`.
 - **Line buttons as dropdown**: `CRUD::setOperationSetting('lineButtonsAsDropdown', true)`. Thresholds: `lineButtonsAsDropdownMinimum`, `lineButtonsAsDropdownShowBefore`.
 - **Page length**: `CRUD::setDefaultPageLength(25)`. Options: `CRUD::setPageLengthMenu([10, 25, 50, 100])`.
 
