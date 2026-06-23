@@ -44,16 +44,22 @@ class SearchBackpackDocs extends Tool
             return 'Backpack documentation files not found.';
         }
 
+        // v2: section-extraction with content-optimized ranking
         $results = [];
         $totalChars = 0;
         $charLimit = $tokenLimit * 4; // rough chars-per-token estimate
+        $maxFiles = 10;
 
         $relevantFiles = $this->findRelevantFiles($docsPath, $queries);
 
         foreach ($relevantFiles as $file) {
-            $content = file_get_contents($file);
+            if (count($results) >= $maxFiles) {
+                break;
+            }
 
-            if ($content === false) {
+            $content = $this->extractRelevantSections($file, $queries);
+
+            if ($content === '') {
                 continue;
             }
 
@@ -61,7 +67,8 @@ class SearchBackpackDocs extends Tool
                 break;
             }
 
-            $results[] = $content;
+            $fileName = str_replace([$docsPath.DIRECTORY_SEPARATOR, '.md', DIRECTORY_SEPARATOR], ['', '', ' › '], $file);
+            $results[] = "## {$fileName}\n\n{$content}";
             $totalChars += strlen($content);
         }
 
@@ -70,6 +77,68 @@ class SearchBackpackDocs extends Tool
         }
 
         return implode("\n\n---\n\n", $results);
+    }
+
+    /**
+     * Extract sections from a markdown file that are relevant to the queries.
+     * Returns the heading + content of matching sections, or the first portion
+     * of the file if no specific sections match.
+     */
+    private function extractRelevantSections(string $filePath, array $queries): string
+    {
+        $raw = file_get_contents($filePath);
+
+        if ($raw === false) {
+            return '';
+        }
+
+        $words = [];
+
+        foreach ($queries as $q) {
+            $words = array_merge($words, preg_split('/[\s\-_]+/', strtolower((string) $q), -1, PREG_SPLIT_NO_EMPTY) ?: []);
+        }
+
+        $words = array_unique(array_filter($words, fn ($w) => strlen($w) >= 3));
+
+        if ($words === []) {
+            return $raw;
+        }
+
+        // Split on all heading levels (## through ######)
+        $sections = preg_split('/(?=^#{2,6} )/m', $raw);
+        $matching = [];
+        $intro = '';
+
+        foreach ($sections as $section) {
+            $lower = strtolower($section);
+            $hits = 0;
+
+            foreach ($words as $word) {
+                $hits += substr_count($lower, $word);
+            }
+
+            if ($hits >= 3) {
+                $matching[] = trim($section);
+            } elseif ($intro === '' && ! str_starts_with(trim($section), '#')) {
+                // Capture the intro/title portion (content before first heading)
+                $intro = trim($section);
+            }
+        }
+
+        // Prepend the intro (title + first paragraph) if there is one
+        if ($intro !== '' && $intro !== '0') {
+            array_unshift($matching, $intro);
+        }
+
+        // If too many sections matched, limit to avoid overwhelming
+        $maxSections = 6;
+
+        if (count($matching) > $maxSections) {
+            $matching = array_slice($matching, 0, $maxSections);
+            $matching[] = '*(additional matching sections omitted — refine your query for more specific results)*';
+        }
+
+        return implode("\n\n", $matching);
     }
 
     /**
@@ -114,13 +183,10 @@ class SearchBackpackDocs extends Tool
      *
      * Scoring strategy:
      *  - +3000 per query word that exactly matches the file basename
-     *          (e.g. "create" → operations/create.md beats inline-create.md)
      *  - +2000 per query word that exactly matches a path segment
      *  - +500  per query word that is a substring of any segment
-     *  - For files that score on path, content word frequency is added
-     *  - Root-level files (no subdir) also get a light content-only pass
-     *          (threshold ≥5 hits) so conceptual files like crud-testing.md
-     *          still surface for queries whose words aren't in the filename
+     *  - +5× per content word occurrence (applied to ALL files)
+     *  - Top 10 files returned with relevant sections extracted
      *
      * @return string[]
      */
@@ -133,8 +199,6 @@ class SearchBackpackDocs extends Tool
             $key = $this->scoringKey($file, $docsPath);
             $basename = strtolower(basename($file, '.md'));
             $segments = preg_split('/[-]+/', $key, -1, PREG_SPLIT_NO_EMPTY) ?: [];
-            // Is this file directly in the docs root (no subdir)?
-            $isRoot = dirname($file) === $docsPath;
             $score = 0;
 
             foreach ($queries as $rawQuery) {
@@ -155,39 +219,20 @@ class SearchBackpackDocs extends Tool
                 }
             }
 
-            // For files that scored on path, also add content frequency
-            if ($score > 0) {
-                $content = strtolower(file_get_contents($file) ?: '');
+            // Content frequency bonus — applied to ALL files.
+            // Weighted so content relevance competes with filename matches
+            // without letting common words in large files dominate.
+            $content = strtolower(file_get_contents($file) ?: '');
 
-                foreach ($queries as $rawQuery) {
-                    $words = preg_split('/[\s\-_]+/', strtolower((string) $rawQuery), -1, PREG_SPLIT_NO_EMPTY) ?: [];
+            foreach ($queries as $rawQuery) {
+                $words = preg_split('/[\s\-_]+/', strtolower((string) $rawQuery), -1, PREG_SPLIT_NO_EMPTY) ?: [];
 
-                    foreach ($words as $word) {
-                        if (strlen($word) < 3) {
-                            continue;
-                        }
-
-                        $score += substr_count($content, $word);
+                foreach ($words as $word) {
+                    if (strlen($word) < 3) {
+                        continue;
                     }
-                }
-            }
 
-            // Light content-only pass for root files that got no path score.
-            // Subdirectory files are skipped — their paths are descriptive enough.
-            if ($score === 0 && $isRoot) {
-                $content = strtolower(file_get_contents($file) ?: '');
-
-                foreach ($queries as $rawQuery) {
-                    $words = preg_split('/[\s\-_]+/', strtolower((string) $rawQuery), -1, PREG_SPLIT_NO_EMPTY) ?: [];
-
-                    foreach ($words as $word) {
-                        if (strlen($word) < 3) {
-                            continue;
-                        }
-
-                        $hits = substr_count($content, $word);
-                        $score += $hits >= 5 ? $hits : 0;
-                    }
+                    $score += substr_count($content, $word) * 5;
                 }
             }
 
