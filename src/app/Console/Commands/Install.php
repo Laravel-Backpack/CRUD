@@ -132,6 +132,9 @@ class Install extends Command
 
             // Addons
             $this->installAddons();
+
+            // Offer Boost MCP guidelines installation
+            $this->offerBoostInstallation();
         }
 
         //execute basset checks
@@ -304,6 +307,32 @@ class Install extends Command
             $this->line('  ──────────', 'fg=gray');
             $this->newLine();
         }
+    }
+
+    private function offerBoostInstallation()
+    {
+        if (! $this->isBoostInstalled()) {
+            return;
+        }
+
+        $this->newLine();
+        $this->infoBlock('Laravel Boost detected.', 'AI Boost');
+
+        if (! $this->confirm('Would you like to add Backpack AI guidelines and skills to the Boost MCP server?', true)) {
+            $this->note('You can add them later by running <fg=blue>php artisan boost:install</>.');
+
+            return;
+        }
+
+        $this->note('Launching Boost installer. Select <fg=blue>backpack/crud</> when prompted for third-party packages.');
+        $this->newLine();
+
+        $this->call('boost:install');
+    }
+
+    private function isBoostInstalled(): bool
+    {
+        return class_exists(\Laravel\Boost\BoostServiceProvider::class);
     }
 
     private function isAnyThemeInstalled()
