@@ -11,6 +11,8 @@
 
 <{{ $widget['wrapper']['element'] ?? 'div' }}
 @foreach(Arr::where($widget['wrapper'],function($value, $key) { return $key != 'element'; }) as $element => $value)
+    @if($value !== false && $element === 'href')
     {{$element}}="{{$value}}"
+    @endif
 @endforeach
 >
