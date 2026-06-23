@@ -123,10 +123,10 @@ CRUD::setOperationSetting('someKey', 'value');
 - Set `protected $identifiableName = 'name'` on model for revision display.
 
 ### Fetch Operation (PRO)
-- Used by `select2_from_ajax` fields for AJAX search.
-- `use FetchOperation` on the **target** model's CrudController.
-- Custom search: `CRUD::setOperationSetting('fetch_security_guard', fn($q) => ...)`.
-- Override `setupFetchOperation()` to configure fetch behavior.
+- Used by `select2_from_ajax`, `select2_from_ajax_multiple`, and `relationship` fields for AJAX search.
+- This is the recommended way to build data endpoints directly in your CrudController.
+- See `rules/fetch.md` for full documentation covering: basic setup, field integration, filter integration, security guard, and customization.
+- Quick reference for the Operations skill: `use FetchOperation` on the **target** model's CrudController. Define `fetchEntity()` methods matching the naming convention (`fetchTag()` for entity `tag`).
 
 ### InlineCreate Operation (PRO)
 - Opens a modal on the List/Create page to create a related entry inline.

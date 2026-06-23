@@ -65,6 +65,16 @@
 - Each operation has: `setupXxxOperation()` for config, `setupXxxRoutes()` for routes, `setupXxxDefaults()` for defaults.
 - Custom operations: `{{ $assist->artisanCommand('backpack:operation OperationName') }}`.
 
+## Fetch Operation (PRO)
+- The Fetch Operation is the recommended way to build AJAX data endpoints for `select2_from_ajax`, `select2_from_ajax_multiple`, and `relationship` fields. Use it instead of creating separate API controllers.
+- Add `use FetchOperation` on the **target** model's CrudController (the model being fetched, not the model with the field).
+- Define methods following the naming convention `fetchEntity()`: `fetchTag()` for entity `tag`, `fetchCategory()` for entity `category`.
+- Always define a `query` closure to activate the save-time security guard and scope results: `'query' => fn($model) => $model->active()`.
+- For select2_ajax filters using FetchOperation, the filter method **must** be `'method' => 'POST'`.
+- Use `'relation_options_query_source' => 'fetchMethodName'` when `data_source` is set manually and the field entity doesn't match the fetch method name.
+- For fully custom endpoints (no FetchOperation), declare the guard with `'relation_options_query' => fn($model) => ...`.
+- Prefer explicit `searchable_attributes` over auto-detection. Set to `[]` when using raw SQL searching in the query closure.
+
 ## Uploaders
 - Add `->withFiles()` to upload fields for automatic file handling (upload, storage, retrieval, deletion).
 - FREE uploaders: `SingleFile` (upload), `MultipleFiles` (upload_multiple), `SingleBase64Image` (image).

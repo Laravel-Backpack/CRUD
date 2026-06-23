@@ -33,6 +33,7 @@ Activate this skill for any Backpack CRUD task.
 - **Filters (List)** → `rules/filters.md`
 - **Operations (built-in & custom)** → `rules/operations.md`
 - **Buttons** → `rules/buttons.md`
+- **Fetch Operation (AJAX data endpoints)** → `rules/fetch.md`
 - **Widgets** → `rules/widgets.md`
 - **Save Actions** → `rules/save-actions.md`
 - **Chips** → `rules/chips.md`
