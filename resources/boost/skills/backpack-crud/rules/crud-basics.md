@@ -3,22 +3,31 @@
 ## Generating a CRUD
 
 ```bash
-php artisan backpack:crud tag   # singular model name
+php artisan backpack:crud Tag   # singular model name
+php artisan backpack:crud Tag --no-interaction
 ```
 
-This generates:
-- `app/Http/Controllers/Admin/TagCrudController.php`
-- `app/Http/Requests/TagCrudRequest.php`
-- A route entry in `routes/backpack/custom.php`
-- A menu item in `resources/views/vendor/backpack/ui/inc/menu_items.blade.php`
+Generates: `CrudController` in `app/Http/Controllers/Admin/`, `FormRequest`, route in `routes/backpack/custom.php`, menu item.
 
-The model must already exist (or be created separately). The model must `use \Backpack\CRUD\app\Models\Traits\CrudTrait`.
+## Model Requirements
+
+```php
+use Backpack\CRUD\app\Models\Traits\CrudTrait;
+
+class Tag extends Model
+{
+    use CrudTrait;
+
+    protected $fillable = ['name', 'slug', 'description'];
+}
+```
+
+CrudTrait enables: `identifiableAttribute()`, admin panel links, activity log support, and Backpack model accessors.
 
 ## Minimal CrudController
 
 ```php
 <?php
-
 namespace App\Http\Controllers\Admin;
 
 use Backpack\CRUD\app\Http\Controllers\CrudController;
@@ -48,6 +57,65 @@ class TagCrudController extends CrudController
     {
         CRUD::setValidation(\App\Http\Requests\TagCrudRequest::class);
         CRUD::field('name');
+    }
+}
+```
+
+## Nested Resources
+
+For routes like `/owner/{owner}/pets`:
+
+```php
+public function setup()
+{
+    CRUD::setRoute(config('backpack.base.route_prefix') . '/owner/' . request()->owner . '/pets');
+    // or use route parameters:
+    // CRUD::setRoute(config('backpack.base.route_prefix') . '/owner/{owner}/pets');
+}
+```
+
+## Access Control
+
+```php
+// In setup():
+CRUD::allowAccess(['list', 'create', 'update']);
+CRUD::denyAccess('delete');
+CRUD::hasAccess('update'); // check
+
+// Per-entry access:
+CRUD::setAccessCondition('update', function ($entry) {
+    return $entry->user_id === backpack_user()->id;
+});
+```
+
+## Custom Queries
+
+```php
+// Eager loading — avoid N+1:
+CRUD::with(['category', 'tags', 'author']);
+
+// Query scoping — add conditions to all DataTable queries:
+CRUD::addClause('where', 'active', true);
+CRUD::addClause('orderBy', 'created_at', 'desc');
+
+// Base clause — permanent, not reset by Reset button:
+CRUD::addBaseClause('where', 'deleted_at', null);
+```
+
+## Getting the Current Entry
+
+```php
+$id = request()->route()->parameter('id');
+$entry = CRUD::getEntry($id);
+$entry = CRUD::getCurrentEntry(); // current operation's entry
+```
+
+## Gotchas
+- `setup()` runs on every request. Use `setupListOperation()` / `setupCreateOperation()` for operation-specific config.
+- The model must use `CrudTrait`.
+- Route parameters must match what's defined in `setRoute()`.
+- For access control, `denyAccess()` in `setup()` prevents the route from being registered.
+- `addClause()` is a passthrough to Eloquent query builder — any valid Eloquent method works.
     }
 
     protected function setupUpdateOperation()
