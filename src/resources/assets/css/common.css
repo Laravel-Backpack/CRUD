@@ -28,6 +28,14 @@
     --bp-range-bubble-bg: #7c69ef;
     --bp-range-bubble-color: #fff;
     --bp-range-label-color: #6c757d;
+
+    --bp-form-disabled-bg: var(--tblr-bg-surface-secondary, #f0f0f0);
+    --bp-form-disabled-color: var(--tblr-secondary, #6c757d);
+    --bp-form-check-disabled-opacity: 0.5;
+    --bp-form-check-label-disabled-opacity: 0.7;
+
+    --bp-tinymce-content-bg: #ffffff;
+    --bp-tinymce-content-color: #000000;
 }
 
 .sidebar .nav-dropdown-items .nav-dropdown {
