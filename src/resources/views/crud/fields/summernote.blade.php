@@ -119,15 +119,22 @@
 
             element.on('CrudField:disable', function(e) {
                 element.summernote('disable');
+                element.next('.note-editor').addClass('bp-disabled');
             });
 
             element.on('CrudField:enable', function(e) {
                 element.summernote('enable');
+                element.next('.note-editor').removeClass('bp-disabled');
             });
 
             summernoteOptions['callbacks'] = summernotCallbacks;
 
             element.summernote(summernoteOptions);
+
+            if (element.attr('disabled')) {
+                element.summernote('disable');
+                element.next('.note-editor').addClass('bp-disabled');
+            }
         }
     </script>
     @endBassetBlock
