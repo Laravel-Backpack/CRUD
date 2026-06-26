@@ -427,9 +427,30 @@ trait Search
     public function getEntriesAsJsonForDatatables($entries, $totalRows, $filteredRows, $startIndex = false)
     {
         $rows = [];
+        $rowAttributes = $this->getOperationSetting('rowAttributes');
+
+        // Resolve the callable once, outside the loop.
+        // Supports both closures (controller usage) and invokable class names (config usage).
+        $rowAttributesCallable = $this->resolveRowAttributesCallable($rowAttributes);
 
         foreach ($entries as $index => $row) {
-            $rows[] = $this->getRowViews($row, $startIndex === false ? false : ++$startIndex);
+            $cells = $this->getRowViews($row, $startIndex === false ? false : ++$startIndex);
+
+            // If a rowAttributes callable is configured, allow developers to add custom
+            // HTML attributes to each <tr> element via DataTables' native DT_RowAttr.
+            if ($rowAttributesCallable !== null) {
+                $attrs = $rowAttributesCallable($row);
+                if (! empty($attrs)) {
+                    // Convert the row to an object so that DataTables processes
+                    // DT_RowAttr automatically — numeric keys preserve cell order.
+                    $rowObj = (object) $cells;
+                    $rowObj->DT_RowAttr = $attrs;
+                    $rows[] = $rowObj;
+                    continue;
+                }
+            }
+
+            $rows[] = $cells;
         }
 
         $result = [
@@ -440,6 +461,29 @@ trait Search
         ];
 
         return $result;
+    }
+
+    /**
+     * Resolve the rowAttributes setting into a callable.
+     *
+     * Supports:
+     * - A Closure (typical when set via setOperationSetting in a controller).
+     * - An invokable class name string (required in config files for config:cache safety).
+     *
+     * @param  mixed  $rowAttributes
+     * @return callable|null
+     */
+    private function resolveRowAttributesCallable($rowAttributes)
+    {
+        if ($rowAttributes instanceof \Closure) {
+            return $rowAttributes;
+        }
+
+        if (is_string($rowAttributes) && class_exists($rowAttributes)) {
+            return app($rowAttributes);
+        }
+
+        return null;
     }
 
     /**

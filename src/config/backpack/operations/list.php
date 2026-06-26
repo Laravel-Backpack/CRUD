@@ -87,4 +87,21 @@ return [
     // Show active filter values as badges/chips below the filter navbar?
     // Can be overridden per datatable, per filters_navbar include, or per filter.
     'showFilterValues' => false,
+
+    // Allow developers to add custom HTML attributes (class, style, data-*, etc.)
+    // to each <tr> element in the datatable, conditionally based on the entry data.
+    //
+    // In this config file, you MUST use an invokable class name (so it can be
+    // serialized for config:cache). The class should implement __invoke($entry)
+    // and return an associative array of attributes:
+    //
+    //   'rowAttributes' => \App\Invokables\RowAttributes::class,
+    //
+    // In a controller, you can use a closure OR an invokable class:
+    //
+    //   $this->crud->setOperationSetting('rowAttributes', function ($entry) {
+    //       return ['class' => $entry->type === 'premium' ? 'table-warning' : ''];
+    //   });
+    //
+    'rowAttributes' => null,
 ];
