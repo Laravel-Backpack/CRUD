@@ -57,8 +57,39 @@ When a user asks to install a paid package (e.g., "install backpack/pro"), follo
 
 ## Generating a CRUD
 - Scaffold a full CRUD panel with `{{ $assist->artisanCommand('backpack:crud ModelName') }}` (singular model name).
-- This generates: CrudController in `app/Http/Controllers/Admin/`, a FormRequest, and a route entry in `routes/backpack/custom.php`.
+- This generates: CrudController in `app/Http/Controllers/Admin/`, a FormRequest, a route entry in `routes/backpack/custom.php`, and a menu item.
 - Use `--no-interaction` to run without prompts.
+- **After generating the CRUD**, always edit `resources/views/vendor/backpack/ui/inc/menu_items.blade.php` and replace the default `icon="la la-question"` with a meaningful Line Awesome icon. Pick an icon that reflects the model's domain. Common mappings:
+
+  | Model / Domain | Suggested Icon |
+  |---|---|
+  | User, Person, Customer, Client | `la la-user` |
+  | Product, Item, Inventory | `la la-box` or `la la-cube` |
+  | Order, Cart, Purchase, Sale | `la la-shopping-cart` |
+  | Category, Tag, Label | `la la-tag` or `la la-tags` |
+  | Post, Article, Blog, News | `la la-newspaper-o` or `la la-file-text` |
+  | Page, Document | `la la-file` |
+  | Invoice, Receipt, Bill | `la la-file-invoice` |
+  | Contact, Lead, Subscriber | `la la-address-book` |
+  | Event, Calendar, Schedule | `la la-calendar` |
+  | Setting, Configuration | `la la-cog` |
+  | Role, Permission, Access | `la la-lock` or `la la-user-secret` |
+  | Comment, Review, Feedback | `la la-comment` |
+  | Image, Photo, Gallery, Media | `la la-image` |
+  | Video, Media | `la la-video` |
+  | Message, Email, Mail | `la la-envelope` |
+  | Notification, Alert | `la la-bell` |
+  | Report, Analytics, Stats | `la la-chart-bar` |
+  | Subscription, Plan, Billing | `la la-credit-card` |
+  | FAQ, Help, Support | `la la-question-circle` |
+  | Testimonial, Quote | `la la-quote-right` |
+  | Slider, Carousel, Banner | `la la-images` or `la la-sliders` |
+  | Dashboard | `la la-home` |
+  | Team, Group, Department | `la la-users` |
+  | Coupon, Discount, Promo | `la la-percent` |
+  | Location, Address, Place | `la la-map-marker` |
+
+  When unsure, use `la la-file-text` as a safe fallback.
 
 ## CrudController Structure
 - Every CRUD controller extends `CrudController` and uses operation traits: `ListOperation`, `CreateOperation`, `UpdateOperation`, `ShowOperation`, `DeleteOperation`.
