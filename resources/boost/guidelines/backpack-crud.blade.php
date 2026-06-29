@@ -30,13 +30,30 @@
 | `backpack/auto-translate` | Auto-translate content to multiple languages |
 
 ### If a paid package is not installed
-Inform the user clearly:
-1. What feature they asked for requires which paid package
-2. How to purchase: `https://backpackforlaravel.com/pricing`
-3. How to set up the composer repository and credentials (link to their Backpack account for instructions)
-4. Offer a FREE alternative if one exists (e.g., use FREE `select` field instead of PRO `select2` field, FREE `upload` field instead of PRO `image` field). **There is no free alternative for filters — all filter types require `backpack/pro`. Do NOT suggest `addClause` as a filter substitute; it permanently scopes the query and is not toggleable.**
 
-**Never** run `composer require` for paid packages. The user must set up authentication credentials themselves.
+When a user asks to install a paid package (e.g., "install backpack/pro"), follow this workflow:
+
+1. **Check if `auth.json` exists** — Look for Backpack credentials in:
+   - Windows: `%APPDATA%/Composer/auth.json` (e.g., `C:\Users\<user>\AppData\Roaming\Composer\auth.json`)
+   - Linux/Mac: `~/.composer/auth.json`
+   - Project-level: `<project>/auth.json`
+   Read the file and look for `http-basic` entries with `backpackforlaravel.com` or `repo.backpackforlaravel.com` URLs.
+
+2. **Check if the repository is configured** — Look in the project's `composer.json` under `repositories` for a `backpack` entry pointing to `https://repo.backpackforlaravel.com` or `https://backpackforlaravel.com/packages`.
+
+3. **If credentials exist AND repository is configured** → Proceed to run `composer require <package-name>`.
+
+4. **If credentials exist but repository is NOT configured** → Add the repository first, then install:
+   ```
+   composer config repositories.backpack composer https://repo.backpackforlaravel.com
+   composer require <package-name>
+   ```
+
+5. **If auth.json is missing or lacks Backpack credentials** → Inform the user:
+   - What feature they asked for requires which paid package
+   - How to purchase: `https://backpackforlaravel.com/pricing`
+   - How to set up `auth.json` (credentials are in their Backpack account dashboard)
+   - Offer a FREE alternative if one exists (e.g., use FREE `select` field instead of PRO `select2` field, FREE `upload` field instead of PRO `image` field). **There is no free alternative for filters — all filter types require `backpack/pro`. Do NOT suggest `addClause` as a filter substitute; it permanently scopes the query and is not toggleable.**
 
 ## Generating a CRUD
 - Scaffold a full CRUD panel with `{{ $assist->artisanCommand('backpack:crud ModelName') }}` (singular model name).
