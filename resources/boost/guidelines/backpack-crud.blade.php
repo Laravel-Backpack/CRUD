@@ -90,6 +90,7 @@ When a user asks to install a paid package (e.g., "install backpack/pro"), follo
   | Location, Address, Place | `la la-map-marker` |
 
   When unsure, use `la la-file-text` as a safe fallback.
+- **If `backpack/test-generators` is installed** (check `vendor/backpack/test-generators/composer.json`), automatically generate tests for the new CRUD: `{{ $assist->artisanCommand('backpack:tests --controller=ModelCrudController') }}`.
 
 ## CrudController Structure
 - Every CRUD controller extends `CrudController` and uses operation traits: `ListOperation`, `CreateOperation`, `UpdateOperation`, `ShowOperation`, `DeleteOperation`.
@@ -230,7 +231,8 @@ When a user asks to install a paid package (e.g., "install backpack/pro"), follo
 - Custom: extend AbstractSaveAction, implement `order()` and `getActionButtonHtml()`.
 
 ## Testing
-- Package: `backpack/test-generators` is a **paid add-on**. Check if installed before suggesting `backpack:tests`.
+- Package: `backpack/test-generators` is a **paid add-on**. If not installed, follow the paid package installation workflow in the Paid Features section.
+- **After generating a CRUD**, if the package is installed, automatically run `{{ $assist->artisanCommand('backpack:tests --controller=ModelCrudController') }}` to generate tests for the new CRUD.
 - Generate: `{{ $assist->artisanCommand('backpack:tests') }}`.
 - Status: `{{ $assist->artisanCommand('backpack:tests:status') }}`.
 - Options: `--controller=Name`, `--operation=list`, `--framework=pest|phpunit`, `--force`.

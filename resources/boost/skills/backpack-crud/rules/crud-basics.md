@@ -43,6 +43,26 @@ After generating the CRUD, the menu item in `resources/views/vendor/backpack/ui/
 
 When unsure, use `la la-file-text` as a safe fallback.
 
+### Test Generation
+
+`backpack/test-generators` is a **paid add-on**. Before using it, check if it's installed:
+
+```bash
+
+# Quick check:
+
+# vendor/backpack/test-generators/composer.json
+
+```
+
+**If installed** — automatically generate tests after creating the CRUD:
+
+```bash
+php artisan backpack:tests --controller=ModelCrudController
+```
+
+**If not installed** — follow the paid package installation workflow in `rules/pro-features.md`. The FREE alternative is writing Pest/PHPUnit tests manually — see `rules/testing.md` for templates and patterns.
+
 ## Model Requirements
 
 ```php
