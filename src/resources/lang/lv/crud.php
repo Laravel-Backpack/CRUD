@@ -204,13 +204,13 @@ return [
 
     // Date & time localization for air-datepicker
     'date_time' => [
-        'days'        => ['Svētdiena', 'Pirmdiena', 'Otrdiena', 'Trešdiena', 'Ceturtdiena', 'Piektdiena', 'Sestdiena'],
-        'daysShort'   => ['Sv', 'P', 'O', 'T', 'C', 'Pk', 'S'],
-        'daysMin'     => ['Sv', 'Pr', 'Ot', 'Tr', 'Ce', 'Pk', 'Se'],
-        'months'      => ['Janvāris', 'Februāris', 'Marts', 'Aprīlis', 'Maijs', 'Jūnijs', 'Jūlijs', 'Augusts', 'Septembris', 'Oktobris', 'Novembris', 'Decembris'],
+        'days' => ['Svētdiena', 'Pirmdiena', 'Otrdiena', 'Trešdiena', 'Ceturtdiena', 'Piektdiena', 'Sestdiena'],
+        'daysShort' => ['Sv', 'P', 'O', 'T', 'C', 'Pk', 'S'],
+        'daysMin' => ['Sv', 'Pr', 'Ot', 'Tr', 'Ce', 'Pk', 'Se'],
+        'months' => ['Janvāris', 'Februāris', 'Marts', 'Aprīlis', 'Maijs', 'Jūnijs', 'Jūlijs', 'Augusts', 'Septembris', 'Oktobris', 'Novembris', 'Decembris'],
         'monthsShort' => ['Jan', 'Feb', 'Mar', 'Apr', 'Mai', 'Jūn', 'Jūl', 'Aug', 'Sep', 'Okt', 'Nov', 'Dec'],
-        'dateFormat'  => 'dd/MM/yyyy',
-        'timeFormat'  => 'HH:mm',
-        'firstDay'    => 1,
+        'dateFormat' => 'dd/MM/yyyy',
+        'timeFormat' => 'HH:mm',
+        'firstDay' => 1,
     ],
 ];
