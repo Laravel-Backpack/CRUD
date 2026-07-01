@@ -2,6 +2,25 @@
 
 ## Look and feel
 
+### Preload assets for basset:cache
+
+When using `@basset()` inside conditional Blade directives (`@if`), the `basset:cache` command cannot discover those assets (it scans source, doesn't evaluate conditions). Use `basset_preload` in `config/backpack/ui.php` to register them for caching:
+
+```php
+'basset_preload' => [
+    'scripts' => [
+        // Conditionally loaded locale scripts, dynamic dependencies, etc.
+        'https://cdn.example.com/locale-es.js',
+        'https://cdn.example.com/locale-fr.js',
+    ],
+    'styles' => [
+        'https://cdn.example.com/theme-dark.css',
+    ],
+],
+```
+
+Assets listed here are **not** loaded on every page — they are only registered so `php artisan basset:cache` can internalize them. They are still loaded conditionally via `@basset()` in blade files.
+
 ### Text direction: LTR or RTL
 
 By default, the text direction is set to left-to-right. If your UI is in Arabic, Hebrew or any other language that needs to show right-to-left, you can enable that - just go to `config/backpack/ui.php` and change the `html_direction` variable to `rtl`:

@@ -1,5 +1,7 @@
 ### date_range [PRO]
 
+> ⚠️ **DEPRECATED** — Will be removed in the next major version. Migrate to [`air-datepicker`](air-datepicker-pro.md) instead (air-datepicker replaces bootstrap-daterangepicker + moment.js with a single ~13KB dependency-free widget).
+
 Show a DateRangePicker and let the user choose a start date and end date.
 
 ```php

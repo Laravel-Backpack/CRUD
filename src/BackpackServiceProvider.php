@@ -85,6 +85,17 @@ class BackpackServiceProvider extends ServiceProvider
                 Basset::map($script, $script);
             }
         }
+
+        // Register preloaded assets for basset:cache.
+        // These are NOT loaded on every page — they are only registered so that
+        // basset:cache can internalize them ahead of time. They are loaded
+        // conditionally via @basset in blade files (e.g. locale scripts).
+        foreach (config('backpack.ui.basset_preload.scripts', []) as $asset) {
+            Basset::map($asset, $asset);
+        }
+        foreach (config('backpack.ui.basset_preload.styles', []) as $asset) {
+            Basset::map($asset, $asset);
+        }
     }
 
     /**

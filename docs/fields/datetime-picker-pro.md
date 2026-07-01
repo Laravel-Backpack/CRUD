@@ -1,5 +1,7 @@
 ### datetime_picker [PRO]
 
+> ⚠️ **DEPRECATED** — Will be removed in the next major version. Migrate to [`air-datepicker`](air-datepicker-pro.md) instead (air-datepicker replaces bootstrap-datetimepicker + moment.js with a single ~13KB dependency-free widget).
+
 Show a [Bootstrap Datetime Picker](https://eonasdan.github.io/bootstrap-datetimepicker/).
 
 ```php

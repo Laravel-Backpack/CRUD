@@ -121,6 +121,18 @@ return [
         // 'https://cdn.jsdelivr.net/npm/react-dom@16/umd/react-dom.production.min.js',
     ],
 
+    // Assets that are NOT loaded on every page, but should still be cached by basset:cache
+    // so they are available when conditionally loaded via @basset in blade files.
+    // Useful for locale scripts, dynamic dependencies, etc.
+    'basset_preload' => [
+        'scripts' => [
+            // 'https://cdn.example.com/locale-es.js',
+        ],
+        'styles' => [
+            // 'https://cdn.example.com/theme-dark.css',
+        ],
+    ],
+
     // JS files that are loaded in all pages, using Laravel's mix() helper
     'mix_scripts' => [ // file_path => manifest_directory_path
         // 'js/app.js' => '',
