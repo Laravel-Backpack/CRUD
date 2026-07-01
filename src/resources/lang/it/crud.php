@@ -192,6 +192,18 @@ return [
     // The pivot selector required validation message
     'pivot_selector_required_validation_message' => 'Il campo pivot è obbligatorio.',
 
+    // Date & time localization for air-datepicker
+    'date_time' => [
+        'days'        => ['Domenica', 'Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato'],
+        'daysShort'   => ['Dom', 'Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab'],
+        'daysMin'     => ['Do', 'Lu', 'Ma', 'Me', 'Gi', 'Ve', 'Sa'],
+        'months'      => ['Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno', 'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre'],
+        'monthsShort' => ['Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu', 'Lug', 'Ago', 'Set', 'Ott', 'Nov', 'Dic'],
+        'dateFormat'  => 'dd/MM/yyyy',
+        'timeFormat'  => 'HH:mm',
+        'firstDay'    => 1,
+    ],
+
     // Quick button messages
     'quick_button_ajax_error_title' => 'Richiesta fallita!',
     'quick_button_ajax_error_message' => 'Si è verificato un errore durante l\'elaborazione della richiesta.',

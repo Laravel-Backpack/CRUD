@@ -192,6 +192,18 @@ return [
     // The pivot selector required validation message
     'pivot_selector_required_validation_message' => 'Câmpul pivot este obligatoriu.',
 
+    // Date & time localization for air-datepicker
+    'date_time' => [
+        'days'        => ['Duminică', 'Luni', 'Marți', 'Miercuri', 'Joi', 'Vineri', 'Sâmbătă'],
+        'daysShort'   => ['Dum', 'Lun', 'Mar', 'Mie', 'Joi', 'Vin', 'Sâm'],
+        'daysMin'     => ['Du', 'Lu', 'Ma', 'Mi', 'Jo', 'Vi', 'Sâ'],
+        'months'      => ['Ianuarie', 'Februarie', 'Martie', 'Aprilie', 'Mai', 'Iunie', 'Iulie', 'August', 'Septembrie', 'Octombrie', 'Noiembrie', 'Decembrie'],
+        'monthsShort' => ['Ian', 'Feb', 'Mar', 'Apr', 'Mai', 'Iun', 'Iul', 'Aug', 'Sep', 'Oct', 'Noi', 'Dec'],
+        'dateFormat'  => 'dd/MM/yyyy',
+        'timeFormat'  => 'HH:mm',
+        'firstDay'    => 1,
+    ],
+
     // Quick button messages
     'quick_button_ajax_error_title' => 'Cererea a eșuat!',
     'quick_button_ajax_error_message' => 'A apărut o eroare la procesarea cererii dumneavoastră.',

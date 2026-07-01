@@ -179,4 +179,16 @@ return [
     // InlineCreateOperation
     'related_entry_created_success' => 'O item relacionado foi criado e selecionado.',
     'related_entry_created_error' => 'Não foi possível criar o item relacionado.',
+
+    // Date & time localization for air-datepicker
+    'date_time' => [
+        'days'        => ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'],
+        'daysShort'   => ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'],
+        'daysMin'     => ['Do', 'Se', 'Te', 'Qa', 'Qi', 'Sx', 'Sa'],
+        'months'      => ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'],
+        'monthsShort' => ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'],
+        'dateFormat'  => 'dd/MM/yyyy',
+        'timeFormat'  => 'HH:mm',
+        'firstDay'    => 1,
+    ],
 ];

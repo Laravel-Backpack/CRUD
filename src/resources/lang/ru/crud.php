@@ -185,4 +185,16 @@ return [
 
     // The pivot selector required validation message
     'pivot_selector_required_validation_message' => 'Поле сводной таблицы является обязательным.',
+
+    // Date & time localization for air-datepicker
+    'date_time' => [
+        'days'        => ['Воскресенье', 'Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'],
+        'daysShort'   => ['Вос', 'Пон', 'Вто', 'Сре', 'Чет', 'Пят', 'Суб'],
+        'daysMin'     => ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'],
+        'months'      => ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'],
+        'monthsShort' => ['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн', 'Июл', 'Авг', 'Сен', 'Окт', 'Ноя', 'Дек'],
+        'dateFormat'  => 'dd/MM/yyyy',
+        'timeFormat'  => 'HH:mm',
+        'firstDay'    => 1,
+    ],
 ];

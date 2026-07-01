@@ -187,6 +187,15 @@ return [
     // returned when no translations found in select inputs
     'empty_translations' => '(vacío)',
 
-    // The pivot selector required validation message
-    'pivot_selector_required_validation_message' => 'El campo dinámico es obligatorio.',
+    // Date & time localization for air-datepicker
+    'date_time' => [
+        'days'        => ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'],
+        'daysShort'   => ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'],
+        'daysMin'     => ['Do', 'Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sá'],
+        'months'      => ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'],
+        'monthsShort' => ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'],
+        'dateFormat'  => 'dd/MM/yyyy',
+        'timeFormat'  => 'hh:mm aa',
+        'firstDay'    => 1, // 1 = Monday
+    ],
 ];

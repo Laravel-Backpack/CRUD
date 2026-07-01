@@ -199,8 +199,17 @@ return [
     // returned when no translations found in select inputs
     'empty_translations' => '(empty)',
 
-    // The pivot selector required validation message
-    'pivot_selector_required_validation_message' => 'The pivot field is required.',
+    // Date & time localization for air-datepicker
+    'date_time' => [
+        'days'        => ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+        'daysShort'   => ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+        'daysMin'     => ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'],
+        'months'      => ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+        'monthsShort' => ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+        'dateFormat'  => 'MM/dd/yyyy',
+        'timeFormat'  => 'hh:mm aa',
+        'firstDay'    => 0, // 0 = Sunday
+    ],
 
     // Quick button messages
     'quick_button_ajax_error_title' => 'Request Failed!',

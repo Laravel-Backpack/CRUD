@@ -156,4 +156,16 @@ return [
     // InlineCreateOperation
     'related_entry_created_success' => 'Masukan terkait telah dibuat dan dipilih.',
     'related_entry_created_error' => 'Tidak dapat membuat masukan terkait.',
+
+    // Date & time localization for air-datepicker
+    'date_time' => [
+        'days'        => ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'],
+        'daysShort'   => ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'],
+        'daysMin'     => ['Mi', 'Se', 'Sl', 'Ra', 'Ka', 'Ju', 'Sa'],
+        'months'      => ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'],
+        'monthsShort' => ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des'],
+        'dateFormat'  => 'dd/MM/yyyy',
+        'timeFormat'  => 'HH:mm',
+        'firstDay'    => 0,
+    ],
 ];
