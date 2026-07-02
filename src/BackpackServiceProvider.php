@@ -66,35 +66,35 @@ class BackpackServiceProvider extends ServiceProvider
 
         Basset::addViewPath(realpath(__DIR__.'/resources/views'));
 
-        foreach (config('backpack.ui.styles', []) as $style) {
-            if (is_array($style)) {
-                foreach ($style as $file) {
+        $this->registerBassetAssets(config('backpack.ui.styles', []));
+        $this->registerBassetAssets(config('backpack.ui.scripts', []));
+        $this->registerBassetAssets(config('backpack.ui.basset_preload.scripts', []));
+        $this->registerBassetAssets(config('backpack.ui.basset_preload.styles', []));
+    }
+
+    /**
+     * Register assets with Basset from a config array.
+     *
+     * Supports three formats:
+     *   'url'                                              → name = source = URL
+     *   ['url1', 'url2']                                   → sequential list
+     *   'name' => ['source' => 'url', 'refresh' => true]   → explicit name + source + attributes
+     *   'url'  => ['refresh' => true]                      → key = source fallback
+     */
+    private function registerBassetAssets(array $assets): void
+    {
+        foreach ($assets as $key => $value) {
+            if (is_string($value)) {
+                Basset::map($value, $value);
+            } elseif (array_is_list($value) && (! $value || is_string(reset($value)))) {
+                foreach ($value as $file) {
                     Basset::map($file, $file);
                 }
             } else {
-                Basset::map($style, $style);
+                $source = $value['source'] ?? $key;
+                $attributes = array_diff_key($value, ['source' => null]);
+                Basset::map($key, $source, $attributes);
             }
-        }
-
-        foreach (config('backpack.ui.scripts', []) as $script) {
-            if (is_array($script)) {
-                foreach ($script as $file) {
-                    Basset::map($file, $file);
-                }
-            } else {
-                Basset::map($script, $script);
-            }
-        }
-
-        // Register preloaded assets for basset:cache.
-        // These are NOT loaded on every page — they are only registered so that
-        // basset:cache can internalize them ahead of time. They are loaded
-        // conditionally via @basset in blade files (e.g. locale scripts).
-        foreach (config('backpack.ui.basset_preload.scripts', []) as $asset) {
-            Basset::map($asset, $asset);
-        }
-        foreach (config('backpack.ui.basset_preload.styles', []) as $asset) {
-            Basset::map($asset, $asset);
         }
     }
 
