@@ -262,10 +262,8 @@ When a user asks to install a paid package (e.g., "install backpack/pro"), follo
 - `{{ $assist->artisanCommand('backpack:tests') }}` — generate CRUD tests
 - `{{ $assist->artisanCommand('backpack:tests:status') }}` — check test coverage
 
-@if($assist->hasMcpEnabled())
 ## Documentation Search
 - For Backpack questions (fields, columns, filters, operations, widgets, relationships), always use the `search-backpack-docs` MCP tool FIRST.
 - Do NOT use `search-docs` for Backpack questions — it does not index Backpack documentation.
 - Pass multiple queries for OR logic: `["relationship field", "select2 belongsTo", "select2_from_ajax"]`.
 - Use `"quoted phrases"` for exact matching.
-@endif
