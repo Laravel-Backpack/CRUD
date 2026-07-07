@@ -104,7 +104,10 @@ return [
     //   });
     //
     'rowAttributes' => null,
+    
+    // Show the dropdown for each available language near edit button
+    'showLanguagesDirectlyInEditButton' => true,
 
-    // Show the dropdown for each available language near edit/show button
-    'showLanguagesDirectlyInEditButton' => true
+    // Show the dropdown for each available language near show button
+    'showLanguagesDirectlyInShowButton' => false,
 ];
