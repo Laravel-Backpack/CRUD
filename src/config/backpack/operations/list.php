@@ -104,7 +104,7 @@ return [
     //   });
     //
     'rowAttributes' => null,
-    
+
     // Show the dropdown for each available language near edit button
     'showLanguagesDirectlyInEditButton' => true,
 
