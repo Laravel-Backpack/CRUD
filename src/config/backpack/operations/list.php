@@ -80,7 +80,7 @@ return [
     // Setting this to false will improve performance on big datasets.
     'showEntryCount' => true,
 
-    // when list operation load the information from database, should Backpack eager load the relations ?
+    // when list operation load the information from database, should Backpack eager load the relations?
     // this setting is enabled by default as it reduces the amount of queries required to load the page
     'eagerLoadRelationships' => true,
 
@@ -104,4 +104,7 @@ return [
     //   });
     //
     'rowAttributes' => null,
+
+    // Show the dropdown for each available language near edit/show button
+    'showLanguagesDirectlyInEditButton' => true
 ];
