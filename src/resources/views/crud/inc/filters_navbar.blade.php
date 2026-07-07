@@ -319,6 +319,13 @@
             params.set(event.detail.filterName, event.detail.filterValue);
         } else {
             params.delete(event.detail.filterName);
+            var filterElement = navbar.querySelector('li[filter-name="' + event.detail.filterName + '"]');
+            if (filterElement) {
+                var displayAttr = filterElement.getAttribute('data-display-filter-attribute-name');
+                if (displayAttr) {
+                    params.delete(displayAttr);
+                }
+            }
         }
         navbar.setAttribute('data-filter-params', params.toString());
 
@@ -329,10 +336,23 @@
         // Build the URL from the navbar's accumulated data-filter-params so that all params
         // are included in a single URL update, even when multiple events contributed to the state.
         if (event.detail.shouldUpdateUrl && document.querySelectorAll('.navbar-filters').length <= 1) {
+            var newUrl = window.location.href;
+
+            var allFilters = navbar.querySelectorAll('li[filter-name]');
+            allFilters.forEach(function(filter) {
+                var fName = filter.getAttribute('filter-name');
+                newUrl = addOrUpdateUriParameter(newUrl, fName, null);
+                var displayAttr = filter.getAttribute('data-display-filter-attribute-name');
+                if (displayAttr) {
+                    newUrl = addOrUpdateUriParameter(newUrl, displayAttr, null);
+                }
+            });
+
+            // Now add back only what's currently in data-filter-params
             var accumulatedParams = new URLSearchParams(navbar.getAttribute('data-filter-params') || '');
             var paramsObj = {};
             accumulatedParams.forEach(function(value, key) { paramsObj[key] = value; });
-            var newUrl = addOrUpdateUriParameter(window.location.href, paramsObj);
+            newUrl = addOrUpdateUriParameter(newUrl, paramsObj);
             window.history.replaceState({}, '', newUrl);
         }
     });
