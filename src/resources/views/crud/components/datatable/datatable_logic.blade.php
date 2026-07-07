@@ -1476,9 +1476,22 @@ function updateDatatablesOnFilterChange(filterName, filterValue, shouldUpdateUrl
         var navbar = document.querySelector('.navbar-filters[data-component-id="' + tableId + '"]');
         if (navbar) {
             var accumulatedParams = new URLSearchParams(navbar.getAttribute('data-filter-params') || '');
+
+            browserUrl = window.location.href;
+            var allFilters = navbar.querySelectorAll('li[filter-name]');
+            allFilters.forEach(function(filter) {
+                var fName = filter.getAttribute('filter-name');
+                browserUrl = addOrUpdateUriParameter(browserUrl, fName, null);
+                var displayAttr = filter.getAttribute('data-display-filter-attribute-name');
+                if (displayAttr) {
+                    browserUrl = addOrUpdateUriParameter(browserUrl, displayAttr, null);
+                }
+            });
+
+            // Now add back only what's currently in data-filter-params
             var paramsObj = {};
             accumulatedParams.forEach(function(value, key) { paramsObj[key] = value; });
-            browserUrl = addOrUpdateUriParameter(window.location.href, paramsObj);
+            browserUrl = addOrUpdateUriParameter(browserUrl, paramsObj);
         } else {
             browserUrl = addOrUpdateUriParameter(window.location.href, filterName, filterValue);
         }
