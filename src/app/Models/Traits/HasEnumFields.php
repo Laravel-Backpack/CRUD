@@ -2,8 +2,7 @@
 
 namespace Backpack\CRUD\app\Models\Traits;
 
-use DB;
-use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Collection;
 
 /*
 |--------------------------------------------------------------------------
@@ -17,26 +16,18 @@ trait HasEnumFields
         $instance = new static(); // create an instance of the model to be able to get the table name
 
         $connection = $instance->getConnection();
+        $table = $instance->getTable();
 
-        $table_prefix = Config::get('database.connections.'.$connection->getName().'.prefix');
+        $type = $connection->getSchemaBuilder()->getColumnType($table, $field_name, true);
 
-        try {
-            $select = app()->version() < 10 ?
-                        DB::raw('SHOW COLUMNS FROM `'.$table_prefix.$instance->getTable().'` WHERE Field = "'.$field_name.'"') :
-                        DB::raw('SHOW COLUMNS FROM `'.$table_prefix.$instance->getTable().'` WHERE Field = "'.$field_name.'"')->getValue($connection->getQueryGrammar());
-
-            $type = $connection->select($select)[0]->Type;
-        } catch (\Exception $e) {
-            abort(500, 'Enum field type is not supported - it only works on MySQL. Please use select_from_array instead.', ['developer-error-exception']);
+        if (preg_match('/^enum\((.*)\)$/', $type, $matches) !== 1) {
+            abort(500, 'Could not deduce enum values - note this only works on selected engines (e.g. MySQL). Please use select_from_array instead.', ['developer-error-exception']);
         }
 
-        preg_match('/^enum\((.*)\)$/', $type, $matches);
-        $enum = [];
-        foreach (explode(',', $matches[1]) as $value) {
-            $enum[] = trim($value, "'");
-        }
-
-        return $enum;
+        return (new Collection(explode(',', $matches[1])))
+            ->map(static fn (string $value) => trim($value, "'"))
+            ->values()
+            ->toArray();
     }
 
     public static function getEnumValuesAsAssociativeArray($field_name)
