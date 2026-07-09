@@ -3,7 +3,7 @@
 namespace Backpack\CRUD\Tests\Unit\Models;
 
 use Backpack\CRUD\Tests\BaseTestClass;
-use Backpack\CRUD\Tests\Config\Models\EnumTestModel;
+use Backpack\CRUD\Tests\config\Models\EnumTestModel;
 use Illuminate\Support\Facades\DB;
 use PHPUnit\Framework\Attributes\Test;
 
