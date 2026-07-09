@@ -9,7 +9,7 @@ jobs:
   run-bot:
     runs-on: ubuntu-latest
     steps:
-      - uses: austenstone/chatgpt-bot@main
+      - uses: austenstone/chatgpt-bot@d1bfd865bde9363d482f38c0944e89f29d998ba5 # v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
