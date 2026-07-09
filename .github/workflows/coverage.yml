@@ -10,6 +10,17 @@ jobs:
     if: ${{ github.actor != 'dependabot[bot]' }}
     runs-on: ubuntu-latest
     name: PHP setup
+
+    services:
+        mysql:
+            image: mysql:9
+            env:
+                MYSQL_ALLOW_EMPTY_PASSWORD: yes
+                MYSQL_DATABASE: backpack_test
+            ports:
+                - 3306:3306
+            options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+
     steps:
       
       - name: Checkout code
@@ -22,10 +33,10 @@ jobs:
           sudo apt-get update
           sudo apt-get install sqlite3
       - name: Setup PHP
-        uses: shivammathur/setup-php@v2
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2
         with:
           php-version: 8.5
-          extensions: curl, mbstring, zip, pcntl, pdo, sqlite, pdo_sqlite, iconv, xdebug
+          extensions: curl, mbstring, zip, pcntl, pdo, sqlite, pdo_sqlite, pdo_mysql, iconv, xdebug
           coverage: xdebug
           tools: composer:v2
       - name: Install dependencies
@@ -34,9 +45,12 @@ jobs:
             composer update --prefer-dist --no-interaction
       - name: Execute tests
         run: vendor/bin/phpunit --coverage-clover coverage.xml
+        env:
+          DB_PORT: ${{ job.services.mysql.ports[3306] }}
+          DB_USERNAME: root
       - name: Check test coverage
         id: test-coverage
-        uses: johanvanhelden/gha-clover-test-coverage-check@v1
+        uses: johanvanhelden/gha-clover-test-coverage-check@2543c79a701f179bd63aa14c16c6938c509b2cec # v1
         with:
           percentage: "1"
           filename: coverage.xml
@@ -74,7 +88,7 @@ jobs:
           git add "${BADGE}"
           git commit -m "Update Coverage Badge"
       - name: Push badge commit
-        uses: ad-m/github-push-action@master
+        uses: ad-m/github-push-action@881a6320fdb16eb5318c5054f31c218aec2b324c # v1.3.0
         if: ${{ success() }}
         with:
           force: true
