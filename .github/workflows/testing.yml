@@ -13,6 +13,16 @@ jobs:
     test:
         runs-on: ubuntu-latest
 
+        services:
+            mysql:
+                image: mysql:9
+                env:
+                    MYSQL_ALLOW_EMPTY_PASSWORD: yes
+                    MYSQL_DATABASE: backpack_test
+                ports:
+                    - 3306:3306
+                options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+
         strategy:
             # if one job fails, abort the next ones too, because they'll probably fail - best to save the minutes
             fail-fast: false  # to change to: true
@@ -44,7 +54,7 @@ jobs:
                 uses: shivammathur/setup-php@v2
                 with:
                     php-version: ${{ matrix.php }}
-                    extensions: curl, mbstring, zip, pcntl, pdo, sqlite, pdo_sqlite, iconv
+                    extensions: curl, mbstring, zip, pcntl, pdo, sqlite, pdo_sqlite, pdo_mysql, iconv
                     coverage: none
             -   name: Cache dependencies
                 uses: actions/cache@v5
