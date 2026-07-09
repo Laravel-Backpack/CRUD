@@ -57,7 +57,7 @@ jobs:
           metric: elements
           rounded-precision: 2
       - name: Generate the badge SVG image
-        uses: emibcn/badge-action@v2
+        uses: emibcn/badge-action@f9150fde070fcca0c4e832437611b44838fcd325 # v2.0.4
         id: badge
         with:
           label: coverage
