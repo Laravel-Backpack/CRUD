@@ -202,7 +202,7 @@ class HasEnumFieldsMysqlTest extends BaseTestClass
     public function test_aborts_when_column_is_integer(): void
     {
         $this->createTableWithColumn(
-            "`count` INT NOT NULL DEFAULT 0"
+            '`count` INT NOT NULL DEFAULT 0'
         );
 
         $this->expectException(HttpException::class);
