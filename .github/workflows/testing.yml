@@ -44,7 +44,7 @@ jobs:
 
         steps:
             -   name: Checkout code
-                uses: actions/checkout@v6
+                uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
             -   name: Install SQLite 3
                 run: |
@@ -57,7 +57,7 @@ jobs:
                     extensions: curl, mbstring, zip, pcntl, pdo, sqlite, pdo_sqlite, pdo_mysql, iconv
                     coverage: none
             -   name: Cache dependencies
-                uses: actions/cache@v5
+                uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
                 with:
                     path: ~/.composer/cache/files
                     key: dependencies-${{ matrix.dependency-version }}-laravel-${{ matrix.laravel }}-php-${{ matrix.php }}-phpunit-${{ matrix.phpunit }}-composer-${{ hashFiles('composer.json') }}
