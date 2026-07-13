@@ -214,6 +214,7 @@ final class DatatableCache extends SetupCache
             if (! empty($cachedData['setup_closure'])) {
                 $serializableClosure = unserialize($cachedData['setup_closure']);
                 $closure = $serializableClosure->getClosure();
+
                 return $this->applySetupClosure($crud, $cachedData['controller'], $closure, $entry);
             }
 
