@@ -32,9 +32,9 @@ final class DatatableCache extends SetupCache
 
         $cruds = CrudManager::getCrudPanels();
         $parentCrud = null;
-        foreach ($cruds as $key => $crud) {
+        foreach ($cruds as $key => $crudPanel) {
             if ($key !== \Backpack\CRUD\app\Http\Controllers\CrudController::class) {
-                $parentCrud = $crud;
+                $parentCrud = $crudPanel;
                 break;
             }
         }
@@ -43,13 +43,14 @@ final class DatatableCache extends SetupCache
             $parentEntry = $parentCrud->getCurrentEntry();
             $parentController = $parentCrud->controller;
 
-            // Store in cache
+            // Store in cache (including the serialized setup closure)
             $this->store(
                 $tableId,
                 $controllerClass,
                 $parentController,
                 $parentEntry,
-                $name
+                $name,
+                $setup
             );
 
             // Set the datatable_id in the CRUD panel if provided
@@ -72,9 +73,10 @@ final class DatatableCache extends SetupCache
         $parentEntry = null
     ): bool {
         $instance = new self();
-        // Cache the setup closure for the datatable component
+
+        // Apply the setup closure to the CrudPanel instance
         if ($instance->applySetupClosure($crud, $controllerClass, $setupClosure, $parentEntry)) {
-            // Apply the setup closure to the CrudPanel instance
+            // Cache the setup closure for the datatable component
             return $instance->cacheForComponent($tableId, $controllerClass, $setupClosure, $name, $crud);
         }
 
@@ -118,8 +120,6 @@ final class DatatableCache extends SetupCache
         $tableId = request('datatable_id');
 
         if (! $tableId) {
-            \Log::debug('Missing datatable_id in request parameters');
-
             return false;
         }
 
@@ -172,14 +172,28 @@ final class DatatableCache extends SetupCache
     protected function prepareDataForStorage(...$args): array
     {
         [$controllerClass, $parentController, $parentEntry, $elementName] = $args;
+        $setup = $args[4] ?? null;
 
-        return [
+        $data = [
             'controller' => $controllerClass,
             'parentController' => $parentController,
             'parent_entry' => $parentEntry,
             'element_name' => $elementName,
             'operations' => CrudManager::getInitializedOperations($parentController),
         ];
+
+        if ($setup instanceof \Closure) {
+            $boundThis = (new \ReflectionFunction($setup))->getClosureThis();
+
+            if (! $boundThis instanceof \Backpack\CRUD\app\Http\Controllers\CrudController) {
+                try {
+                    $data['setup_closure'] = serialize(new \Laravel\SerializableClosure\SerializableClosure($setup));
+                } catch (\Throwable $e) {
+                }
+            }
+        }
+
+        return $data;
     }
 
     /**
@@ -194,25 +208,31 @@ final class DatatableCache extends SetupCache
         [$crud] = $args;
 
         try {
-            // Initialize operations for the parent controller
-            $this->initializeOperations($cachedData['parentController'], $cachedData['operations']);
             $entry = $cachedData['parent_entry'];
             $elementName = $cachedData['element_name'];
 
+            if (! empty($cachedData['setup_closure'])) {
+                $serializableClosure = unserialize($cachedData['setup_closure']);
+                $closure = $serializableClosure->getClosure();
+                return $this->applySetupClosure($crud, $cachedData['controller'], $closure, $entry);
+            }
+
+            $this->initializeOperations($cachedData['parentController'], $cachedData['operations']);
+
             $widgets = Widget::collection();
-            $found = false;
 
             foreach ($widgets as $widget) {
+                // Widgets store their closure under 'configure' (legacy) or 'setup'.
+                $widgetSetup = $widget['setup'] ?? $widget['configure'] ?? null;
+
                 if ($widget['type'] === 'datatable' &&
                     (isset($widget['name']) && $widget['name'] === $elementName) &&
-                    (isset($widget['setup']) && $widget['setup'] instanceof \Closure)) {
-                    $this->applySetupClosure($crud, $cachedData['controller'], $widget['setup'], $entry);
-                    $found = true;
-                    break;
+                    $widgetSetup instanceof \Closure) {
+                    return $this->applySetupClosure($crud, $cachedData['controller'], $widgetSetup, $entry);
                 }
             }
 
-            return $found;
+            return false;
         } catch (\Exception $e) {
             \Log::error('Error applying cached datatable config: '.$e->getMessage(), [
                 'exception' => $e,
@@ -227,7 +247,10 @@ final class DatatableCache extends SetupCache
      */
     private function initializeOperations(string $parentController, $operations): void
     {
-        $parentCrud = CrudManager::setupCrudPanel($parentController);
+        $parentCrud = CrudManager::getCrudPanel($parentController);
+
+        // Deduplicate operations to avoid redundant re-initialization.
+        $operations = array_unique((array) $operations);
 
         foreach ($operations as $operation) {
             $parentCrud->initialized = false;

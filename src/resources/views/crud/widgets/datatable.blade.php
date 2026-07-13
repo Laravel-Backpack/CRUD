@@ -10,7 +10,7 @@
       {!! $widget['content']['body'] ?? '' !!}
 
       <div class="card-wrapper datatable-widget-wrapper">
-        <x-backpack::datatable :controller="$widget['controller']" :setup="$widget['setup'] ?? null" :modifiesUrl="false" :name="$widget['name']" />
+        <x-backpack::datatable :controller="$widget['controller']" :setup="$widget['setup'] ?? $widget['configure'] ?? null" :modifiesUrl="false" :name="$widget['name']" />
       </div>
 
     </div>
