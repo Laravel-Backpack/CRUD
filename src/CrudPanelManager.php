@@ -75,22 +75,20 @@ final class CrudPanelManager
         // The controller's middleware won't fire because we're calling methods directly.
         $this->pushActiveController($controller::class);
         try {
+            // If the panel is already initialized but a different operation is requested
+            // and we don't need to isolate that operation, do a simple setup and return early.
+            if ($crud->isInitialized() && $crud->getOperation() !== $operation && ! $shouldIsolate) {
+                return $this->performSimpleOperationSwitch($controller, $operation, $crud);
+            }
 
-        // If the panel is already initialized but a different operation is requested
-        // and we don't need to isolate that operation, do a simple setup and return early.
-        if ($crud->isInitialized() && $crud->getOperation() !== $operation && ! $shouldIsolate) {
-            return $this->performSimpleOperationSwitch($controller, $operation, $crud);
-        }
+            // If the panel (or this specific operation) hasn't been initialized yet,
+            // perform the required initialization (full or operation-specific).
+            if (! $crud->isInitialized() || ! $this->isOperationInitialized($controller::class, $operation)) {
+                return $this->performInitialization($controller, $operation, $crud, $primaryControllerRequest, $shouldIsolate);
+            }
 
-        // If the panel (or this specific operation) hasn't been initialized yet,
-        // perform the required initialization (full or operation-specific).
-        if (! $crud->isInitialized() || ! $this->isOperationInitialized($controller::class, $operation)) {
-            return $this->performInitialization($controller, $operation, $crud, $primaryControllerRequest, $shouldIsolate);
-        }
-
-        // Already initialized and operation matches: nothing to do.
-        return $this->cruds[$controller::class];
-
+            // Already initialized and operation matches: nothing to do.
+            return $this->cruds[$controller::class];
         } finally {
             $this->popActiveController();
         }
@@ -406,6 +404,7 @@ final class CrudPanelManager
      * Set the currently active controller and clear the CRUD facade cache.
      *
      * @deprecated Use pushActiveController() instead. This method now delegates to pushActiveController().
+     *
      * @param  string  $controller  The controller class name to set as active
      */
     public function setActiveController(string $controller): void
@@ -445,6 +444,7 @@ final class CrudPanelManager
         if (empty($this->activeControllerStack)) {
             return null;
         }
+
         return end($this->activeControllerStack);
     }
 
@@ -477,6 +477,7 @@ final class CrudPanelManager
         }
 
         $panel = $this->getCrudPanel($active);
+
         return $panel;
     }
 
