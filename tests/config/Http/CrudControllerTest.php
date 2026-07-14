@@ -24,6 +24,7 @@ class CrudControllerTest extends BaseTestClass
 
         parent::tearDown();
     }
+
     /**
      * Define environment setup.
      *
