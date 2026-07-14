@@ -54,16 +54,25 @@ class CrudControllerTest extends BaseTestClass
 
     public function testCrudRequestUpdatesOnEachRequest()
     {
-        $controllerClass = \Backpack\CRUD\Tests\config\Http\Controllers\UserCrudController::class;
-
         // create a first request
         $firstRequest = request()->create('admin/users/1/edit', 'GET');
 
         app()->handle($firstRequest);
         $firstRequest = app()->request;
 
+        // Find the UserCrudController panel by looking through registered panels
+        $panels = \Backpack\CRUD\CrudManager::getCrudPanels();
+        $userPanel = null;
+        foreach ($panels as $key => $panel) {
+            if (str_contains($key, 'UserCrudController')) {
+                $userPanel = $panel;
+                break;
+            }
+        }
+
         // see if the first global request has been passed to the CRUD object
-        $this->assertSame(\Backpack\CRUD\CrudManager::getCrudPanel($controllerClass)->getRequest(), $firstRequest);
+        $this->assertNotNull($userPanel, 'UserCrudController panel should exist');
+        $this->assertSame($userPanel->getRequest(), $firstRequest);
 
         // create a second request
         $secondRequest = request()->create('admin/users/1', 'PUT', ['name' => 'foo']);
@@ -71,9 +80,9 @@ class CrudControllerTest extends BaseTestClass
         $secondRequest = app()->request;
 
         // see if the second global request has been passed to the CRUD object
-        $this->assertSame(\Backpack\CRUD\CrudManager::getCrudPanel($controllerClass)->getRequest(), $secondRequest);
+        $this->assertSame($userPanel->getRequest(), $secondRequest);
 
         // the CRUD object's request should no longer hold the first request, but the second one
-        $this->assertNotSame(\Backpack\CRUD\CrudManager::getCrudPanel($controllerClass)->getRequest(), $firstRequest);
+        $this->assertNotSame($userPanel->getRequest(), $firstRequest);
     }
 }
