@@ -24,10 +24,19 @@ abstract class BaseCrudPanel extends BaseTestClass
     {
         parent::setUp();
 
-        $this->crudPanel = app('crud');
+        $this->crudPanel = \Backpack\CRUD\CrudManager::getCrudPanel(\Backpack\CRUD\app\Http\Controllers\CrudController::class);
         $this->crudPanel->setModel(TestModel::class);
         $this->crudPanel->setRequest();
         $this->model = TestModel::class;
+
+        \Backpack\CRUD\CrudManager::pushActiveController(\Backpack\CRUD\app\Http\Controllers\CrudController::class);
+    }
+
+    protected function tearDown(): void
+    {
+        \Backpack\CRUD\CrudManager::popActiveController();
+
+        parent::tearDown();
     }
 
     /**
@@ -49,10 +58,6 @@ abstract class BaseCrudPanel extends BaseTestClass
                     return $next($request);
                 }
             };
-        });
-
-        $app->scoped('crud', function () {
-            return new CrudPanel();
         });
     }
 }

@@ -10,6 +10,20 @@ use Backpack\CRUD\Tests\BaseTestClass;
  */
 class CrudControllerTest extends BaseTestClass
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        \Backpack\CRUD\CrudManager::getCrudPanel(\Backpack\CRUD\app\Http\Controllers\CrudController::class);
+        \Backpack\CRUD\CrudManager::pushActiveController(\Backpack\CRUD\app\Http\Controllers\CrudController::class);
+    }
+
+    protected function tearDown(): void
+    {
+        \Backpack\CRUD\CrudManager::popActiveController();
+
+        parent::tearDown();
+    }
     /**
      * Define environment setup.
      *
@@ -19,8 +33,6 @@ class CrudControllerTest extends BaseTestClass
     protected function defineEnvironment($app)
     {
         parent::defineEnvironment($app);
-
-        //$this->crudPanel = app('crud');
     }
 
     public function testSetRouteName()
@@ -41,6 +53,8 @@ class CrudControllerTest extends BaseTestClass
 
     public function testCrudRequestUpdatesOnEachRequest()
     {
+        $controllerClass = \Backpack\CRUD\Tests\config\Http\Controllers\UserCrudController::class;
+
         // create a first request
         $firstRequest = request()->create('admin/users/1/edit', 'GET');
 
@@ -48,7 +62,7 @@ class CrudControllerTest extends BaseTestClass
         $firstRequest = app()->request;
 
         // see if the first global request has been passed to the CRUD object
-        $this->assertSame(app('crud')->getRequest(), $firstRequest);
+        $this->assertSame(\Backpack\CRUD\CrudManager::getCrudPanel($controllerClass)->getRequest(), $firstRequest);
 
         // create a second request
         $secondRequest = request()->create('admin/users/1', 'PUT', ['name' => 'foo']);
@@ -56,9 +70,9 @@ class CrudControllerTest extends BaseTestClass
         $secondRequest = app()->request;
 
         // see if the second global request has been passed to the CRUD object
-        $this->assertSame(app('crud')->getRequest(), $secondRequest);
+        $this->assertSame(\Backpack\CRUD\CrudManager::getCrudPanel($controllerClass)->getRequest(), $secondRequest);
 
         // the CRUD object's request should no longer hold the first request, but the second one
-        $this->assertNotSame(app('crud')->getRequest(), $firstRequest);
+        $this->assertNotSame(\Backpack\CRUD\CrudManager::getCrudPanel($controllerClass)->getRequest(), $firstRequest);
     }
 }

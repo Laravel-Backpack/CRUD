@@ -19,7 +19,7 @@ class CrudPanelOperationsTest extends BaseCrudPanel
 
     public function testItCanConfigureOperations()
     {
-        CrudManager::setActiveController('TestController');
+        CrudManager::pushActiveController(\Backpack\CRUD\app\Http\Controllers\CrudController::class);
 
         $this->crudPanel->operation(['create', 'update'], function () {
             $this->crudPanel->addField(['name' => 'test', 'type' => 'text']);
@@ -28,6 +28,6 @@ class CrudPanelOperationsTest extends BaseCrudPanel
 
         $this->assertEquals(count($this->crudPanel->fields()), 1);
 
-        CrudManager::unsetActiveController();
+        CrudManager::popActiveController();
     }
 }
