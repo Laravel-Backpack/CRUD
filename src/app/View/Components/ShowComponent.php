@@ -38,11 +38,10 @@ abstract class ShowComponent extends Component
             return;
         }
 
+        CrudManager::pushActiveController($this->controller);
+
         // If no CrudPanel is provided, try to get it from the CrudManager
         $this->crud ??= CrudManager::setupCrudPanel($this->controller, $this->operation);
-
-        // Set active controller for proper context
-        CrudManager::setActiveController($this->controller);
 
         // If a setup closure is provided, apply it
         if ($this->setup) {
@@ -54,9 +53,6 @@ abstract class ShowComponent extends Component
         }
 
         $this->columns = ! empty($columns) ? $columns : $this->crud?->getOperationSetting('columns', $this->operation) ?? [];
-
-        // Reset the active controller
-        CrudManager::unsetActiveController();
     }
 
     /**

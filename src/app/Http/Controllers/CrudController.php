@@ -35,17 +35,22 @@ class CrudController extends Controller implements CrudControllerContract
         // It's done inside a middleware closure in order to have
         // the complete request inside the CrudPanel object.
         $this->middleware(function ($request, $next) {
-            if (! CrudManager::hasCrudPanel(get_class($this))) {
-                $this->initializeCrudPanel($request);
+            CrudManager::pushActiveController(get_class($this));
+            try {
+                if (! CrudManager::hasCrudPanel(get_class($this))) {
+                    $this->initializeCrudPanel($request);
+
+                    return $next($request);
+                }
+
+                $this->setupCrudController();
+
+                CrudManager::getCrudPanel($this)->setRequest($request);
 
                 return $next($request);
+            } finally {
+                CrudManager::popActiveController();
             }
-
-            $this->setupCrudController();
-
-            CrudManager::getCrudPanel($this)->setRequest($request);
-
-            return $next($request);
         });
     }
 

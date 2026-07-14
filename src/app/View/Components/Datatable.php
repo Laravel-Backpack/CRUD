@@ -25,7 +25,7 @@ class Datatable extends Component
         private ?bool $showFilterValues = null,
     ) {
         // Set active controller for proper context
-        CrudManager::setActiveController($controller);
+        CrudManager::pushActiveController($controller);
 
         $this->crud ??= CrudManager::setupCrudPanel($controller, 'list');
 
@@ -66,9 +66,6 @@ class Datatable extends Component
             }
             $this->crud->set('list.datatablesUrl', $route);
         }
-
-        // Reset the active controller
-        CrudManager::unsetActiveController();
     }
 
     private function getParentCrudEntry()
