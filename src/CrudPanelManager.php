@@ -420,7 +420,6 @@ final class CrudPanelManager
     {
         Facade::clearResolvedInstance('crud');
         $this->activeControllerStack[] = ltrim($controller, '\\');
-
     }
 
     /**
