@@ -35,8 +35,7 @@ class Dataform extends Component
         public bool $formInsideCard = false,
         public array $saveActions = [],
     ) {
-        // Get CRUD panel instance from the controller
-        CrudManager::setActiveController($controller);
+        CrudManager::pushActiveController($controller);
 
         $this->crud = CrudManager::setupCrudPanel($controller, $this->formOperation);
 
@@ -76,9 +75,6 @@ class Dataform extends Component
         if (! is_null($showCancelButton)) {
             $this->crud->setOperationSetting('showCancelButton', $showCancelButton);
         }
-
-        // Reset the active controller
-        CrudManager::unsetActiveController();
     }
 
     private function getParentCrudEntry()

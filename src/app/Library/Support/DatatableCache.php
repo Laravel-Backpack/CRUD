@@ -116,7 +116,6 @@ final class DatatableCache extends SetupCache
     public static function applyFromRequest(CrudPanel $crud): bool
     {
         $instance = new self();
-        // Check if the request has a datatable_id parameter
         $tableId = request('datatable_id');
 
         if (! $tableId) {
@@ -223,7 +222,6 @@ final class DatatableCache extends SetupCache
             $widgets = Widget::collection();
 
             foreach ($widgets as $widget) {
-                // Widgets store their closure under 'configure' (legacy) or 'setup'.
                 $widgetSetup = $widget['setup'] ?? $widget['configure'] ?? null;
 
                 if ($widget['type'] === 'datatable' &&
@@ -250,7 +248,6 @@ final class DatatableCache extends SetupCache
     {
         $parentCrud = CrudManager::getCrudPanel($parentController);
 
-        // Deduplicate operations to avoid redundant re-initialization.
         $operations = array_unique((array) $operations);
 
         foreach ($operations as $operation) {

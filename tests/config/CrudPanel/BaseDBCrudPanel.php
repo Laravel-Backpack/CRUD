@@ -45,6 +45,8 @@ abstract class BaseDBCrudPanel extends BaseCrudPanel
      */
     protected function getEnvironmentSetUp($app)
     {
+        parent::getEnvironmentSetUp($app);
+
         $app['config']->set('database.default', 'testing');
         $app['config']->set('backpack.base.route_prefix', 'admin');
 
