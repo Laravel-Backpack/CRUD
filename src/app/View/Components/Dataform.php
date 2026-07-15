@@ -35,7 +35,8 @@ class Dataform extends Component
         public bool $formInsideCard = false,
         public array $saveActions = [],
     ) {
-        // Get CRUD panel instance from the controller.
+        CrudManager::pushActiveController($controller);
+
         $this->crud = CrudManager::setupCrudPanel($controller, $this->formOperation);
 
         if ($this->crud->getOperation() !== $this->formOperation) {

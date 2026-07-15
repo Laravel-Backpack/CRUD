@@ -38,6 +38,8 @@ abstract class ShowComponent extends Component
             return;
         }
 
+        CrudManager::pushActiveController($this->controller);
+
         $this->crud ??= CrudManager::setupCrudPanel($this->controller, $this->operation);
 
         // If a setup closure is provided, apply it

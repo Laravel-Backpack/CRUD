@@ -24,6 +24,8 @@ class Datatable extends Component
         private ?bool $useFixedHeader = null,
         private ?bool $showFilterValues = null,
     ) {
+        CrudManager::pushActiveController($controller);
+
         $this->crud ??= CrudManager::setupCrudPanel($controller, 'list');
 
         if ($this->crud->getOperation() !== 'list') {

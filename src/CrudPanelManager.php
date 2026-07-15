@@ -420,6 +420,7 @@ final class CrudPanelManager
     {
         Facade::clearResolvedInstance('crud');
         $this->activeControllerStack[] = ltrim($controller, '\\');
+
     }
 
     /**
@@ -489,5 +490,15 @@ final class CrudPanelManager
     public function getCrudPanels(): array
     {
         return $this->cruds;
+    }
+
+    /**
+     * Reset all state. Useful between tests to prevent cross-class contamination.
+     */
+    public function reset(): void
+    {
+        $this->cruds = [];
+        $this->initializedOperations = [];
+        $this->activeControllerStack = [];
     }
 }
