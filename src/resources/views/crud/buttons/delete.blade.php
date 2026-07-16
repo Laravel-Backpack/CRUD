@@ -30,15 +30,13 @@
 
 {{-- Button Javascript --}}
 {{-- - used right away in AJAX operations (ex: List) --}}
-{{-- - pushed to the end of the page, after jQuery is loaded, for non-AJAX operations (ex: Show) --}}
+{{-- - pushed to the end of the page for non-AJAX operations (ex: Show) --}}
 @push('after_scripts') @if (request()->ajax()) @endpush @endif
 @bassetBlock('backpack/crud/buttons/delete-button.js')
 <script>
     if (typeof deleteEntry != 'function') {
-        $("[data-button-type=delete]").unbind('click');
-
         function deleteEntry(button) {
-            var route = $(button).attr('data-route');
+            var route = button.getAttribute('data-route');
 
             swal({
                 title: button.getAttribute('data-warning-text'),
@@ -69,14 +67,20 @@
                     }).show();
                 }
                 if (value) {
-                    $.ajax({
-                        url: route,
-                        type: 'DELETE',
-                        success: function(result) {
+                    fetch(route, {
+                        method: 'DELETE',
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf_token"]')?.getAttribute('content') || '',
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest',
+                        },
+                    })
+                    .then(response => response.json())
+                    .then(result => {
                             console.log(result);
                             if (result == 1) {
                                 // Get the table ID from the button's data attribute
-                                let tableId = $(button).data('table-id') || 'crudTable';
+                                let tableId = button.dataset.tableId || 'crudTable';
                                 
                                 // Check if we have a specific DataTable instance
                                 if (typeof window.crud !== 'undefined' && 
@@ -90,13 +94,13 @@
                                         table.page("previous");
                                     }
                                     // Hide the modal, if any is displayed
-                                    $('.dtr-modal-close').click();
+                                    document.querySelector('.dtr-modal-close')?.click();
 
                                     showDeleteNotyAlert();
                                     table.draw(false);
                                 } else {
                                     // there is no crud table in the current page, so we will redirect the user to the defined button redirect route in data-redirect-url
-                                    let redirectRoute = $(button).data('redirect-route');
+                                    let redirectRoute = button.dataset.redirectRoute;
                                     if(redirectRoute){
                                         // queue the alert in localstorage to show it after the redirect
                                         localStorage.setItem('backpack_alerts', JSON.stringify({
@@ -136,9 +140,9 @@
                                     });
                                 }
                             }
-                        },
-                        error: function(result) {
-                            console.log(result);
+                        })
+                        .catch(error => {
+                            console.log(error);
                             // Show an alert with the result
                             swal({
                                 title: button.getAttribute('data-error-title'),
@@ -147,8 +151,7 @@
                                 timer: 4000,
                                 buttons: false,
                             });
-                        }
-                    });
+                        });
                 }
             });
 

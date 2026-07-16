@@ -263,7 +263,7 @@
      * @param within  the time window in milliseconds, defaults to 300
      * @param timerId an optional key, defaults to func
      * 
-     * FROM: https://stackoverflow.com/questions/27787768/debounce-function-in-jquery
+     * FROM: https://stackoverflow.com/questions/27787768/debounce-function-in-javascript
      */
     if(typeof callFunctionOnce !== 'function') {
         function callFunctionOnce(func, within = 300, timerId = null) {
@@ -473,9 +473,9 @@
                         tableId = closestTable.getAttribute('id') || '';
                         
                         // If no ID found, try to get it from the DataTable instance
-                        if (!tableId && $.fn.DataTable.isDataTable(closestTable)) {
+                        if (!tableId && DataTable.isDataTable(closestTable)) {
                             try {
-                                const dt = $(closestTable).DataTable();
+                                const dt = new DataTable.Api(closestTable);
                                 if (dt && dt.table && dt.table().node && dt.table().node().id) {
                                     tableId = dt.table().node().id;
                                 }
