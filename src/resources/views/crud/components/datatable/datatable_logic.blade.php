@@ -164,7 +164,21 @@ window.crud.addFunctionToDataTablesDrawEventQueue = function(functionName) {
 };
 window.crud.responsiveToggle = window.crud.defaultTableConfig.responsiveToggle;
 window.crud.executeFunctionByName = window.crud.defaultTableConfig.executeFunctionByName;
-window.crud.updateUrl = window.crud.defaultTableConfig.updateUrl;
+window.crud.updateUrl = function(url) {
+    var tableEl = document.querySelector('table.crud-table[data-persistent-table-slug]')
+        || document.querySelector('table[id^="crudTable"][data-persistent-table-slug]');
+    
+    if (tableEl) {
+        // Temporarily build a context object with the properties updateUrl expects
+        var ctx = {
+            modifiesUrl: tableEl.getAttribute('data-modifies-url') === 'true',
+            urlStart: tableEl.getAttribute('data-url-start') || '',
+            persistentTable: tableEl.getAttribute('data-persistent-table') === 'true',
+            persistentTableSlug: tableEl.getAttribute('data-persistent-table-slug') || ''
+        };
+        window.crud.defaultTableConfig.updateUrl.call(ctx, url);
+    }
+};
 
 window.crud.initializeTable = function(tableId, customConfig = {}) {
     // Create a table-specific configuration
@@ -1476,6 +1490,19 @@ function updateDatatablesOnFilterChange(filterName, filterValue, shouldUpdateUrl
         var navbar = document.querySelector('.navbar-filters[data-component-id="' + tableId + '"]');
         if (navbar) {
             var accumulatedParams = new URLSearchParams(navbar.getAttribute('data-filter-params') || '');
+
+            if (filterValue !== '' && filterValue != null) {
+                accumulatedParams.set(filterName, filterValue);
+            } else {
+                accumulatedParams.delete(filterName);
+                var filterElement = navbar.querySelector('li[filter-name="' + filterName + '"]');
+                if (filterElement) {
+                    var displayAttr = filterElement.getAttribute('data-display-filter-attribute-name');
+                    if (displayAttr) {
+                        accumulatedParams.delete(displayAttr);
+                    }
+                }
+            }
 
             browserUrl = window.location.href;
             var allFilters = navbar.querySelectorAll('li[filter-name]');
