@@ -36,6 +36,20 @@
 
     --bp-tinymce-content-bg: #ffffff;
     --bp-tinymce-content-color: #000000;
+
+    /* Bootstrap 5 CSS variables needed by third-party libraries (e.g. DataTables Buttons 3.2+) */
+    /* Each resolves to its Tabler --tblr-* equivalent when available, with hardcoded fallbacks for CoreUI themes */
+    --bs-body-bg: var(--tblr-dropdown-bg, #fff);
+    --bs-border-color: var(--tblr-dropdown-border-color, #dee2e6);
+    --bs-border-color-translucent: var(--tblr-border-color, rgba(0, 0, 0, 0.175));
+    --bs-border-radius: var(--tblr-border-radius, 0.375rem);
+    --bs-border-width: var(--tblr-border-width, 1px);
+    --bs-box-shadow: var(--tblr-box-shadow, 0 0.5rem 1rem rgba(0, 0, 0, 0.15));
+    --bs-dropdown-item-padding-x: var(--tblr-dropdown-item-padding-x, 1rem);
+    --bs-dropdown-item-padding-y: var(--tblr-dropdown-item-padding-y, 0.25rem);
+    --bs-dropdown-link-color: var(--tblr-dropdown-link-color, #212529);
+    --bs-dropdown-link-hover-bg: var(--tblr-dropdown-link-hover-bg, #e9ecef);
+    --bs-dropdown-link-hover-color: var(--tblr-dropdown-link-hover-color, #1e2125);
 }
 
 .sidebar .nav-dropdown-items .nav-dropdown {
@@ -540,15 +554,12 @@ div[id$="_wrapper"] .dt-processing {
     overflow: visible !important;
 }
 
-.dataTables_wrapper .dt-buttons .dt-button-collection {
+
+div.dt-button-collection {
     width: auto;
 }
 
-.dataTables_wrapper .dt-buttons .dt-button-collection>div.dropdown-menu {
-    min-width: 100%;
-}
-
-.dataTables_wrapper .dt-buttons .dt-button-collection>div.dropdown-menu ul.dropdown-menu {
+div.dt-button-collection > .dropdown-menu {
     position: relative;
     top: 0;
     left: 0;
@@ -558,100 +569,49 @@ div[id$="_wrapper"] .dt-processing {
     border: 0;
 }
 
-.dataTables_wrapper .dt-buttons .dt-button-collection>div.dropdown-menu ul.dropdown-menu li {
+div.dt-button-collection li {
     padding: 0;
     min-width: 100%;
     display: block;
 }
 
-.dataTables_wrapper .dt-buttons .dt-button-collection>div.dropdown-menu ul.dropdown-menu li .dropdown-item {
-    color: #23282c;
+div.dt-button-collection li .dropdown-item {
+    color: var(--bs-dropdown-link-color);
+    background: transparent;
     min-width: 100%;
     width: 100%;
     display: block;
     text-align: left;
     margin: 0;
     border-radius: 0;
+    padding: .3rem 1rem;
+    font-size: 0.9em;
 }
 
-.dataTables_wrapper .dt-buttons .dt-button-collection>div.dropdown-menu ul.dropdown-menu li .dropdown-item:hover {
-    background: #f0f3f9;
+div.dt-button-collection li .dropdown-item:hover,
+div.dt-button-collection li .dropdown-item:focus-visible {
+    color: var(--bs-dropdown-link-hover-color);
+    background: var(--bs-dropdown-link-hover-bg);
 }
 
-.dataTables_wrapper .dt-buttons .dt-button-collection>div.dropdown-menu ul.dropdown-menu li .dropdown-item.active {
-    background: #4285f4;
-    color: #fff;
+div.dt-button-collection li.dt-button-active-a .dropdown-item {
+    color: var(--bs-dropdown-link-hover-color);
+    background: var(--bs-dropdown-link-hover-bg);
 }
 
-.dataTables_wrapper .dt-buttons .dt-button-collection>div.dropdown-menu ul.dropdown-menu li .dropdown-item.active:hover {
-    background: #4285f4;
+/* Hover on a selected item: slightly darker */
+div.dt-button-collection li.dt-button-active-a .dropdown-item:hover,
+div.dt-button-collection li.dt-button-active-a .dropdown-item:focus-visible {
+    background: var(--bs-border-color);
 }
 
-.dataTables_wrapper .dt-buttons .dt-button-collection>div.dropdown-menu ul.dropdown-menu li.dropdown-divider {
+div.dt-button-collection li.divider {
     height: 0;
     margin: .5rem 0;
     overflow: hidden;
-    border-top: 1px solid #e4e7ea;
+    border-top: 1px solid var(--bs-border-color);
 }
 
-.dataTables_wrapper .dt-buttons .dt-button-collection>div.dropdown-menu ul.dropdown-menu li.buttons-colvis {
-    padding: 0;
-}
-
-.dataTables_wrapper .dt-buttons .dt-button-collection>div.dropdown-menu ul.dropdown-menu li.buttons-colvis .dropdown-item {
-    padding: .3rem 1rem;
-    font-size: 0.9em;
-}
-
-.dataTables_wrapper .dt-buttons .dt-button-collection>div.dropdown-menu ul.dropdown-menu li.buttons-colvis.active .dropdown-item {
-    background: #4285f4;
-    color: #fff;
-}
-
-.dataTables_wrapper .dt-buttons .dt-button-collection>div.dropdown-menu ul.dropdown-menu li.buttons-colvis.active .dropdown-item:hover {
-    background: #4285f4;
-}
-
-.dataTables_wrapper .dt-buttons .dt-button-collection>div.dropdown-menu ul.dropdown-menu li.buttons-columnVisibility .dropdown-item {
-    padding: .3rem 1rem;
-    font-size: 0.9em;
-}
-
-.dataTables_wrapper .dt-buttons .dt-button-collection>div.dropdown-menu ul.dropdown-menu li.buttons-columnVisibility.active .dropdown-item {
-    background: #4285f4;
-    color: #fff;
-}
-
-.dataTables_wrapper .dt-buttons .dt-button-collection>div.dropdown-menu ul.dropdown-menu li.buttons-columnVisibility.active .dropdown-item:hover {
-    background: #4285f4;
-}
-
-.dataTables_wrapper .dt-buttons .dt-button-collection>div.dropdown-menu ul.dropdown-menu li.buttons-colvisRestore .dropdown-item {
-    padding: .3rem 1rem;
-    font-size: 0.9em;
-}
-
-.dataTables_wrapper .dt-buttons .dt-button-collection>div.dropdown-menu ul.dropdown-menu li.buttons-colvisRestore.active .dropdown-item {
-    background: #4285f4;
-    color: #fff;
-}
-
-.dataTables_wrapper .dt-buttons .dt-button-collection>div.dropdown-menu ul.dropdown-menu li.buttons-colvisRestore.active .dropdown-item:hover {
-    background: #4285f4;
-}
-
-.dataTables_wrapper .dt-buttons .dt-button-collection>div.dropdown-menu ul.dropdown-menu li.buttons-reset .dropdown-item {
-    padding: .3rem 1rem;
-    font-size: 0.9em;
-}
-
-.dataTables_wrapper .dt-buttons .dt-button-collection>div.dropdown-menu ul.dropdown-menu li.buttons-reset.active .dropdown-item {
-    background: #4285f4;
-    color: #fff;
-}
-
-.dataTables_wrapper .dt-buttons .dt-button-collection>div.dropdown-menu ul.dropdown-menu li.buttons-reset.active .dropdown-item:hover {
-    background: #4285f4;
 }
 
 .dataTables_wrapper .dataTables_filter {
@@ -1049,7 +1009,8 @@ div.dt-scroll-body {
     background: #ccc !important;
 }
 
-.dt-button.dropdown-item {
+/* In Buttons 3.2+, .dt-button is on <li> and .dropdown-item is on the inner <a> */
+.dt-button .dropdown-item {
     padding: 0.15rem 1rem;
     font-size: 0.9em;
 }
