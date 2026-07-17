@@ -228,6 +228,6 @@
         };
     </script>
     @push('after_styles')
-        @basset('https://cdn.datatables.net/buttons/3.2.0/css/buttons.bootstrap5.min.css')
+        @basset('https://cdn.datatables.net/buttons/3.2.6/css/buttons.bootstrap5.min.css')
     @endpush
 @endif
