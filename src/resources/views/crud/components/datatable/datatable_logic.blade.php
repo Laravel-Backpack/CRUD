@@ -6,16 +6,16 @@ $backpack_alerts = \Alert::getMessages();
 @endphp
 
 {{-- DATA TABLES SCRIPT --}}
-@basset("https://cdn.datatables.net/2.1.8/js/dataTables.min.js")
-@basset("https://cdn.datatables.net/2.1.8/js/dataTables.bootstrap5.min.js")
-@basset("https://cdn.datatables.net/responsive/3.0.3/js/dataTables.responsive.min.js")
-@basset('https://cdn.datatables.net/fixedheader/4.0.1/js/dataTables.fixedHeader.min.js')
+@basset("https://cdn.datatables.net/2.3.8/js/dataTables.min.js")
+@basset("https://cdn.datatables.net/2.3.8/js/dataTables.bootstrap5.min.js")
+@basset("https://cdn.datatables.net/responsive/3.0.8/js/dataTables.responsive.min.js")
+@basset('https://cdn.datatables.net/fixedheader/4.0.8/js/dataTables.fixedHeader.min.js')
 @basset(base_path('vendor/backpack/crud/src/resources/assets/img/spinner.svg'), false)
 
 @push('before_styles')
-    @basset('https://cdn.datatables.net/2.1.8/css/dataTables.bootstrap5.min.css')
-    @basset("https://cdn.datatables.net/responsive/3.0.3/css/responsive.dataTables.min.css")
-    @basset('https://cdn.datatables.net/fixedheader/4.0.1/css/fixedHeader.dataTables.min.css')
+    @basset('https://cdn.datatables.net/2.3.8/css/dataTables.bootstrap5.min.css')
+    @basset("https://cdn.datatables.net/responsive/3.0.8/css/responsive.dataTables.min.css")
+    @basset('https://cdn.datatables.net/fixedheader/4.0.8/css/fixedHeader.dataTables.min.css')
 @endpush
 
 <script>
