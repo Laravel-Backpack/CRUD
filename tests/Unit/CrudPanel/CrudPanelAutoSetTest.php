@@ -3,7 +3,6 @@
 namespace Backpack\CRUD\Tests\Unit\CrudPanel;
 
 use Backpack\CRUD\Tests\config\Models\ColumnType;
-use Exception;
 
 class MyColumnTypeWithOtherConnection extends ColumnType
 {
