@@ -69,18 +69,6 @@ trait AutoSet
     }
 
     /**
-     * Set extra types mapping on model.
-     *
-     * DEPRECATION NOTICE: This method is no longer used and will be removed in future versions of Backpack
-     *
-     * @deprecated
-     */
-    public function setDoctrineTypesMapping()
-    {
-        $this->getModel()->getConnectionWithExtraTypeMappings();
-    }
-
-    /**
      * Get all columns in the database table.
      *
      * @return array
