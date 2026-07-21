@@ -72,6 +72,7 @@ trait Stats
             'BACKPACK_PRO_VERSION' => backpack_pro(),
             'BACKPACK_LICENSE' => config('backpack.base.license_code') ?? false,
             'BACKPACK_TOKEN_USERNAME' => config('backpack.base.token_username') ?? false,
+            'BACKPACK_PROJECT' => config('backpack.base.project') ?: env('BACKPACK_PROJECT', false),
             'BACKPACK_URL' => backpack_url('') ?? false,
         ];
 

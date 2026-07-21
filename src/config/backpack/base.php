@@ -190,4 +190,7 @@ return [
     */
 
     'token_username' => env('BACKPACK_TOKEN_USERNAME', false),
+
+    // The project identifier issued in your backpackforlaravel.com account.
+    'project' => env('BACKPACK_PROJECT', false),
 ];
