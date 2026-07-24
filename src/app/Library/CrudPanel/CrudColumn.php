@@ -107,6 +107,26 @@ class CrudColumn
     }
 
     /**
+     * When subfields are defined, pass them through the guessing function
+     * so that they have label, relationship attributes, etc.
+     *
+     * @param  array  $subfields  Subfield definition array
+     * @return self
+     */
+    public function subfields($subfields)
+    {
+        $callAttributeMacro = ! isset($this->attributes['subfields']);
+        $this->attributes['subfields'] = $subfields;
+        $this->attributes = $this->crud()->makeSureColumnHasNeededAttributes($this->attributes);
+
+        if ($callAttributeMacro) {
+            $this->callRegisteredAttributeMacros();
+        }
+
+        return $this->save();
+    }
+
+    /**
      * Remove the current column from the current operation.
      *
      * @return void
