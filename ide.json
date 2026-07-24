@@ -1,0 +1,309 @@
+{
+    "$schema": "https://laravel-ide.com/schema/laravel-ide-v2.json",
+    "completions": [
+        {
+            "complete": "directoryFiles",
+            "options": {
+                "directories": [
+                    "/vendor/backpack/crud/src/resources/views/crud/columns",
+                    "/resources/views/vendor/backpack/crud/columns"
+                ],
+                "suffixToClear": ".blade.php",
+                "recursive": false
+            },
+            "condition": [
+                {
+                    "methodNames": [
+                        "type"
+                    ],
+                    "classFqn": [
+                        "\\Backpack\\CRUD\\app\\Library\\CrudPanel\\CrudColumn"
+                    ],
+                    "parameters": [
+                        1
+                    ]
+                },
+                {
+                    "place": "arrayValueWithKey",
+                    "keys": [
+                        "type"
+                    ],
+                    "methodNames": [
+                        "addColumn"
+                    ],
+                    "classFqn": [
+                        "\\Backpack\\CRUD\\app\\Library\\CrudPanel\\CrudPanelFacade",
+                        "\\Backpack\\CRUD\\app\\Library\\CrudPanel\\CrudPanel"
+                    ]
+                }
+            ]
+        },
+        {
+            "complete": "directoryFiles",
+            "options": {
+                "directories": [
+                    "/vendor/backpack/crud/src/resources/views/crud/fields",
+                    "/resources/views/vendor/backpack/crud/fields"
+                ],
+                "suffixToClear": ".blade.php",
+                "recursive": false
+            },
+            "condition": [
+                {
+                    "methodNames": [
+                        "type"
+                    ],
+                    "classFqn": [
+                        "\\Backpack\\CRUD\\app\\Library\\CrudPanel\\CrudField"
+                    ],
+                    "parameters": [
+                        1
+                    ]
+                },
+                {
+                    "place": "arrayValueWithKey",
+                    "keys": [
+                        "type"
+                    ],
+                    "methodNames": [
+                        "addField"
+                    ],
+                    "classFqn": [
+                        "\\Backpack\\CRUD\\app\\Library\\CrudPanel\\CrudPanelFacade",
+                        "\\Backpack\\CRUD\\app\\Library\\CrudPanel\\CrudPanel"
+                    ]
+                }
+            ]
+        },
+        {
+            "complete": "directoryFiles",
+            "options": {
+                "directories": [
+                    "/vendor/backpack/crud/src/resources/views/ui/widgets",
+                    "/resources/views/vendor/backpack/ui/widgets"
+                ],
+                "suffixToClear": ".blade.php",
+                "recursive": false
+            },
+            "condition": [
+                {
+                    "methodNames": [
+                        "type"
+                    ],
+                    "classFqn": [
+                        "\\Backpack\\CRUD\\app\\Library\\Widget"
+                    ],
+                    "parameters": [
+                        1
+                    ]
+                },
+                {
+                    "place": "arrayValueWithKey",
+                    "keys": [
+                        "type"
+                    ],
+                    "methodNames": [
+                        "add",
+                        "make"
+                    ],
+                    "classFqn": [
+                        "\\Backpack\\CRUD\\app\\Library\\Widget"
+                    ]
+                }
+            ]
+        },
+        {
+            "complete": "staticStrings",
+            "options": {
+                "strings": [
+                    "before_content",
+                    "after_content"
+                ]
+            },
+            "condition": [
+                {
+                    "methodNames": [
+                        "to",
+                        "section",
+                        "group"
+                    ],
+                    "classFqn": [
+                        "\\Backpack\\CRUD\\app\\Library\\Widget"
+                    ],
+                    "parameters": [
+                        1
+                    ]
+                },
+                {
+                    "place": "arrayValueWithKey",
+                    "keys": [
+                        "to",
+                        "section",
+                        "group"
+                    ],
+                    "methodNames": [
+                        "add",
+                        "make"
+                    ],
+                    "classFqn": [
+                        "\\Backpack\\CRUD\\app\\Library\\Widget"
+                    ]
+                }
+            ]
+        },
+        {
+            "complete": "staticStrings",
+            "options": {
+                "strings": [
+                    "fontawesome",
+                    "lineawesome",
+                    "glyphicon",
+                    "ionicon",
+                    "weathericon",
+                    "mapicon",
+                    "octicon",
+                    "typicon",
+                    "elusiveicon",
+                    "materialdesign"
+                ]
+            },
+            "condition": [
+                {
+                    "methodNames": [
+                        "iconset"
+                    ],
+                    "classFqn": [
+                        "\\Backpack\\CRUD\\app\\Library\\CrudPanel\\CrudField"
+                    ],
+                    "parameters": [
+                        1
+                    ]
+                },
+                {
+                    "place": "arrayValueWithKey",
+                    "keys": [
+                        "iconset"
+                    ],
+                    "methodNames": [
+                        "addField"
+                    ],
+                    "classFqn": [
+                        "\\Backpack\\CRUD\\app\\Library\\CrudPanel\\CrudPanelFacade",
+                        "\\Backpack\\CRUD\\app\\Library\\CrudPanel\\CrudPanel"
+                    ]
+                },
+                {
+                    "methodNames": [
+                        "iconset"
+                    ],
+                    "classFqn": [
+                        "\\Backpack\\CRUD\\app\\Library\\CrudPanel\\CrudColumn"
+                    ],
+                    "parameters": [
+                        1
+                    ]
+                },
+                {
+                    "place": "arrayValueWithKey",
+                    "keys": [
+                        "iconset"
+                    ],
+                    "methodNames": [
+                        "addColumn"
+                    ],
+                    "classFqn": [
+                        "\\Backpack\\CRUD\\app\\Library\\CrudPanel\\CrudPanelFacade",
+                        "\\Backpack\\CRUD\\app\\Library\\CrudPanel\\CrudPanel"
+                    ]
+                }
+            ]
+        },
+        {
+            "complete": "viewName",
+            "condition": [
+                {
+                    "methodNames": [
+                        "view"
+                    ],
+                    "classFqn": [
+                        "\\Backpack\\CRUD\\app\\Library\\CrudPanel\\CrudColumn"
+                    ],
+                    "parameters": [
+                        1
+                    ]
+                },
+                {
+                    "place": "arrayValueWithKey",
+                    "keys": [
+                        "view"
+                    ],
+                    "methodNames": [
+                        "addColumn"
+                    ],
+                    "classFqn": [
+                        "\\Backpack\\CRUD\\app\\Library\\CrudPanel\\CrudPanelFacade",
+                        "\\Backpack\\CRUD\\app\\Library\\CrudPanel\\CrudPanel"
+                    ]
+                }
+            ]
+        },
+        {
+            "complete": "viewName",
+            "condition": [
+                {
+                    "methodNames": [
+                        "view"
+                    ],
+                    "classFqn": [
+                        "\\Backpack\\CRUD\\app\\Library\\CrudPanel\\CrudField"
+                    ],
+                    "parameters": [
+                        1
+                    ]
+                },
+                {
+                    "place": "arrayValueWithKey",
+                    "keys": [
+                        "view"
+                    ],
+                    "methodNames": [
+                        "addField"
+                    ],
+                    "classFqn": [
+                        "\\Backpack\\CRUD\\app\\Library\\CrudPanel\\CrudPanelFacade",
+                        "\\Backpack\\CRUD\\app\\Library\\CrudPanel\\CrudPanel"
+                    ]
+                }
+            ]
+        },
+        {
+            "complete": "routeName",
+            "condition": [
+                {
+                    "methodNames": [
+                        "linkTo"
+                    ],
+                    "classFqn": [
+                        "\\Backpack\\CRUD\\app\\Library\\CrudPanel\\CrudColumn"
+                    ],
+                    "parameters": [
+                        1
+                    ]
+                },
+                {
+                    "place": "arrayValueWithKey",
+                    "keys": [
+                        "linkTo"
+                    ],
+                    "methodNames": [
+                        "addColumn"
+                    ],
+                    "classFqn": [
+                        "\\Backpack\\CRUD\\app\\Library\\CrudPanel\\CrudPanelFacade",
+                        "\\Backpack\\CRUD\\app\\Library\\CrudPanel\\CrudPanel"
+                    ]
+                }
+            ]
+        }
+    ]
+}
