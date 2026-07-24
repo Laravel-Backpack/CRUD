@@ -20,6 +20,8 @@ trait HandleRepeatableUploads
 
     public ?string $repeatableContainerName = null;
 
+    public ?string $repeatableRelationType = null;
+
     /*******************************
      * Setters - fluently configure the uploader
      *******************************/
@@ -216,7 +218,7 @@ trait HandleRepeatableUploads
 
     private function getRepeatableRelationType()
     {
-        return $this->getUploaderField()->getAttributes()['relation_type'];
+        return $this->repeatableRelationType ?? $this->getUploaderField()->getAttributes()['relation_type'] ?? '';
     }
 
     private function getUploaderField()
