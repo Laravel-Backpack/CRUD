@@ -71,6 +71,7 @@ final class RegisterUploadEvents
 
         if (isset($crudObject['relation_type']) && $crudObject['entity'] !== false) {
             $uploader = $uploader->relationship(true);
+            $uploader->repeatableRelationType = $crudObject['relation_type'];
             $subfield['relation_type'] = $crudObject['relation_type'];
         }
 
