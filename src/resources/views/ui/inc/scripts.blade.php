@@ -1,5 +1,5 @@
-@basset('https://cdn.jsdelivr.net/npm/jquery@3.6.1/dist/jquery.min.js')
-@basset('https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js')
+@basset('https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js')
+@basset('https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js')
 @basset('https://cdn.jsdelivr.net/npm/noty@3.2.0-beta-deprecated/lib/noty.min.js')
 @basset('https://cdn.jsdelivr.net/npm/sweetalert@2.1.2/dist/sweetalert.min.js')
 
