@@ -41,7 +41,7 @@ jobs:
           tools: composer:v2
       - name: Install dependencies
         run: |
-            composer require "laravel/framework:^12.0" "phpunit/phpunit:^12.0" "doctrine/dbal:^4.0" --no-interaction --no-update --no-suggest
+            composer require "laravel/framework:^12.0" "phpunit/phpunit:^12.0" --no-interaction --no-update
             composer update --prefer-dist --no-interaction
       - name: Execute tests
         run: vendor/bin/phpunit --coverage-clover coverage.xml

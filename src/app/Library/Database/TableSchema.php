@@ -4,7 +4,7 @@ namespace Backpack\CRUD\app\Library\Database;
 
 class TableSchema
 {
-    /** @var Doctrine\DBAL\Schema\Table|Backpack\CRUD\app\Library\Database\Table */
+    /** @var \Backpack\CRUD\app\Library\Database\Table */
     public $schema;
 
     public function __construct(string $connection, string $table)

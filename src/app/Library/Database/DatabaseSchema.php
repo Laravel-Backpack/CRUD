@@ -118,39 +118,11 @@ final class DatabaseSchema
 
     private static function getCreateSchema(string $connection)
     {
-        $schemaManager = self::getSchemaManager($connection);
-
-        return method_exists($schemaManager, 'createSchema') ? $schemaManager->createSchema() : $schemaManager;
-    }
-
-    private static function dbalTypes()
-    {
-        return [
-            'enum' => \Doctrine\DBAL\Types\Types::STRING,
-            'jsonb' => \Doctrine\DBAL\Types\Types::JSON,
-            'geometry' => \Doctrine\DBAL\Types\Types::STRING,
-            'point' => \Doctrine\DBAL\Types\Types::STRING,
-            'lineString' => \Doctrine\DBAL\Types\Types::STRING,
-            'polygon' => \Doctrine\DBAL\Types\Types::STRING,
-            'multiPoint' => \Doctrine\DBAL\Types\Types::STRING,
-            'multiLineString' => \Doctrine\DBAL\Types\Types::STRING,
-            'multiPolygon' => \Doctrine\DBAL\Types\Types::STRING,
-            'geometryCollection' => \Doctrine\DBAL\Types\Types::STRING,
-        ];
+        return self::getSchemaManager($connection);
     }
 
     private static function getSchemaManager(string $connection)
     {
-        $connection = DB::connection($connection);
-
-        if (method_exists($connection, 'getDoctrineSchemaManager')) {
-            foreach (self::dbalTypes() as $key => $value) {
-                $connection->getDoctrineSchemaManager()->getDatabasePlatform()->registerDoctrineTypeMapping($key, $value);
-            }
-
-            return $connection->getDoctrineSchemaManager();
-        }
-
-        return $connection->getSchemaBuilder();
+        return DB::connection($connection)->getSchemaBuilder();
     }
 }

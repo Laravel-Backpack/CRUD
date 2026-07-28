@@ -16,32 +16,11 @@ trait HasRelationshipFields
     /**
      * Register additional types in doctrine schema manager for the current connection.
      *
-     * @return DB
+     * @return \Illuminate\Database\Connection
      */
     public function getConnectionWithExtraTypeMappings()
     {
-        $connection = DB::connection($this->getConnectionName());
-
-        if (! method_exists($connection, 'getDoctrineSchemaManager')) {
-            return $connection;
-        }
-
-        $types = [
-            'enum' => 'string',
-            'jsonb' => 'json',
-        ];
-
-        // only register the extra types in sql databases
-        if (self::isSqlConnection()) {
-            $platform = $connection->getDoctrineSchemaManager()->getDatabasePlatform();
-            foreach ($types as $type_key => $type_value) {
-                if (! $platform->hasDoctrineTypeMappingFor($type_key)) {
-                    $platform->registerDoctrineTypeMapping($type_key, $type_value);
-                }
-            }
-        }
-
-        return $connection;
+        return DB::connection($this->getConnectionName());
     }
 
     /**
