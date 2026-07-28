@@ -40,7 +40,7 @@ trait Query
             return $this->query;
         }
 
-        return call_user_func_array([$this->query, $function], array_slice(func_get_args(), 1));
+        return $this->query->{$function}(...array_slice(func_get_args(), 1));
     }
 
     /**
@@ -58,8 +58,8 @@ trait Query
 
             return $this;
         }
-        call_user_func_array([$this->query, $function], array_slice(func_get_args(), 1));
-        call_user_func_array([$this->totalQuery, $function], array_slice(func_get_args(), 1));
+        $this->query->{$function}(...array_slice(func_get_args(), 1));
+        $this->totalQuery->{$function}(...array_slice(func_get_args(), 1));
 
         return $this;
     }
