@@ -161,6 +161,19 @@ class BackpackServiceProvider extends ServiceProvider
         // register the helper functions
         $this->loadHelpers();
 
+        // register the alerts message bag (replaces prologue/alerts)
+        $this->app->singleton('alerts', function ($app) {
+            return new app\Library\Alerts\AlertsMessageBag(
+                $app['session.store'],
+                $app['config']->get('backpack.alerts.session_key', 'alert_messages'),
+            );
+        });
+
+        // Register the Alert facade alias (replaces prologue/alerts auto-discovery)
+        if (! class_exists('Alert')) {
+            class_alias(app\Library\Alerts\Alert::class, 'Alert');
+        }
+
         // register the artisan commands
         $this->commands($this->commands);
 
@@ -311,6 +324,7 @@ class BackpackServiceProvider extends ServiceProvider
         $this->mergeConfigFrom(__DIR__.'/config/backpack/crud.php', 'backpack.crud');
         $this->mergeConfigFrom(__DIR__.'/config/backpack/base.php', 'backpack.base');
         $this->mergeConfigFrom(__DIR__.'/config/backpack/ui.php', 'backpack.ui');
+        $this->mergeConfigFrom(__DIR__.'/config/backpack/alerts.php', 'backpack.alerts');
         $this->mergeConfigsFromDirectory('operations');
 
         // add the root disk to filesystem configuration
@@ -423,7 +437,7 @@ class BackpackServiceProvider extends ServiceProvider
      */
     public function provides()
     {
-        return ['widgets', 'BackpackViewNamespaces', 'DatabaseSchema', 'UploadersRepository', 'CrudManager'];
+        return ['alerts', 'widgets', 'BackpackViewNamespaces', 'DatabaseSchema', 'UploadersRepository', 'CrudManager'];
     }
 
     private function registerBackpackErrorViews()
