@@ -48,13 +48,13 @@ return [
         | programmatically. Users can add custom keys.
         */
         'positions' => [
-            'topRight'      => 'top-0 end-0',
-            'topLeft'       => 'top-0 start-0',
-            'bottomRight'   => 'bottom-0 end-0',
-            'bottomLeft'    => 'bottom-0 start-0',
-            'topCenter'     => 'top-0 start-50 translate-middle-x',
-            'bottomCenter'  => 'bottom-0 start-50 translate-middle-x',
-            'center'        => 'top-50 start-50 translate-middle',
+            'topRight' => 'top-0 end-0',
+            'topLeft' => 'top-0 start-0',
+            'bottomRight' => 'bottom-0 end-0',
+            'bottomLeft' => 'bottom-0 start-0',
+            'topCenter' => 'top-0 start-50 translate-middle-x',
+            'bottomCenter' => 'bottom-0 start-50 translate-middle-x',
+            'center' => 'top-50 start-50 translate-middle',
         ],
 
         /*

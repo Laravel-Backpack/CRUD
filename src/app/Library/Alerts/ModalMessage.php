@@ -28,12 +28,14 @@ final class ModalMessage extends AlertMessage
     public function text(string $text): static
     {
         $this->text = $text;
+
         return $this;
     }
 
     public function timer(?int $ms): static
     {
         $this->timer = $ms;
+
         return $this;
     }
 
@@ -41,30 +43,35 @@ final class ModalMessage extends AlertMessage
     public function button(string|bool $text = 'OK'): static
     {
         $this->button = $text === false ? null : $text;
+
         return $this;
     }
 
     public function backdrop(bool $value = true): static
     {
         $this->closeOnClickOutside = $value;
+
         return $this;
     }
 
     public function escapeKey(bool $value = true): static
     {
         $this->closeOnEsc = $value;
+
         return $this;
     }
 
     public function className(?string $class): static
     {
         $this->className = $class;
+
         return $this;
     }
 
     public function showCloseButton(bool $value = true): static
     {
         $this->showCloseButton = $value;
+
         return $this;
     }
 
@@ -80,16 +87,16 @@ final class ModalMessage extends AlertMessage
     public function jsonSerialize(): array
     {
         return [
-            'mode'                => 'modal',
-            'title'               => $this->title,
-            'text'                => $this->text,
-            'icon'                => $this->icon ?? $this->type->value,
-            'timer'               => $this->timer,
-            'button'              => $this->button,
+            'mode' => 'modal',
+            'title' => $this->title,
+            'text' => $this->text,
+            'icon' => $this->icon ?? $this->type->value,
+            'timer' => $this->timer,
+            'button' => $this->button,
             'closeOnClickOutside' => $this->closeOnClickOutside,
-            'closeOnEsc'          => $this->closeOnEsc,
-            'className'           => $this->className,
-            'showCloseButton'     => $this->showCloseButton,
+            'closeOnEsc' => $this->closeOnEsc,
+            'className' => $this->className,
+            'showCloseButton' => $this->showCloseButton,
         ];
     }
 }

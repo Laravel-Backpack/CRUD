@@ -51,6 +51,7 @@ class AlertsMessageBag
         if ($title !== null) {
             $modal->title($title);
         }
+
         return $this->pushAndReturn($modal);
     }
 
@@ -84,6 +85,7 @@ class AlertsMessageBag
         if ($title !== null) {
             $modal->title($title);
         }
+
         return $this->pushAndReturn($modal);
     }
 
@@ -103,6 +105,7 @@ class AlertsMessageBag
     private function pushAndReturn(AlertMessage $message): AlertMessage
     {
         $this->messages[] = $message;
+
         return $message;
     }
 
@@ -190,6 +193,7 @@ class AlertsMessageBag
             $msg->escapeKey($data['closeOnEsc'] ?? true);
             $msg->className($data['className'] ?? null);
             $msg->showCloseButton($data['showCloseButton'] ?? false);
+
             return $msg;
         }
 

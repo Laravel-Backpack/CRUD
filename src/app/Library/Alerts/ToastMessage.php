@@ -24,24 +24,28 @@ final class ToastMessage extends AlertMessage
     public function timeout(int $ms): static
     {
         $this->timeout = $ms;
+
         return $this;
     }
 
     public function dismissible(bool $value = true): static
     {
         $this->dismissible = $value;
+
         return $this;
     }
 
     public function className(string $class): static
     {
         $this->className = $class;
+
         return $this;
     }
 
     public function position(string $pos): static
     {
         $this->position = $pos;
+
         return $this;
     }
 
@@ -53,15 +57,15 @@ final class ToastMessage extends AlertMessage
     public function jsonSerialize(): array
     {
         return [
-            'mode'        => 'toast',
-            'type'        => $this->type->value,
-            'message'     => $this->message,
-            'title'       => $this->title,
-            'icon'        => $this->icon,
-            'timeout'     => $this->timeout,
+            'mode' => 'toast',
+            'type' => $this->type->value,
+            'message' => $this->message,
+            'title' => $this->title,
+            'icon' => $this->icon,
+            'timeout' => $this->timeout,
             'dismissible' => $this->dismissible,
-            'className'   => $this->className,
-            'position'    => $this->position,
+            'className' => $this->className,
+            'position' => $this->position,
         ];
     }
 }
