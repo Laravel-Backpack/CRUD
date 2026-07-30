@@ -75,7 +75,8 @@
             ],
             "aliases": {
                 "CRUD": "Backpack\\CRUD\\app\\Library\\CrudPanel\\CrudPanelFacade",
-                "Widget": "Backpack\\CRUD\\app\\Library\\Widget"
+                "Widget": "Backpack\\CRUD\\app\\Library\\Widget",
+                "Alert": "Backpack\\CRUD\\app\\Library\\Alerts\\Alert"
             }
         }
     },

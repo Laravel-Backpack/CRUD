@@ -162,17 +162,12 @@ class BackpackServiceProvider extends ServiceProvider
         $this->loadHelpers();
 
         // register the alerts message bag (replaces prologue/alerts)
-        $this->app->singleton('alerts', function ($app) {
+        $this->app->scoped('alerts', function ($app) {
             return new app\Library\Alerts\AlertsMessageBag(
                 $app['session.store'],
                 $app['config']->get('backpack.alerts.session_key', 'alert_messages'),
             );
         });
-
-        // Register the Alert facade alias (replaces prologue/alerts auto-discovery)
-        if (! class_exists('Alert')) {
-            class_alias(app\Library\Alerts\Alert::class, 'Alert');
-        }
 
         // register the artisan commands
         $this->commands($this->commands);
