@@ -39,7 +39,6 @@ abstract class BaseTestClass extends TestCase
             TestsServiceProvider::class,
             BassetServiceProvider::class,
             BackpackServiceProvider::class,
-            AlertsServiceProvider::class,
             TestsServiceProvider::class,
             \Spatie\Translatable\TranslatableServiceProvider::class,
         ];
