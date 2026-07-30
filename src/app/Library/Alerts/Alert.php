@@ -10,7 +10,6 @@ use Illuminate\Support\Facades\Facade;
  * @method static ToastMessage warning(string $message)
  * @method static ToastMessage info(string $message)
  * @method static ToastMessage add(string|AlertType $type, string $message)
- * @method static ModalMessage confirm(string $title)
  * @method static void flash()
  * @method static void flush(bool $withSession = true)
  * @method static array getMessages()

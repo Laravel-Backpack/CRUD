@@ -31,6 +31,11 @@ final class ToastMessage extends AlertMessage
         return $this;
     }
 
+    public function type(): AlertType
+    {
+        return $this->type;
+    }
+
     public function jsonSerialize(): array
     {
         return [

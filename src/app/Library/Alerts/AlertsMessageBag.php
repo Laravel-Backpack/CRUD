@@ -52,29 +52,16 @@ class AlertsMessageBag
         );
     }
 
-    public function confirm(string $title): ModalMessage
-    {
-        return $this->pushAndReturn(new ModalMessage(
-            bag: $this,
-            action: ModalAction::Confirm,
-            title: $title,
-        ));
-    }
-
     private function pushAndReturn(AlertMessage $message): AlertMessage
     {
         $this->messages[] = $message;
         return $message;
     }
 
-    public function push(AlertMessage $message): void
-    {
-        $this->messages[] = $message;
-    }
-
     public function flashSession(): void
     {
-        $this->session->flash($this->sessionKey, $this->getMessages());
+        $flat = array_map(fn (AlertMessage $m) => $m->jsonSerialize(), $this->messages);
+        $this->session->flash($this->sessionKey, $flat);
     }
 
     public function flash(): void
@@ -82,10 +69,21 @@ class AlertsMessageBag
         $this->flashSession();
     }
 
-    /** @return array[] — JSON-serializable payload for frontend */
+    /** @return array — JSON-serializable toast messages, grouped by type. */
     public function getMessages(): array
     {
-        return array_map(fn (AlertMessage $m) => $m->jsonSerialize(), $this->messages);
+        $grouped = [];
+
+        foreach ($this->messages as $message) {
+            if (! $message instanceof ToastMessage) {
+                continue;
+            }
+
+            $key = $message->type()->value;
+            $grouped[$key][] = $message->jsonSerialize();
+        }
+
+        return $grouped;
     }
 
     public function flush(bool $withSession = true): void
@@ -120,29 +118,13 @@ class AlertsMessageBag
 
     private function hydrateMessage(array $data): AlertMessage
     {
-        $mode = $data['mode'] ?? 'toast';
-
-        if ($mode === 'modal') {
-            $msg = new ModalMessage(
-                bag: $this,
-                action: ModalAction::from($data['action']),
-                title: $data['title'] ?? '',
-            );
-            $msg->text($data['text'] ?? '');
-            $msg->confirmText($data['confirmText'] ?? '');
-            $msg->cancelText($data['cancelText'] ?? '');
-            $msg->variant($data['variant'] ?? 'primary');
-            $msg->icon($data['icon'] ?? '');
-        } else {
-            $msg = new ToastMessage(
-                bag: $this,
-                type: AlertType::from($data['type']),
-                message: $data['message'] ?? '',
-            );
-            $msg->timeout($data['timeout'] ?? 2500);
-            $msg->dismissible($data['dismissible'] ?? true);
-        }
-
+        $msg = new ToastMessage(
+            bag: $this,
+            type: AlertType::from($data['type']),
+            message: $data['message'] ?? '',
+        );
+        $msg->timeout($data['timeout'] ?? 2500);
+        $msg->dismissible($data['dismissible'] ?? true);
         $msg->title($data['title'] ?? '');
         $msg->icon($data['icon'] ?? '');
 
