@@ -9,7 +9,7 @@ use Backpack\CRUD\app\Library\CrudPanel\SaveActions\SaveAndNew;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Redirect;
 use InvalidArgumentException;
-use Prologue\Alerts\Facades\Alert;
+use Backpack\CRUD\app\Library\Alerts\Alert;
 
 trait SaveActions
 {

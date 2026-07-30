@@ -8,6 +8,8 @@ final class ToastMessage extends AlertMessage
     private string $message;
     private int $timeout = 2500;
     private bool $dismissible = true;
+    private ?string $className = null;
+    private ?string $position = null;
 
     public function __construct(
         AlertsMessageBag $bag,
@@ -31,6 +33,18 @@ final class ToastMessage extends AlertMessage
         return $this;
     }
 
+    public function className(string $class): static
+    {
+        $this->className = $class;
+        return $this;
+    }
+
+    public function position(string $pos): static
+    {
+        $this->position = $pos;
+        return $this;
+    }
+
     public function type(): AlertType
     {
         return $this->type;
@@ -46,6 +60,8 @@ final class ToastMessage extends AlertMessage
             'icon'        => $this->icon,
             'timeout'     => $this->timeout,
             'dismissible' => $this->dismissible,
+            'className'   => $this->className,
+            'position'    => $this->position,
         ];
     }
 }

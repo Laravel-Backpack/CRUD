@@ -518,7 +518,7 @@ form .select2-container--bootstrap .select2-selection--multiple .select2-selecti
 }
 
 .backpack-toast-container .toast .toast-body {
-    padding: 0.65rem 0.7rem 0.65rem 0.7rem;
+    padding: 0.65rem 0.7rem 0.65rem 0.5rem;
     font-size: 0.825rem;
     line-height: 1.3;
     word-wrap: break-word;

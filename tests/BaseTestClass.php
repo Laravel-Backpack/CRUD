@@ -8,7 +8,6 @@ use Backpack\CRUD\Tests\config\TestsServiceProvider;
 use Illuminate\Routing\Route as RouteInstance;
 use Illuminate\Support\Facades\Route;
 use Orchestra\Testbench\TestCase;
-use Prologue\Alerts\AlertsServiceProvider;
 
 abstract class BaseTestClass extends TestCase
 {
@@ -38,7 +37,6 @@ abstract class BaseTestClass extends TestCase
     {
         return [
             TestsServiceProvider::class,
-            AlertsServiceProvider::class,
             BassetServiceProvider::class,
             BackpackServiceProvider::class,
             AlertsServiceProvider::class,

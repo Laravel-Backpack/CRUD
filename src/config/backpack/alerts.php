@@ -68,4 +68,34 @@ return [
         'close_on_click' => true,           // clicking the toast dismisses it
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Modal Defaults
+    |--------------------------------------------------------------------------
+    | Default configuration for modal/dialog notifications rendered via the
+    | swal shim. Can be overridden per-call via Alert::dialog()->... modifiers.
+    */
+    'modal' => [
+
+        /*
+        |----------------------------------------------------------------------
+        | Default Confirm Button
+        |----------------------------------------------------------------------
+        | The default button label and color for informational modals.
+        | Set button to null to hide the confirm button entirely.
+        */
+        'default_button_text' => 'OK',
+        'default_button_color' => null,     // null = Bootstrap default (primary)
+
+        /*
+        |----------------------------------------------------------------------
+        | Default Behavior
+        |----------------------------------------------------------------------
+        */
+        'default_backdrop' => true,         // click outside modal to close
+        'default_escape_key' => true,       // Esc key closes the modal
+        'default_show_close_button' => false, // show × button in top-right corner
+        'default_timer' => null,            // ms, null = no auto-close
+    ],
+
 ];

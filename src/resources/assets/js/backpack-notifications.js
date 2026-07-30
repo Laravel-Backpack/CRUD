@@ -20,11 +20,15 @@
         secondary: 'text-bg-secondary',
     };
 
-    function resolveContainer() {
-        let container = document.querySelector('.backpack-toast-container');
+    function resolveContainer(position) {
+        const cls = position
+            ? 'backpack-toast-container position-fixed p-3 ' + position
+            : (config.container_class || 'backpack-toast-container position-fixed top-0 end-0 p-3');
+
+        let container = document.querySelector('.' + cls.split(' ').join('.'));
         if (!container) {
             container = document.createElement('div');
-            container.className = config.container_class || 'backpack-toast-container position-fixed top-0 end-0 p-3';
+            container.className = cls;
             container.setAttribute('aria-live', 'polite');
             container.setAttribute('aria-atomic', 'true');
             document.body.appendChild(container);
@@ -43,6 +47,11 @@
             timeout = parseInt(config.default_timeout) || 2500;
         }
 
+        let position = null;
+        if (raw.position && config.positions && config.positions[raw.position]) {
+            position = config.positions[raw.position];
+        }
+
         return {
             type: raw.type || 'info',
             text: raw.message || raw.text || '',
@@ -51,12 +60,15 @@
             timeout: timeout,
             dismissible: raw.dismissible !== undefined ? raw.dismissible : (config.dismissible !== false),
             closeOnClick: raw.close_on_click !== undefined ? raw.close_on_click : (config.close_on_click !== false),
+            className: raw.className || null,
+            position: position,
         };
     }
 
     function buildToast(opts) {
         const el = document.createElement('div');
-        el.className = 'toast align-items-center ' + (TYPE_CLASSES[opts.type] || 'text-bg-secondary');
+        const colorClass = opts.className || TYPE_CLASSES[opts.type] || 'text-bg-secondary';
+        el.className = 'toast align-items-center ' + colorClass;
         el.setAttribute('role', 'alert');
         el.setAttribute('aria-live', 'assertive');
         el.setAttribute('aria-atomic', 'true');
@@ -72,7 +84,7 @@
 
         if (opts.icon) {
             const icon = document.createElement('i');
-            icon.className = opts.icon + ' me-2 fs-4';
+            icon.className = opts.icon + ' me-1 ms-2 fs-2';
             row.appendChild(icon);
         }
 
@@ -117,7 +129,7 @@
                 return this;
             }
 
-            const container = resolveContainer();
+            const container = resolveContainer(this._opts.position);
             const toastEl = buildToast(this._opts);
 
             container.appendChild(toastEl);
@@ -135,13 +147,12 @@
         }
 
         static closeAll() {
-            const container = document.querySelector('.backpack-toast-container');
-            if (container) {
+            document.querySelectorAll('.backpack-toast-container').forEach(container => {
                 container.querySelectorAll('.toast').forEach(el => {
                     const toast = bootstrap.Toast.getInstance(el);
                     if (toast) toast.hide();
                 });
-            }
+            });
         }
     }
 
@@ -260,7 +271,7 @@
                         || (config.button && config.button !== false);
 
         const body = document.createElement('div');
-        body.className = 'modal-body text-center py-4 px-4';
+        body.className = 'modal-body text-center py-4 px-4 position-relative';
 
         if (config.icon && SWAL_ICONS[config.icon]) {
             const icon = document.createElement('i');
@@ -280,6 +291,15 @@
             p.className = 'text-muted mb-0';
             p.textContent = config.text;
             body.appendChild(p);
+        }
+
+        if (config.showCloseButton) {
+            const closeBtn = document.createElement('button');
+            closeBtn.type = 'button';
+            closeBtn.className = 'btn-close position-absolute top-0 end-0 mt-2 me-2';
+            closeBtn.setAttribute('data-bs-dismiss', 'modal');
+            closeBtn.setAttribute('aria-label', 'Close');
+            body.appendChild(closeBtn);
         }
 
         if (config.content) {
