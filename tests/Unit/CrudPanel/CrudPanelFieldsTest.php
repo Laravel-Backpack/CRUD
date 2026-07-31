@@ -801,6 +801,9 @@ class CrudPanelFieldsTest extends BaseCrudPanel
 
         $this->assertCount(1, $this->crudPanel->fields());
 
+        $field = $this->crudPanel->fields()['my_field'];
+        $this->assertSame(['created' => $createdAtClosure], $field['events']);
+
         $this->assertEquals([
             'name' => 'my_field',
             'type' => 'my_custom_type',
@@ -825,9 +828,6 @@ class CrudPanelFieldsTest extends BaseCrudPanel
             'wrapper' => [
                 'class' => 'form-group col-md-6 mb-3',
             ],
-            'events' => [
-                'created' => $createdAtClosure,
-            ],
             'subfields' => [
                 [
                     'name' => 'sub_1',
@@ -839,7 +839,7 @@ class CrudPanelFieldsTest extends BaseCrudPanel
                 ],
             ],
 
-        ], $this->crudPanel->fields()['my_field']);
+        ], Arr::except($field, ['events']));
     }
 
     public function testAddFieldFluentClassUsingArrayDefinition()
