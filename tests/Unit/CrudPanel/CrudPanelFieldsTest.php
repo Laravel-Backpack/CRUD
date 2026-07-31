@@ -800,7 +800,7 @@ class CrudPanelFieldsTest extends BaseCrudPanel
                         ->entity('bang');
 
         $this->assertCount(1, $this->crudPanel->fields());
-        
+
         $field = $this->crudPanel->fields()['my_field'];
         $this->assertSame(['created' => $createdAtClosure], $field['events']);
 

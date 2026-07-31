@@ -3,8 +3,8 @@
 namespace Backpack\CRUD\Tests\Unit\CrudPanel;
 
 use Backpack\CRUD\app\Library\Alerts\Alert;
-use Backpack\CRUD\app\Library\Alerts\AlertType;
 use Backpack\CRUD\app\Library\Alerts\AlertsMessageBag;
+use Backpack\CRUD\app\Library\Alerts\AlertType;
 use Backpack\CRUD\app\Library\Alerts\ModalMessage;
 use Backpack\CRUD\app\Library\Alerts\ToastMessage;
 use Backpack\CRUD\Tests\BaseTestClass;
