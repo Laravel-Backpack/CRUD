@@ -502,98 +502,89 @@ form .select2-container--bootstrap .select2-selection--multiple .select2-selecti
     text-decoration: underline !important;
 }
 
-.noty_theme__backstrap.noty_bar {
-    margin: 4px 0;
-    overflow: hidden;
-    position: relative;
-    border: 1px solid transparent;
-    border-radius: .25rem;
+
+.backpack-toast-container {
+    z-index: 9999;
+    padding: 1rem;
 }
 
-.noty_theme__backstrap.noty_bar .noty_body {
-    padding: .75rem 1.25rem;
-    font-weight: 300;
+.backpack-toast-container .toast {
+    min-width: 100px;
+    max-width: 380px;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 0.35rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1), 0 8px 12px -4px rgba(0, 0, 0, 0.15);
+    margin-bottom: 0.5rem;
 }
 
-.noty_theme__backstrap.noty_bar .noty_buttons {
-    padding: 10px;
+.backpack-toast-container .toast .toast-body {
+    padding: 0.65rem 0.7rem 0.65rem 0.5rem;
+    font-size: 0.825rem;
+    line-height: 1.3;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
 }
 
-.noty_theme__backstrap.noty_bar .noty_close_button {
-    font-size: 1.5rem;
-    font-weight: 700;
+.backpack-toast-container .toast .toast-body strong {
+    margin-bottom: 0.1rem;
+}
+
+.backpack-toast-container .toast .btn-close {
+    filter: invert(1) grayscale(100%) brightness(200%);
+}
+
+.backpack-toast-container .toast.text-bg-warning .btn-close {
+    filter: none;
+}
+
+/* SweetAlert-style Modals */
+
+.backpack-swal-modal .modal-dialog {
+    max-width: 440px;
+}
+
+.backpack-swal-modal .modal-body .fs-1 {
+    font-size: 4.5rem !important;
     line-height: 1;
-    color: #161C2D;
-    text-shadow: 0 1px 0 #FFFFFF;
-    filter: alpha(opacity=20);
-    opacity: .5;
-    background: transparent;
 }
 
-.noty_theme__backstrap.noty_bar .noty_close_button:hover {
-    background: transparent;
-    text-decoration: none;
-    cursor: pointer;
-    filter: alpha(opacity=50);
-    opacity: .75;
+.backpack-swal-modal .modal-body h5 {
+    font-size: 1.2rem;
+    font-weight: 600;
 }
 
-.noty_theme__backstrap.noty_type__note,
-.noty_theme__backstrap.noty_type__notice,
-.noty_theme__backstrap.noty_type__alert,
-.noty_theme__backstrap.noty_type__notification {
-    background-color: #FFFFFF;
-    color: inherit;
+.backpack-swal-modal .modal-body p {
+    font-size: 0.95rem;
 }
 
-.noty_theme__backstrap.noty_type__warning {
-    color: #F9FBFD;
-    background-color: #ffc107;
-    border-color: #d39e00;
+.backpack-toast-container .toast.text-bg-success {
+    background-color: #42ba96 !important;
+    color: #fff !important;
 }
 
-.noty_theme__backstrap.noty_type__danger,
-.noty_theme__backstrap.noty_type__error {
-    color: #F9FBFD;
-    background-color: #df4759;
-    border-color: #cf2438;
+.backpack-toast-container .toast.text-bg-danger {
+    background-color: #df4759 !important;
+    color: #fff !important;
 }
 
-.noty_theme__backstrap.noty_type__info,
-.noty_theme__backstrap.noty_type__information {
-    color: #F9FBFD;
-    background-color: #467FD0;
-    border-color: #2e66b5;
+.backpack-toast-container .toast.text-bg-primary {
+    background-color: #7c69ef !important;
+    color: #fff !important;
 }
 
-.noty_theme__backstrap.noty_type__success {
-    color: #F9FBFD;
-    background-color: #42ba96;
-    border-color: #359478;
+.backpack-toast-container .toast.text-bg-secondary {
+    background-color: #6c757d !important;
+    color: #fff !important;
 }
 
-.noty_theme__backstrap.noty_type__primary {
-    color: #F9FBFD;
-    background-color: #7c69ef;
-    border-color: #543bea;
+.backpack-toast-container .toast.text-bg-warning {
+    background-color: #ffc107 !important;
+    color: #212529 !important;
 }
 
-.noty_theme__backstrap.noty_type__secondary {
-    color: #161C2D;
-    background-color: #D9E2EF;
-    border-color: #b5c7e0;
-}
-
-.noty_theme__backstrap.noty_type__light {
-    color: #161C2D;
-    background-color: #F1F4F8;
-    border-color: #cfd9e7;
-}
-
-.noty_theme__backstrap.noty_type__dark {
-    color: #F9FBFD;
-    background-color: #161C2D;
-    border-color: #05070b;
+.backpack-toast-container .toast.text-bg-info {
+    background-color: #467FD0 !important;
+    color: #fff !important;
 }
 
 /* Use whole table width for td when displaying empty content message */

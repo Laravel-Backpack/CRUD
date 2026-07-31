@@ -38,7 +38,6 @@
         "laravel/framework": "^12|^13",
         "backpack/basset": "^2.0.9",
         "creativeorange/gravatar": "^1.0",
-        "prologue/alerts": "^1.0",
         "guzzlehttp/guzzle": "^7.0"
     },
     "require-dev": {
@@ -75,7 +74,8 @@
             ],
             "aliases": {
                 "CRUD": "Backpack\\CRUD\\app\\Library\\CrudPanel\\CrudPanelFacade",
-                "Widget": "Backpack\\CRUD\\app\\Library\\Widget"
+                "Widget": "Backpack\\CRUD\\app\\Library\\Widget",
+                "Alert": "Backpack\\CRUD\\app\\Library\\Alerts\\Alert"
             }
         }
     },

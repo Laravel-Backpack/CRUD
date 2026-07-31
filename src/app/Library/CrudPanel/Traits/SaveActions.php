@@ -2,6 +2,7 @@
 
 namespace Backpack\CRUD\app\Library\CrudPanel\Traits;
 
+use Backpack\CRUD\app\Library\Alerts\Alert;
 use Backpack\CRUD\app\Library\CrudPanel\SaveActions\SaveActionInterface;
 use Backpack\CRUD\app\Library\CrudPanel\SaveActions\SaveAndBack;
 use Backpack\CRUD\app\Library\CrudPanel\SaveActions\SaveAndEdit;
@@ -9,7 +10,6 @@ use Backpack\CRUD\app\Library\CrudPanel\SaveActions\SaveAndNew;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Redirect;
 use InvalidArgumentException;
-use Prologue\Alerts\Facades\Alert;
 
 trait SaveActions
 {
