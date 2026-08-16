@@ -87,6 +87,16 @@
             var filterType = filter.getAttribute('filter-type');
             var filterOptions = {};
 
+            // If the filter registered a badge display value formatter, let it
+            // compute the display value from the raw filter value. This allows
+            // filters like date and date_range to apply user-defined formats.
+            var badgeFormatter = filter.getAttribute('data-badge-display-value-formatter');
+            if (badgeFormatter && typeof window[badgeFormatter] === 'function') {
+                try {
+                    return window[badgeFormatter](rawValue, filter);
+                } catch (e) {}
+            }
+
             // If the filter has a data-display-filter-attribute-name, use that key
             // to look up the display value in data-filter-params. This allows filters
             // like select2_ajax to show the human-readable text instead of the raw ID.
