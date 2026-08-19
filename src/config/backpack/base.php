@@ -65,6 +65,14 @@ return [
     // Set false if you want to use your own Verified middleware in `middleware_class`.
     'setup_email_verification_middleware' => true,
 
+    // The route names used for email verification. You may change these if
+    // another package (e.g. Fortify) already registers the default names.
+    'email_verification_route_names' => [
+        'notice' => 'verification.notice',
+        'verify' => 'verification.verify',
+        'send' => 'verification.send',
+    ],
+
     // How many times in any given time period should the user be allowed to
     // request a new verification email?
     // Defaults to 1,10 - 1 time in 10 minutes.
