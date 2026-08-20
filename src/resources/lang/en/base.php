@@ -82,6 +82,7 @@ return [
         'line_2' => 'Click the button below to reset your password:',
         'button' => 'Reset Password',
         'notice' => 'If you did not request a password reset, no further action is required.',
+        'expire' => 'This password reset link will expire in :count minutes.',
     ],
 
     'step' => 'Step',
