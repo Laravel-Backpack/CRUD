@@ -182,6 +182,21 @@ class CrudPanelReadTest extends \Backpack\CRUD\Tests\config\CrudPanel\BaseDBCrud
         $this->crudPanel->getEntry($unknownId);
     }
 
+    public function testGetModelWithCrudPanelQueryReturnsIsolatedBuilder()
+    {
+        $this->crudPanel->setModel(User::class);
+
+        $firstEntry = $this->crudPanel->getModelWithCrudPanelQuery()->find(1);
+        $this->assertInstanceOf(User::class, $firstEntry);
+
+        $secondEntry = $this->crudPanel->getModelWithCrudPanelQuery()->find(2);
+        $this->assertInstanceOf(User::class, $secondEntry);
+        $this->assertEquals(2, $secondEntry->getKey());
+
+        // and the panel's shared query should remain untouched
+        $this->assertSame([], $this->crudPanel->query->getQuery()->wheres);
+    }
+
     public function testAutoEagerLoadRelationshipColumns()
     {
         $this->crudPanel->setModel(Article::class);
