@@ -109,11 +109,12 @@ trait Read
     /**
      * Return a Model builder instance with the current crud query applied.
      *
+     *
      * @return \Illuminate\Database\Eloquent\Builder
      */
     public function getModelWithCrudPanelQuery()
     {
-        $newBuilder = $this->model->setQuery($this->query->getQuery());
+        $newBuilder = $this->model->setQuery(clone $this->query->getQuery());
 
         // Remove global scopes that were removed from the original query
         $removedScopes = $this->query->removedScopes();
