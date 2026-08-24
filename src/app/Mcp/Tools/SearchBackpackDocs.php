@@ -125,6 +125,39 @@ class SearchBackpackDocs extends Tool
             }
         }
 
+        // If no section matched strongly, fall back to the sections that
+        // matched at least one query word, so a well-ranked file never
+        // contributes nothing.
+        if ($matching === []) {
+            $weakMatches = [];
+
+            foreach ($sections as $section) {
+                $lower = strtolower($section);
+                $hits = 0;
+
+                foreach ($words as $word) {
+                    $hits += substr_count($lower, $word);
+                }
+
+                if ($hits >= 1) {
+                    $weakMatches[$hits][] = trim($section);
+                }
+            }
+
+            if ($weakMatches === []) {
+                // Last resort - return the beginning of the file.
+                return mb_substr($raw, 0, 2000);
+            }
+
+            krsort($weakMatches);
+
+            foreach ($weakMatches as $sectionsByHits) {
+                $matching = array_merge($matching, $sectionsByHits);
+            }
+
+            $matching = array_slice($matching, 0, 3);
+        }
+
         // Prepend the intro (title + first paragraph) if there is one
         if ($intro !== '' && $intro !== '0') {
             array_unshift($matching, $intro);
@@ -233,6 +266,26 @@ class SearchBackpackDocs extends Tool
                     }
 
                     $score += substr_count($content, $word) * 5;
+                }
+            }
+
+            // Heading bonus — files whose section headings contain the query
+            // words are likely to answer the question, even if their filename
+            // doesn't contain the words (ex: columns/_advanced.md holds the
+            // "Custom Search Logic" section, but the filename doesn't say so).
+            if (preg_match_all('/^#{1,6}\s+(.+)$/m', $content, $headingMatches)) {
+                $headings = implode(' ', $headingMatches[1]);
+
+                foreach ($queries as $rawQuery) {
+                    $words = preg_split('/[\s\-_]+/', strtolower((string) $rawQuery), -1, PREG_SPLIT_NO_EMPTY) ?: [];
+
+                    foreach ($words as $word) {
+                        if (strlen($word) < 3) {
+                            continue;
+                        }
+
+                        $score += substr_count($headings, $word) * 150;
+                    }
                 }
             }
 
