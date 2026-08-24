@@ -1,4 +1,4 @@
-### tinymce [PRO]
+### tinymce
 
 The perfect match for the [`tinymce` field](https://github.com/Laravel-Backpack/tinymce-field). The tinymce column will just output the non-escaped text value of a db column (or model attribute). Its definition is simple:
 ```php

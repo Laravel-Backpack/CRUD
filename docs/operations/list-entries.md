@@ -191,6 +191,64 @@ If you want to change the separator in dataTable export to use semicolon (;) ins
 
 ```
 
+#### Row Attributes
+
+You can add custom HTML attributes (class, style, data-*, etc.) to each `<tr>` element in the datatable, conditionally based on the entry data. This is useful for highlighting rows, dimming inactive entries, or attaching data attributes for JavaScript targeting.
+
+**In your controller** (per-CRUD), you can use a closure or an invokable class:
+
+```php
+protected function setupListOperation()
+{
+    // Using a closure:
+    $this->crud->setOperationSetting('rowAttributes', function ($entry) {
+        return [
+            'class'           => $entry->status === 'premium' ? 'table-warning' : '',
+            'style'           => $entry->is_archived ? 'opacity: 0.5;' : '',
+            'data-entry-type' => $entry->type,
+        ];
+    });
+
+    // Or using an invokable class:
+    $this->crud->setOperationSetting('rowAttributes', \App\Invokables\MonsterRowAttributes::class);
+}
+```
+
+**Globally** (in `config/backpack/operations/list.php`), you must use an invokable class name, so the config can be serialized for `config:cache`:
+
+```php
+// config/backpack/operations/list.php
+'rowAttributes' => \App\Invokables\RowAttributes::class,
+```
+
+The invokable class should implement `__invoke($entry)` and return an associative array of attributes:
+
+```php
+<?php
+
+namespace App\Invokables;
+
+use App\Enums\ProductStatus;
+
+class RowAttributes
+{
+    public function __invoke($entry): array
+    {
+        return match (true) {
+            $entry instanceof \App\Models\Product && $entry->status === ProductStatus::PREMIUM
+                => ['class' => 'table-warning', 'style' => 'border-left: 4px solid #f39c12;'],
+            $entry instanceof \App\Models\Monster
+                => ['class' => 'table-info', 'data-monster-status' => $entry->status->value],
+            default => [],
+        };
+    }
+}
+```
+
+**Return value:** An associative array where keys are HTML attribute names and values are the attribute values. Return an empty array to leave the row unchanged. Supported attributes include `class`, `style`, and any `data-*` attribute.
+
+**NOTE:** When using `style`, be aware that inline styles take precedence over CSS classes. For maintainability, prefer CSS classes with a custom stylesheet.
+
 #### Custom Query
 
 By default, all entries are shown in the ListEntries table, before filtering. If you want to restrict the entries to a subset, you can use the methods below in your EntityCrudController's ```setupListOperation()``` method:
