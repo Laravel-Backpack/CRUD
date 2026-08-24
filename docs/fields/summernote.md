@@ -24,6 +24,18 @@ CRUD::field([
 ]);
 ```
 
+> **Multiple locales** - Summernote supports multiple languages. The field automatically loads the language file that matches your app locale (ex: `es` → `es-ES`, `pt_BR` → `pt-BR`), and you can force a specific one using the `summernoteLocale` attribute (`'summernoteLocale' => 'pt-BR'`). Because the locale file is loaded dynamically, `php artisan basset:cache` cannot discover it - to make sure it gets pre-loaded, add the needed locale files to the `basset_preload` config in `config/backpack/ui.php`:
+
+```php
+'basset_preload' => [
+    'scripts' => [
+        'https://cdn.jsdelivr.net/npm/summernote@0.9.1/dist/lang/summernote-es-ES.min.js',
+        'https://cdn.jsdelivr.net/npm/summernote@0.9.1/dist/lang/summernote-pt-BR.min.js',
+    ],
+    'styles' => [],
+],
+```
+
 > NOTE: Summernote does NOT sanitize the input. If you do not trust the users of this field, you should sanitize the input or output using something like HTML Purifier. Personally we like to use install [mewebstudio/Purifier](https://github.com/mewebstudio/Purifier) and add an [accessor or mutator](https://laravel.com/docs/8.x/eloquent-mutators#accessors-and-mutators) on the Model, so that wherever the model is created from (admin panel or app), the output will always be clean. [Example here](https://github.com/Laravel-Backpack/demo/commit/7342cffb418bb568b9e4ee279859685ddc0456c1).
 
 #### Uploading files with summernote
