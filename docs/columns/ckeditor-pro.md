@@ -1,4 +1,4 @@
-### ckeditor [PRO]
+### ckeditor
 
 The perfect match for the [CKEditor field](https://github.com/Laravel-Backpack/ckeditor-field). The CKEditor column will just output the non-escaped text value of a db column (or model attribute). Its definition is simple:
 

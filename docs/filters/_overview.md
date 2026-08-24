@@ -107,6 +107,20 @@ CRUD::filter('active')
 
 - ```->apply()``` - By chaining **apply()** on a filter after you've specified the filtering logic using `whenActive()` or `whenInactive()`, you immediately call the appropriate closure; in most cases this isn't necessary, because the List operation automatically performs an `apply()` on all filters; but in some cases, where the filtering closures want to stop or change execution, you can use `apply()` to have that logic applied before the next bits of code get executed;
 
+- ```->showFilterValues($value = true)``` - By chaining **showFilterValues()** on a filter you control whether this filter's current value is shown as a badge below the filter navbar. Pass `false` to hide the badge for this specific filter. If not called, the filter inherits the navbar-level or global setting. See [Filter Value Badges](#filter-value-badges).
+
+```php
+CRUD::filter('status')->showFilterValues();       // show badge for this filter
+CRUD::filter('notes')->showFilterValues(false);    // hide badge for this filter
+```
+
+- ```->filterValuesLabel('template')``` - By chaining **filterValuesLabel()** on a filter you define a custom label template for the filter badge. Use `:value` as a placeholder for the filter's current display value. If not set, the default format is `Label: Value`. See [Filter Value Badges](#filter-value-badges).
+
+```php
+CRUD::filter('category_id')->filterValuesLabel(':value selected');  // "Electronics selected"
+CRUD::filter('price')->filterValuesLabel('$:value');                // "$10 → 100"
+```
+
 #### Other Chained Methods
 
 If you chain the following methods to a ```CRUD::filter('name')```, they will do something very specific instead of adding that attribute to the filter:
@@ -174,3 +188,68 @@ Notes about the filter logic closure:
 - you have access to other request variables using ```$this->crud->getRequest()```;
 - you also have read/write access to public properties using ```$this->crud```;
 - when building complicated "OR" logic, make sure the first "where" in your closure is a "where" and only the subsequent are "orWhere"; Laravel 5.3+ no longer converts the first "orWhere" into a "where";
+
+## Filter Value Badges
+
+By default, when you select a filter value, the filter dropdown closes and there's no visual indicator of what you're filtering by — you have to re-open the dropdown to see the active value.
+
+Backpack can show **badges/chips** below the filter navbar that display the active filter values. Each badge shows the filter label and its current value, with an "×" button to quickly remove that filter.
+
+### Enabling Filter Badges
+
+Filter badges can be enabled at four levels (highest priority first):
+
+**1. Per filter** — enable or disable badges for a specific filter, with an optional custom label:
+
+```php
+CRUD::filter('status')
+    ->type('dropdown')
+    ->values([1 => 'Active', 2 => 'Inactive'])
+    ->showFilterValues()              // enable badge for this filter
+    ->filterValuesLabel('Status: :value')  // custom badge label with :value placeholder
+    ->whenActive(function($value) {
+        CRUD::addClause('where', 'status', $value);
+    });
+
+// To hide the badge for a specific filter:
+CRUD::filter('notes')
+    ->type('text')
+    ->showFilterValues(false);
+```
+
+**2. Per filters navbar** — when including the navbar standalone:
+
+```blade
+@include('crud::inc.filters_navbar', ['showFilterValues' => true])
+```
+
+**3. Per datatable component** — when using the ```<x-backpack::datatable>``` component:
+
+```blade
+<x-backpack::datatable :controller="$controller" :crud="$crud" :showFilterValues="true" />
+```
+
+**4. Globally** — in `config/backpack/operations/list.php`:
+
+```php
+'showFilterValues' => true,
+```
+
+### Custom Badge Labels
+
+You can customize the badge label for any filter using `filterValuesLabel()`. The `:value` placeholder will be replaced with the filter's current display value:
+
+```php
+CRUD::filter('category_id')
+    ->type('select2_ajax')
+    // ... other configuration ...
+    ->filterValuesLabel(':value selected');  // "Electronics selected"
+
+CRUD::filter('price')
+    ->type('range')
+    ->filterValuesLabel('$:value');  // "$10 → 100"
+```
+
+For `select2_ajax` filters, the badge automatically shows the human-readable text (not the raw ID), using the `_text` URL parameter that Backpack already stores.
+
+> **Note:** Filter badges are disabled by default to avoid breaking existing layouts. Enable them explicitly at any level.

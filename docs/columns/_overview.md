@@ -23,7 +23,7 @@ When passing a column array, you need to specify at least these attributes:
 
 ### Optional Attributes
 
-- [```searchLogic```](#custom-search-logic)
+- [```searchLogic```](search)
 - [```orderLogic```](#custom-order-logic)
 - [```orderable```](#custom-order-logic)
 - [```wrapper```](#custom-wrapper-for-columns)

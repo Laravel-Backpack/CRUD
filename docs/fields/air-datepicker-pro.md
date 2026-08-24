@@ -66,3 +66,5 @@ CRUD::field([
 > **Default values:** For range mode, pass `'default' => ['2024-01-01', '2024-12-31']`. For single mode, use `'default' => '2024-01-01'`.
 
 Any option from [air-datepicker's documentation](https://air-datepicker.com/docs) can be passed inside the `air-datepicker` config array — they're transparently forwarded to the JS widget.
+
+To control the picker from JavaScript (eg. link two pickers so that one excludes the dates of the other), see [How to link two air-datepicker fields](../how-to/fields-link-two-air-datepicker-fields.md).

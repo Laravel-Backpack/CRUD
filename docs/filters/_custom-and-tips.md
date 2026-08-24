@@ -282,3 +282,33 @@ function() { // if the filter is active (the GET parameter "draft" exits)
   // CRUD::addClause('draft');
 });
 ```
+
+## Customizing the Display Value for Custom Filter Types
+
+For the built-in filter types, Backpack automatically computes a readable display value for badges (labels for `dropdown`/`select2`, ranges joined with `→`, etc.). The `date` and `date_range` filters also apply their user-defined formats, as shown in their docs.
+
+If you create a [custom filter type](#creating-custom-filters) and want to control what its badge displays, register a **badge display value formatter** on the filter's `<li>` element, using `data-badge-display-value-formatter`:
+
+```blade
+{{-- resources/views/vendor/backpack/crud/filters/my_custom_filter.blade.php --}}
+<li filter-name="{{ $filter->name }}"
+    filter-type="{{ $filter->type }}"
+    data-badge-display-value-formatter="formatMyCustomFilterBadge"
+    ...>
+  ...
+</li>
+
+@push('after_scripts')
+  <script>
+    if (typeof window.formatMyCustomFilterBadge !== 'function') {
+        window.formatMyCustomFilterBadge = function(rawValue, filter) {
+            // receives the raw filter value (from the URL parameter) and the
+            // filter <li> element; return the string shown on the badge.
+            return 'Filtered by: ' + rawValue;
+        };
+    }
+  </script>
+@endpush
+```
+
+The formatter only affects the badge - the raw value stored in the URL parameter and passed to `whenActive()` is not modified. This is how the built-in `date` and `date_range` filters apply their user-defined formats to badges.
