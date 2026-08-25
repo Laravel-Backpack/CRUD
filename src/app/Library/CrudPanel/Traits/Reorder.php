@@ -30,9 +30,15 @@ trait Reorder
         // filter the items that are not in the database and map the request
         $reorderItems = collect($request)->filter(function ($item) use ($itemKeys) {
             return $item['item_id'] !== '' && $item['item_id'] !== null && $itemKeys->contains($item['item_id']);
-        })->map(function ($item) use ($primaryKey, $columns) {
+        })->map(function ($item) use ($primaryKey, $columns, $itemKeys) {
             $item[$primaryKey] = $item['item_id'];
             $item[$columns['parent_id']] = empty($item['parent_id']) ? null : $item['parent_id'];
+
+            // only allow re-parenting under items the current user can actually see
+            if ($item[$columns['parent_id']] !== null && ! $itemKeys->contains($item[$columns['parent_id']])) {
+                $item[$columns['parent_id']] = null;
+            }
+
             $item[$columns['depth']] = empty($item['depth']) ? null : (int) $item['depth'];
             $item[$columns['lft']] = empty($item['left']) ? null : (int) $item['left'];
             $item[$columns['rgt']] = empty($item['right']) ? null : (int) $item['right'];
