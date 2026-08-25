@@ -167,7 +167,7 @@ trait Create
                                 // if it's an existing pivot, update it
                                 $attributes = $this->preparePivotAttributesForSave($value, $relation, $item->getKey(), $keyName, $relationMethod);
                                 if (isset($value[$keyName])) {
-                                    $relation->newPivot()->where($keyName, $value[$keyName])->update($attributes);
+                                    $relation->newPivotQuery()->where($keyName, $value[$keyName])->update($attributes);
                                 } else {
                                     $relation->newPivot()->create($attributes);
                                 }
