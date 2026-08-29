@@ -51,7 +51,11 @@
             <div class="col-sm-{{ intval(12/$field['number_of_columns']) }}">
                 <div class="checkbox">
                   <label class="font-weight-normal">
-                    <input type="checkbox" value="{{ $key }}"> {{ $option }}
+                    <input 
+                      type="checkbox" 
+                      value="{{ $key }}"
+                      @include('crud::fields.inc.attributes', ['default_class' => 'form-check-input'])
+                      > {{ $option }}
                   </label>
                 </div>
             </div>
