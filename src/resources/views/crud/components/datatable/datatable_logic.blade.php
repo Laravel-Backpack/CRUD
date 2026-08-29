@@ -1,4 +1,4 @@
-@php
+﻿@php
 // as it is possible that we can be redirected with persistent table we save the alerts in a variable
 // and flush them from session, so we will get them later from localStorage.
 $backpack_alerts = \Alert::getMessages();
@@ -20,12 +20,13 @@ $backpack_alerts = \Alert::getMessages();
 
 <script>
 /* eslint-disable */
-    (function($) {
-        if (!$ || !$.fn || !$.fn.dataTable || !$.fn.dataTable.FixedHeader) {
+    // FixedHeader monkey-patch: prevent "below" mode when headerOffset > 0
+    (function() {
+        if (typeof DataTable === 'undefined' || !DataTable.FixedHeader) {
             return;
         }
 
-        const proto = $.fn.dataTable.FixedHeader.prototype;
+        const proto = DataTable.FixedHeader.prototype;
         if (!proto || proto._backpackNoBelowPatchApplied) {
             return;
         }
@@ -43,7 +44,7 @@ $backpack_alerts = \Alert::getMessages();
         };
 
         proto._backpackNoBelowPatchApplied = true;
-    })(window.jQuery);
+    })();
 
 // Store the alerts in localStorage for this page
 let $oldAlerts = JSON.parse(localStorage.getItem('backpack_alerts'))
@@ -78,7 +79,9 @@ window.crud.defaultTableConfig = {
         }
     },
     responsiveToggle: function(dt) {
-        $(dt.table().header()).find('th').toggleClass('all');
+        dt.table().header().querySelectorAll('th').forEach(function(th) {
+            th.classList.toggle('all');
+        });
         dt.responsive.rebuild();
         dt.responsive.recalc();
     },
@@ -395,7 +398,7 @@ window.crud.initializeTable = function(tableId, customConfig = {}) {
                 type: 'none',
                 target: '.dtr-control',
                 renderer: function(api, rowIdx, columns) {
-                    var data = $.map(columns, function(col, i) {
+                    var data = columns.map(function(col, i) {
                         // Safety check for column index
                         if (!col || col.columnIndex === undefined || col.columnIndex === null) {
                             return '';
@@ -406,7 +409,7 @@ window.crud.initializeTable = function(tableId, customConfig = {}) {
                         
                         try {
                             var headerCell = table.column(col.columnIndex).header();
-                            isModalDisabled = $(headerCell).data('visible-in-modal') === false || $(headerCell).data('visible-in-modal') === 'false';
+                            isModalDisabled = headerCell.getAttribute('data-visible-in-modal') === 'false';
                         } catch (e) {
                             // Column header not accessible - default to showing the column
                             isModalDisabled = false;
@@ -417,12 +420,12 @@ window.crud.initializeTable = function(tableId, customConfig = {}) {
                             return '';
                         }
                         
-                        // Use the table instance from the API
-                        var table = api.table().context[0].oInstance;
-                        var tableId = table.attr('id');
+                        // Use the table node from the API (native DOM element)
+                        var tableNode = api.table().node();
+                        var tableId = tableNode.id;
                         
                         // Check if we're in a modal context
-                        if (table.closest('.modal').length > 0) {
+                        if (tableNode.closest('.modal')) {
                             return '';
                         }
                         
@@ -431,10 +434,11 @@ window.crud.initializeTable = function(tableId, customConfig = {}) {
                             columnHeading = window.crud.tables[tableId].columns().header()[col.columnIndex];
                         } else {
                             // Fallback: get column heading directly from table header
-                            columnHeading = table.find('thead th').eq(col.columnIndex)[0];
+                            var headerCells = tableNode.querySelectorAll('thead th');
+                            columnHeading = headerCells[col.columnIndex];
                         }
                         
-                        if ($(columnHeading).attr('data-visible-in-modal') == 'false') {
+                        if (columnHeading && columnHeading.getAttribute('data-visible-in-modal') === 'false') {
                             return '';
                         }
 
@@ -468,9 +472,13 @@ window.crud.initializeTable = function(tableId, customConfig = {}) {
                                 '</tr>';
                     }).join('');
 
-                    return data ?
-                        $('<table class="table table-striped mb-0">').append('<tbody>' + data + '</tbody>') :
-                        false;
+                    if (data) {
+                        var tbl = document.createElement('table');
+                        tbl.className = 'table table-striped mb-0';
+                        tbl.innerHTML = '<tbody>' + data + '</tbody>';
+                        return tbl;
+                    }
+                    return false;
                 }
             }
         };
@@ -586,7 +594,9 @@ window.crud.initializeTable = function(tableId, customConfig = {}) {
         window.crud.tables[tableId] = placeholder;
 
         const headerCells = Array.from(tableElement.querySelectorAll(':scope > thead > tr > th'));
-        const visibility = headerCells.map(th => th.getAttribute('data-visible') !== 'false');
+        const visibility = headerCells.map(function(th) {
+            return th.getAttribute('data-visible') !== 'false';
+        });
 
         try {
             let raw = localStorage.getItem(`DataTables_${tableId}_/${config.urlStart}`);
@@ -602,7 +612,7 @@ window.crud.initializeTable = function(tableId, customConfig = {}) {
             if (raw) {
                 const state = JSON.parse(raw);
                 if (state && Array.isArray(state.columns)) {
-                    state.columns.forEach((col, i) => {
+                    state.columns.forEach(function(col, i) {
                         if (i < visibility.length && col && col.visible === false) {
                             visibility[i] = false;
                         }
@@ -620,7 +630,7 @@ window.crud.initializeTable = function(tableId, customConfig = {}) {
     })();
 
     // Initialize the DataTable with the config
-    const dtInstance = $('#'+tableId).DataTable(dataTableConfig);
+    const dtInstance = new DataTable('#' + tableId, dataTableConfig);
     const seededHint = (window.crud.tables[tableId] && typeof window.crud.tables[tableId].__firstVisibleColumnHint === 'number')
         ? window.crud.tables[tableId].__firstVisibleColumnHint
         : -1;
@@ -644,97 +654,134 @@ window.crud.initializeTable = function(tableId, customConfig = {}) {
 };
 
 // Document ready function to initialize all tables
-jQuery(document).ready(function($) {
+document.addEventListener('DOMContentLoaded', function() {
     // Initialize each table with its own data-url-start attribute
-    $('.crud-table').each(function() {
-        const tableId = $(this).attr('id');
+    document.querySelectorAll('.crud-table').forEach(function(tableEl) {
+        const tableId = tableEl.getAttribute('id');
         if (!tableId) return;
         
         // Skip tables inside modals
-        if ($(this).closest('.modal').length > 0) {
+        if (tableEl.closest('.modal')) {
             return;
         }
         
-        if ($.fn.DataTable.isDataTable('#' + tableId)) {
+        if (DataTable.isDataTable('#' + tableId)) {
             return;
         }
         window.crud.initializeTable(tableId, {});
     });
 });
 
-function setupTableUI(tableId, config) {    
-    const searchInput = $(`#datatable_search_stack_${tableId} input.datatable-search-input`);
-    const searchClear = $(`#datatable_search_stack_${tableId} .datatable-search-clear`);
+function setupTableUI(tableId, config) {
+    const tableElement = document.getElementById(tableId);
+    const searchInput = document.querySelector('#datatable_search_stack_' + tableId + ' input.datatable-search-input');
+    const searchClear = document.querySelector('#datatable_search_stack_' + tableId + ' .datatable-search-clear');
 
     const toggleSearchClear = function(value) {
         if (value && value.length > 0) {
-            searchClear.removeAttr('hidden');
+            searchClear.removeAttribute('hidden');
         } else {
-            searchClear.attr('hidden', 'hidden');
+            searchClear.setAttribute('hidden', 'hidden');
         }
     };
 
-    if (searchInput.length > 0) {
-        searchInput.val(window.crud.tables[tableId].search());
-        toggleSearchClear(searchInput.val());
-        searchInput.on('keyup', function() {
+    if (searchInput) {
+        searchInput.value = window.crud.tables[tableId].search();
+        toggleSearchClear(searchInput.value);
+        searchInput.addEventListener('keyup', function() {
             toggleSearchClear(this.value);
             window.crud.tables[tableId].search(this.value).draw();
         });
-        searchInput.on('search', function() {
+        searchInput.addEventListener('search', function() {
             toggleSearchClear(this.value);
         });
 
-        searchClear.on('click keydown', function(e) {
-            if (e.type === 'keydown' && e.key !== 'Enter' && e.key !== ' ') {
-                return;
-            }
-            e.preventDefault();
-            searchInput.val('');
-            toggleSearchClear('');
-            window.crud.tables[tableId].search('').draw();
-            searchInput.trigger('focus');
-        });
+        if (searchClear) {
+            searchClear.addEventListener('click', function(e) {
+                e.preventDefault();
+                searchInput.value = '';
+                toggleSearchClear('');
+                window.crud.tables[tableId].search('').draw();
+                searchInput.focus();
+            });
+            searchClear.addEventListener('keydown', function(e) {
+                if (e.key !== 'Enter' && e.key !== ' ') {
+                    return;
+                }
+                e.preventDefault();
+                searchInput.value = '';
+                toggleSearchClear('');
+                window.crud.tables[tableId].search('').draw();
+                searchInput.focus();
+            });
+        }
     }
     
-    $(`#${tableId}_filter`).remove();
+    // Remove old filter element
+    var filterEl = document.getElementById(tableId + '_filter');
+    if (filterEl) {
+        filterEl.remove();
+    }
 
-    $(`#${tableId}_wrapper .table-footer .btn-secondary`).removeClass('btn-secondary');
+    // Remove btn-secondary from footer buttons
+    var footerBtns = document.querySelectorAll('#' + tableId + '_wrapper .table-footer .btn-secondary');
+    footerBtns.forEach(function(btn) {
+        btn.classList.remove('btn-secondary');
+    });
 
-    $(".navbar.navbar-filters + div").css('overflow','hidden');
+    // Set overflow hidden on filters container
+    var filtersNext = document.querySelector('.navbar.navbar-filters + div');
+    if (filtersNext) {
+        filtersNext.style.overflow = 'hidden';
+    }
 
     if (config.subheading) {
-        $(`#${tableId}_info`).hide();
+        var infoEl = document.getElementById(tableId + '_info');
+        if (infoEl) {
+            infoEl.style.display = 'none';
+        }
     } else {
-        $(`#datatable_info_stack_${tableId}`).html($(`#${tableId}_info`)).css('display','inline-flex').addClass('animated fadeIn');
+        var infoStack = document.querySelector('#datatable_info_stack_' + tableId);
+        var tableInfo = document.getElementById(tableId + '_info');
+        if (infoStack && tableInfo) {
+            infoStack.innerHTML = tableInfo.innerHTML;
+            infoStack.style.display = 'inline-flex';
+            infoStack.classList.add('animated', 'fadeIn');
+        }
     }
 
     if (config.resetButton !== false) {
         var resetLabel = config.language.reset || 'Reset';
-        var crudTableResetButton = `<a href="${config.urlStart}" class="ml-1 ms-1" id="${tableId}_reset_button">${resetLabel}</a>`;
-        $(`#datatable_info_stack_${tableId}`).append(crudTableResetButton);
+        var crudTableResetButton = '<a href="' + config.urlStart + '" class="ml-1 ms-1" id="' + tableId + '_reset_button">' + resetLabel + '</a>';
+        var infoStackEl = document.querySelector('#datatable_info_stack_' + tableId);
+        if (infoStackEl) {
+            infoStackEl.insertAdjacentHTML('beforeend', crudTableResetButton);
+        }
 
         // when clicking in reset button we clear the localStorage for datatables
-        $(`#${tableId}_reset_button`).on('click', function() {
-            // Clear the filters
-            if (localStorage.getItem(`${config.persistentTableSlug}_list_url`)) {
-                localStorage.removeItem(`${config.persistentTableSlug}_list_url`);
-            }
-            if (localStorage.getItem(`${config.persistentTableSlug}_list_url_time`)) {
-                localStorage.removeItem(`${config.persistentTableSlug}_list_url_time`);
-            }
+        var resetBtn = document.getElementById(tableId + '_reset_button');
+        if (resetBtn) {
+            resetBtn.addEventListener('click', function() {
+                // Clear the filters
+                if (localStorage.getItem(config.persistentTableSlug + '_list_url')) {
+                    localStorage.removeItem(config.persistentTableSlug + '_list_url');
+                }
+                if (localStorage.getItem(config.persistentTableSlug + '_list_url_time')) {
+                    localStorage.removeItem(config.persistentTableSlug + '_list_url_time');
+                }
 
-            // Clear ALL DataTables localStorage keys for this table
-            // Fixes key mismatch where DataTables 2.x uses pathname-based keys
-            Object.keys(localStorage)
-              .filter(key => key.startsWith(`DataTables_${tableId}`))
-              .forEach(key => localStorage.removeItem(key));
-        });
+                // Clear ALL DataTables localStorage keys for this table
+                // Fixes key mismatch where DataTables 2.x uses pathname-based keys
+                Object.keys(localStorage)
+                  .filter(function(key) { return key.startsWith('DataTables_' + tableId); })
+                  .forEach(function(key) { localStorage.removeItem(key); });
+            });
+        }
     }
 
     if (config.exportButtons && window.crud.exportButtonsConfig) {
         // Add the export buttons to the DataTable configuration
-        new $.fn.dataTable.Buttons(window.crud.tables[tableId], {
+        new DataTable.Buttons(window.crud.tables[tableId], {
             buttons: window.crud.exportButtonsConfig
         });
         
@@ -761,8 +808,9 @@ function setupTableUI(tableId, config) {
     window.dispatchEvent(event);
     
     // Initialize dropdown positioning fix if table has dropdown buttons
-    if ($(`#${tableId}`).data('has-line-buttons-as-dropdown')) {
-        setTimeout(() => {
+    if (tableElement.getAttribute('data-has-line-buttons-as-dropdown') === 'true' ||
+        tableElement.getAttribute('data-has-line-buttons-as-dropdown') === '1') {
+        setTimeout(function() {
             initDatatableDropdowns(tableId);
         }, 100);
     }
@@ -783,12 +831,14 @@ function setupTableEvents(tableId, config) {
     }
 
     function getDirectRowCells(row) {
-        return Array.from(row.children).filter(c => c.tagName === 'TD' || c.tagName === 'TH');
+        return Array.from(row.children).filter(function(c) {
+            return c.tagName === 'TD' || c.tagName === 'TH';
+        });
     }
 
     function getDirectFirstColButtons(row) {
         // skip nested tables (e.g. responsive-details modal)
-        return Array.from(row.querySelectorAll(FIRST_COL_BUTTONS_SELECTOR)).filter(el => {
+        return Array.from(row.querySelectorAll(FIRST_COL_BUTTONS_SELECTOR)).filter(function(el) {
             const cell = el.closest('th, td');
             return cell && cell.parentElement === row;
         });
@@ -796,7 +846,7 @@ function setupTableEvents(tableId, config) {
 
     function moveFirstColButtonsToCell(row, targetCell) {
         if (!row || !targetCell) return;
-        getDirectFirstColButtons(row).forEach(el => {
+        getDirectFirstColButtons(row).forEach(function(el) {
             const parentCell = el.closest('th, td');
             if (!parentCell || parentCell === targetCell) return;
             targetCell.insertBefore(el, targetCell.firstChild);
@@ -863,14 +913,16 @@ function setupTableEvents(tableId, config) {
         if (!tableEl) return;
         if (!tableEl.querySelector(FIRST_COL_BUTTONS_SELECTOR)) return;
 
-        ['thead', 'tbody', 'tfoot'].forEach(section => {
+        ['thead', 'tbody', 'tfoot'].forEach(function(section) {
             const sectionEl = tableEl.querySelector(':scope > ' + section);
             if (!sectionEl) return;
-            Array.from(sectionEl.children).forEach(row => {
+            Array.from(sectionEl.children).forEach(function(row) {
                 if (row.tagName !== 'TR') return;
                 const buttons = getDirectFirstColButtons(row);
                 if (buttons.length) {
-                    buttons.forEach(el => el.parentNode && el.parentNode.removeChild(el));
+                    buttons.forEach(function(el) {
+                        if (el.parentNode) el.parentNode.removeChild(el);
+                    });
                     detachedFirstColButtons.set(row, buttons);
                 }
             });
@@ -881,10 +933,10 @@ function setupTableEvents(tableId, config) {
     function reattachDetachedFirstColButtons() {
         const tableEl = getTableEl();
         if (!tableEl) return;
-        ['thead', 'tbody', 'tfoot'].forEach(section => {
+        ['thead', 'tbody', 'tfoot'].forEach(function(section) {
             const sectionEl = tableEl.querySelector(':scope > ' + section);
             if (!sectionEl) return;
-            Array.from(sectionEl.children).forEach(row => {
+            Array.from(sectionEl.children).forEach(function(row) {
                 if (row.tagName !== 'TR') return;
                 const stash = detachedFirstColButtons.get(row);
                 if (!stash || !stash.length) return;
@@ -904,7 +956,7 @@ function setupTableEvents(tableId, config) {
                 for (let i = stash.length - 1; i >= 0; i--) {
                     target.insertBefore(stash[i], target.firstChild);
                 }
-                if (stash.some(el => el.matches && el.matches('span.details-control'))) {
+                if (stash.some(function(el) { return el.matches && el.matches('span.details-control'); })) {
                     target.classList.add('details-control');
                 }
             });
@@ -922,223 +974,251 @@ function setupTableEvents(tableId, config) {
     window.crud.tables[tableId].__updateFirstColButtonsHint = updateFirstColButtonsHint;
 
     // override ajax error message
-    $.fn.dataTable.ext.errMode = 'none';
-    $(`#${tableId}`).on('error.dt', function(e, settings, techNote, message) {
-        var errorTitle = config.language.ajax_error_title || 'Error';
-        var errorText = config.language.ajax_error_text || 'Something went wrong with the AJAX request.';
-        new Noty({
-            type: "error",
-            text: "<strong>" + errorTitle + "</strong><br>" + errorText
-        }).show();
-    });
+    DataTable.ext.errMode = 'none';
 
-    // when changing page length in datatables, save it into localStorage
-    $(`#${tableId}`).on('length.dt', function(e, settings, len) {
-        localStorage.setItem(`DataTables_${tableId}_/${config.urlStart}_pageLength`, len);
-    });
-
-    $(`#${tableId}`).on('page.dt', function() {
-        localStorage.setItem('page_changed', true);
-    });
-
-    // on DataTable draw event run all functions in the queue
-    $(`#${tableId}`).on('draw.dt', function() {
-        
-        // Ensure initializeAllModals function is available before we try to call it
-        if (typeof window.initializeAllModals === 'undefined') {
-            window.initializeAllModals = function() {
-                // This is a basic fallback that will be replaced by the full implementation
-                // when the modal script loads
-            };
-        }
-        
-        const modalTemplatesInTable = document.getElementById(tableId).querySelectorAll('[id^="modalTemplate"]');
-        
-        modalTemplatesInTable.forEach(function(modal, index) {
-            const newModal = modal.cloneNode(true);
-            document.body.appendChild(newModal);
-            modal.remove();
+    const tableElement = document.getElementById(tableId);
+    if (tableElement) {
+        table.on('error.dt', function(e, settings, techNote, message) {
+            var errorTitle = config.language.ajax_error_title || 'Error';
+            var errorText = config.language.ajax_error_text || 'Something went wrong with the AJAX request.';
+            new Noty({
+                type: "error",
+                text: "<strong>" + errorTitle + "</strong><br>" + errorText
+            }).show();
         });
-        
-        // After moving modals, check what's now in the DOM
-        const allModalTemplates = document.querySelectorAll('[id^="modalTemplate"]');
-        
-        // After moving modals, trigger initialization if the function exists
-        if (typeof window.initializeAllModals === 'function') {
-            window.initializeAllModals();
-        } else {
-            console.warn('window.initializeAllModals function not found');
-        }
-        // in datatables 2.0.3 the implementation was changed to use `replaceChildren`, for that reason scripts 
-        // that came with the response are no longer executed, like the delete button script or any other ajax 
-        // button created by the developer. For that reason, we move them to the end of the body
-        // ensuring they are re-evaluated on each draw event.
-        try {
-            const tableElement = document.getElementById(tableId);
-            if (tableElement) {
-                tableElement.querySelectorAll('script').forEach(function(script) {
-                    if (script.parentNode) {
-                        script.parentNode.removeChild(script);
-                    }
 
-                    if (script.src) {
-                        // For external scripts with src attribute
-                        const srcUrl = script.src;
+        // when changing page length in datatables, save it into localStorage
+        table.on('length.dt', function(e, settings, len) {
+            localStorage.setItem('DataTables_' + tableId + '_/' + config.urlStart + '_pageLength', len);
+        });
 
-                        // Only load the script if it's not already loaded in <head>
-                        if (!document.querySelector(`script[src="${srcUrl}"]`)) {
+        table.on('page.dt', function() {
+            localStorage.setItem('page_changed', true);
+        });
+
+        // on DataTable draw event run all functions in the queue
+        table.on('draw.dt', function() {
+            
+            // Ensure initializeAllModals function is available before we try to call it
+            if (typeof window.initializeAllModals === 'undefined') {
+                window.initializeAllModals = function() {
+                    // This is a basic fallback that will be replaced by the full implementation
+                    // when the modal script loads
+                };
+            }
+            
+            const modalTemplatesInTable = document.getElementById(tableId).querySelectorAll('[id^="modalTemplate"]');
+            
+            modalTemplatesInTable.forEach(function(modal, index) {
+                const newModal = modal.cloneNode(true);
+                document.body.appendChild(newModal);
+                modal.remove();
+            });
+            
+            // After moving modals, check what's now in the DOM
+            const allModalTemplates = document.querySelectorAll('[id^="modalTemplate"]');
+            
+            // After moving modals, trigger initialization if the function exists
+            if (typeof window.initializeAllModals === 'function') {
+                window.initializeAllModals();
+            } else {
+                console.warn('window.initializeAllModals function not found');
+            }
+            // in datatables 2.0.3 the implementation was changed to use `replaceChildren`, for that reason scripts 
+            // that came with the response are no longer executed, like the delete button script or any other ajax 
+            // button created by the developer. For that reason, we move them to the end of the body
+            // ensuring they are re-evaluated on each draw event.
+            try {
+                const tableEl = document.getElementById(tableId);
+                if (tableEl) {
+                    tableEl.querySelectorAll('script').forEach(function(script) {
+                        if (script.parentNode) {
+                            script.parentNode.removeChild(script);
+                        }
+
+                        if (script.src) {
+                            // For external scripts with src attribute
+                            const srcUrl = script.src;
+
+                            // Only load the script if it's not already loaded in <head>
+                            if (!document.querySelector('script[src="' + srcUrl + '"]')) {
+                                const newScript = document.createElement('script');
+
+                                // Copy all attributes from the original script
+                                Array.from(script.attributes).forEach(function(attr) {
+                                    newScript.setAttribute(attr.name, attr.value);
+                                });
+
+                                newScript.onerror = function(e) {
+                                    console.warn('Error loading script:', srcUrl, e);
+                                };
+
+                                try {
+                                    document.head.appendChild(newScript);
+                                } catch (e) {
+                                    console.warn('Error appending external script:', e);
+                                }
+                            }
+                        } else {
+                            // For inline scripts
                             const newScript = document.createElement('script');
 
                             // Copy all attributes from the original script
-                            Array.from(script.attributes).forEach(attr => {
+                            Array.from(script.attributes).forEach(function(attr) {
                                 newScript.setAttribute(attr.name, attr.value);
                             });
 
-                            newScript.onerror = function(e) {
-                                console.warn('Error loading script:', srcUrl, e);
-                            };
+                            // Copy the content
+                            newScript.textContent = script.textContent;
 
                             try {
                                 document.head.appendChild(newScript);
                             } catch (e) {
-                                console.warn('Error appending external script:', e);
+                                console.warn('Error appending inline script:', e);
                             }
                         }
-                    } else {
-                        // For inline scripts
-                        const newScript = document.createElement('script');
-
-                        // Copy all attributes from the original script
-                        Array.from(script.attributes).forEach(attr => {
-                            newScript.setAttribute(attr.name, attr.value);
-                        });
-
-                        // Copy the content
-                        newScript.textContent = script.textContent;
-
-                        try {
-                            document.head.appendChild(newScript);
-                        } catch (e) {
-                            console.warn('Error appending inline script:', e);
-                        }
-                    }
-                });
-            } else {
-                console.warn('Table element not found:', tableId);
-            }
-        } catch (e) {
-            console.warn('Error processing scripts for table:', tableId, e);
-        }
-
-        // Run table-specific functions and pass the tableId
-        // to the function
-        if (config.functionsToRunOnDataTablesDrawEvent && config.functionsToRunOnDataTablesDrawEvent.length) {
-            config.functionsToRunOnDataTablesDrawEvent.forEach(function(functionName) {
-                config.executeFunctionByName(functionName, [tableId]);
-            });
-        }
-        
-        if ($(`#${tableId}`).data('has-line-buttons-as-dropdown')) {
-            formatActionColumnAsDropdown(tableId);
-        }
-
-        if (table.responsive && !table.responsive.hasHidden()) {
-            table.columns().header()[0].style.paddingLeft = '0.6rem';
-        }
-
-        if (table.responsive && table.responsive.hasHidden()) {           
-            $('.dtr-control').removeClass('d-none');
-            $('.dtr-control').addClass('d-inline');
-            $(`#${tableId}`).removeClass('has-hidden-columns').addClass('has-hidden-columns');
-        }
-
-        // move first-column buttons to the first visible cell
-        repositionFirstColButtons();
-    }).dataTable();
-
-    $(`#${tableId}`).on('processing.dt', function(e, settings, processing) {
-        if (processing) {
-            setTimeout(function() {
-                const tableWrapper = document.querySelector('#' + tableId + '_wrapper');
-                const processingIndicator = document.querySelector('.dataTables_processing, .dt-processing');
-                
-                if (tableWrapper && processingIndicator) {
-                    if (!tableWrapper.contains(processingIndicator)) {
-                        tableWrapper.appendChild(processingIndicator);
-                    }
-                    
-                    processingIndicator.style.cssText = `
-                        position: absolute !important;
-                        top: 0 !important;
-                        left: 0 !important;
-                        right: 0 !important;
-                        bottom: 60px !important;
-                        width: 100% !important;
-                        height: calc(100% - 60px) !important;
-                        z-index: 1000 !important;
-                        transform: none !important;
-                        margin: 0 !important;
-                        padding: 0 !important;
-                        display: flex !important;
-                        justify-content: center !important;
-                        align-items: center !important;
-                        background: var(--bp-processing-bg, rgba(255, 255, 255, 0.8)) !important;
-                        font-size: 0 !important;
-                        color: transparent !important;
-                        text-indent: -9999px !important;
-                        overflow: hidden !important;
-                    `;
-                    
-                    tableWrapper.style.position = 'relative';
-                    
-                    const allChildren = processingIndicator.querySelectorAll('*:not(img)');
-                    allChildren.forEach(child => {
-                        child.style.cssText = 'display: none !important; visibility: hidden !important; opacity: 0 !important;';
                     });
-                    
-                    const images = processingIndicator.querySelectorAll('img');
-                    images.forEach(img => {
-                        img.style.cssText = 'display: block !important; visibility: visible !important; opacity: 1 !important; width: 40px !important; height: 40px !important; margin: 0 auto !important;';
-                    });
+                } else {
+                    console.warn('Table element not found:', tableId);
                 }
-            }, 10);
-        }
-    });
-
-    $(`#${tableId}`).on('column-visibility.dt', function(event) {
-        // defer past DataTables/Responsive's own listeners
-        setTimeout(function () {
-            reattachDetachedFirstColButtons();
-            if (table.responsive) {
-                try { table.responsive.rebuild(); } catch (e) { /* noop */ }
-                try { table.responsive.recalc(); } catch (e) { /* noop */ }
+            } catch (e) {
+                console.warn('Error processing scripts for table:', tableId, e);
             }
+
+            // Run table-specific functions and pass the tableId
+            // to the function
+            if (config.functionsToRunOnDataTablesDrawEvent && config.functionsToRunOnDataTablesDrawEvent.length) {
+                config.functionsToRunOnDataTablesDrawEvent.forEach(function(functionName) {
+                    config.executeFunctionByName(functionName, [tableId]);
+                });
+            }
+            
+            if (tableElement.getAttribute('data-has-line-buttons-as-dropdown') === 'true' ||
+                tableElement.getAttribute('data-has-line-buttons-as-dropdown') === '1') {
+                formatActionColumnAsDropdown(tableId);
+            }
+
+            if (table.responsive && !table.responsive.hasHidden()) {
+                table.columns().header()[0].style.paddingLeft = '0.6rem';
+            }
+
+            if (table.responsive && table.responsive.hasHidden()) {           
+                document.querySelectorAll('.dtr-control').forEach(function(el) {
+                    el.classList.remove('d-none');
+                    el.classList.add('d-inline');
+                });
+                tableElement.classList.remove('has-hidden-columns');
+                tableElement.classList.add('has-hidden-columns');
+            }
+
+            // move first-column buttons to the first visible cell
             repositionFirstColButtons();
-            updateFirstColButtonsHint();
-        }, 0);
-    }).dataTable();
+        });
+
+        table.on('processing.dt', function(e, settings, processing) {
+            if (processing) {
+                setTimeout(function() {
+                    const tableWrapper = document.querySelector('#' + tableId + '_wrapper');
+                    const processingIndicator = document.querySelector('.dataTables_processing, .dt-processing');
+                    
+                    if (tableWrapper && processingIndicator) {
+                        if (!tableWrapper.contains(processingIndicator)) {
+                            tableWrapper.appendChild(processingIndicator);
+                        }
+                        
+                        processingIndicator.style.cssText = 
+                            'position: absolute !important;' +
+                            'top: 0 !important;' +
+                            'left: 0 !important;' +
+                            'right: 0 !important;' +
+                            'bottom: 60px !important;' +
+                            'width: 100% !important;' +
+                            'height: calc(100% - 60px) !important;' +
+                            'z-index: 1000 !important;' +
+                            'transform: none !important;' +
+                            'margin: 0 !important;' +
+                            'padding: 0 !important;' +
+                            'display: flex !important;' +
+                            'justify-content: center !important;' +
+                            'align-items: center !important;' +
+                            'background: var(--bp-processing-bg, rgba(255, 255, 255, 0.8)) !important;' +
+                            'font-size: 0 !important;' +
+                            'color: transparent !important;' +
+                            'text-indent: -9999px !important;' +
+                            'overflow: hidden !important;';
+                        
+                        tableWrapper.style.position = 'relative';
+                        
+                        const allChildren = processingIndicator.querySelectorAll('*:not(img)');
+                        allChildren.forEach(function(child) {
+                            child.style.cssText = 'display: none !important; visibility: hidden !important; opacity: 0 !important;';
+                        });
+                        
+                        const images = processingIndicator.querySelectorAll('img');
+                        images.forEach(function(img) {
+                            img.style.cssText = 'display: block !important; visibility: visible !important; opacity: 1 !important; width: 40px !important; height: 40px !important; margin: 0 auto !important;';
+                        });
+                    }
+                }, 10);
+            }
+        });
+
+        table.on('column-visibility.dt', function(event) {
+            // defer past DataTables/Responsive's own listeners
+            setTimeout(function () {
+                reattachDetachedFirstColButtons();
+                if (table.responsive) {
+                    try { table.responsive.rebuild(); } catch (e) { /* noop */ }
+                    try { table.responsive.recalc(); } catch (e) { /* noop */ }
+                }
+                repositionFirstColButtons();
+                updateFirstColButtonsHint();
+            }, 0);
+        });
+    }
 
     // Handle responsive table if enabled
     if (config.responsiveTable && table.responsive) {
         // when columns are hidden by responsive plugin
         table.on('responsive-resize', function(e, datatable, columns) {
             if (table.responsive.hasHidden()) {
-                $('.dtr-control').each(function() {
-                    var $this = $(this);
-                    var $row = $this.closest('tr');
+                document.querySelectorAll('.dtr-control').forEach(function(el) {
+                    var row = el.closest('tr');
                     
-                    var $firstVisibleColumn = $row.find('td').filter(function() {
-                        return $(this).css('display') !== 'none';
-                    }).first();
-                    $this.prependTo($firstVisibleColumn);
+                    // Find the first visible column cell in this row
+                    var firstVisibleColumn = null;
+                    if (row) {
+                        var cells = row.querySelectorAll('td');
+                        for (var i = 0; i < cells.length; i++) {
+                            if (getComputedStyle(cells[i]).display !== 'none') {
+                                firstVisibleColumn = cells[i];
+                                break;
+                            }
+                        }
+                    }
+                    if (firstVisibleColumn) {
+                        firstVisibleColumn.prepend(el);
+                    }
                 });
 
-                $('.dtr-control').removeClass('d-none');
-                $('.dtr-control').addClass('d-inline');
-                $(`#${tableId}`).removeClass('has-hidden-columns').addClass('has-hidden-columns');
+                document.querySelectorAll('.dtr-control').forEach(function(el) {
+                    el.classList.remove('d-none');
+                    el.classList.add('d-inline');
+                });
+                var tbl = document.getElementById(tableId);
+                if (tbl) {
+                    tbl.classList.remove('has-hidden-columns');
+                    tbl.classList.add('has-hidden-columns');
+                }
             } else {
-                $('.dtr-control').removeClass('d-none').removeClass('d-inline').addClass('d-none');
-                $(`#${tableId}`).removeClass('has-hidden-columns');
+                document.querySelectorAll('.dtr-control').forEach(function(el) {
+                    el.classList.remove('d-none', 'd-inline');
+                    el.classList.add('d-none');
+                });
+                var tbl2 = document.getElementById(tableId);
+                if (tbl2) {
+                    tbl2.classList.remove('has-hidden-columns');
+                }
             }
 
             // bulk checkbox and details-row trigger follow the first visible cell
@@ -1155,12 +1235,15 @@ function setupTableEvents(tableId, config) {
                 }
             }, 250);
         }
-        $(window).on('resize', function(e) {
+        window.addEventListener('resize', function(e) {
             resizeCrudTableColumnWidths();
         });
-        $('.sidebar-toggler').click(function() {
-            resizeCrudTableColumnWidths();
-        });
+        var sidebarToggler = document.querySelector('.sidebar-toggler');
+        if (sidebarToggler) {
+            sidebarToggler.addEventListener('click', function() {
+                resizeCrudTableColumnWidths();
+            });
+        }
     }
 
     registerFixedHeaderListeners(tableId, config);
@@ -1240,13 +1323,20 @@ function registerFixedHeaderListeners(tableId, config) {
         listeners: []
     };
 
-    const ensureActivation = (explicitOffset) => {
+    // Abort previous fixedHeader event listeners if any
+    if (config._fixedHeaderController) {
+        config._fixedHeaderController.abort();
+    }
+    config._fixedHeaderController = new AbortController();
+    const fhSignal = config._fixedHeaderController.signal;
+
+    const ensureActivation = function(explicitOffset) {
         const offsetValue = resolveFixedHeaderOffset(fixedHeader, explicitOffset);
         const rect = tableElement.getBoundingClientRect();
         const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
         const currentlyEnabled = fixedHeader.enabled();
         const headerHeight = measureFixedHeaderHeight(fixedHeader, headerElement);
-        const { enableMargin, disableMargin } = deriveFixedHeaderMargins(headerHeight);
+        const margins = deriveFixedHeaderMargins(headerHeight);
 
         const withinViewport = rect.top < viewportHeight - 1 && rect.bottom > offsetValue + 1;
         if (!withinViewport) {
@@ -1257,7 +1347,7 @@ function registerFixedHeaderListeners(tableId, config) {
         }
 
         const headerBottom = rect.top + headerHeight;
-        const clearanceThreshold = currentlyEnabled ? offsetValue + disableMargin : offsetValue - enableMargin;
+        const clearanceThreshold = currentlyEnabled ? offsetValue + margins.disableMargin : offsetValue - margins.enableMargin;
         const shouldEnable = headerBottom <= clearanceThreshold;
 
         if (shouldEnable === currentlyEnabled) {
@@ -1273,7 +1363,7 @@ function registerFixedHeaderListeners(tableId, config) {
         return shouldEnable;
     };
 
-    const recalculate = (reason) => {
+    const recalculate = function(reason) {
         const offset = calculateStickyHeaderOffset(tableElement);
         const enabled = ensureActivation(offset);
         const offsetChanged = typeof state.lastOffset !== 'number' || state.lastOffset !== offset;
@@ -1293,39 +1383,48 @@ function registerFixedHeaderListeners(tableId, config) {
         state.lastEnabled = enabled;
     };
 
-    const scheduleRecalculation = (reason) => {
+    const scheduleRecalculation = function(reason) {
         if (state.timer) {
             return;
         }
 
-        state.timer = setTimeout(() => {
+        state.timer = setTimeout(function() {
             state.timer = null;
             recalculate(reason || 'timer');
         }, 75);
     };
 
-    const addListener = (target, eventName, handler) => {
+    const addListener = function(target, eventName, handler) {
         if (!target || !target.addEventListener) {
             return;
         }
         target.addEventListener(eventName, handler, false);
-        state.listeners.push(() => target.removeEventListener(eventName, handler, false));
+        state.listeners.push(function() { target.removeEventListener(eventName, handler, false); });
     };
 
     recalculate('initial');
-    setTimeout(() => recalculate('delayed-initial'), 150);
+    setTimeout(function() { recalculate('delayed-initial'); }, 150);
 
-    addListener(window, 'resize', () => scheduleRecalculation('window:resize'));
-    addListener(window, 'orientationchange', () => scheduleRecalculation('window:orientationchange'));
-    addListener(window, 'scroll', () => scheduleRecalculation('window:scroll'));
+    addListener(window, 'resize', function() { scheduleRecalculation('window:resize'); });
+    addListener(window, 'orientationchange', function() { scheduleRecalculation('window:orientationchange'); });
+    addListener(window, 'scroll', function() { scheduleRecalculation('window:scroll'); });
 
-    const $table = $(`#${tableId}`);
-    $table.on('column-visibility.dt.fixedHeader length.dt.fixedHeader responsive-resize.fixedHeader draw.dt.fixedHeader', function(evt) {
-        const eventLabel = evt && evt.type ? 'dt:' + evt.type : 'dt:unknown';
-        scheduleRecalculation(eventLabel);
+    // DataTable events for fixedHeader recalculation
+    apiInstance.on('column-visibility.dt', function(evt) {
+        scheduleRecalculation('dt:' + evt.type);
+    });
+    apiInstance.on('length.dt', function(evt) {
+        scheduleRecalculation('dt:' + evt.type);
+    });
+    apiInstance.on('responsive-resize', function(evt) {
+        scheduleRecalculation('dt:' + evt.type);
+    });
+    apiInstance.on('draw.dt', function(evt) {
+        scheduleRecalculation('dt:' + evt.type);
     });
 
-    $table.on('destroy.dt.fixedHeader', function() {
+    // destroy.dt: cleanup and abort the controller (removing all fixedHeader listeners)
+    apiInstance.on('destroy.dt', function() {
         if (state.timer) {
             clearTimeout(state.timer);
             state.timer = null;
@@ -1336,7 +1435,7 @@ function registerFixedHeaderListeners(tableId, config) {
         });
         state.listeners.length = 0;
 
-        $table.off('.fixedHeader');
+        config._fixedHeaderController.abort();
         config.fixedHeaderListenersRegistered = false;
     });
 
@@ -1361,7 +1460,7 @@ function calculateStickyHeaderOffset(tableElement) {
     for (let y = 0; y <= maxScanDepth; y += 8) {
         const elements = document.elementsFromPoint(sampleX, y) || [];
 
-        elements.forEach((element) => {
+        elements.forEach(function(element) {
             if (!element || seenElements.has(element)) {
                 return;
             }
@@ -1547,65 +1646,98 @@ function formatActionColumnAsDropdown(tableId) {
     const minimumButtonsToBuildDropdown = minAttr !== null ? parseInt(minAttr) : 3;
     const buttonsToShowBeforeDropdown = showBeforeAttr !== null ? parseInt(showBeforeAttr) : 1;
     
-    // Get action column
-    const actionColumnIndex = $('#' + tableId).find('th[data-action-column=true]').index();
+    // Get action column index
+    const actionColumnTh = table.querySelector('th[data-action-column="true"]');
+    if (!actionColumnTh) return;
+    const actionColumnIndex = Array.from(actionColumnTh.parentElement.children).indexOf(actionColumnTh);
     if (actionColumnIndex === -1) return;
 
-    $('#' + tableId + ' tbody tr').each(function (i, tr) {
-        const actionCell = $(tr).find('td').eq(actionColumnIndex);
-        const actionButtons = actionCell.find('a.btn.btn-link, .btn-group').filter(function() {
-            return !$(this).parents('.btn-group').length;
+    table.querySelectorAll('tbody tr').forEach(function(tr) {
+        const cells = tr.querySelectorAll('td');
+        const actionCell = cells[actionColumnIndex];
+        if (!actionCell) return;
+
+        // If already processed, skip
+        if (actionCell.querySelector('.actions-buttons-column')) return;
+
+        const actionButtons = Array.from(actionCell.querySelectorAll('a.btn.btn-link, .btn-group')).filter(function(el) {
+            return !el.closest('.btn-group');
         });
 
-        if (actionCell.find('.actions-buttons-column').length) return;
         if (actionButtons.length < minimumButtonsToBuildDropdown) return;
 
-        // Prepare buttons as dropdown items
-        const dropdownItems = actionButtons.slice(buttonsToShowBeforeDropdown).map((index, action) => {
-            const $action = $(action);
+        // Prepare buttons as dropdown items (index-based; note vanilla .slice().map() uses (el, i) order)
+        var buttonsForDropdown = actionButtons.slice(buttonsToShowBeforeDropdown);
 
-            if ($action.hasClass('btn-group')) {
-                $action.addClass('nested-dropdown-item d-flex nested-dropdown align-items-stretch p-0');
-                $action.removeClass('btn-group');
+        // If there are no buttons to go into the dropdown, skip
+        if (buttonsForDropdown.length === 0) return;
+
+        buttonsForDropdown.forEach(function(action) {
+            if (action.classList.contains('btn-group')) {
+                action.classList.add('nested-dropdown-item', 'd-flex', 'nested-dropdown', 'align-items-stretch', 'p-0');
+                action.classList.remove('btn-group');
                 
-                const $btns = $action.find('a.btn');
+                var btns = action.querySelectorAll('a.btn');
                 
-                const $mainBtn = $btns.not('.dropdown-toggle');
-                $mainBtn.addClass('flex-grow-1 py-1 px-3').removeClass('btn btn-sm btn-link pr-0 pl-1 dropdown-item');
-                $mainBtn.find('i').addClass('me-2 text-primary');
-                
-                const $toggleBtn = $btns.filter('.dropdown-toggle');
-                $toggleBtn.addClass('px-2 py-1 text-primary dropdown-toggle-split').removeClass('btn btn-sm btn-link pr-0 pl-1 dropdown-item dropdown-toggle');
-                $toggleBtn.attr('href', 'javascript:void(0)');
-                $toggleBtn.removeAttr('data-bs-toggle');
-                $toggleBtn.removeAttr('data-toggle');
-                $toggleBtn.css({
-                    'width': 'auto',
-                    'cursor': 'pointer',
-                    'display': 'flex',
-                    'align-items': 'center',
-                    'justify-content': 'center'
+                btns.forEach(function(btn) {
+                    if (!btn.classList.contains('dropdown-toggle')) {
+                        btn.classList.add('flex-grow-1', 'py-1', 'px-3');
+                        btn.classList.remove('btn', 'btn-sm', 'btn-link', 'pr-0', 'pl-1', 'dropdown-item');
+                        var icon = btn.querySelector('i');
+                        if (icon) icon.classList.add('me-2', 'text-primary');
+                    } else {
+                        btn.classList.add('px-2', 'py-1', 'text-primary', 'dropdown-toggle-split');
+                        btn.classList.remove('btn', 'btn-sm', 'btn-link', 'pr-0', 'pl-1', 'dropdown-item', 'dropdown-toggle');
+                        btn.setAttribute('href', 'javascript:void(0)');
+                        btn.removeAttribute('data-bs-toggle');
+                        btn.removeAttribute('data-toggle');
+                        Object.assign(btn.style, {
+                            width: 'auto',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center'
+                        });
+                    }
                 });
-                
-                return action;
+            } else {
+                action.classList.add('dropdown-item');
+                action.classList.remove('btn', 'btn-sm', 'btn-link');
+                var icon2 = action.querySelector('i');
+                if (icon2) icon2.classList.add('me-2', 'text-primary');
             }
-
-            $action.addClass('dropdown-item').removeClass('btn btn-sm btn-link');
-            $action.find('i').addClass('me-2 text-primary');
-            return action;
         });
 
-        // Only create dropdown if there are items to drop
-        if (dropdownItems.length > 0) {
-            // Wrap the cell with the component needed for the dropdown
-            actionCell.wrapInner('<div class="dropdown-menu"></div>');
-            actionCell.wrapInner('<div class="dropdown"></div>');
+        // Wrap the cell contents for the dropdown
+        // Create outer dropdown div
+        var dropdownDiv = document.createElement('div');
+        dropdownDiv.className = 'dropdown';
+        // Create dropdown-menu div
+        var dropdownMenuDiv = document.createElement('div');
+        dropdownMenuDiv.className = 'dropdown-menu';
 
-            var actionsLabel = (window.crud.tableConfigs[tableId] && window.crud.tableConfigs[tableId].language && window.crud.tableConfigs[tableId].language.actions) || 'Actions';
-            actionCell.prepend('<button class="btn btn-sm px-2 py-1 btn-outline-primary dropdown-toggle actions-buttons-column" type="button" aria-expanded="false">' + actionsLabel + '</button>');
-            
-            const remainingButtons = actionButtons.slice(0, buttonsToShowBeforeDropdown);
-            actionCell.prepend(remainingButtons);
+        // Move all children of actionCell into dropdown-menu
+        while (actionCell.firstChild) {
+            dropdownMenuDiv.appendChild(actionCell.firstChild);
+        }
+        // Put dropdown-menu inside dropdown
+        dropdownDiv.appendChild(dropdownMenuDiv);
+        // Put dropdown inside actionCell
+        actionCell.appendChild(dropdownDiv);
+
+        // Prepend the toggle button
+        var actionsLabel = (window.crud.tableConfigs[tableId] && window.crud.tableConfigs[tableId].language && window.crud.tableConfigs[tableId].language.actions) || 'Actions';
+        var toggleBtn = document.createElement('button');
+        toggleBtn.className = 'btn btn-sm px-2 py-1 btn-outline-primary dropdown-toggle actions-buttons-column';
+        toggleBtn.setAttribute('type', 'button');
+        toggleBtn.setAttribute('aria-expanded', 'false');
+        toggleBtn.textContent = actionsLabel;
+        actionCell.insertBefore(toggleBtn, actionCell.firstChild);
+
+        // Prepend the remaining buttons (shown before the dropdown)
+        var remainingButtons = actionButtons.slice(0, buttonsToShowBeforeDropdown);
+        for (var i = remainingButtons.length - 1; i >= 0; i--) {
+            actionCell.insertBefore(remainingButtons[i], actionCell.firstChild);
         }
     });
 }
@@ -1618,64 +1750,102 @@ function initDatatableDropdowns(tableId) {
         if (!table) {
             return;
         }
+
+        // Abort previous controllers for this table
+        const config = window.crud.tableConfigs[tableId];
+        if (config._lineActionsController) config._lineActionsController.abort();
+        if (config._lineActionsDocController) config._lineActionsDocController.abort();
+        if (config._nestedActionsController) config._nestedActionsController.abort();
+
+        config._lineActionsController = new AbortController();
+        config._lineActionsDocController = new AbortController();
+        config._nestedActionsController = new AbortController();
         
-        $(document).ready(function() {            
-            // Use event delegation for dynamically created elements
-            $('#' + tableId).off('click.lineActions').on('click.lineActions', '.actions-buttons-column.dropdown-toggle', function(e) {
+        // Ensure the DOM is ready (the enclosing code already ran on DOMContentLoaded,
+        // and we are in a 500ms timeout, but guard just in case)
+        function whenReady(fn) {
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', fn);
+            } else {
+                fn();
+            }
+        }
+
+        whenReady(function() {
+            // Use event delegation for dynamically created elements (lineActions)
+            table.addEventListener('click', function(e) {
+                var target = e.target.closest('.actions-buttons-column.dropdown-toggle');
+                if (!target) return;
+
                 e.preventDefault();
                 e.stopPropagation();
                 
-                const $this = $(this);
-                const $dropdown = $this.next('.dropdown');
+                var dropdown = target.nextElementSibling;
                 // Only select the direct child dropdown-menu to avoid selecting nested dropdowns
-                const $menu = $dropdown.children('.dropdown-menu');
+                var menu = null;
+                if (dropdown && dropdown.classList.contains('dropdown')) {
+                    menu = dropdown.querySelector(':scope > .dropdown-menu');
+                }
                 
                 // Check if the menu is already open
-                const wasOpen = $menu.hasClass('show');
+                var wasOpen = menu ? (menu.classList.contains('show')) : false;
 
                 // close all dropdowns in this table
-                $('#' + tableId + ' .actions-buttons-column').next('.dropdown').children('.dropdown-menu').removeClass('show').hide();
+                var allToggleBtns = table.querySelectorAll('.actions-buttons-column');
+                allToggleBtns.forEach(function(btn) {
+                    var nextEl = btn.nextElementSibling;
+                    if (nextEl && nextEl.classList.contains('dropdown')) {
+                        var childMenu = nextEl.querySelector(':scope > .dropdown-menu');
+                        if (childMenu) {
+                            childMenu.classList.remove('show');
+                            childMenu.style.display = 'none';
+                        }
+                    }
+                });
                 
                 // if it was open, we just closed it, so we are done
                 if (wasOpen) {
                     return;
                 }
 
-                // if no menu found, let's create one or find it differently
-                if ($menu.length === 0) {                    
-                    // Try different selectors
-                    const $ul = $dropdown.find('ul');
-                    
-                    if ($ul.length > 0) {
-                        $ul.addClass('dropdown-menu show').show();
-                        
-                        // Position the UL
-                        const buttonRect = this.getBoundingClientRect();
-                        $ul.css({
-                            'position': 'fixed',
-                            'top': (buttonRect.bottom + 5) + 'px',
-                            'left': buttonRect.left + 'px',
-                            'z-index': '999999',
-                            'display': 'block',
-                            'min-width': '160px',
-                        });
-                        
-                        return;
+                // if no menu found, try to find it differently
+                if (!menu) {
+                    if (dropdown && dropdown.classList.contains('dropdown')) {
+                        var ul = dropdown.querySelector('ul');
+                        if (ul) {
+                            ul.classList.add('dropdown-menu', 'show');
+                            ul.style.display = 'block';
+                            
+                            // Position the UL
+                            var buttonRect = target.getBoundingClientRect();
+                            Object.assign(ul.style, {
+                                position: 'fixed',
+                                top: (buttonRect.bottom + 5) + 'px',
+                                left: buttonRect.left + 'px',
+                                zIndex: '999999',
+                                display: 'block',
+                                minWidth: '160px'
+                            });
+                            
+                            return;
+                        }
                     }
+                    return;
                 }
                 
                 // Show this dropdown
-                $menu.addClass('show').show();
+                menu.classList.add('show');
+                menu.style.display = 'block';
                 
                 // Force positioning
-                const buttonRect = this.getBoundingClientRect();
-                const menuHeight = $menu.outerHeight() || 150;
-                const menuWidth = $menu.outerWidth() || 160;
-                const windowHeight = $(window).height();
-                const windowWidth = $(window).width();
+                var buttonRect = target.getBoundingClientRect();
+                var menuHeight = menu.getBoundingClientRect().height || 150;
+                var menuWidth = menu.getBoundingClientRect().width || 160;
+                var windowHeight = window.innerHeight;
+                var windowWidth = window.innerWidth;
                 
-                let top = buttonRect.bottom + 5;
-                let left = buttonRect.left;
+                var top = buttonRect.bottom + 5;
+                var left = buttonRect.left;
 
                 // check position if going off screen vertically
                 if (buttonRect.bottom + menuHeight > windowHeight) {
@@ -1688,56 +1858,89 @@ function initDatatableDropdowns(tableId) {
                 }
                 
                 // apply positioning
-                const cssProps = {
-                    'position': 'fixed',
-                    'top': top + 'px',
-                    'left': left + 'px',
-                    'z-index': '999999',
-                    'display': 'block',
-                    'min-width': '160px',
-                };
-                
-                $menu.css(cssProps);
-            });
+                Object.assign(menu.style, {
+                    position: 'fixed',
+                    top: top + 'px',
+                    left: left + 'px',
+                    zIndex: '999999',
+                    display: 'block',
+                    minWidth: '160px'
+                });
+            }, { signal: config._lineActionsController.signal });
             
             // Close on outside click, but only for line action dropdowns in this table
-            $(document).off('click.lineActions' + tableId).on('click.lineActions' + tableId, function(e) {
+            document.addEventListener('click', function(e) {
                 // Only close line action dropdowns, not export button dropdowns
-                if (!$(e.target).closest('#' + tableId + ' .actions-buttons-column').length && 
-                    !$(e.target).closest('#' + tableId + ' .actions-buttons-column').next('.dropdown').length) {
-                    $('#' + tableId + ' .actions-buttons-column').next('.dropdown').find('.dropdown-menu').removeClass('show').hide();
+                var actionsColEl = e.target.closest('#' + tableId + ' .actions-buttons-column');
+                var insideActionsBtn = !!actionsColEl;
+                var insideNextDropdown = false;
+                if (actionsColEl) {
+                    var nextEl = actionsColEl.nextElementSibling;
+                    if (nextEl && nextEl.classList.contains('dropdown')) {
+                        insideNextDropdown = nextEl.contains(e.target);
+                    }
                 }
-            });
+                
+                if (!insideActionsBtn && !insideNextDropdown) {
+                    var btns = document.querySelectorAll('#' + tableId + ' .actions-buttons-column');
+                    btns.forEach(function(btn) {
+                        var next = btn.nextElementSibling;
+                        if (next && next.classList.contains('dropdown')) {
+                            var m = next.querySelector('.dropdown-menu');
+                            if (m) {
+                                m.classList.remove('show');
+                                m.style.display = 'none';
+                            }
+                        }
+                    });
+                }
+            }, { signal: config._lineActionsDocController.signal });
 
             // Handle nested dropdown toggles
-            $('#' + tableId).off('click.nestedActions').on('click.nestedActions', '.nested-dropdown .dropdown-toggle-split, .nested-dropdown > a:not(.dropdown-toggle-split)', function(e) {
+            table.addEventListener('click', function(e) {
+                var target = e.target.closest('.nested-dropdown .dropdown-toggle-split, .nested-dropdown > a:not(.dropdown-toggle-split)');
+                if (!target) return;
+
                 e.preventDefault();
                 e.stopPropagation();
                 e.stopImmediatePropagation();
                 
-                const $this = $(this);
-                const $parent = $this.closest('.nested-dropdown');
-                const $menu = $parent.find('.dropdown-menu');
+                var parent = target.closest('.nested-dropdown');
+                if (!parent) return;
+                var menu = parent.querySelector('.dropdown-menu');
                 
                 // Close other nested dropdowns in the same parent menu
-                $parent.siblings().find('.dropdown-menu').removeClass('show').hide();
+                var siblings = Array.from(parent.parentElement.children).filter(function(c) {
+                    return c !== parent;
+                });
+                siblings.forEach(function(sibling) {
+                    var siblingMenus = sibling.querySelectorAll('.dropdown-menu');
+                    siblingMenus.forEach(function(sm) {
+                        sm.classList.remove('show');
+                        sm.style.display = 'none';
+                    });
+                });
                 
                 // Toggle this one
-                if ($menu.hasClass('show')) {
-                    $menu.removeClass('show').hide();
-                } else {
-                    $menu.addClass('show').show();
-                    // Ensure positioning
-                    $menu.css({
-                        'position': 'absolute',
-                        'top': '100%',
-                        'left': '0',
-                        'margin-top': '0',
-                        'margin-left': '0',
-                        'z-index': '1000'
-                    });
+                if (menu) {
+                    if (menu.classList.contains('show')) {
+                        menu.classList.remove('show');
+                        menu.style.display = 'none';
+                    } else {
+                        menu.classList.add('show');
+                        menu.style.display = 'block';
+                        // Ensure positioning
+                        Object.assign(menu.style, {
+                            position: 'absolute',
+                            top: '100%',
+                            left: '0',
+                            marginTop: '0',
+                            marginLeft: '0',
+                            zIndex: '1000'
+                        });
+                    }
                 }
-            });
+            }, { signal: config._nestedActionsController.signal });
         });
     }, 500);
 }

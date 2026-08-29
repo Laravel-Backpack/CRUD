@@ -51,16 +51,31 @@
                 // Use DataTables API to get the row
                 const row = table.row(tr);
                 
+                // DataTables row.child() returns a jQuery object — unwrap to get the raw DOM element
+                const getChildElement = (child) => (child && child.length !== undefined) ? child[0] : child;
+
                 if (row.child.isShown()) {
                     // This row is already open - close it
                     this.classList.remove('la-minus-square-o');
                     this.classList.add('la-plus-square-o');
                     
-                    // Hide with animation
-                    $(row.child()).find('div.table_row_slider').slideUp(function() {
+                    // Slide up with vanilla JS animation, then hide
+                    const childEl = getChildElement(row.child());
+                    const slider = childEl ? childEl.querySelector('div.table_row_slider') : null;
+                    if (slider) {
+                        slider.style.overflow = 'hidden';
+                        const startHeight = slider.scrollHeight;
+                        slider.animate(
+                            [{ height: startHeight + 'px' }, { height: '0' }],
+                            { duration: 300, easing: 'ease' }
+                        ).finished.then(() => {
+                            row.child.hide();
+                            tr.classList.remove('shown');
+                        });
+                    } else {
                         row.child.hide();
                         tr.classList.remove('shown');
-                    });
+                    }
                 } else {
                     // Open this row
                     this.classList.remove('la-plus-square-o');
@@ -70,6 +85,24 @@
                     const entryId = this.getAttribute('data-entry-id');
                     const url = '{{ url($crud->route) }}/' + entryId + '/details';
                                         
+                    // Helper to animate slideDown on a row child slider
+                    const animateSlideDown = () => {
+                        const childEl = getChildElement(row.child());
+                        const slider = childEl ? childEl.querySelector('div.table_row_slider') : null;
+                        if (slider) {
+                            slider.style.height = '0';
+                            slider.style.overflow = 'hidden';
+                            const targetHeight = slider.scrollHeight;
+                            slider.animate(
+                                [{ height: '0' }, { height: targetHeight + 'px' }],
+                                { duration: 300, easing: 'ease' }
+                            ).finished.then(() => {
+                                slider.style.height = '';
+                                slider.style.overflow = '';
+                            });
+                        }
+                    };
+
                     fetch(url)
                         .then(response => {
                             if (!response.ok) {
@@ -81,17 +114,14 @@
                             // Use DataTables API properly
                             row.child(`<div class='table_row_slider'>${data}</div>`, 'details-row').show();
                             tr.classList.add('shown');
-                            
-                            // Ensure the new content is correctly shown
-                            $(row.child()).find('div.table_row_slider').slideDown();
+                            animateSlideDown();
                         })
                         .catch(error => {
                             console.error('Error fetching details:', error);
                             
                             row.child(`<div class='table_row_slider'>{{ trans('backpack::crud.details_row_loading_error') }}</div>`).show();
                             tr.classList.add('shown');
-                            
-                            $(row.child()).find('div.table_row_slider').slideDown();
+                            animateSlideDown();
                         });
                 }
             });

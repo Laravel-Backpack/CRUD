@@ -149,78 +149,91 @@
   @bassetBlock('backpack/crud/fields/upload-field.js')
     <script>
         function bpFieldInitUploadElement(element) {
-            var fileInput = element.find(".file_input");
-            var fileClearButton = element.find(".file_clear_button");
-            var fieldName = element.attr('data-field-name');
-            var inputWrapper = element.find(".backstrap-file");
-            var inputLabel = element.find(".backstrap-file-label");
+            var wrapper = element[0];
+            var fileInput = wrapper.querySelector('.file_input');
+            var fileClearButton = wrapper.querySelector('.file_clear_button');
+            var fieldName = wrapper.getAttribute('data-field-name');
+            var inputWrapper = wrapper.querySelector('.backstrap-file');
+            var inputLabel = wrapper.querySelector('.backstrap-file-label');
+            var isFieldDisabled = false;
 
-            if(fileInput.attr('data-row-number')) {
-              $('<input type="hidden" class="order_uploads" name="_order_'+fieldName+'" value="'+fileInput.data('filename')+'">').insertAfter(fileInput);
+            if(fileInput.getAttribute('data-row-number')) {
+              var orderInput = document.createElement('input');
+              orderInput.type = 'hidden';
+              orderInput.className = 'order_uploads';
+              orderInput.name = '_order_'+fieldName;
+              orderInput.value = fileInput.dataset.filename;
+              fileInput.insertAdjacentElement('afterend', orderInput);
 
               var observer = new MutationObserver(function(mutations) {
-                
                 mutations.forEach(function(mutation) {
                   if(mutation.attributeName == 'data-row-number') {                    
-                    let field = $(mutation.target);
-                    field = field.next('input[name="'+mutation.target.getAttribute('name')+'"]');
-                    field.attr('name', '_order_'+mutation.target.getAttribute('name'));
-                    field.val(mutation.target.getAttribute('data-filename'));                  
+                    let field = mutation.target.nextElementSibling;
+                    if (field && field.name === mutation.target.getAttribute('name')) {
+                        field.setAttribute('name', '_order_'+mutation.target.getAttribute('name'));
+                        field.value = mutation.target.getAttribute('data-filename');
+                    }
                   }
                 });
               });
 
-              observer.observe(fileInput[0], {
+              observer.observe(fileInput, {
                 attributes: true,
               });
             }
 
-            fileClearButton.click(function(e) {
-                e.preventDefault();
-                $(this).parent().addClass('d-none');
-                // if the file input has a data-row-number attribute, it means it's inside a repeatable field
-                // in that case, will send the value of the cleared input to the server
-                if(fileInput.attr('data-row-number')) {
-                  $("<input type='hidden' name='_clear_"+fieldName+"' value='"+fileInput.data('filename')+"'>").insertAfter(fileInput);
-                  fileInput.siblings('.order_uploads').remove();
-                }
-                fileInput.parent().removeClass('d-none');
-                fileInput.attr("value", "").replaceWith(fileInput.clone(true));
+            if (fileClearButton) {
+                fileClearButton.addEventListener('click', function(e) {
+                    if (isFieldDisabled) return;
+                    e.preventDefault();
+                    this.parentElement.classList.add('d-none');
+                    // if the file input has a data-row-number attribute, it means it's inside a repeatable field
+                    if(fileInput.getAttribute('data-row-number')) {
+                      var clearInput = document.createElement('input');
+                      clearInput.type = 'hidden';
+                      clearInput.name = '_clear_'+fieldName;
+                      clearInput.value = fileInput.dataset.filename;
+                      fileInput.insertAdjacentElement('afterend', clearInput);
+                      var orderUpload = fileInput.parentElement.querySelector('.order_uploads');
+                      if (orderUpload) orderUpload.remove();
+                    }
+                    fileInput.parentElement.classList.remove('d-none');
+                    
+                    // reset the file input by cloning
+                    var newFileInput = fileInput.cloneNode(true);
+                    newFileInput.value = '';
+                    fileInput.replaceWith(newFileInput);
+                    fileInput = newFileInput;
 
-                // redo the selector, so we can use the same fileInput variable going forward
-                fileInput = element.find(".file_input");
+                    // add a hidden input with the same name, so that the setXAttribute method is triggered
+                    var hiddenInput = document.createElement('input');
+                    hiddenInput.type = 'hidden';
+                    hiddenInput.name = fieldName;
+                    hiddenInput.value = '';
+                    fileInput.insertAdjacentElement('afterend', hiddenInput);
+                });
+            }
 
-                // add a hidden input with the same name, so that the setXAttribute method is triggered
-                $("<input type='hidden' name='"+fieldName+"' value=''>").insertAfter(fileInput);
-            });
-
-            fileInput.change(function() {
-                var path = $(this).val();
-                var path = path.replace("C:\\fakepath\\", "");
-                inputLabel.html(path);
+            fileInput.addEventListener('change', function() {
+                var path = this.value;
+                path = path.replace("C:\\fakepath\\", "");
+                inputLabel.innerHTML = path;
                 // remove the hidden input
-                $(this).next("input[type=hidden]").remove();
+                var nextHidden = this.nextElementSibling;
+                if (nextHidden && nextHidden.type === 'hidden') {
+                    nextHidden.remove();
+                }
             });
 
-            element.on('CrudField:disable', function(e) {
-              element.children('.backstrap-file').find('input').prop('disabled', 'disabled');
+            fileInput.addEventListener('CrudField:disable', function(e) {
+              isFieldDisabled = true;
+              fileInput.disabled = true;
+            });
 
-              let $deleteButton = element.children('.existing-file').children('a.file_clear_button');
-
-              if($deleteButton.length > 0) {
-                $deleteButton.on('click.prevent', function(e) {
-                    e.stopImmediatePropagation();
-                    return false;
-                  });
-                  // make the event we just registered, the first to be triggered
-                  $._data($deleteButton.get(0), "events").click.reverse();
-              }
-          });
-
-          element.on('CrudField:enable', function(e) {
-            element.children('.backstrap-file').find('input').removeAttr('disabled');
-            element.children('.existing-file').children('a.file_clear_button').unbind('click.prevent');
-          });
+            fileInput.addEventListener('CrudField:enable', function(e) {
+              isFieldDisabled = false;
+              fileInput.removeAttribute('disabled');
+            });
 
         }
     </script>
