@@ -5,8 +5,8 @@ namespace Backpack\CRUD\app\Library\Uploaders;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 use Backpack\CRUD\app\Library\Uploaders\Support\Interfaces\UploaderInterface;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Arr;
-use Illuminate\Support\Facades\Storage;
 
 class MultipleFiles extends Uploader
 {
@@ -36,7 +36,7 @@ class MultipleFiles extends Uploader
         if ($filesToDelete) {
             foreach ($previousFiles as $previousFile) {
                 if (in_array($previousFile, $filesToDelete)) {
-                    Storage::disk($this->getDisk())->delete($previousFile);
+                    $this->deleteStoredFile($previousFile);
 
                     $previousFiles = Arr::where($previousFiles, function ($value, $key) use ($previousFile) {
                         return $value != $previousFile;
@@ -69,47 +69,42 @@ class MultipleFiles extends Uploader
     /** @codeCoverageIgnore */
     public function uploadRepeatableFiles($files, $previousRepeatableValues, $entry = null)
     {
-        $fileOrder = $this->getFileOrderFromRequest();
+        $ownedFiles = $this->getStoredFilesList($previousRepeatableValues);
+        $fileOrder = [];
 
-        foreach ($files as $row => $files) {
-            foreach ($files ?? [] as $file) {
-                if ($file && is_file($file)) {
+        // the request order can only reference files this entry already owns
+        foreach ($this->getFileOrderFromRequest() as $row => $rowFiles) {
+            if ($rowFiles === null) {
+                $fileOrder[$row] = null;
+
+                continue;
+            }
+
+            $fileOrder[$row] = [];
+
+            foreach ((array) $rowFiles as $file) {
+                if (($ownedFile = $this->pullOwnedFile($file, $ownedFiles)) !== null) {
+                    $fileOrder[$row][] = $ownedFile;
+                }
+            }
+        }
+
+        foreach ($files as $row => $rowFiles) {
+            foreach ((array) ($rowFiles ?? []) as $file) {
+                if ($file instanceof UploadedFile && $file->isValid()) {
                     $fileName = $this->getFileName($file);
                     $file->storeAs($this->getPath(), $fileName, $this->getDisk());
                     $fileOrder[$row][] = $this->getPath().$fileName;
                 }
             }
         }
-        // create a temporary variable that we can unset keys
-        // everytime one is found. That way we avoid iterating
-        // already handled keys (notice we do a deep array copy)
-        $tempFileOrder = array_map(function ($item) {
-            return $item;
-        }, $fileOrder);
 
-        foreach ($previousRepeatableValues as $previousRow => $previousFiles) {
-            foreach ($previousFiles ?? [] as $key => $file) {
-                $fileBasename = $this->getValueWithoutPath($file);
-                $previousFileInArray = array_filter($tempFileOrder, function ($items, $rowKey) use ($file, $fileBasename, $tempFileOrder, &$fileOrder) {
-                    $found = array_search($file, $items ?? [], true);
-                    if ($found === false) {
-                        $found = array_search($fileBasename, $items ?? [], true);
-                        if ($found !== false && isset($fileOrder[$rowKey][$found]) && $fileOrder[$rowKey][$found] !== $file) {
-                            // Restore the full path so the DB stores the complete path.
-                            $fileOrder[$rowKey][$found] = $file;
-                        }
-                    }
-                    if ($found !== false) {
-                        Arr::forget($tempFileOrder, $rowKey.'.'.$found);
+        // owned files that are no longer referenced were removed by the user
+        $keptFiles = $this->getStoredFilesList($fileOrder);
 
-                        return true;
-                    }
-
-                    return false;
-                }, ARRAY_FILTER_USE_BOTH);
-                if ($file && ! $previousFileInArray) {
-                    Storage::disk($this->getDisk())->delete($file);
-                }
+        foreach ($ownedFiles as $file) {
+            if (! in_array($file, $keptFiles, true)) {
+                $this->deleteStoredFile($file);
             }
         }
 

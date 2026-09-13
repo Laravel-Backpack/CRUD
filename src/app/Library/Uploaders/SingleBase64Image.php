@@ -33,7 +33,7 @@ class SingleBase64Image extends Uploader
         $previousImage = $this->getPreviousFiles($entry);
 
         if (! $value && $previousImage) {
-            Storage::disk($this->getDisk())->delete($previousImage);
+            $this->deleteStoredFile($previousImage);
 
             return null;
         }
@@ -41,7 +41,7 @@ class SingleBase64Image extends Uploader
         $decoded = $this->validateAndDecodeBase64Image((string) $value);
         if ($decoded !== false) {
             if ($previousImage) {
-                Storage::disk($this->getDisk())->delete($previousImage);
+                $this->deleteStoredFile($previousImage);
             }
 
             $finalPath = $this->getPath().$this->getFileName($value);
@@ -55,25 +55,35 @@ class SingleBase64Image extends Uploader
 
     public function uploadRepeatableFiles($values, $previousRepeatableValues, $entry = null)
     {
+        $ownedFiles = $this->getStoredFilesList($previousRepeatableValues);
+        $newImageRows = [];
+
         foreach ($values as $row => $rowValue) {
-            if ($rowValue && Str::startsWith($rowValue, 'data:')) {
-                $decoded = $this->validateAndDecodeBase64Image((string) $rowValue);
+            if (is_string($rowValue) && Str::startsWith($rowValue, 'data:')) {
+                $newImageRows[] = $row;
+                $decoded = $this->validateAndDecodeBase64Image($rowValue);
+                $values[$row] = null;
+
                 if ($decoded !== false) {
                     $finalPath = $this->getPath().$this->getFileName($rowValue);
                     Storage::disk($this->getDisk())->put($finalPath, $decoded);
-                    $values[$row] = $previousRepeatableValues[] = $finalPath;
-                } else {
-                    $values[$row] = null;
+                    $values[$row] = $finalPath;
                 }
-            } elseif ($rowValue && isset($previousRepeatableValues[$row])) {
-                $values[$row] = $previousRepeatableValues[$row];
             }
         }
 
-        $imagesToDelete = array_diff(array_filter($previousRepeatableValues), $values);
+        // any other value can only reference an image this entry already owns
+        foreach ($values as $row => $rowValue) {
+            if (! in_array($row, $newImageRows, true)) {
+                $values[$row] = $this->pullOwnedFile($rowValue, $ownedFiles);
+            }
+        }
 
-        foreach ($imagesToDelete as $image) {
-            Storage::disk($this->getDisk())->delete($image);
+        // owned images that are no longer referenced were removed or replaced by the user
+        foreach ($ownedFiles as $image) {
+            if (! in_array($image, $values, true)) {
+                $this->deleteStoredFile($image);
+            }
         }
 
         return $values;

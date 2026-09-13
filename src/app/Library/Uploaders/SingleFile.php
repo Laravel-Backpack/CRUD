@@ -4,7 +4,7 @@ namespace Backpack\CRUD\app\Library\Uploaders;
 
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Http\UploadedFile;
 
 class SingleFile extends Uploader
 {
@@ -13,14 +13,14 @@ class SingleFile extends Uploader
         $previousFile = $this->getPreviousFiles($entry);
 
         if ($value === false && $previousFile) {
-            Storage::disk($this->getDisk())->delete($previousFile);
+            $this->deleteStoredFile($previousFile);
 
             return null;
         }
 
         if ($value && is_file($value) && $value->isValid()) {
             if ($previousFile) {
-                Storage::disk($this->getDisk())->delete($previousFile);
+                $this->deleteStoredFile($previousFile);
             }
             $fileName = $this->getFileName($value);
             $value->storeAs($this->getPath(), $fileName, $this->getDisk());
@@ -29,7 +29,7 @@ class SingleFile extends Uploader
         }
 
         if (! $value && CrudPanelFacade::getRequest()->has($this->getNameForRequest()) && $previousFile) {
-            Storage::disk($this->getDisk())->delete($previousFile);
+            $this->deleteStoredFile($previousFile);
 
             return null;
         }
@@ -40,32 +40,28 @@ class SingleFile extends Uploader
     /** @codeCoverageIgnore */
     public function uploadRepeatableFiles($values, $previousRepeatableValues, $entry = null)
     {
-        $orderedFiles = $this->getFileOrderFromRequest();
+        $ownedFiles = $this->getStoredFilesList($previousRepeatableValues);
+        $orderedFiles = [];
 
         foreach ($values as $row => $file) {
-            if ($file && is_file($file) && $file->isValid()) {
+            if ($file instanceof UploadedFile && $file->isValid()) {
                 $fileName = $this->getFileName($file);
                 $file->storeAs($this->getPath(), $fileName, $this->getDisk());
                 $orderedFiles[$row] = $this->getPath().$fileName;
-
-                continue;
             }
         }
 
-        foreach ($previousRepeatableValues as $row => $file) {
-            if ($file) {
-                if (! isset($orderedFiles[$row])) {
-                    $orderedFiles[$row] = null;
-                }
-                $foundKey = array_search($file, $orderedFiles);
-                if ($foundKey === false) {
-                    $foundKey = array_search($this->getValueWithoutPath($file), $orderedFiles);
-                }
-                if ($foundKey === false) {
-                    Storage::disk($this->getDisk())->delete($file);
-                } elseif ($orderedFiles[$foundKey] !== $file) {
-                    $orderedFiles[$foundKey] = $file;
-                }
+        // the request order can only reference files this entry already owns
+        foreach ($this->getFileOrderFromRequest() as $row => $file) {
+            if (! array_key_exists($row, $orderedFiles)) {
+                $orderedFiles[$row] = $this->pullOwnedFile($file, $ownedFiles);
+            }
+        }
+
+        // owned files that are no longer referenced were removed or replaced by the user
+        foreach ($ownedFiles as $file) {
+            if (! in_array($file, $orderedFiles, true)) {
+                $this->deleteStoredFile($file);
             }
         }
 
