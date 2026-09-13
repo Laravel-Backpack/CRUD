@@ -162,7 +162,7 @@
 
             var params = new URLSearchParams(navbar.getAttribute('data-filter-params') || '');
             var filters = navbar.querySelectorAll('li[filter-name]');
-            var html = '';
+            var fragment = document.createDocumentFragment();
             // Default from the navbar-level setting (on the badges container)
             var defaultShow = badgesContainer.getAttribute('data-show-filter-values-default') === 'true';
 
@@ -182,19 +182,30 @@
                 // Use custom label template if set
                 var labelTemplate = filter.getAttribute('data-filter-values-label');
                 if (labelTemplate && displayValue) {
-                    label = labelTemplate.replace(':value', displayValue);
+                    // use a replacer function so "$&", "$'" etc. in the value are not interpreted
+                    label = labelTemplate.replace(':value', function() { return String(displayValue); });
                 } else {
                     label = displayValue ? label + ': ' + displayValue : label;
                 }
 
-                html += '<span class="filter-badge me-1 mb-1" data-filter-name="' + filterName + '">'
-                    + label
-                    + ' <button type="button" class="filter-badge-close" aria-label="Remove ' + label + ' filter">&times;</button>'
-                    + '</span>';
+                var badge = document.createElement('span');
+                badge.className = 'filter-badge me-1 mb-1';
+                badge.setAttribute('data-filter-name', filterName);
+                badge.appendChild(document.createTextNode(label + ' '));
+
+                var btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'filter-badge-close';
+                btn.setAttribute('aria-label', 'Remove ' + label + ' filter');
+                btn.textContent = '×';
+                badge.appendChild(btn);
+
+                fragment.appendChild(badge);
             });
 
-            badgesContainer.innerHTML = html;
-            badgesContainer.style.display = html ? '' : 'none';
+            var hasBadges = fragment.childNodes.length > 0;
+            badgesContainer.replaceChildren(fragment);
+            badgesContainer.style.display = hasBadges ? '' : 'none';
 
             // Wire up badge dismiss buttons
             badgesContainer.querySelectorAll('.filter-badge button').forEach(function(btn) {
@@ -203,7 +214,9 @@
                     e.stopPropagation();
                     var badge = btn.closest('.filter-badge');
                     var filterName = badge.getAttribute('data-filter-name');
-                    var filter = navbar.querySelector('li[filter-name="' + filterName + '"]');
+                    var filter = Array.prototype.find.call(navbar.querySelectorAll('li[filter-name]'), function(li) {
+                        return li.getAttribute('filter-name') === filterName;
+                    });
                     if (filter) {
                         // Clear the filter via its own event so the UI resets
                         filter.dispatchEvent(new CustomEvent('backpack:filter:clear'));
