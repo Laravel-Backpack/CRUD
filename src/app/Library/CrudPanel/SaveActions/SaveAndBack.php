@@ -26,6 +26,6 @@ class SaveAndBack extends AbstractSaveAction
 
     public function getRedirectUrl(CrudPanel $crud, Request $request, $itemId = null): ?string
     {
-        return $crud->getOperationSetting('backToAllEntriesUrl') ?? $request->input('_http_referrer', $crud->route);
+        return $crud->getOperationSetting('backToAllEntriesUrl') ?? backpack_safe_redirect_url($request->input('_http_referrer'), $crud->route);
     }
 }

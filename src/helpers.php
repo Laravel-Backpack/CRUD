@@ -21,6 +21,52 @@ if (! function_exists('backpack_url')) {
     }
 }
 
+if (! function_exists('backpack_safe_redirect_url')) {
+    /**
+     * Return the given URL only if it points to this application,
+     * otherwise return the fallback. Use it for any user-controlled
+     * URL we redirect to or render as a link (referrers, "back" URLs).
+     *
+     * @param  mixed  $url
+     * @param  string|null  $fallback
+     * @return string|null
+     */
+    function backpack_safe_redirect_url($url, $fallback = null)
+    {
+        if (! is_string($url) || $url === '') {
+            return $fallback;
+        }
+
+        // browsers strip/normalize whitespace, control chars and backslashes
+        // (eg. "/\evil.com" or " //evil.com" become "//evil.com"), so reject them
+        if (preg_match('/[\x00-\x20\x7F\\\\]/', $url)) {
+            return $fallback;
+        }
+
+        $parsed = parse_url($url);
+
+        if ($parsed === false) {
+            return $fallback;
+        }
+
+        // relative URL (eg. "/admin/user" or "admin/user"), but not protocol-relative ("//evil.com")
+        if (! isset($parsed['scheme']) && ! isset($parsed['host']) && ! str_starts_with($url, '//')) {
+            return $url;
+        }
+
+        // absolute URL, only http(s) on the application host
+        $scheme = strtolower($parsed['scheme'] ?? '');
+        $host = strtolower($parsed['host'] ?? '');
+        $appHost = strtolower((string) parse_url(url('/'), PHP_URL_HOST));
+
+        if (in_array($scheme, ['http', 'https'], true) && $host !== '' && $host === $appHost) {
+            return $url;
+        }
+
+        return $fallback;
+    }
+}
+
 if (! function_exists('backpack_authentication_column')) {
     /**
      * Return the username column name.
