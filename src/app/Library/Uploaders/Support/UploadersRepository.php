@@ -24,9 +24,55 @@ final class UploadersRepository
      */
     private array $handledUploaders = [];
 
+    /**
+     * Uploaders that store files, whose request files are checked before any of them stores or deletes files.
+     */
+    private array $storingUploaders = [];
+
+    /**
+     * Models that already check the uploaded files before saving.
+     */
+    private array $modelsValidatingUploads = [];
+
     public function __construct()
     {
         $this->uploaderClasses = config('backpack.crud.uploaders', []);
+    }
+
+    /**
+     * Register an uploader that stores files when the given models are saved. The first time a model is registered, a saving
+     * event is added to check the files of all the uploaders, before any uploader saving event stores or deletes files.
+     * Pass the crud model too, so relationship uploads are checked before the parent entry is saved.
+     */
+    public function registerStoringUploader(UploaderInterface $uploader, string ...$models): void
+    {
+        $this->storingUploaders[] = $uploader;
+
+        foreach ($models as $model) {
+            if (in_array($model, $this->modelsValidatingUploads, true)) {
+                continue;
+            }
+
+            $model::saving(function () {
+                $this->validateUploadedFiles();
+            });
+
+            $this->modelsValidatingUploads[] = $model;
+        }
+    }
+
+    /**
+     * Check the files sent in the request for all the uploaders that store files.
+     *
+     * @throws \Illuminate\Validation\ValidationException when a file type is not allowed
+     */
+    public function validateUploadedFiles(): void
+    {
+        foreach ($this->storingUploaders as $uploader) {
+            if (method_exists($uploader, 'validateUploadedFiles')) {
+                $uploader->validateUploadedFiles();
+            }
+        }
     }
 
     /**

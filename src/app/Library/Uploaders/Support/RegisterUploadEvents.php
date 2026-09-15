@@ -113,6 +113,9 @@ final class RegisterUploadEvents
         }
 
         if ($this->crudObjectType === 'field') {
+            // check the files of every uploader before this uploader stores or deletes any file
+            app('UploadersRepository')->registerStoringUploader($uploader, $model, get_class($this->crudObject->crud()->getModel()));
+
             $model::saving(function ($entry) use ($uploader) {
                 $entry = $uploader->storeUploadedFiles($entry);
             });

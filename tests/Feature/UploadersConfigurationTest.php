@@ -195,6 +195,26 @@ class UploadersConfigurationTest extends BaseDBCrudPanel
         $this->assertCount(2, Storage::disk('uploaders')->allFiles());
     }
 
+    public function test_it_does_not_change_the_files_of_other_fields_when_a_file_is_not_allowed()
+    {
+        Storage::disk('uploaders')->put('test/avatar1.jpg', 'previous');
+
+        Uploader::create(['upload' => 'test/avatar1.jpg']);
+
+        // `upload` is processed before `upload_multiple`, so its previous file would be replaced before the svg is rejected
+        $response = $this->put($this->testBaseUrl.'/1', [
+            'id' => 1,
+            'upload' => $this->getUploadedFile('avatar2.jpg'),
+            'upload_multiple' => [$this->getFileWithContent('avatar.png', '<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script></svg>')],
+        ]);
+
+        $response->assertSessionHasErrors('upload_multiple');
+
+        $this->assertDatabaseHas('uploaders', ['id' => 1, 'upload' => 'test/avatar1.jpg']);
+        Storage::disk('uploaders')->assertExists('test/avatar1.jpg');
+        $this->assertCount(1, Storage::disk('uploaders')->allFiles());
+    }
+
     public function test_it_can_allow_extensions_per_field()
     {
         $response = $this->post($this->testBaseUrl.'/allowed-extensions', [

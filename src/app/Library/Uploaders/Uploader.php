@@ -8,9 +8,11 @@ use Backpack\CRUD\app\Library\Uploaders\Support\Traits\HandleFileNaming;
 use Backpack\CRUD\app\Library\Uploaders\Support\Traits\HandleRepeatableUploads;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 abstract class Uploader implements UploaderInterface
 {
@@ -115,6 +117,54 @@ abstract class Uploader implements UploaderInterface
 
         if ($entry->isForceDeleting() === true) {
             $this->performFileDeletion($entry);
+        }
+    }
+
+    /**
+     * Check the type of the files sent in the request for this uploader (and for the other uploaders in the same
+     * repeatable), so a file that is not allowed is rejected before any uploader stores or deletes files.
+     *
+     * @throws ValidationException when a file type is not allowed
+     */
+    public function validateUploadedFiles(): void
+    {
+        if (! $this->handleRepeatableFiles) {
+            $this->validateUploadedFilesTypes($this->getUploadedFilesFromRequest(), $this->getNameForRequest());
+
+            return;
+        }
+
+        $containerName = $this->getRepeatableContainerName();
+        $rows = CRUD::getRequest()->file($containerName);
+
+        foreach (app('UploadersRepository')->getRepeatableUploadersFor($containerName) as $uploader) {
+            if (! $uploader instanceof self) {
+                continue;
+            }
+
+            foreach (is_array($rows) ? $rows : [] as $row => $rowFiles) {
+                if (is_array($rowFiles) && isset($rowFiles[$uploader->getAttributeName()])) {
+                    $uploader->validateUploadedFilesTypes($rowFiles[$uploader->getAttributeName()], $containerName.'.'.$row.'.'.$uploader->getAttributeName());
+                }
+            }
+        }
+    }
+
+    /**
+     * @throws ValidationException when a file type is not allowed
+     */
+    protected function validateUploadedFilesTypes(mixed $files, string $validationKey): void
+    {
+        foreach (Arr::flatten(Arr::wrap($files)) as $file) {
+            if (! $file instanceof UploadedFile || ! $file->isValid()) {
+                continue;
+            }
+
+            try {
+                $this->getFileName($file);
+            } catch (ValidationException $e) {
+                throw ValidationException::withMessages([$validationKey => Arr::flatten($e->errors())]);
+            }
         }
     }
 
