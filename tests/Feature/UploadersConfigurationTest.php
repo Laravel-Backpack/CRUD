@@ -112,7 +112,6 @@ class UploadersConfigurationTest extends BaseDBCrudPanel
         $this->assertEquals(1, count($files));
     }
 
-
     public static function activeContentFiles(): array
     {
         return [

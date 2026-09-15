@@ -51,7 +51,6 @@ class UploadersInternalsTest extends BaseCrudPanel
         $this->assertTrue(is_a($this->uploaderRepository->getUploadFor('dropzone', 'withFiles'), UploaderInterface::class, true));
     }
 
-
     public function test_it_can_replace_defined_uploaders()
     {
         $this->assertTrue(is_a($this->uploaderRepository->getUploadFor('image', 'withFiles'), SingleBase64Image::class, true));
@@ -65,7 +64,6 @@ class UploadersInternalsTest extends BaseCrudPanel
         $this->assertTrue(is_a($this->uploaderRepository->getUploadFor('dropzone', 'withFiles'), SingleFile::class, true));
         $this->assertTrue(is_a($this->uploaderRepository->getUploadFor('image', 'withFiles'), SingleFile::class, true));
     }
-
 
     public function test_it_can_register_repeatable_uploaders()
     {
@@ -85,7 +83,6 @@ class UploadersInternalsTest extends BaseCrudPanel
         $this->expectException(\Exception::class);
         CRUD::field('upload')->type('custom_type')->withFiles();
     }
-
 
     public function test_it_sets_the_prefix_on_field()
     {
@@ -108,5 +105,4 @@ class UploadersInternalsTest extends BaseCrudPanel
         $this->assertTrue(CRUD::getFields()['upload']['temporary']);
         $this->assertEquals(1, CRUD::getFields()['upload']['expiration']);
     }
-
 }
