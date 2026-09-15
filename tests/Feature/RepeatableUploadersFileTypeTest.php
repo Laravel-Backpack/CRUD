@@ -45,7 +45,7 @@ class RepeatableUploadersFileTypeTest extends BaseDBCrudPanel
         $response = $this->post($this->testBaseUrl, [
             'repeatable' => [
                 [
-                    'upload'          => $this->getUploadedFile('avatar1.jpg'),
+                    'upload' => $this->getUploadedFile('avatar1.jpg'),
                     'upload_multiple' => $this->getUploadedFiles(['avatar2.jpg', 'avatar3.jpg']),
                 ],
             ],
@@ -63,7 +63,7 @@ class RepeatableUploadersFileTypeTest extends BaseDBCrudPanel
         $response = $this->post($this->testBaseUrl, [
             'repeatable' => [
                 [
-                    'upload'          => $this->getUploadedFile('avatar1.jpg'),
+                    'upload' => $this->getUploadedFile('avatar1.jpg'),
                     'upload_multiple' => $this->getUploadedFiles(['avatar2.jpg']),
                 ],
                 [
@@ -103,9 +103,9 @@ class RepeatableUploadersFileTypeTest extends BaseDBCrudPanel
 
         $repeatable = json_encode([
             [
-                'upload'          => 'avatar1.jpg',
+                'upload' => 'avatar1.jpg',
                 'upload_multiple' => ['avatar2.jpg', 'avatar3.jpg'],
-                'image'           => null,
+                'image' => null,
             ],
         ]);
 
@@ -113,10 +113,10 @@ class RepeatableUploadersFileTypeTest extends BaseDBCrudPanel
 
         // `upload` is processed before `upload_multiple`, so it would replace its file before the svg is rejected
         $response = $this->put($this->testBaseUrl.'/1', [
-            'id'         => 1,
+            'id' => 1,
             'repeatable' => [
                 [
-                    'upload'          => $this->getUploadedFile('pic1.jpg'),
+                    'upload' => $this->getUploadedFile('pic1.jpg'),
                     'upload_multiple' => [$this->getFileWithContent('payload.svg', self::SVG)],
                 ],
             ],

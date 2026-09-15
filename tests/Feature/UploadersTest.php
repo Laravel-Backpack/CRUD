@@ -147,7 +147,6 @@ class UploadersTest extends BaseDBCrudPanel
         $this->assertFalse(Storage::disk('uploaders')->exists('avatar1.jpg'));
     }
 
-
     public function test_it_keeps_previous_values_unchaged_when_not_deleted()
     {
         self::initUploaderWithFiles();
@@ -176,7 +175,6 @@ class UploadersTest extends BaseDBCrudPanel
         $this->assertTrue(Storage::disk('uploaders')->exists('avatar2.jpg'));
         $this->assertTrue(Storage::disk('uploaders')->exists('avatar3.jpg'));
     }
-
 
     protected static function initUploaderWithFiles()
     {
