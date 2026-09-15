@@ -2,6 +2,7 @@
 
 namespace Backpack\CRUD\app\Library\Uploaders\Support;
 
+use Backpack\CRUD\app\Exceptions\FileTypeNotAllowedException;
 use Backpack\CRUD\app\Library\Uploaders\Support\Interfaces\FileNameGeneratorInterface;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Str;
@@ -18,9 +19,30 @@ class FileNameGenerator implements FileNameGeneratorInterface
         return $this->getFileName($file).'.'.$this->getExtensionFromFile($file);
     }
 
+    /**
+     * @deprecated use FileExtensions::DISALLOWED
+     */
+    public static function getDangerousExtensions(): array
+    {
+        return FileExtensions::DISALLOWED;
+    }
+
     private function getExtensionFromFile(string|UploadedFile $file): string
     {
-        return is_a($file, UploadedFile::class, true) ? $file->extension() : Str::after(mime_content_type($file), '/');
+        if (is_a($file, UploadedFile::class, true)) {
+            $ext = $file->extension();
+        } else {
+            $mime = mime_content_type($file);
+            $ext = $mime !== false ? Str::after($mime, '/') : '';
+        }
+
+        $ext = strtolower((string) $ext);
+
+        if (FileExtensions::isDisallowed($ext)) {
+            throw new FileTypeNotAllowedException($ext);
+        }
+
+        return $ext === '' ? FileExtensions::FALLBACK : $ext;
     }
 
     private function getFileName(string|UploadedFile $file): string

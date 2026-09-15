@@ -38,6 +38,30 @@ abstract class BaseDBCrudPanel extends BaseCrudPanel
     }
 
     /**
+     * Define environment setup.
+     *
+     * @param  \Illuminate\Foundation\Application  $app
+     * @return void
+     */
+    protected function getEnvironmentSetUp($app)
+    {
+        parent::getEnvironmentSetUp($app);
+
+        $app['config']->set('database.default', 'testing');
+        $app['config']->set('backpack.base.route_prefix', 'admin');
+
+        $app->bind('App\Http\Middleware\CheckIfAdmin', function () {
+            return new class
+            {
+                public function handle($request, $next)
+                {
+                    return $next($request);
+                }
+            };
+        });
+    }
+
+    /**
      * Assert that the attributes of a model entry are equal to the expected array of attributes.
      *
      * @param  array  $expected  attributes

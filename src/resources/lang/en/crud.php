@@ -170,6 +170,7 @@ return [
     'select_entry' => 'Select an entry',
     'select_entries' => 'Select entries',
     'upload_multiple_files_selected' => 'Files selected. After save, they will show up above.',
+    'upload_file_type_not_allowed' => 'The file type ":extension" is not allowed.',
 
     //Table field
     'table_cant_add' => 'Cannot add new :entity',

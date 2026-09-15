@@ -222,15 +222,11 @@ trait HandleRepeatableUploads
                     continue;
                 }
 
-                if (is_array($value)) {
-                    foreach ($value as $subvalue) {
-                        Storage::disk($upload->getDisk())->delete($upload->getPath().$subvalue);
+                foreach ((array) $value as $subvalue) {
+                    if (is_string($subvalue)) {
+                        $upload->deleteStoredFile($upload->getPath().$subvalue);
                     }
-
-                    continue;
                 }
-
-                Storage::disk($upload->getDisk())->delete($upload->getPath().$value);
             }
         }
     }
@@ -258,13 +254,19 @@ trait HandleRepeatableUploads
     /**
      * Repeatable items send `_order_` parameter in the request.
      * This holds the order of the items in the repeatable container.
+     *
+     * This is user input: uploaders must only use it to reference files the entry already owns.
      */
     protected function getFileOrderFromRequest(): array
     {
         $items = CRUD::getRequest()->input('_order_'.$this->getRepeatableContainerName()) ?? [];
 
+        if (! is_array($items)) {
+            return [];
+        }
+
         array_walk($items, function (&$key, $value) {
-            $requestValue = $key[$this->getName()] ?? null;
+            $requestValue = is_array($key) ? ($key[$this->getName()] ?? null) : null;
             $key = $this->handleMultipleFiles ? (is_string($requestValue) ? explode(',', $requestValue) : $requestValue) : $requestValue;
         });
 
@@ -331,17 +333,11 @@ trait HandleRepeatableUploads
                 }
             }
 
-            if (is_array($files)) {
-                foreach ($files as $value) {
-                    $value = Str::start($value, $this->getPath());
-                    Storage::disk($this->getDisk())->delete($value);
+            foreach ((array) $files as $value) {
+                if (is_string($value)) {
+                    $this->deleteStoredFile(Str::start($value, $this->getPath()));
                 }
-
-                return;
             }
-
-            $value = Str::start($files, $this->getPath());
-            Storage::disk($this->getDisk())->delete($value);
 
             return;
         }
