@@ -59,6 +59,7 @@ abstract class Uploader implements UploaderInterface
         $this->temporaryUrlExpirationTimeInMinutes = $configuration['temporaryUrlExpirationTime'] ?? $this->temporaryUrlExpirationTimeInMinutes;
         $this->deleteWhenEntryIsDeleted = $configuration['deleteWhenEntryIsDeleted'] ?? $this->deleteWhenEntryIsDeleted;
         $this->fileNamer = is_callable($configuration['fileNamer'] ?? null) ? $configuration['fileNamer'] : $this->getFileNameGeneratorInstance($configuration['fileNamer'] ?? null);
+        $this->allowedExtensions = isset($configuration['allowedExtensions']) ? (array) $configuration['allowedExtensions'] : null;
     }
 
     /*******************************

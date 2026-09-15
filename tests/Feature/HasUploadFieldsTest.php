@@ -7,6 +7,7 @@ use Backpack\CRUD\Tests\config\Models\Uploader;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
 
 /**
  * @covers Backpack\CRUD\app\Models\Traits\HasUploadFields
@@ -147,5 +148,73 @@ class HasUploadFieldsTest extends BaseDBCrudPanel
         $uploader->uploadMultipleFilesToDisk(null, 'upload_multiple', 'uploaders', '');
 
         Storage::disk('uploaders')->assertMissing('owned1.jpg');
+    }
+
+    public function test_uploadFileToDisk_stores_allowed_files(): void
+    {
+        $uploader = Uploader::create(['upload' => null]);
+
+        $this->fakeRequestWithFiles(['upload' => $this->getFileWithContent('document.txt', 'just some text')]);
+
+        $uploader->uploadFileToDisk(null, 'upload', 'uploaders', 'uploads');
+
+        $this->assertStringEndsWith('.txt', $uploader->upload);
+        Storage::disk('uploaders')->assertExists($uploader->upload);
+    }
+
+    public function test_uploadFileToDisk_rejects_active_content_and_keeps_the_previous_file(): void
+    {
+        Storage::disk('uploaders')->put('previous.jpg', 'previous');
+        $uploader = Uploader::create(['upload' => 'previous.jpg']);
+
+        $this->fakeRequestWithFiles(['upload' => $this->getFileWithContent('avatar.png', '<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script></svg>')]);
+
+        try {
+            $uploader->uploadFileToDisk(null, 'upload', 'uploaders', '');
+            $this->fail('The svg file should not be allowed.');
+        } catch (ValidationException $e) {
+            $this->assertArrayHasKey('upload', $e->errors());
+        }
+
+        $this->assertSame('previous.jpg', $uploader->upload);
+        Storage::disk('uploaders')->assertExists('previous.jpg');
+        $this->assertCount(1, Storage::disk('uploaders')->allFiles());
+    }
+
+    public function test_uploadMultipleFilesToDisk_rejects_active_content_without_changing_files(): void
+    {
+        $uploader = $this->createUploaderWithFiles(['owned1.jpg']);
+
+        $this->fakeRequestWithFiles(
+            ['upload_multiple' => [
+                $this->getFileWithContent('document.txt', 'just some text'),
+                $this->getFileWithContent('page.txt', '<!DOCTYPE html><html><body><script>alert(1)</script></body></html>'),
+            ]],
+            ['clear_upload_multiple' => ['owned1.jpg']]
+        );
+
+        try {
+            $uploader->uploadMultipleFilesToDisk(null, 'upload_multiple', 'uploaders', '');
+            $this->fail('The html file should not be allowed.');
+        } catch (ValidationException $e) {
+            $this->assertArrayHasKey('upload_multiple', $e->errors());
+        }
+
+        Storage::disk('uploaders')->assertExists('owned1.jpg');
+        $this->assertCount(1, Storage::disk('uploaders')->allFiles());
+    }
+
+    private function fakeRequestWithFiles(array $files, array $input = []): void
+    {
+        $request = Request::create('/admin/uploader/1', 'PUT', $input, [], $files);
+        $this->app->instance('request', $request);
+    }
+
+    private function getFileWithContent(string $clientName, string $content): UploadedFile
+    {
+        $path = tempnam(sys_get_temp_dir(), 'backpack-upload');
+        file_put_contents($path, $content);
+
+        return new UploadedFile($path, $clientName, null, null, true);
     }
 }

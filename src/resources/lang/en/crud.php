@@ -173,6 +173,7 @@ return [
     'select_entries' => 'Select entries',
     'select_value_not_in_options' => 'The current value is not available in the list of options.',
     'upload_multiple_files_selected' => 'Files selected. After save, they will show up above.',
+    'upload_file_type_not_allowed' => 'The file type ":extension" is not allowed.',
     'image_file_too_big' => 'Please pick an image smaller than :size bytes.',
     'image_not_an_image' => '<strong>Please choose an image file</strong><br>The file you\'ve chosen does not look like an image.',
     'date_picker_wrong_format' => '<strong>Whoops!</strong><br>Sorry we did not recognise that date format, please make sure it uses a yyyy mm dd combination.',

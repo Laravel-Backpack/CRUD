@@ -2,10 +2,12 @@
 
 namespace Backpack\CRUD\app\Models\Traits;
 
-use Backpack\CRUD\app\Library\Uploaders\Support\FileNameGenerator;
+use Backpack\CRUD\app\Exceptions\FileTypeNotAllowedException;
+use Backpack\CRUD\app\Library\Uploaders\Support\FileExtensions;
 use DB;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Arr;
+use Illuminate\Validation\ValidationException;
 
 /*
 |--------------------------------------------------------------------------
@@ -32,6 +34,11 @@ trait HasUploadFields
      */
     public function uploadFileToDisk($value, $attribute_name, $disk, $destination_path, $fileName = null)
     {
+        // name the new file before changing anything, so a file that is not allowed does not remove the previous one
+        if (request()->hasFile($attribute_name) && request()->file($attribute_name)->isValid()) {
+            $new_file_name = $this->buildUploadedFileName(request()->file($attribute_name), $attribute_name, $fileName);
+        }
+
         // if a new file is uploaded, delete the previous file from the disk
         if (request()->hasFile($attribute_name) &&
             $this->{$attribute_name} &&
@@ -48,22 +55,42 @@ trait HasUploadFields
 
         // if a new file is uploaded, store it on disk and its filename in the database
         if (request()->hasFile($attribute_name) && request()->file($attribute_name)->isValid()) {
-            // 1. Generate a new file name
-            $file = request()->file($attribute_name);
-            $ext = strtolower($file->extension());
-            if (in_array($ext, FileNameGenerator::getDangerousExtensions(), true)) {
-                throw new \InvalidArgumentException("File type '.$ext' is not allowed.");
-            }
+            // 1. Move the new file to the correct path
+            $file_path = request()->file($attribute_name)->storeAs($destination_path, $new_file_name, $disk);
 
-            // use the provided file name or generate a random one
-            $new_file_name = $fileName ?? md5($file->getClientOriginalName().random_int(1, 9999).time()).'.'.$ext;
-
-            // 2. Move the new file to the correct path
-            $file_path = $file->storeAs($destination_path, $new_file_name, $disk);
-
-            // 3. Save the complete path to the database
+            // 2. Save the complete path to the database
             $this->attributes[$attribute_name] = $file_path;
         }
+    }
+
+    /**
+     * Get the name an uploaded file will be stored with, making sure its type is allowed.
+     *
+     * @param  \Illuminate\Http\UploadedFile  $file
+     * @param  string  $attribute_name  Model attribute name, used to report a file type that is not allowed.
+     * @param  string|null  $fileName  Optional filename for the stored file
+     *
+     * @throws ValidationException when the file type is not allowed
+     */
+    protected function buildUploadedFileName($file, $attribute_name, $fileName = null)
+    {
+        $ext = strtolower((string) $file->extension());
+        $ext = $ext === '' ? FileExtensions::FALLBACK : $ext;
+
+        try {
+            FileExtensions::ensureFileNameIsAllowed('file.'.$ext);
+
+            if ($fileName !== null && FileExtensions::fromFileName($fileName) !== '') {
+                FileExtensions::ensureFileNameIsAllowed($fileName);
+            }
+        } catch (FileTypeNotAllowedException $e) {
+            throw ValidationException::withMessages([
+                $attribute_name => trans('backpack::crud.upload_file_type_not_allowed', ['extension' => $e->extension]),
+            ]);
+        }
+
+        // use the provided file name or generate a random one
+        return $fileName ?? md5($file->getClientOriginalName().random_int(1, 9999).time()).'.'.$ext;
     }
 
     /**
@@ -91,6 +118,17 @@ trait HasUploadFields
             $attribute_value = $originalModelValue;
         }
 
+        // name the new files before changing anything, so a file that is not allowed does not remove or leave files behind
+        $files_to_store = [];
+
+        if (request()->hasFile($attribute_name)) {
+            foreach (request()->file($attribute_name) as $file) {
+                if ($file->isValid()) {
+                    $files_to_store[] = [$file, $this->buildUploadedFileName($file, $attribute_name)];
+                }
+            }
+        }
+
         $files_to_clear = request()->input('clear_'.$attribute_name);
 
         // if a file has been marked for removal,
@@ -108,23 +146,12 @@ trait HasUploadFields
         }
 
         // if a new file is uploaded, store it on disk and its filename in the database
-        if (request()->hasFile($attribute_name)) {
-            foreach (request()->file($attribute_name) as $file) {
-                if ($file->isValid()) {
-                    // 1. Generate a new file name
-                    $ext = strtolower($file->extension());
-                    if (in_array($ext, FileNameGenerator::getDangerousExtensions(), true)) {
-                        throw new \InvalidArgumentException("File type '.$ext' is not allowed.");
-                    }
-                    $new_file_name = md5($file->getClientOriginalName().random_int(1, 9999).time()).'.'.$ext;
+        foreach ($files_to_store as [$file, $new_file_name]) {
+            // 1. Move the new file to the correct path
+            $file_path = $file->storeAs($destination_path, $new_file_name, $disk);
 
-                    // 2. Move the new file to the correct path
-                    $file_path = $file->storeAs($destination_path, $new_file_name, $disk);
-
-                    // 3. Add the public path to the database
-                    $attribute_value[] = $file_path;
-                }
-            }
+            // 2. Add the public path to the database
+            $attribute_value[] = $file_path;
         }
 
         $this->attributes[$attribute_name] = json_encode($attribute_value);

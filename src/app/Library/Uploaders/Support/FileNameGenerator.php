@@ -2,6 +2,7 @@
 
 namespace Backpack\CRUD\app\Library\Uploaders\Support;
 
+use Backpack\CRUD\app\Exceptions\FileTypeNotAllowedException;
 use Backpack\CRUD\app\Library\Uploaders\Support\Interfaces\FileNameGeneratorInterface;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Str;
@@ -18,16 +19,12 @@ class FileNameGenerator implements FileNameGeneratorInterface
         return $this->getFileName($file).'.'.$this->getExtensionFromFile($file);
     }
 
+    /**
+     * @deprecated use FileExtensions::DISALLOWED
+     */
     public static function getDangerousExtensions(): array
     {
-        return [
-            'php', 'php3', 'php4', 'php5', 'php7', 'php8',
-            'phtml', 'phar', 'phps', 'shtml',
-            'pl', 'py', 'rb', 'jsp', 'cgi',
-            'asp', 'aspx',
-            'sh', 'bash', 'bat', 'cmd', 'exe',
-            'htaccess',
-        ];
+        return FileExtensions::DISALLOWED;
     }
 
     private function getExtensionFromFile(string|UploadedFile $file): string
@@ -42,11 +39,13 @@ class FileNameGenerator implements FileNameGeneratorInterface
             $ext = $mime !== false ? Str::after($mime, '/') : '';
         }
 
-        if (in_array(strtolower((string) $ext), self::getDangerousExtensions(), true)) {
-            throw new \InvalidArgumentException("File type '.$ext' is not allowed.");
+        $ext = strtolower((string) $ext);
+
+        if (FileExtensions::isDisallowed($ext)) {
+            throw new FileTypeNotAllowedException($ext);
         }
 
-        return (string) $ext;
+        return $ext === '' ? FileExtensions::FALLBACK : $ext;
     }
 
     private function getFileName(string|UploadedFile $file): string

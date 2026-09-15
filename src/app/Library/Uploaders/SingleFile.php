@@ -19,10 +19,12 @@ class SingleFile extends Uploader
         }
 
         if ($value && is_file($value) && $value->isValid()) {
+            // get the name first, so a file that is not allowed does not remove the previous one
+            $fileName = $this->getFileName($value);
+
             if ($previousFile) {
                 $this->deleteStoredFile($previousFile);
             }
-            $fileName = $this->getFileName($value);
             $value->storeAs($this->getPath(), $fileName, $this->getDisk());
 
             return $this->getPath().$fileName;
@@ -43,12 +45,18 @@ class SingleFile extends Uploader
         $ownedFiles = $this->getStoredFilesList($previousRepeatableValues);
         $orderedFiles = [];
 
+        // name all the files before storing any, so a file that is not allowed does not leave the others behind
+        $filesToStore = [];
+
         foreach ($values as $row => $file) {
             if ($file instanceof UploadedFile && $file->isValid()) {
-                $fileName = $this->getFileName($file);
-                $file->storeAs($this->getPath(), $fileName, $this->getDisk());
-                $orderedFiles[$row] = $this->getPath().$fileName;
+                $filesToStore[$row] = [$file, $this->getFileName($file)];
             }
+        }
+
+        foreach ($filesToStore as $row => [$file, $fileName]) {
+            $file->storeAs($this->getPath(), $fileName, $this->getDisk());
+            $orderedFiles[$row] = $this->getPath().$fileName;
         }
 
         // the request order can only reference files this entry already owns

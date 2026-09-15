@@ -477,4 +477,11 @@ return [
 
     'file_name_generator' => \Backpack\CRUD\app\Library\Uploaders\Support\FileNameGenerator::class,
 
+    // the extensions uploaded files can be stored with. Files that browsers can render as
+    // active content (svg, html, xml, etc.) are not allowed by default, because they can
+    // run scripts when opened. Server executable extensions (php, phar, etc.) are always
+    // rejected. You can also define `allowedExtensions` per field, eg:
+    // ->withFiles(['allowedExtensions' => [...FileExtensions::DEFAULT_ALLOWED, 'svg']])
+    'allowed_upload_extensions' => \Backpack\CRUD\app\Library\Uploaders\Support\FileExtensions::DEFAULT_ALLOWED,
+
 ];

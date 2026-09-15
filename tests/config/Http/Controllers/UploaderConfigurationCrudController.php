@@ -27,6 +27,8 @@ class UploaderConfigurationCrudController extends CrudController
         Route::post(config('backpack.base.route_prefix').'/uploader-configuration/custom-uploader', [self::class, 'customUploader'])->name('uploader-configuration.custom-uploader');
         Route::post(config('backpack.base.route_prefix').'/uploader-configuration/custom-invalid-uploader', [self::class, 'customInvalidUploader'])->name('uploader-configuration.custom-invalid-uploader');
         Route::get(config('backpack.base.route_prefix').'/uploader-configuration/set-temporary-options', [self::class, 'temporaryOptions'])->name('uploader-configuration.temporary-options');
+        Route::post(config('backpack.base.route_prefix').'/uploader-configuration/allowed-extensions', [self::class, 'allowedExtensions'])->name('uploader-configuration.allowed-extensions');
+        Route::post(config('backpack.base.route_prefix').'/uploader-configuration/client-name-file-namer', [self::class, 'clientNameFileNamer'])->name('uploader-configuration.client-name-file-namer');
     }
 
     protected function setupCreateOperation()
@@ -78,6 +80,23 @@ class UploaderConfigurationCrudController extends CrudController
     protected function temporaryOptions()
     {
         CRUD::field('upload')->type('upload')->withFiles(['disk' => 'uploaders', 'temporary' => true]);
+
+        return $this->store();
+    }
+
+    protected function allowedExtensions()
+    {
+        CRUD::field('upload')->type('upload')->withFiles([
+            'disk' => 'uploaders',
+            'allowedExtensions' => [...\Backpack\CRUD\app\Library\Uploaders\Support\FileExtensions::DEFAULT_ALLOWED, 'svg', 'php'],
+        ]);
+
+        return $this->store();
+    }
+
+    protected function clientNameFileNamer()
+    {
+        CRUD::field('upload')->type('upload')->withFiles(['disk' => 'uploaders', 'fileNamer' => fn ($file) => $file->getClientOriginalName()]);
 
         return $this->store();
     }

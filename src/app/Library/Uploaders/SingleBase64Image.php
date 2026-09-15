@@ -40,11 +40,13 @@ class SingleBase64Image extends Uploader
 
         $decoded = $this->validateAndDecodeBase64Image((string) $value);
         if ($decoded !== false) {
+            // get the name first, so an image that is not allowed does not remove the previous one
+            $finalPath = $this->getPath().$this->getFileName($value);
+
             if ($previousImage) {
                 $this->deleteStoredFile($previousImage);
             }
 
-            $finalPath = $this->getPath().$this->getFileName($value);
             Storage::disk($this->getDisk())->put($finalPath, $decoded);
 
             return $finalPath;

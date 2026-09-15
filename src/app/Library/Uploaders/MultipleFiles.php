@@ -33,6 +33,19 @@ class MultipleFiles extends Uploader
             $previousFiles = json_decode($previousFiles, true);
         }
 
+        if (! is_array($value)) {
+            $value = [];
+        }
+
+        // name the new files before changing anything, so a file that is not allowed does not remove or leave files behind
+        $filesToStore = [];
+
+        foreach ($value as $file) {
+            if ($file && is_file($file)) {
+                $filesToStore[] = [$file, $this->getFileName($file)];
+            }
+        }
+
         if ($filesToDelete) {
             foreach ($previousFiles as $previousFile) {
                 if (in_array($previousFile, $filesToDelete)) {
@@ -45,16 +58,9 @@ class MultipleFiles extends Uploader
             }
         }
 
-        if (! is_array($value)) {
-            $value = [];
-        }
-
-        foreach ($value as $file) {
-            if ($file && is_file($file)) {
-                $fileName = $this->getFileName($file);
-                $file->storeAs($this->getPath(), $fileName, $this->getDisk());
-                $previousFiles[] = $this->getPath().$fileName;
-            }
+        foreach ($filesToStore as [$file, $fileName]) {
+            $file->storeAs($this->getPath(), $fileName, $this->getDisk());
+            $previousFiles[] = $this->getPath().$fileName;
         }
 
         $previousFiles = array_values($previousFiles);
@@ -89,14 +95,20 @@ class MultipleFiles extends Uploader
             }
         }
 
+        // name all the files before storing any, so a file that is not allowed does not leave the others behind
+        $filesToStore = [];
+
         foreach ($files as $row => $rowFiles) {
             foreach ((array) ($rowFiles ?? []) as $file) {
                 if ($file instanceof UploadedFile && $file->isValid()) {
-                    $fileName = $this->getFileName($file);
-                    $file->storeAs($this->getPath(), $fileName, $this->getDisk());
-                    $fileOrder[$row][] = $this->getPath().$fileName;
+                    $filesToStore[] = [$row, $file, $this->getFileName($file)];
                 }
             }
+        }
+
+        foreach ($filesToStore as [$row, $file, $fileName]) {
+            $file->storeAs($this->getPath(), $fileName, $this->getDisk());
+            $fileOrder[$row][] = $this->getPath().$fileName;
         }
 
         // owned files that are no longer referenced were removed by the user

@@ -7,7 +7,9 @@ use Backpack\CRUD\Tests\config\Http\Controllers\UploaderConfigurationCrudControl
 use Backpack\CRUD\Tests\config\Models\Uploader;
 use Backpack\CRUD\Tests\config\Models\User;
 use Backpack\CRUD\Tests\config\Uploads\HasUploadedFiles;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 /**
  * @covers Backpack\CRUD\app\Library\Uploaders\Uploader
@@ -121,5 +123,113 @@ class UploadersConfigurationTest extends BaseDBCrudPanel
         $response->assertStatus(500);
 
         throw $response->exception;
+    }
+
+    public static function activeContentFiles(): array
+    {
+        return [
+            'svg' => ['<svg xmlns="http://www.w3.org/2000/svg"><script>alert(document.domain)</script></svg>'],
+            'html' => ['<!DOCTYPE html><html><body><script>alert(document.domain)</script></body></html>'],
+            'xml' => ['<?xml version="1.0"?><html xmlns="http://www.w3.org/1999/xhtml"><script>alert(document.domain)</script></html>'],
+        ];
+    }
+
+    #[DataProvider('activeContentFiles')]
+    public function test_it_does_not_store_active_content_uploads(string $content)
+    {
+        $response = $this->post($this->testBaseUrl, [
+            'upload' => $this->getFileWithContent('avatar.png', $content),
+        ]);
+
+        $response->assertStatus(302);
+        $response->assertSessionHasErrors('upload');
+
+        $this->assertDatabaseCount('uploaders', 0);
+        $this->assertEmpty(Storage::disk('uploaders')->allFiles());
+    }
+
+    public function test_it_does_not_store_any_file_when_one_of_multiple_files_is_not_allowed()
+    {
+        $response = $this->post($this->testBaseUrl, [
+            'upload_multiple' => [
+                $this->getUploadedFile('avatar2.jpg'),
+                $this->getFileWithContent('avatar.png', '<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script></svg>'),
+            ],
+        ]);
+
+        $response->assertStatus(302);
+        $response->assertSessionHasErrors('upload_multiple');
+
+        $this->assertDatabaseCount('uploaders', 0);
+        $this->assertEmpty(Storage::disk('uploaders')->allFiles());
+    }
+
+    public function test_it_keeps_previous_files_when_the_new_file_is_not_allowed()
+    {
+        Storage::disk('uploaders')->put('test/avatar1.jpg', 'previous');
+        Storage::disk('uploaders')->put('avatar2.jpg', 'previous');
+
+        Uploader::create(['upload' => 'test/avatar1.jpg', 'upload_multiple' => ['avatar2.jpg']]);
+
+        $svg = '<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script></svg>';
+
+        $response = $this->put($this->testBaseUrl.'/1', [
+            'id' => 1,
+            'upload' => $this->getFileWithContent('avatar.png', $svg),
+        ]);
+
+        $response->assertSessionHasErrors('upload');
+
+        $response = $this->put($this->testBaseUrl.'/1', [
+            'id' => 1,
+            'upload_multiple' => [$this->getFileWithContent('avatar.png', $svg)],
+            'clear_upload_multiple' => ['avatar2.jpg'],
+        ]);
+
+        $response->assertSessionHasErrors('upload_multiple');
+
+        $this->assertDatabaseHas('uploaders', ['id' => 1, 'upload' => 'test/avatar1.jpg']);
+        $this->assertSame(['avatar2.jpg'], json_decode(Uploader::query()->toBase()->find(1)->upload_multiple, true));
+        Storage::disk('uploaders')->assertExists('test/avatar1.jpg');
+        Storage::disk('uploaders')->assertExists('avatar2.jpg');
+        $this->assertCount(2, Storage::disk('uploaders')->allFiles());
+    }
+
+    public function test_it_can_allow_extensions_per_field()
+    {
+        $response = $this->post($this->testBaseUrl.'/allowed-extensions', [
+            'upload' => $this->getFileWithContent('logo.png', '<svg xmlns="http://www.w3.org/2000/svg"><circle r="10"/></svg>'),
+        ]);
+
+        $response->assertStatus(302);
+        $response->assertSessionHasNoErrors();
+
+        $this->assertStringEndsWith('.svg', Uploader::first()->upload);
+    }
+
+    public function test_it_checks_names_given_by_custom_file_namers()
+    {
+        $response = $this->post($this->testBaseUrl.'/client-name-file-namer', [
+            'upload' => $this->getFileWithContent('payload.html', 'just some text'),
+        ]);
+
+        $response->assertSessionHasErrors('upload');
+
+        $response = $this->post($this->testBaseUrl.'/client-name-file-namer', [
+            'upload' => $this->getFileWithContent('shell.php.jpg', 'just some text'),
+        ]);
+
+        $response->assertSessionHasErrors('upload');
+
+        $this->assertDatabaseCount('uploaders', 0);
+        $this->assertEmpty(Storage::disk('uploaders')->allFiles());
+    }
+
+    private function getFileWithContent(string $clientName, string $content): UploadedFile
+    {
+        $path = tempnam(sys_get_temp_dir(), 'backpack-upload');
+        file_put_contents($path, $content);
+
+        return new UploadedFile($path, $clientName, null, null, true);
     }
 }
