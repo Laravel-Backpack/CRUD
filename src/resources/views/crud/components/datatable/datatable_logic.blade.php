@@ -741,9 +741,6 @@ function setupTableUI(tableId, config) {
         if (typeof window.crud.moveExportButtonsToTopRight === 'function') {
             config.addFunctionToDataTablesDrawEventQueue('moveExportButtonsToTopRight');
         }
-        if (typeof window.crud.setupExportHandlers === 'function') {
-            config.addFunctionToDataTablesDrawEventQueue('setupExportHandlers');
-        }
         
         // Initialize the buttons and place them in the correct container
         if (typeof window.crud.moveExportButtonsToTopRight === 'function') {

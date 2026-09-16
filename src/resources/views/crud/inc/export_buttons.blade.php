@@ -33,17 +33,11 @@
 
         let getColumnVisibility = function(dt, idx, node) {
             try {
-                var $tableFromNode = $(node).closest('table');
-                
-                if ($tableFromNode.length === 0) {
-                    return false;
-                }
-                
-                var $header = $tableFromNode.find('thead th').eq(idx);
-                
-                var isDomVisible = $header.length > 0 && $header.is(':visible') && $header.css('display') !== 'none';
-                
-                return isDomVisible;
+                // A column hidden through the column picker — or by `visibleInTable => false`, or by a
+                // restored DataTables state — has its <th> detached from the table by DataTables.
+                // Responsive only sets display:none on the cells it collapses, so CSS visibility must
+                // NOT be consulted here: a collapsed column is still a visible column.
+                return $(node).closest('table').length > 0;
             } catch (e) {
                 return true; // Default to visible if there's an error
             }
@@ -185,46 +179,6 @@
                             .addClass('d-sm-inline-block')
                             .addClass('d-md-inline-block')
                             .addClass('d-lg-inline-block');
-        };
-
-        window.crud.setupExportHandlers = function(tableId) {
-            tableId = tableId || 'crudTable';
-            var table = window.crud.tables[tableId];
-            
-            if (!table || !table.buttons) return;
-            
-            // Add click handlers to all export buttons
-            table.buttons().each(function(button, idx) {
-                var buttonNode = button.node;
-                if (buttonNode && (
-                    buttonNode.classList.contains('buttons-pdf') ||
-                    buttonNode.classList.contains('buttons-excel') ||
-                    buttonNode.classList.contains('buttons-csv') ||
-                    buttonNode.classList.contains('buttons-copy') ||
-                    buttonNode.classList.contains('buttons-print')
-                )) {
-                    // Remove any existing handlers
-                    $(buttonNode).off('click.responsiveExport');
-                    
-                    // Add our custom handler
-                    $(buttonNode).on('click.responsiveExport', function(e) {
-                        e.preventDefault();
-                        e.stopImmediatePropagation();
-                        
-                        window.crud.responsiveToggle(table);
-                        
-                        setTimeout(function() {
-                            $(buttonNode).off('click.responsiveExport');
-                            
-                            $(buttonNode).trigger('click');
-                            
-                            setTimeout(function() {
-                                $(buttonNode).on('click.responsiveExport', arguments.callee);
-                            }, 100);
-                        }, 50);
-                    });
-                }
-            });
         };
     </script>
     @push('after_styles')
