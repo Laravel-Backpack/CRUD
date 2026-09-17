@@ -2,8 +2,10 @@
 
 namespace Backpack\CRUD\app\Library\CrudPanel\Traits;
 
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 trait MorphRelationships
 {
@@ -20,11 +22,165 @@ trait MorphRelationships
 
         foreach ($fields as $field) {
             [$morphTypeField, $morphIdField] = $field['subfields'];
-            Arr::set($input, $morphTypeField['name'], Arr::get($input, $field['name'].'.'.$morphTypeField['name']));
-            Arr::set($input, $morphIdField['name'], Arr::get($input, $field['name'].'.'.$morphIdField['name']));
+
+            // the submitted pair gets promoted to top-level columns that are mass-assigned on the
+            // entry, so it has to be verified against what the field actually offered first
+            [$morphType, $morphId] = $this->getVerifiedMorphToValues(
+                $field,
+                $morphTypeField,
+                $morphIdField,
+                Arr::get($input, $field['name'].'.'.$morphTypeField['name']),
+                Arr::get($input, $field['name'].'.'.$morphIdField['name'])
+            );
+
+            Arr::set($input, $morphTypeField['name'], $morphType);
+            Arr::set($input, $morphIdField['name'], $morphId);
         }
 
         return $input;
+    }
+
+    /**
+     * Verify the (morph type, morph id) pair submitted for a MorphTo field against the options
+     * the field declared as selectable, the same way BelongsTo foreign keys are verified in
+     * getVerifiedBelongsToInputs(). An out-of-scope value aborts the save with a validation
+     * error on the corresponding subfield, instead of being silently persisted.
+     *
+     * @param  array  $field  The MorphTo crud field.
+     * @param  array  $morphTypeField  The morphable_type subfield.
+     * @param  array  $morphIdField  The morphable_id subfield.
+     * @param  mixed  $morphType  The submitted morph type.
+     * @param  mixed  $morphId  The submitted morph id.
+     * @return array The verified [morph type, morph id] pair.
+     *
+     * @throws \Illuminate\Validation\ValidationException When the submitted pair is out of scope.
+     */
+    private function getVerifiedMorphToValues(array $field, array $morphTypeField, array $morphIdField, $morphType, $morphId)
+    {
+        $nothingSubmitted = fn ($value) => $value === null || $value === '';
+
+        // the admin cleared the relation, there is nothing to verify
+        if ($nothingSubmitted($morphType) && $nothingSubmitted($morphId)) {
+            return [$morphType, $morphId];
+        }
+
+        $optionKey = $this->getVerifiedMorphTypeOptionKey($field, $morphTypeField, $morphType);
+
+        // the field declares no morph options, so it constrains nothing
+        if ($optionKey === null) {
+            return [$morphType, $morphId];
+        }
+
+        if ($nothingSubmitted($morphId)) {
+            return [$optionKey, $morphId];
+        }
+
+        $allowedKeys = $this->getAllowedMorphKeys($morphTypeField, $optionKey, $morphIdField['morphOptions'][$optionKey] ?? []);
+
+        if ($allowedKeys !== null && ! in_array((string) $morphId, $allowedKeys, true)) {
+            throw ValidationException::withMessages([
+                $field['name'].'.'.$morphIdField['name'] => 'The selected '.($field['label'] ?? $field['name']).' is invalid.',
+            ]);
+        }
+
+        // store the option key the field declared, so the persisted type is always one of them
+        return [$optionKey, $morphId];
+    }
+
+    /**
+     * Match the submitted morph type against the keys of the options the field declared,
+     * comparing the models they resolve to, so that a morphMap alias and the class it maps
+     * to are treated as the same option.
+     *
+     * @param  array  $field  The MorphTo crud field.
+     * @param  array  $morphTypeField  The morphable_type subfield.
+     * @param  mixed  $morphType  The submitted morph type.
+     * @return string|null The declared option key, or null when the field declares no options.
+     *
+     * @throws \Illuminate\Validation\ValidationException When the submitted type was never an option.
+     */
+    private function getVerifiedMorphTypeOptionKey(array $field, array $morphTypeField, $morphType)
+    {
+        $declaredOptions = $morphTypeField['options'] ?? [];
+
+        if (empty($declaredOptions)) {
+            return null;
+        }
+
+        $morphMap = $morphTypeField['morphMap'] ?? [];
+        $submittedModel = $morphMap[$morphType] ?? $morphType;
+
+        foreach (array_keys($declaredOptions) as $optionKey) {
+            if ((string) $optionKey === (string) $morphType || ($morphMap[$optionKey] ?? $optionKey) === $submittedModel) {
+                return $optionKey;
+            }
+        }
+
+        throw ValidationException::withMessages([
+            $field['name'].'.'.$morphTypeField['name'] => 'The selected '.($field['label'] ?? $field['name']).' type is invalid.',
+        ]);
+    }
+
+    /**
+     * Resolve the entry keys that were selectable for one morph option, or null when that
+     * option puts no constraint on them (every key of the related model is allowed).
+     *
+     * @param  array  $morphTypeField  The morphable_type subfield (holds the morphMap).
+     * @param  string  $optionKey  The declared option key (a model class or a morphMap alias).
+     * @param  array  $morphOption  The options declared for that key.
+     * @return array<string>|null
+     */
+    private function getAllowedMorphKeys(array $morphTypeField, $optionKey, array $morphOption)
+    {
+        if (isset($morphOption['options']) && is_array($morphOption['options'])) {
+            return array_map('strval', array_keys($morphOption['options']));
+        }
+
+        $modelClass = $morphTypeField['morphMap'][$optionKey] ?? $optionKey;
+
+        if (! is_a($modelClass, Model::class, true)) {
+            return null;
+        }
+
+        $modelInstance = new $modelClass;
+
+        if (is_callable($morphOption['query'] ?? null)) {
+            // the closure gets the same base query builder the field's view hands it
+            $result = ($morphOption['query'])($modelInstance->toBase());
+        } elseif ($ajaxConstraint = $this->getMorphOptionAjaxConstraint($morphOption, $modelClass)) {
+            $result = $ajaxConstraint($modelInstance->newQuery());
+        } else {
+            return null;
+        }
+
+        return array_map('strval', $this->getAllowedKeysFromOptionsResult($result, $modelInstance));
+    }
+
+    /**
+     * Get the closure that constrains the entries an ajax morph option serves, so the pair
+     * submitted for it can be verified against them like any other option.
+     *
+     * An ajax BelongsTo field names its fetch method after the field entity. A morph option
+     * has no entity of its own, so it names it after the model it lists - the same name
+     * FetchOperation builds the route from, so the two always agree: `App\Models\Article`
+     * (or the `article` morphMap alias) is served by `fetchArticle()`. Set
+     * `relation_options_query_source` on the option when the fetch method is named otherwise.
+     *
+     * Returns null when the controller exposes no query for it, leaving the option unconstrained.
+     *
+     * @param  array  $morphOption
+     * @param  string  $modelClass  The model this option lists.
+     * @return callable|null
+     */
+    private function getMorphOptionAjaxConstraint(array $morphOption, $modelClass)
+    {
+        if (! isset($morphOption['data_source']) && ! ($morphOption['ajax'] ?? false)) {
+            return null;
+        }
+
+        return $this->getRelationOptionsConstraintFromFetchSource(
+            $morphOption['relation_options_query_source'] ?? class_basename($modelClass)
+        );
     }
 
     /**

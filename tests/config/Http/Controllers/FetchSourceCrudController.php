@@ -32,6 +32,10 @@ class FetchSourceCrudController extends CrudController
             'fetchModeratorUser' => function ($query) {
                 return $query->where('id', 1);
             },
+            // the method a morph option listing User resolves to by convention
+            'fetchUser' => function ($query) {
+                return $query->where('id', 1);
+            },
         ];
 
         $query = $queries[$fetchMethod] ?? null;
