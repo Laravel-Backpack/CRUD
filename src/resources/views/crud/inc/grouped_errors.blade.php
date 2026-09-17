@@ -1,8 +1,10 @@
 {{-- Show the errors, if any --}}
 @if ($crud->groupedErrorsEnabled() && session()->get('errors'))
     @php
-        $submittedFormId = old('_form_id') ?? 'crudForm';
-        $currentFormId = $formId ?? $id ?? 'crudForm';
+        // `_form_id` comes back from the request as a string, while `$id` on the update operation is the
+        // entry's key (usually an integer), so compare both as strings.
+        $submittedFormId = (string) (old('_form_id') ?? 'crudForm');
+        $currentFormId = (string) ($formId ?? $id ?? 'crudForm');
     @endphp
     @if (!$submittedFormId || $submittedFormId === $currentFormId)
     <div class="alert alert-danger text-danger">
