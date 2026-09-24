@@ -9,4 +9,7 @@
     }
 @endphp
 
+@if($column['wrapper']['suffix'] ?? false)
+<span>{{ $column['wrapper']['suffix'] }}</span>
+@endif
 </{{ $wrapperElement }}>
