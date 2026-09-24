@@ -17,8 +17,9 @@ trait Buttons
      *
      * @param  string  $stack  Stack where the buttons belongs. Options: top, line, bottom.
      * @param  array  $order  Ordered names of the buttons. ['update', 'delete', 'show']
+     * @param  bool  $abortIfNotExist  If true, an exception will be thrown if a button name is not found.
      */
-    public function orderButtons(string $stack, array $order)
+    public function orderButtons(string $stack, array $order, bool $abortIfNotExist = true): void
     {
         $newButtons = collect([]);
         $otherButtons = collect([]);
@@ -36,9 +37,11 @@ trait Buttons
         });
 
         // we parse the ordered buttons
-        collect($order)->each(function ($btnKey) use ($newButtons, $stackButtons) {
-            if (! $button = $stackButtons->where('name', $btnKey)->first()) {
-                abort(500, 'Button name [«'.$btnKey.'»] not found.', ['developer-error-exception']);
+        collect($order)->each(function ($btnKey) use ($abortIfNotExist, $newButtons, $stackButtons) {
+            if (!$button = $stackButtons->where('name', $btnKey)->first()) {
+                if ($abortIfNotExist) {
+                    abort(500, 'Button name [«' . $btnKey . '»] not found.', ['developer-error-exception']);
+                }
             }
             $newButtons->push($button);
         });
@@ -180,7 +183,6 @@ trait Buttons
      * @param  string|array  $target  The target button name or array.
      * @param  string|array  $where  Move 'before' or 'after' the target.
      * @param  string|array  $destination  The destination button name or array.
-     * @param  bool  $before  If true, the button will be moved before the target button, otherwise it will be moved after it.
      */
     public function moveButton($target, $where, $destination)
     {
@@ -270,4 +272,80 @@ trait Buttons
     {
         return new CrudButton($nameOrAttributes);
     }
+
+    /**
+     *  Reorganize a collection by putting certain elements at the beginning
+     *
+     * @param string       $stack
+     * @param array|string $startButtons
+     * @param bool         $abortIfNotExist
+     */
+    public function buttonsStartWith(string $stack, array|string $startButtons, bool $abortIfNotExist = true): void
+    {
+        $startButtons = is_array($startButtons)
+            ? $startButtons
+            : [$startButtons];
+
+        $stackButtons = $this->buttons()
+            ->where('stack', $stack)
+            ->pluck('name')
+            ->toArray();
+
+        $startItems = [];
+
+        foreach ($startButtons as $btnKey) {
+            if (!in_array($btnKey, $stackButtons)) {
+                if($abortIfNotExist) {
+                    abort(500, 'Button name [«' . $btnKey . '»] not found.', ['developer-error-exception']);
+                }
+            }
+            else {
+                $startItems[] = $btnKey;
+            }
+        }
+
+        $remainingItems = array_diff($stackButtons, $startItems);
+        $orderedButtons = [...$startItems, ...$remainingItems];
+
+        $this->orderButtons($stack, $orderedButtons);
+    }
+
+    /**
+     * Réorganise une collection en mettant certains éléments à la fin
+     *
+     * @param string       $stack
+     * @param array|string $endButtons
+     * @param bool         $abortIfNotExist
+     */
+    public
+    function buttonsEndWith(string $stack, array|string $endButtons, bool $abortIfNotExist = true): void
+    {
+        $endButtons = is_array($endButtons)
+            ? $endButtons
+            : [$endButtons];
+
+        $stackButtons = $this->buttons()
+            ->where('stack', $stack)
+            ->pluck('name')
+            ->toArray();
+
+        $endItems = [];
+
+        foreach ($endButtons as $btnKey) {
+            if (!in_array($btnKey, $stackButtons)) {
+                if($abortIfNotExist) {
+                    abort(500, 'Button name [«' . $btnKey . '»] not found.', ['developer-error-exception']);
+                }
+            }
+            else {
+                $endItems[] = $btnKey;
+            }
+        }
+
+        $remainingItems = array_diff($stackButtons, $endItems);
+        $orderedButtons = [...$remainingItems, ...$endItems];
+
+        $this->orderButtons($stack, $orderedButtons);
+    }
+
 }
