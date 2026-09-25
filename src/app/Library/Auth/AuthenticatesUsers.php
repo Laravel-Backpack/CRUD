@@ -15,14 +15,65 @@ trait AuthenticatesUsers
     /**
      * Show the application's login form.
      *
-     * @return \Illuminate\Contracts\View\View
+     * @return \Illuminate\Http\Response|\Illuminate\Http\View
      */
     public function showLoginForm()
     {
         $this->data['title'] = trans('backpack::base.login'); // set the page title
         $this->data['username'] = $this->username();
 
-        return view(backpack_view('auth.login'), $this->data);
+        $content = view(backpack_view('auth.login'), $this->data)->render();
+
+        return response($this->injectCsrfRefreshScript($content));
+    }
+
+    /**
+     * @param  string  $html
+     * @return string
+     */
+    protected function injectCsrfRefreshScript(string $html): string
+    {
+        // Reload at 85% of the session lifetime to give a comfortable margin.
+        $reloadAfterMs = (int) round(config('session.lifetime', 120) * 60 * 1000 * 0.85);
+
+        $script = <<<HTML
+        <script>
+        (function () {
+            var loadedAt = Date.now();
+            var reloadAfterMs = {$reloadAfterMs};
+            var timer;
+
+            function scheduleReload() {
+                clearTimeout(timer);
+                var remaining = reloadAfterMs - (Date.now() - loadedAt);
+                if (remaining <= 0) {
+                    window.location.reload();
+                    return;
+                }
+                timer = setTimeout(function () { window.location.reload(); }, remaining);
+            }
+
+            // Covers tab switching (tab becomes visible after being hidden).
+            document.addEventListener('visibilitychange', function () {
+                if (!document.hidden) { scheduleReload(); }
+            });
+
+            // Covers window minimize/restore and Alt+Tab — fires even when
+            // visibilitychange does not (OS/browser dependent).
+            window.addEventListener('focus', function () { scheduleReload(); });
+
+            // Covers pages restored from the back-forward cache (bfcache).
+            window.addEventListener('pageshow', function (e) {
+                if (e.persisted) { scheduleReload(); }
+            });
+
+            // Start the countdown immediately (handles the tab staying open in the foreground).
+            scheduleReload();
+        })();
+        </script>
+        HTML;
+
+        return str_replace('</body>', $script."\n</body>", $html);
     }
 
     /**
