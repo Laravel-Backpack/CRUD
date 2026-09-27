@@ -258,7 +258,7 @@ trait FieldsProtectedMethods
      * @param  array  $field  Field definition array.
      * @return array The improved definition of that field (a better 'subfields' array)
      */
-    protected function makeSureSubfieldsHaveNecessaryAttributes($field)
+    protected function makeSureSubfieldsHaveNecessaryAttributes($field, $includeRelationFields = true)
     {
         if (! isset($field['subfields']) || ! is_array($field['subfields'])) {
             return $field;
@@ -303,7 +303,7 @@ trait FieldsProtectedMethods
 
         // when field has any of `many` relations we need to append either the pivot selector for the `ToMany` or the
         // local key for the `many` relations. Other relations don't need any special treatment when used as subfields.
-        if (isset($field['relation_type'])) {
+        if (isset($field['relation_type']) && $includeRelationFields) {
             switch ($field['relation_type']) {
                 case 'MorphToMany':
                 case 'BelongsToMany':
