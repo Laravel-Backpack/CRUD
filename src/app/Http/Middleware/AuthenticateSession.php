@@ -39,14 +39,14 @@ class AuthenticateSession extends LaravelAuthenticateSession
      */
     public function handle($request, Closure $next)
     {
-        if (! $request->hasSession() || ! $this->user) {
+        if (! $request->hasSession() || ! $this->user || ! $this->user->getAuthPassword()) {
             return $next($request);
         }
 
         if ($this->guard()->viaRemember()) {
             $passwordHash = explode('|', $request->cookies->get($this->guard()->getRecallerName()))[2] ?? null;
 
-            if (! $passwordHash || $passwordHash != $this->user->getAuthPassword()) {
+            if (! $passwordHash || ! $this->validatePasswordHash($this->user->getAuthPassword(), $passwordHash)) {
                 $this->logout($request);
             }
         }
@@ -55,7 +55,7 @@ class AuthenticateSession extends LaravelAuthenticateSession
             $this->storePasswordHashInSession($request);
         }
 
-        if ($request->session()->get('password_hash_'.backpack_guard_name()) !== $this->user->getAuthPassword()) {
+        if (! $this->validatePasswordHash($this->user->getAuthPassword(), $request->session()->get('password_hash_'.backpack_guard_name()))) {
             $this->logout($request);
         }
 
@@ -79,8 +79,38 @@ class AuthenticateSession extends LaravelAuthenticateSession
         }
 
         $request->session()->put([
-            'password_hash_'.backpack_guard_name() => $this->user->getAuthPassword(),
+            'password_hash_'.backpack_guard_name() => $this->hashPasswordForCookie($this->user->getAuthPassword()),
         ]);
+    }
+
+    /**
+     * Validate the password hash against the value stored in the session or "remember me" cookie.
+     * Laravel 12.45+ stores an HMAC of the password hash, before it stored the hash itself.
+     *
+     * @param  string  $passwordHash
+     * @param  string  $storedValue
+     * @return bool
+     */
+    protected function validatePasswordHash($passwordHash, $storedValue)
+    {
+        return hash_equals($this->hashPasswordForCookie($passwordHash), $storedValue)
+            || hash_equals($passwordHash, $storedValue);
+    }
+
+    /**
+     * Get the password hash as Laravel stores it in the session and "remember me" cookie,
+     * an HMAC of it since Laravel 12.45, or the hash itself on older versions.
+     *
+     * @param  string  $passwordHash
+     * @return string
+     */
+    protected function hashPasswordForCookie($passwordHash)
+    {
+        $guard = $this->auth->guard(backpack_guard_name());
+
+        return method_exists($guard, 'hashPasswordForCookie')
+            ? $guard->hashPasswordForCookie($passwordHash)
+            : $passwordHash;
     }
 
     /**

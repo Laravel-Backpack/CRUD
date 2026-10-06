@@ -102,6 +102,11 @@ class ResetPasswordController extends Controller
         // middleware is being used.
         backpack_auth()->logoutOtherDevices($request->input('password'));
 
+        // Laravel stores the password hash in the session when logging in, but
+        // logging out the other devices has just changed it, so we forget it
+        // and let the AuthenticateSession middleware store the new one.
+        $request->session()->forget('password_hash_'.backpack_guard_name());
+
         // If the password was successfully reset, we will redirect the user back to
         // the application's home authenticated view. If there is an error we can
         // redirect them back to where they came from with their error message.
