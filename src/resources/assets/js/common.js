@@ -1,7 +1,8 @@
-// Ajax calls should always have the CSRF token attached to them, otherwise they won't work
+// Third-party jQuery plugins (select2, jQuery UI autocomplete) still use $.ajax() internally.
+// Keep this global CSRF header until jQuery is fully removed as a dependency.
 $.ajaxSetup({
     headers: {
-        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
     }
 });
 

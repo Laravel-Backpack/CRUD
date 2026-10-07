@@ -40,74 +40,74 @@
 
     // this function checks if form is valid.
     function checkFormValidity(form) {
-        // the condition checks if `checkValidity` is defined in the form (browser compatibility)
-        if (form[0].checkValidity) {
-            return form[0].checkValidity();
+        var formEl = form.length !== undefined ? form[0] : form;
+        if (formEl && formEl.checkValidity) {
+            return formEl.checkValidity();
         }
         return false;
     }
 
     // this function checks if any of the inputs has errors and report them on page.
-    // we use it to report the errors after form validation fails and making the error fields visible
     function reportValidity(form) {
-        // the condition checks if `reportValidity` is defined in the form (browser compatibility)
-        if (form[0].reportValidity) {
+        var formEl = form.length !== undefined ? form[0] : form;
+        if (formEl && formEl.reportValidity) {
             // hide the save actions drop down if open
-            form.find('.dropdown-menu').removeClass('show');
-            // validate and display form errors
-            form[0].reportValidity();
+            formEl.querySelector('.dropdown-menu')?.classList.remove('show');
+            formEl.reportValidity();
         }
     }
 
     function changeTabIfNeededAndDisplayErrors(form) {
-        // we get the first erroed field
-        var $firstErrorField = form.find(":invalid").first();
-        // we find the closest tab
-        var $closestTab = $($firstErrorField).closest('.tab-pane');
-        // if we found the tab we will change to that tab before reporting validity of form
-        if($closestTab.length) {
-            var id = $closestTab.attr('id');
-                // switch tabs
-                $('.nav a[href="#' + id + '"]').tab('show');
+        var formEl = form.length !== undefined ? form[0] : form;
+        // we get the first invalid field
+        var firstErrorField = formEl.querySelector(':invalid');
+        if (firstErrorField) {
+            // we find the closest tab
+            var closestTab = firstErrorField.closest('.tab-pane');
+            // if we found the tab we will change to that tab before reporting validity of form
+            if(closestTab) {
+                var id = closestTab.getAttribute('id');
+                // switch tabs using Bootstrap API
+                var tabTrigger = document.querySelector('.nav a[href="#' + id + '"]');
+                if (tabTrigger) {
+                    bootstrap.Tab.getOrCreateInstance(tabTrigger).show();
+                }
+            }
         }
         reportValidity(form);
     }
 
     // make all submit buttons trigger HTML5 validation
-    jQuery(document).ready(function($) {
-        // Find all save actions buttons and attach handlers to each one individually
-        $('.saveActions').each(function() {
-            var saveActionsContainer = $(this);
+    document.addEventListener('DOMContentLoaded', function() {
+        // Find all save actions containers and attach handlers to each one
+        document.querySelectorAll('.saveActions').forEach(function(saveActionsContainer) {
             var form = saveActionsContainer.closest('form');
-            var saveActionField = form.find('[name="_save_action"]');
-            var defaultSubmitButton = form.find(':submit').first();
-            
+            var saveActionField = form.querySelector('[name="_save_action"]');
+            var defaultSubmitButton = form.querySelector('button[type=submit], input[type=submit]');
+
             // Handle the main submit button (default save action)
-            defaultSubmitButton.on('click', function(e) {
-                e.preventDefault();
-                var $saveAction = $(this).find('span:last');
-                
-                // if form is valid just submit it
-                if(checkFormValidity(form)) {
-                    saveActionField.val($saveAction.attr('data-value'));
-                    form[0].requestSubmit();
-                } else {
-                    // navigate to the tab where the first error happens
-                    changeTabIfNeededAndDisplayErrors(form);
-                }
-            });
+            if (defaultSubmitButton) {
+                defaultSubmitButton.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    var saveActionSpan = this.querySelector('span:last-child');
+                    
+                    if(checkFormValidity(form)) {
+                        saveActionField.value = saveActionSpan.getAttribute('data-value');
+                        form.requestSubmit();
+                    } else {
+                        changeTabIfNeededAndDisplayErrors(form);
+                    }
+                });
+            }
 
             // Handle the dropdown save actions
-            saveActionsContainer.find('.dropdown-item').each(function() {
-                $(this).click(function(e) {
-                    // we check if form is valid
+            saveActionsContainer.querySelectorAll('.dropdown-item').forEach(function(dropdownItem) {
+                dropdownItem.addEventListener('click', function(e) {
                     if (checkFormValidity(form)) {
-                        // if everything is validated we proceed with the submission
-                        var saveAction = $(this).data('value');
-                        saveActionField.val(saveAction);
-                        form[0].requestSubmit();
+                        var saveAction = this.getAttribute('data-value');
+                        saveActionField.value = saveAction;
+                        form.requestSubmit();
                     } else {
-                        // navigate to the tab where the first error happens
                         changeTabIfNeededAndDisplayErrors(form);
                     }
                     e.stopPropagation();
@@ -143,10 +143,16 @@
             dangerMode: true,
         }).then((value) => {
             if (value) {
-                $.ajax({
-                    url: '{{ url($crud->route.'/'.$entry->getKey()) }}',
-                    type: 'DELETE',
-                    success: function(result) {
+                fetch('{{ url($crud->route.'/'.$entry->getKey()) }}', {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf_token"]')?.getAttribute('content') || '',
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                })
+                .then(response => response.json())
+                .then(result => {
                         if (result !== '1') {
                             // if the result is an array, it means
                             // we have notification bubbles to show
@@ -185,8 +191,9 @@
                         setTimeout(function () {
                             window.location.href = '{{ is_bool($crud->get('update.showDeleteButton')) ? url($crud->route) : (string) $crud->get('update.showDeleteButton') }}';
                         }, 1000);
-                    },
-                    error: function() {
+                    })
+                    .catch(error => {
+                        console.log(error);
                         // Show an alert with the result
                         swal({
                             title: "{!! trans('backpack::crud.delete_confirmation_not_title') !!}",
@@ -195,8 +202,7 @@
                             timer: 4000,
                             buttons: false,
                         });
-                    }
-                });
+                    });
             }
         });
     }

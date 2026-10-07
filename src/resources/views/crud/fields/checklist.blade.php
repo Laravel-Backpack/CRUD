@@ -73,54 +73,59 @@
         @bassetBlock('backpack/crud/fields/checklist-field.js')
         <script>
             function bpFieldInitChecklist(element) {
-                let hidden_input = element.find('input[type=hidden]');
-                let selected_options = JSON.parse(hidden_input.val() || '[]');
-                let container = element.find('.row.checklist-options-container');
-                let checkboxes = container.find(':input[type=checkbox]');                
-                let showSelectAll = hidden_input.data('show-select-all');
-                let selectAllAnchor = element.find('.checklist-select-all-inputs').find('a.select-all-inputs');
-                let unselectAllAnchor = element.find('.checklist-select-all-inputs').find('a.unselect-all-inputs');
+                let wrapper = element[0];
+                let hidden_input = wrapper.querySelector('input[type=hidden]');
+                let selected_options = JSON.parse(hidden_input.value || '[]');
+                let container = wrapper.querySelector('.row.checklist-options-container');
+                let checkboxes = container.querySelectorAll('input[type=checkbox]');
+                let showSelectAll = hidden_input.dataset.showSelectAll === 'true';
+                let selectAllAnchor = wrapper.querySelector('.checklist-select-all-inputs a.select-all-inputs');
+                let unselectAllAnchor = wrapper.querySelector('.checklist-select-all-inputs a.unselect-all-inputs');
 
                 // set the default checked/unchecked states on checklist options
-                checkboxes.each(function(key, option) {
-                  var id = $(this).val();
+                checkboxes.forEach(function(option) {
+                  var id = option.value;
 
                   if (selected_options.map(String).includes(id)) {
-                    $(this).prop('checked', 'checked');
+                    option.checked = true;
                   } else {
-                    $(this).prop('checked', false);
+                    option.checked = false;
                   }
                 });
 
                 // when a checkbox is clicked
                 // set the correct value on the hidden input
-                checkboxes.click(function() {
-                  var newValue = [];
+                checkboxes.forEach(function(checkbox) {
+                    checkbox.addEventListener('click', function() {
+                        var newValue = [];
 
-                  checkboxes.each(function() {
-                    if ($(this).is(':checked')) {
-                      var id = $(this).val();
-                      newValue.push(id);
-                    }
-                  });
+                        checkboxes.forEach(function(cb) {
+                            if (cb.checked) {
+                                newValue.push(cb.value);
+                            }
+                        });
 
-                  hidden_input.val(JSON.stringify(newValue)).trigger('change');
+                        hidden_input.value = JSON.stringify(newValue);
+                        hidden_input.dispatchEvent(new Event('change'));
 
-                  toggleAllSelectAnchor();
+                        toggleAllSelectAnchor();
+                    });
                 });
                   
                 let selectAll = function() {
-                  checkboxes.prop('checked', 'checked');
-                  hidden_input.val(JSON.stringify(checkboxes.map(function() { return $(this).val(); }).get())).trigger('change');
-                  selectAllAnchor.toggleClass('d-none');
-                  unselectAllAnchor.toggleClass('d-none');
+                  checkboxes.forEach(function(cb) { cb.checked = true; });
+                  hidden_input.value = JSON.stringify(Array.from(checkboxes).map(function(cb) { return cb.value; }));
+                  hidden_input.dispatchEvent(new Event('change'));
+                  selectAllAnchor.classList.toggle('d-none');
+                  unselectAllAnchor.classList.toggle('d-none');
                 };
 
                 let unselectAll = function() {
-                  checkboxes.prop('checked', false);
-                  hidden_input.val(JSON.stringify([])).trigger('change');
-                  selectAllAnchor.toggleClass('d-none');
-                  unselectAllAnchor.toggleClass('d-none');
+                  checkboxes.forEach(function(cb) { cb.checked = false; });
+                  hidden_input.value = JSON.stringify([]);
+                  hidden_input.dispatchEvent(new Event('change'));
+                  selectAllAnchor.classList.toggle('d-none');
+                  unselectAllAnchor.classList.toggle('d-none');
                 };
 
                 let toggleAllSelectAnchor = function() {
@@ -129,24 +134,24 @@
                   }
 
                   if (checkboxes.length === selected_options.length) {
-                    selectAllAnchor.toggleClass('d-none');
-                    unselectAllAnchor.toggleClass('d-none');
+                    selectAllAnchor.classList.toggle('d-none');
+                    unselectAllAnchor.classList.toggle('d-none');
                   }
                 };
 
                 if(showSelectAll) {
-                  selectAllAnchor.click(selectAll);
-                  unselectAllAnchor.click(unselectAll);
+                  selectAllAnchor.addEventListener('click', selectAll);
+                  unselectAllAnchor.addEventListener('click', unselectAll);
 
                   toggleAllSelectAnchor();
                 }
 
-                hidden_input.on('CrudField:disable', function(e) {
-                      checkboxes.attr('disabled', 'disabled');
-                  });
+                hidden_input.addEventListener('CrudField:disable', function(e) {
+                    checkboxes.forEach(function(cb) { cb.setAttribute('disabled', 'disabled'); });
+                });
 
-                hidden_input.on('CrudField:enable', function(e) {
-                    checkboxes.removeAttr('disabled');
+                hidden_input.addEventListener('CrudField:enable', function(e) {
+                    checkboxes.forEach(function(cb) { cb.removeAttribute('disabled'); });
                 });
 
             }

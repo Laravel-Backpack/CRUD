@@ -165,77 +165,126 @@
     	@bassetBlock('backpack/crud/fields/upload-multiple-field.js')
         <script>
         	function bpFieldInitUploadMultipleElement(element) {
-        		var fieldName = element.attr('data-field-name');
-        		var clearFileButton = element.find(".file-clear-button");
-        		var fileInput = element.find("input[type=file]");
-        		var inputLabel = element.find("label.backstrap-file-label");
-				let existingFiles = fileInput.parent().siblings('.existing-file');
+        		var wrapper = element[0];
+        		var fieldName = wrapper.getAttribute('data-field-name');
+        		var clearFileButtons = wrapper.querySelectorAll('.file-clear-button');
+        		var fileInput = wrapper.querySelector('input[type=file]');
+        		var inputLabel = wrapper.querySelector('label.backstrap-file-label');
+				var existingFiles = fileInput.parentElement.querySelector('.existing-file') || 
+				                     Array.from(fileInput.parentElement.children).find(function(el) { return el.matches('.existing-file'); });
+				var isFieldDisabled = false;
 
-				if(fileInput.attr('data-row-number')) {
+				// Helper: get existing files container (may be dynamically created)
+				var getExistingFiles = function() {
+					return wrapper.querySelector('.existing-file');
+				};
+
+				if(fileInput.getAttribute('data-row-number')) {
 					let selectedFiles = [];
-					existingFiles.find('a.file-clear-button').each(function(item) {
-						selectedFiles.push($(this).data('filename'));
-					});
+					if (existingFiles) {
+						existingFiles.querySelectorAll('a.file-clear-button').forEach(function(btn) {
+							selectedFiles.push(btn.dataset.filename);
+						});
+					}
 
-					$('<input type="hidden" class="order-uploads" name="_order_'+fieldName+'" value="'+selectedFiles+'">').insertAfter(fileInput);
+					var orderInput = document.createElement('input');
+					orderInput.type = 'hidden';
+					orderInput.className = 'order-uploads';
+					orderInput.name = '_order_'+fieldName;
+					orderInput.value = selectedFiles.join(',');
+					fileInput.insertAdjacentElement('afterend', orderInput);
 
 					var observer = new MutationObserver(function(mutations) {
 						mutations.forEach(function(mutation) {
 							if(mutation.attributeName == 'data-row-number') {
-								let field = $(mutation.target);
+								let target = mutation.target;
+								var baseName = target.getAttribute('name').slice(0, -2);
 
-								fieldOrder = field.siblings('input[name="'+mutation.target.getAttribute('name').slice(0,-2)+'"]')
-								fieldOrder.attr('name', '_order_'+mutation.target.getAttribute('name').slice(0,-2));
-								let selectedFiles = [];
-								fieldOrder.parent().siblings('.existing-file').find('a.file-clear-button').each(function(item) {
-									selectedFiles.push($(this).data('filename'));
+								// Find the order input sibling
+								var fieldOrder = null;
+								Array.from(target.parentElement.children).forEach(function(child) {
+									if (child.name === baseName && child !== target) {
+										fieldOrder = child;
+									}
 								});
-								fieldOrder.val(selectedFiles);
+								if (fieldOrder) {
+									fieldOrder.setAttribute('name', '_order_'+baseName);
+									let selectedFiles = [];
+									var ef = getExistingFiles();
+									if (ef) {
+										ef.querySelectorAll('a.file-clear-button').forEach(function(btn) {
+											selectedFiles.push(btn.dataset.filename);
+										});
+									}
+									fieldOrder.value = selectedFiles.join(',');
+								}
 
-								fieldClear = field.siblings('.clear-files');
-								fieldClear.attr('name', 'clear_'+mutation.target.getAttribute('name'));
+								// Find the clear-files sibling
+								var fieldClear = target.parentElement.querySelector('.clear-files');
+								if (fieldClear) {
+									fieldClear.setAttribute('name', 'clear_'+target.getAttribute('name'));
+								}
 							}
 						});
 					});
 
-					observer.observe(fileInput[0], {
+					observer.observe(fileInput, {
 						attributes: true,
 					});
 				}
 
-		        clearFileButton.click(function(e) {
-		        	e.preventDefault();
-		        	var container = $(this).parent().parent();
-		        	var parent = $(this).parent();
-		        	// remove the filename and button
-		        	parent.remove();
+				// Wire up clear buttons
+		        clearFileButtons.forEach(function(btn) {
+		        	btn.addEventListener('click', function(e) {
+		        		if (isFieldDisabled) return;
+		        		e.preventDefault();
+		        		var filePreview = this.closest('.file-preview');
+		        		var container = filePreview ? filePreview.parentElement : this.parentElement.parentElement;
+		        		// remove the filename and button
+		        		if (filePreview) {
+		        			filePreview.remove();
+		        		} else {
+		        			this.parentElement.remove();
+		        		}
 
-					if(fileInput.attr('data-row-number')) {
-						let selectedFiles = [];
-						fileInput.parent().siblings('.existing-file').find('a.file-clear-button').each(function(item) {
-							selectedFiles.push($(this).data('filename'));
-						});
-						if(selectedFiles.length > 0) {
-							fileInput.siblings('.order-uploads').val(selectedFiles);
-						} else {
-							fileInput.siblings('.order-uploads').remove();
+						if(fileInput.getAttribute('data-row-number')) {
+							let selectedFiles = [];
+							var ef = getExistingFiles();
+							if (ef) {
+								ef.querySelectorAll('a.file-clear-button').forEach(function(b) {
+									selectedFiles.push(b.dataset.filename);
+								});
+							}
+							var orderUploads = fileInput.parentElement.querySelector('.order-uploads');
+							if (orderUploads) {
+								if(selectedFiles.length > 0) {
+									orderUploads.value = selectedFiles.join(',');
+								} else {
+									orderUploads.remove();
+								}
+							}
 						}
-					}
-		        	// if the file container is empty, remove it
-		        	if ($.trim(container.html())=='') {
-		        		container.remove();
-		        	}
-		        	$("<input type='hidden' class='clear-files' name='clear_"+fieldName+"[]' value='"+$(this).data('filename')+"'>").insertAfter(fileInput);
+		        		// if the file container is empty, remove it
+		        		if (container && container.innerHTML.trim() === '') {
+		        			container.remove();
+		        		}
+		        		var clearInput = document.createElement('input');
+		        		clearInput.type = 'hidden';
+		        		clearInput.className = 'clear-files';
+		        		clearInput.name = 'clear_'+fieldName+'[]';
+		        		clearInput.value = this.dataset.filename;
+		        		fileInput.insertAdjacentElement('afterend', clearInput);
+		        	});
 		        });
 
 		        // accumulate files across multiple picks (browser replaces FileList before change fires)
 		        var accumulatedDt = new DataTransfer();
 
-		        fileInput.change(function() {
-					let existingFiles = fileInput.parent().siblings('.existing-file');
+		        fileInput.addEventListener('change', function() {
+					let existingFilesEl = getExistingFiles();
 
 					// capture newly picked files first (fileInput.files is already replaced by browser)
-					let newlyPicked = Array.from($(this)[0].files);
+					let newlyPicked = Array.from(this.files);
 
 					// add to accumulated DataTransfer, skip duplicates by name
 					newlyPicked.forEach(function(file) {
@@ -246,88 +295,110 @@
 					});
 
 					// assign the full accumulated list back to the input
-					fileInput[0].files = accumulatedDt.files;
+					fileInput.files = accumulatedDt.files;
 
 					let allFiles = Array.from(accumulatedDt.files).map(function(file) {
 						return {name: file.name, type: file.type};
 					});
 
-					element.find('input').first().val(JSON.stringify(allFiles)).trigger('change');
+					// update the first hidden input
+					var firstHidden = wrapper.querySelector('input[type=hidden]');
+					if (firstHidden) {
+						firstHidden.value = JSON.stringify(allFiles);
+						firstHidden.dispatchEvent(new Event('change'));
+					}
 
 					// create badges only for the newly picked files
-					let files = '';
-					newlyPicked.forEach(file => {
-						files += '<span class="badge mt-1 mb-1 text-bg-secondary badge-primary new-file-badge" data-filename="'+file.name+'">'
+					var filesHtml = '';
+					newlyPicked.forEach(function(file) {
+						filesHtml += '<span class="badge mt-1 mb-1 text-bg-secondary badge-primary new-file-badge" data-filename="'+file.name+'">'
 						       + file.name
 						       + ' <a href="#" class="new-file-remove" data-filename="'+file.name+'" style="color:inherit;margin-left:4px;text-decoration:none;">&times;</a>'
 						       + '</span> ';
 					});
 
 					// if existing files container is not on the page, create it
-					if(existingFiles.length === 0) {
-						existingFiles = $('<div class="well well-sm existing-file mb-2"></div>');
-						existingFiles.insertBefore(element.find('input[type=hidden]').first());
-						existingFiles.html(files);
-					}else {
-						existingFiles.append(files);
+					if(!existingFilesEl) {
+						existingFilesEl = document.createElement('div');
+						existingFilesEl.className = 'well well-sm existing-file mb-2';
+						var firstInput = wrapper.querySelector('input[type=hidden]');
+						if (firstInput) {
+							firstInput.insertAdjacentElement('beforebegin', existingFilesEl);
+						} else {
+							wrapper.insertBefore(existingFilesEl, wrapper.firstChild);
+						}
+						existingFilesEl.innerHTML = filesHtml;
+					} else {
+						existingFilesEl.insertAdjacentHTML('beforeend', filesHtml);
 					}
+
+					// Wire up remove buttons on newly created badges
+					existingFilesEl.querySelectorAll('.new-file-remove').forEach(function(removeBtn) {
+						removeBtn.addEventListener('click', function(e) {
+							e.preventDefault();
+							var filenameToRemove = this.dataset.filename;
+
+							// rebuild both accumulatedDt and FileList without the removed file
+							var dt = new DataTransfer();
+							Array.from(accumulatedDt.files).forEach(function(file) {
+								if (file.name !== filenameToRemove) {
+									dt.items.add(file);
+								}
+							});
+							accumulatedDt = dt;
+							fileInput.files = accumulatedDt.files;
+
+							// remove the badge from the DOM
+							this.closest('.new-file-badge').remove();
+
+							// remove the existing-file container if now empty
+							var efEl = getExistingFiles();
+							if (efEl && efEl.innerHTML.trim() === '') {
+								efEl.remove();
+							}
+
+							// update the hidden input with remaining files
+							var remainingFiles = Array.from(fileInput.files).map(function(file) {
+								return {name: file.name, type: file.type};
+							});
+							var fh = wrapper.querySelector('input[type=hidden]');
+							if (fh) {
+								fh.value = JSON.stringify(remainingFiles);
+								fh.dispatchEvent(new Event('change'));
+							}
+						});
+					});
 
 		        	// remove the hidden input, so that the setXAttribute method is no longer triggered
-					$(this).next("input[type=hidden]:not([name='clear_"+fieldName+"[]']):not([name='_order_"+fieldName+"'])").remove();
-		        });
-				// handle removal of newly selected (not yet uploaded) files
-				element.on('click', '.new-file-remove', function(e) {
-					e.preventDefault();
-					var filenameToRemove = $(this).data('filename');
-
-					// rebuild both accumulatedDt and FileList without the removed file
-					var dt = new DataTransfer();
-					Array.from(accumulatedDt.files).forEach(function(file) {
-						if (file.name !== filenameToRemove) {
-							dt.items.add(file);
+					var nextHidden = this.nextElementSibling;
+					while (nextHidden) {
+						if (nextHidden.type === 'hidden' && 
+						    nextHidden.name !== 'clear_'+fieldName+'[]' && 
+						    nextHidden.name !== '_order_'+fieldName) {
+							var toRemove = nextHidden;
+							nextHidden = nextHidden.nextElementSibling;
+							toRemove.remove();
+						} else {
+							nextHidden = nextHidden.nextElementSibling;
 						}
-					});
-					accumulatedDt = dt;
-					fileInput[0].files = accumulatedDt.files;
-
-					// remove the badge from the DOM
-					$(this).closest('.new-file-badge').remove();
-
-					// remove the existing-file container if now empty
-					var existingFilesEl = fileInput.parent().siblings('.existing-file');
-					if (existingFilesEl.length && $.trim(existingFilesEl.html()) === '') {
-						existingFilesEl.remove();
 					}
+		        });
 
-					// update the hidden input with remaining files
-					var remainingFiles = Array.from(fileInput[0].files).map(function(file) {
-						return {name: file.name, type: file.type};
+				// CrudField disable/enable — listen on the first hidden input (where CrudField dispatches events)
+				var primaryInput = wrapper.querySelector('input[type=hidden]');
+				if (primaryInput) {
+					primaryInput.addEventListener('CrudField:disable', function(e) {
+						isFieldDisabled = true;
+						var bpInput = wrapper.querySelector('.backstrap-file input');
+						if (bpInput) bpInput.disabled = true;
 					});
-					element.find('input').first().val(JSON.stringify(remainingFiles)).trigger('change');
-				});
-				element.find('input').on('CrudField:disable', function(e) {
-					element.children('.backstrap-file').find('input').prop('disabled', 'disabled');
-					element.children('.existing-file').find('.file-preview').each(function(i, el) {
 
-						let $deleteButton = $(el).find('a.file-clear-button');
-
-						if($deleteButton.length > 0) {
-							$deleteButton.on('click.prevent', function(e) {
-								e.stopImmediatePropagation();
-								return false;
-							});
-							// make the event we just registered, the first to be triggered
-							$._data($deleteButton.get(0), "events").click.reverse();
-						}
+					primaryInput.addEventListener('CrudField:enable', function(e) {
+						isFieldDisabled = false;
+						var bpInput = wrapper.querySelector('.backstrap-file input');
+						if (bpInput) bpInput.removeAttribute('disabled');
 					});
-				});
-
-				element.on('CrudField:enable', function(e) {
-					element.children('.backstrap-file').find('input').removeAttr('disabled');
-					element.children('.existing-file').find('.file-preview').each(function(i, el) {
-						$(el).find('a.file-clear-button').unbind('click.prevent');
-					});
-				});
+				}
         	}
         </script>
         @endBassetBlock

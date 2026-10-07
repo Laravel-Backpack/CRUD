@@ -69,13 +69,13 @@
                 ? element.setAttribute('checked', true)
                 : element.removeAttribute('checked');
 
-            // JS Field API
-            $(hiddenElement).on('CrudField:disable', () => element.setAttribute('disabled', true));
-            $(hiddenElement).on('CrudField:enable', () => element.removeAttribute('disabled'));
+            // JS Field API — uses native events dispatched by CrudField.enable()/disable()
+            hiddenElement.addEventListener('CrudField:disable', () => element.setAttribute('disabled', true));
+            hiddenElement.addEventListener('CrudField:enable', () => element.removeAttribute('disabled'));
 
             // when the checkbox is clicked
             // set the correct value on the hidden input
-            $element.on('change', () => {
+            element.addEventListener('change', () => {
                 hiddenElement.value = element.checked ? 1 : 0;
                 hiddenElement.dispatchEvent(new Event('change'));
             });

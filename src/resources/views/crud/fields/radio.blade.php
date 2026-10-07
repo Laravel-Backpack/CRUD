@@ -58,40 +58,48 @@
     @bassetBlock('backpack/crud/fields/radio-field.js')
     <script>
         function bpFieldInitRadioElement(element) {
-            var hiddenInput = element.find('input[type=hidden]');
-            var value = hiddenInput.val();
+            var wrapper = element[0];
+            var hiddenInput = wrapper.querySelector('input[type=hidden]');
+            var value = hiddenInput.value;
             var id = 'radio_'+Math.floor(Math.random() * 1000000);
+            var radioInputs = wrapper.querySelectorAll('.form-check input[type=radio]');
 
             // set unique IDs so that labels are correlated with inputs
-            element.find('.form-check input[type=radio]').each(function(index, item) {
-                $(this).attr('id', id+index);
-                $(this).siblings('label').attr('for', id+index);
+            radioInputs.forEach(function(item, index) {
+                item.setAttribute('id', id+index);
+                var label = item.closest('.form-check')?.querySelector('label');
+                if (label) label.setAttribute('for', id+index);
             });
 
-            hiddenInput.on('CrudField:disable', function(e) {
-                element.find('.form-check input[type=radio]').each(function(index, item) {
-                    $(this).prop('disabled', true);
+            hiddenInput.addEventListener('CrudField:disable', function(e) {
+                radioInputs.forEach(function(item) {
+                    item.disabled = true;
                 });
             });
 
-            hiddenInput.on('CrudField:enable', function(e) {
-                element.find('.form-check input[type=radio]').each(function(index, item) {
-                    $(this).removeAttr('disabled');
+            hiddenInput.addEventListener('CrudField:enable', function(e) {
+                radioInputs.forEach(function(item) {
+                    item.removeAttribute('disabled');
                 });
             });
 
             // when one radio input is selected
-            element.find('input[type=radio]').change(function(event) {
-                // the value gets updated in the hidden input and the 'change' event is fired
-                hiddenInput.val($(this).val()).change();
-                // all other radios get unchecked
-                element.find('input[type=radio]').not(this).prop('checked', false);
+            radioInputs.forEach(function(radio) {
+                radio.addEventListener('change', function(event) {
+                    // the value gets updated in the hidden input and the 'change' event is fired
+                    hiddenInput.value = event.target.value;
+                    hiddenInput.dispatchEvent(new Event('change'));
+                    // all other radios get unchecked
+                    radioInputs.forEach(function(r) {
+                        if (r !== event.target) r.checked = false;
+                    });
+                });
             });
 
-            // select the right radios
-            element.find('input[type=radio]').filter(function() {
-                return $(this).val() === value;
-            }).prop('checked', true);
+            // select the right radio
+            radioInputs.forEach(function(r) {
+                if (r.value === value) r.checked = true;
+            });
         }
     </script>
     @endBassetBlock

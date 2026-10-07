@@ -161,24 +161,26 @@
                     const formIdInput = currentFormEl ? currentFormEl.querySelector('input[name="_form_id"]') : null;
                     const theFormId = formIdInput ? formIdInput.value : ('{{ $formId ?? 'crudForm' }}');
                     const selector = `#form_tabs[data-form-id="${theFormId}"] a[tab_name="${focusFieldTab}"]`;
-                    $(selector).tab('show');
+                    var tabEl = document.querySelector(selector);
+                    if (tabEl) { bootstrap.Tab.getOrCreateInstance(tabEl).show(); }
                   } catch (e) {
                     // fallback to global selector
-                    $('#form_tabs a[tab_name="'+focusFieldTab+'"]').tab('show');
+                    var tabEl = document.querySelector('#form_tabs a[tab_name="'+focusFieldTab+'"]');
+                    if (tabEl) { bootstrap.Tab.getOrCreateInstance(tabEl).show(); }
                   }
                 }
-            focusField = $('[name="{{ $focusFieldName }}"]').eq(0);
+            focusField = document.querySelector('[name="{{ $focusFieldName }}"]');
         @else
-            focusField = getFirstFocusableField($('form'));
+            focusField = getFirstFocusableField(document.querySelector('form'));
         @endif
-        if(focusField.length !== 0) {
-          const fieldOffset = focusField.offset().top;
-          const scrollTolerance = $(window).height() / 2;
+        if(focusField) {
+          const fieldOffset = focusField.getBoundingClientRect().top + window.scrollY;
+          const scrollTolerance = window.innerHeight / 2;
 
           triggerFocusOnFirstInputField(focusField);
 
           if( fieldOffset > scrollTolerance ){
-              $('html, body').animate({scrollTop: (fieldOffset - 30)});
+              window.scrollTo({ top: fieldOffset - 30, behavior: 'smooth' });
           }
         }
       @endif
@@ -195,102 +197,111 @@
           var firstErrorField = null;
           var firstErrorTab = null;
           
-          $.each(errors, function(bag, errorMessages){
-            $.each(errorMessages, function (inputName, messages) {
+          Object.entries(errors).forEach(function(bagEntry) {
+            var errorMessages = bagEntry[1];
+            Object.entries(errorMessages).forEach(function(msgEntry) {
+              var inputName = msgEntry[0];
+              var messages = msgEntry[1];
               var normalizedProperty = inputName.split('.').map(function(item, index){
                       return index === 0 ? item : '['+item+']';
                   }).join('');
 
               // Only select fields within the current form
-              var field = $('#' + currentFormId + ' [name="' + normalizedProperty + '[]"]').length ?
-                          $('#' + currentFormId + ' [name="' + normalizedProperty + '[]"]') :
-                          $('#' + currentFormId + ' [name="' + normalizedProperty + '"]'),
-                          container = field.closest('.form-group');
+              var field = document.querySelector('#' + currentFormId + ' [name="' + normalizedProperty + '[]"]') ||
+                          document.querySelector('#' + currentFormId + ' [name="' + normalizedProperty + '"]');
+              if (!field) return;
+              var container = field.closest('.form-group');
+              if (!container) return;
 
               // Store the first error field for focusing
-              if (firstErrorField === null && field.length > 0) {
-                firstErrorField = field.first();
+              if (firstErrorField === null) {
+                firstErrorField = field;
                 @if ($crud->tabsEnabled())
-                var tab_container = $(container).closest('[role="tabpanel"]');
-                if (tab_container.length) {
-                  firstErrorTab = tab_container.attr('id');
+                var tab_container = container.closest('[role="tabpanel"]');
+                if (tab_container) {
+                  firstErrorTab = tab_container.getAttribute('id');
                 }
                 @endif
               }
 
               // iterate the inputs to add invalid classes to fields and red text to the field container.
-              container.find('input, textarea, select').each(function() {
-                  let containerField = $(this);
-                  // add the invalid class to the field.
-                  containerField.addClass('is-invalid');
-                  // get field container
-                  let container = containerField.closest('.form-group');
-
-                  // TODO: `repeatable-group` should be deprecated in future version as a BC in favor of a more generic class `no-error-display`
-                  if(!container.hasClass('repeatable-group') && !container.hasClass('no-error-display')){
-                    container.addClass('text-danger');
+              container.querySelectorAll('input, textarea, select').forEach(function(containerField) {
+                  containerField.classList.add('is-invalid');
+                  let fieldContainer = containerField.closest('.form-group');
+                  if (fieldContainer && !fieldContainer.classList.contains('repeatable-group') && !fieldContainer.classList.contains('no-error-display')) {
+                    fieldContainer.classList.add('text-danger');
                   }
               });
 
-              $.each(messages, function(key, msg){
-                  // highlight the input that errored
-                  var row = $('<div class="invalid-feedback d-block">' + msg + '</div>');
+              messages.forEach(function(msg) {
+                  var row = document.createElement('div');
+                  row.className = 'invalid-feedback d-block';
+                  row.textContent = msg;
 
-                  // TODO: `repeatable-group` should be deprecated in future version as a BC in favor of a more generic class `no-error-display`
-                  if(!container.hasClass('repeatable-group') && !container.hasClass('no-error-display')){
-                    row.appendTo(container);
+                  if(!container.classList.contains('repeatable-group') && !container.classList.contains('no-error-display')){
+                    container.append(row);
                   }
-
 
                   // highlight its parent tab
                   @if ($crud->tabsEnabled())
-                    var tab_id = $(container).closest('[role="tabpanel"]').attr('id');
-                    try {
-                      $('#form_tabs[data-form-id="' + (typeof currentFormId !== 'undefined' ? currentFormId : '{{ $formId ?? 'crudForm' }}') + '"] [aria-controls="'+tab_id+'"]').addClass('text-danger');
-                    } catch (e) {
-                      $("#form_tabs [aria-controls="+tab_id+"]").addClass('text-danger');
-                    }
-                            @endif
-                        });
-                      });
-                    });
-
-                    // Focus on the first error field
-                    if (firstErrorField !== null) {
-                      @if ($crud->tabsEnabled())
-                      // Switch to the tab containing the first error if needed
-                      if (firstErrorTab) {
-                        try {
-                            var selector = '#form_tabs[data-form-id="' + (typeof currentFormId !== 'undefined' ? currentFormId : '{{ $formId ?? 'crudForm' }}') + '"] .nav a[href="#' + firstErrorTab + '"]';
-                            $(selector).tab('show');
-                        } catch (e) {
-                            $('.nav a[href="#' + firstErrorTab + '"]').tab('show');
-                        }
+                    var tab_id = container.closest('[role="tabpanel"]')?.getAttribute('id');
+                    if (tab_id) {
+                      try {
+                        var tabLink = document.querySelector('#form_tabs[data-form-id="' + (typeof currentFormId !== 'undefined' ? currentFormId : '{{ $formId ?? 'crudForm' }}') + '"] [aria-controls="'+tab_id+'"]');
+                        if (tabLink) tabLink.classList.add('text-danger');
+                      } catch (e) {
+                        var tabLink = document.querySelector('#form_tabs [aria-controls="'+tab_id+'"]');
+                        if (tabLink) tabLink.classList.add('text-danger');
                       }
+                    }
+                  @endif
+              });
+            });
+          });
+
+          // Focus on the first error field
+          if (firstErrorField !== null) {
+            @if ($crud->tabsEnabled())
+            // Switch to the tab containing the first error if needed
+            if (firstErrorTab) {
+              try {
+                  var tabSelector = '#form_tabs[data-form-id="' + (typeof currentFormId !== 'undefined' ? currentFormId : '{{ $formId ?? 'crudForm' }}') + '"] .nav a[href="#' + firstErrorTab + '"]';
+                  var tabLink = document.querySelector(tabSelector);
+                  if (tabLink) { bootstrap.Tab.getOrCreateInstance(tabLink).show(); }
+              } catch (e) {
+                  var tabLink = document.querySelector('.nav a[href="#' + firstErrorTab + '"]');
+                  if (tabLink) { bootstrap.Tab.getOrCreateInstance(tabLink).show(); }
+              }
+            }
             @endif
             
             // Focus on the first error field
             setTimeout(function() {
-              const fieldOffset = firstErrorField.offset().top;
-              const scrollTolerance = $(window).height() / 2;
+              const fieldOffset = firstErrorField.getBoundingClientRect().top + window.scrollY;
+              const scrollTolerance = window.innerHeight / 2;
               
               triggerFocusOnFirstInputField(firstErrorField);
               
               if (fieldOffset > scrollTolerance) {
-                $('html, body').animate({scrollTop: (fieldOffset - 30)});
+                window.scrollTo({ top: fieldOffset - 30, behavior: 'smooth' });
               }
             }, 100);
           }
         }
       @endif
 
-      $("a[data-bs-toggle='tab']").click(function(){
-          currentTabName = $(this).attr('tab_name');
-          $("input[name='_current_tab']").val(currentTabName);
+      // Track current tab in hidden input
+      document.querySelectorAll("a[data-bs-toggle='tab']").forEach(function(tabLink) {
+          tabLink.addEventListener('click', function() {
+              var currentTabName = this.getAttribute('tab_name');
+              var currentTabInput = document.querySelector("input[name='_current_tab']");
+              if (currentTabInput) currentTabInput.value = currentTabName;
+          });
       });
 
       if (window.location.hash) {
-          $("input[name='_current_tab']").val(window.location.hash.substr(1));
+          var currentTabInput = document.querySelector("input[name='_current_tab']");
+          if (currentTabInput) currentTabInput.value = window.location.hash.substr(1);
       }
       });
     </script>
