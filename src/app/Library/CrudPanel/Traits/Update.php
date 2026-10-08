@@ -26,6 +26,9 @@ trait Update
     {
         $item = $this->getModelWithCrudPanelQuery()->findOrFail($id);
 
+        // read translatable attributes in the same locale HasTranslations::update() saves them in (eg. for slugs, model events)
+        $item = $this->setTranslationLocaleOnEntry($item, $input['_locale'] ?? app()->getLocale());
+
         [$directInputs, $relationInputs] = $this->splitInputIntoDirectAndRelations($input);
         if ($this->get('update.useDatabaseTransactions') ?? config('backpack.base.useDatabaseTransactions', false)) {
             return DB::transaction(fn () => $this->updateModelAndRelations($item, $directInputs, $relationInputs));

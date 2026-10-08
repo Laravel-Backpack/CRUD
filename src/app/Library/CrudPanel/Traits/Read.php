@@ -134,7 +134,29 @@ trait Read
      */
     public function getEntryWithoutFakes($id)
     {
-        return $this->getModelWithCrudPanelQuery()->findOrFail($id);
+        $entry = $this->getModelWithCrudPanelQuery()->findOrFail($id);
+
+        return $this->setTranslationLocaleOnEntry($entry);
+    }
+
+    /**
+     * Set the locale being edited on a translatable entry.
+     *
+     * HasTranslations::__call() does this for find() calls made directly on the model, but not
+     * for entries fetched through the CrudPanel query (a Builder), which would otherwise
+     * read their translatable attributes in the app locale.
+     *
+     * @param  \Illuminate\Database\Eloquent\Model  $entry
+     * @param  string|null  $locale  Defaults to the `_locale` in the request, or the app locale.
+     * @return \Illuminate\Database\Eloquent\Model
+     */
+    private function setTranslationLocaleOnEntry($entry, $locale = null)
+    {
+        if (method_exists($entry, 'translationEnabled') && $entry->translationEnabled()) {
+            $entry->setLocale($locale ?? $this->getRequest()->input('_locale', app()->getLocale()));
+        }
+
+        return $entry;
     }
 
     /**
