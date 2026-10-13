@@ -1,25 +1,35 @@
 @verbatim
 if (typeof window.initializeFieldsWithJavascript === 'undefined') {
     window.initializeFieldsWithJavascript = function(container) {
-        var selector;
-        if (container instanceof jQuery) {
-            selector = container;
+        // Accept: raw DOM element, jQuery object, or CSS selector string
+        // Always pass jQuery-wrapped elements to init functions for backward compatibility
+        // (many field types in PRO and other packages still expect jQuery objects)
+        var $root;
+        if (typeof container === 'string') {
+            $root = $(container);
+        } else if (container instanceof jQuery) {
+            $root = container;
+        } else if (container && container.length !== undefined && container[0]) {
+            $root = container; // already jQuery-like
+        } else if (container && typeof container.querySelectorAll === 'function') {
+            $root = $(container);
         } else {
-            selector = $(container);
+            return;
         }
+        if (!$root || $root.length === 0) return;
         
-        var fieldsToInit = selector.find("[data-init-function]").not("[data-initialized=true]");
+        var fieldsToInit = $root.find('[data-init-function]').not('[data-initialized=true]');
         
         fieldsToInit.each(function () {
-            var element = $(this);
-            var functionName = element.data('init-function');
+            var $element = $(this);
+            var functionName = $element.data('init-function') || $element.attr('data-init-function');
 
             if (typeof window[functionName] === "function") {
                 try {
-                    window[functionName](element);
-                    element.attr('data-initialized', 'true');
+                    window[functionName]($element);
+                    $element.attr('data-initialized', 'true');
                 } catch (error) {
-                    element.attr('data-initialized', 'true');
+                    $element.attr('data-initialized', 'true');
                     console.error('[FieldInit] Error initializing field with function ' + functionName + ':', error);
                 }
             }
@@ -41,26 +51,31 @@ if (!window._select2FocusFixInstalled) {
 
 /**
  * Auto-discover first focusable input
- * @param {jQuery} form
- * @return {jQuery}
+ * @param {Element|jQuery} form
+ * @return {Element|null}
  */
 function getFirstFocusableField(form) {
-    return form.find('input, select, textarea, button')
-        .not('.close')
-        .not('[disabled]')
-        .filter(':visible:first');
+    // Unwrap jQuery object (jQuery objects have a .jquery property)
+    var formEl = (form && form.jquery) ? form[0] : form;
+    if (!formEl || typeof formEl.querySelectorAll !== 'function') return null;
+    
+    var inputs = formEl.querySelectorAll('input:not(.close):not([disabled]), select:not(.close):not([disabled]), textarea:not(.close):not([disabled]), button:not(.close):not([disabled])');
+    for (var i = 0; i < inputs.length; i++) {
+        if (inputs[i].offsetParent !== null) { // visible check
+            return inputs[i];
+        }
+    }
+    return null;
 }
 
 /**
- *
- * @param {jQuery} firstField
+ * @param {Element} firstField
  */
 function triggerFocusOnFirstInputField(firstField) {
-    if (firstField.hasClass('select2-hidden-accessible')) {
+    if (firstField.classList.contains('select2-hidden-accessible')) {
         return handleFocusOnSelect2Field(firstField);
     }
-
-    firstField.trigger('focus');
+    firstField.focus();
 }
 
 /**
@@ -69,9 +84,11 @@ function triggerFocusOnFirstInputField(firstField) {
  * 3- Open select2
  *
  * @param {jQuery} firstField
+ * @jquery-dependent — select2 is a jQuery plugin
  */
 function handleFocusOnSelect2Field(firstField){
-    firstField.select2('focus');
+    // select2 is jQuery-dependent — wrap raw element
+    $(firstField).select2('focus');
 }
 
 /*
@@ -79,11 +96,13 @@ function handleFocusOnSelect2Field(firstField){
 * see: https://github.com/select2/select2/issues/5993
 * see: https://github.com/jquery/jquery/issues/4382
 *
+* @jquery-dependent — select2 is a jQuery plugin
 */
 $(document).on('select2:open', () => {
     setTimeout(() => document.querySelector('.select2-container--open .select2-search__field').focus(), 100);
 });
 
+// @jquery-dependent — select2 is a jQuery plugin
 // When Select2 opens inside a repeatable row that is itself inside a modal,
 // add a specific class to the open container so CSS/positioning logic can target it.
 // Also remove the class on close.
@@ -106,6 +125,7 @@ $(document).on('select2:open', function(e) {
     }
 });
 
+// @jquery-dependent — select2 is a jQuery plugin
 $(document).on('select2:close', function(e) {
     try {
         var $select = $(e.target);
