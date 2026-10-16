@@ -1,8 +1,6 @@
 {{-- checkbox field --}}
-
 @php
   $field['value'] = old_empty_or_null($field['name'], '') ?? $field['value'] ?? $field['default'] ?? '';
-  $field['attributes']['class'] = $field['attributes']['class'] ?? 'form-check-input';
 @endphp
 
 @include('crud::fields.inc.wrapper_start')
@@ -15,12 +13,8 @@
           @if ((bool)$field['value'])
             checked="checked"
           @endif
-
-          @if (isset($field['attributes']))
-            @foreach ($field['attributes'] as $attribute => $value)
-    			  {{ $attribute }}="{{ $value }}"
-        	  @endforeach
-          @endif
+          
+          @include('crud::fields.inc.attributes', ['default_class' => 'form-check-input'])
           >
     	  <label class="font-weight-normal fw-normal mb-0 ml-2 ms-2">{!! $field['label'] !!}</label>
 
