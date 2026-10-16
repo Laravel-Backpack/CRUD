@@ -36,6 +36,8 @@
 
 <{{ $field['wrapper']['element'] }}
 	@foreach($field['wrapper'] as $attribute => $value)
-	    {{ $attribute }}="{{ $value }}"
+		@if($value !== false && $element === 'href')
+		{{ $attribute }}="{{ $value }}"
+		@endif
 	@endforeach
 >
