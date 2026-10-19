@@ -170,14 +170,28 @@ if (! function_exists('backpack_users_have_email')) {
     /**
      * Check if the email column is present on the user table.
      *
-     * @return string
+     * The result is memoized per table+column for the lifetime of the process.
+     * backpack_avatar_url() calls this for every avatar it renders, so without
+     * the cache a list of N users ran N identical information_schema queries.
+     *
+     * @return bool
      */
     function backpack_users_have_email()
     {
+        static $cache = [];
+
         $user_model_fqn = config('backpack.base.user_model_fqn');
         $user = new $user_model_fqn();
 
-        return \Schema::hasColumn($user->getTable(), config('backpack.base.email_column') ?? 'email');
+        $table = $user->getTable();
+        $column = config('backpack.base.email_column') ?? 'email';
+        $key = $table.'.'.$column;
+
+        if (! array_key_exists($key, $cache)) {
+            $cache[$key] = \Schema::hasColumn($table, $column);
+        }
+
+        return $cache[$key];
     }
 }
 
