@@ -86,6 +86,7 @@ trait ListOperation
         $start = (int) request()->input('start');
         $length = (int) request()->input('length');
         $search = request()->input('search');
+        $searchTerm = is_array($search) ? ($search['value'] ?? null) : null;
 
         // check if length is allowed by developer
         if ($length && ! in_array($length, $this->crud->getPageLengthMenu()[0])) {
@@ -94,10 +95,10 @@ trait ListOperation
             ], 400);
         }
 
-        // if a search term was present
-        if ($search && $search['value'] ?? false) {
+        // if a search term was present (strict check, so that "0" is also a valid search term)
+        if (is_string($searchTerm) && $searchTerm !== '') {
             // filter the results accordingly
-            $this->crud->applySearchTerm($search['value']);
+            $this->crud->applySearchTerm($searchTerm);
         }
         // start the results according to the datatables pagination
         if ($start) {
