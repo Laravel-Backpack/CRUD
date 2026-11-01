@@ -170,14 +170,28 @@ if (! function_exists('backpack_users_have_email')) {
     /**
      * Check if the email column is present on the user table.
      *
-     * @return string
+     * The result is memoized per connection+table+column for the current request.
+     * backpack_avatar_url() calls this for every avatar it renders, so without
+     * the cache a list of N users ran N identical information_schema queries.
+     *
+     * once() is used instead of a static variable so the result does not outlive
+     * the request in long-lived processes (Octane, queue workers): Octane and the
+     * Laravel test lifecycle both flush it, so tenant switches and migrations
+     * that add the column are picked up.
+     *
+     * @return bool
      */
     function backpack_users_have_email()
     {
         $user_model_fqn = config('backpack.base.user_model_fqn');
         $user = new $user_model_fqn();
 
-        return \Schema::hasColumn($user->getTable(), config('backpack.base.email_column') ?? 'email');
+        $connection = $user->getConnectionName();
+        $table = $user->getTable();
+        $column = config('backpack.base.email_column') ?? 'email';
+
+        // the variables captured by the closure are part of the once() cache key
+        return once(fn () => \Schema::connection($connection)->hasColumn($table, $column));
     }
 }
 
