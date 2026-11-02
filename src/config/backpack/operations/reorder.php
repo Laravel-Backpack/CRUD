@@ -12,5 +12,5 @@ return [
     'contentClass' => 'col-md-12 col-md-offset-2',
 
     // should the content of the reorder label be escaped?
-    'escaped' => false,
+    'escaped' => true,
 ];
