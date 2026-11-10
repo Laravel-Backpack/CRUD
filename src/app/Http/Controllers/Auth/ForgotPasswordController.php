@@ -50,12 +50,20 @@ class ForgotPasswordController extends Controller
         // We will send the password reset link to this user. Once we have attempted
         // to send the link, we will examine the response then see the message we
         // need to show to the user. Finally, we'll send out a proper response.
-        $response = $this->broker()->sendResetLink(
+        $broker = $this->broker();
+
+        $response = $broker->sendResetLink(
             $this->credentials($request)
         );
 
-        return $response == Password::RESET_LINK_SENT
-                    ? $this->sendResetLinkResponse($request, $response)
+        // give the same response whether there is an account for the given email or not
+        $responsesForAnyEmail = [
+            Password::RESET_LINK_SENT, Password::INVALID_USER, Password::RESET_THROTTLED,
+            $broker::RESET_LINK_SENT, $broker::INVALID_USER, $broker::RESET_THROTTLED,
+        ];
+
+        return in_array($response, $responsesForAnyEmail, true)
+                    ? $this->sendResetLinkResponse($request, Password::RESET_LINK_SENT)
                     : $this->sendResetLinkFailedResponse($request, $response);
     }
 
@@ -90,9 +98,11 @@ class ForgotPasswordController extends Controller
      */
     protected function sendResetLinkResponse(Request $request, $response)
     {
+        $message = trans('backpack::base.reset_link_sent');
+
         return $request->wantsJson()
-                    ? new JsonResponse(['message' => trans($response)], 200)
-                    : back()->with('status', trans($response));
+                    ? new JsonResponse(['message' => $message], 200)
+                    : back()->with('status', $message);
     }
 
     /**
