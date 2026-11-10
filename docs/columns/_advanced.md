@@ -257,7 +257,7 @@ $this->crud->addColumn([
 
 ### Escape column output
 
-For security purposes, Backpack escapes the output of all column types except for `markdown` and `custom_html` (those columns would be useless escaped). That means it uses `{{ }}` to echo the output, not `{!! !!}`. If you have any HTML inside a db column, it will be shown as HTML instead of interpreted. It does that because, if the value was added by a malicious user (not admin), it could contain malicious JS code.
+For security purposes, Backpack escapes the output of all column types except for `markdown`, `summernote` and `custom_html` (those columns would be useless escaped). That means it uses `{{ }}` to echo the output, not `{!! !!}`. If you have any HTML inside a db column, it will be shown as HTML instead of interpreted. It does that because, if the value was added by a malicious user (not admin), it could contain malicious JS code.
 
 However, if you trust that a certain column contains _safe_ HTML, you can disable this behaviour by setting the `escaped` attribute to `false`.
 

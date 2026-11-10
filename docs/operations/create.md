@@ -180,6 +180,8 @@ protected function setupCreateOperation()
 }
 ```
 
+> **Fields that submit JSON** (eg. `checklist`, or a value sent as a JSON string): rules for the items inside the value (eg. `'roles.*' => 'integer'` or `'items.*.name' => 'required'`) are also checked against the decoded JSON. Rules on the field itself (eg. `'roles' => 'json'`) still see the raw value that was submitted.
+
 ### Callbacks
 
 If you're coming from other CRUD systems (like GroceryCRUD) you might be looking for callbacks to run "before_insert", "before_update", "after_insert", "after_update". **There are no callbacks in Backpack**, because... they're not needed. There are plenty of other ways to do things before/after an entry is created.

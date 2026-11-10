@@ -41,7 +41,7 @@ class ProductCrudController extends CrudController
     	// define which model attribute will be shown on draggable elements
         CRUD::set('reorder.label', 'name');
         // define how deep the admin is allowed to nest the items
-        // for infinite levels, set it to 0
+        // for infinite levels, set it to 0 (this is also enforced when the new order is saved)
         CRUD::set('reorder.max_level', 2);
 
         // if you don't fully trust the input in your database, you can set 

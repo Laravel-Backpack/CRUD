@@ -143,7 +143,7 @@ If an attacker submits IDs that your `query` would not have returned, Backpack w
 
 If you do not define a `query` closure, all IDs are considered valid — the same behaviour as before this security fix.
 
-> **Important — when is the guard applied automatically?** Backpack derives the guard from your `fetchXxx()` query whenever it can map the field to its fetch method — i.e. for any ajax relationship field (`relationship`, `select2_from_ajax`, `select2_from_ajax_multiple`) whose entity matches the `fetchXxx()` naming convention (e.g. entity `tag` → `fetchTag()`).
+> **Important — when is the guard applied automatically?** Backpack derives the guard from your `fetchXxx()` query whenever it can map the field to its fetch method — i.e. for any ajax relationship field (`relationship` with `'ajax' => true` or `inline_create`, `select2_from_ajax`, `select2_from_ajax_multiple`) whose entity matches the `fetchXxx()` naming convention (e.g. entity `tag` → `fetchTag()`).
 >
 > If you had to set `data_source` **manually** and the field entity no longer matches the fetch method name, the convention breaks and the guard cannot be derived automatically. In that case, point the field at the right method explicitly with `'relation_options_query_source' => 'fetchMethodName'`:
 > ```php
