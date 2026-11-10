@@ -51,4 +51,23 @@ class UpdateOperationTest extends BaseDBCrudPanel
         $this->assertSame($originalName, User::find(2)->name);
         $this->assertSame('updated', User::find(1)->name);
     }
+
+    public function test_update_ignores_a_key_named_after_the_entity()
+    {
+        $originalName = User::find(2)->name;
+
+        $this->put("{$this->testBaseUrl}/2", ['user' => 1, 'id' => 2, 'name' => 'updated'])->assertForbidden();
+        $this->put("{$this->testBaseUrl}/2?user=1", ['id' => 2, 'name' => 'updated'])->assertForbidden();
+
+        $this->assertSame($originalName, User::find(2)->name);
+    }
+
+    public function test_delete_ignores_a_key_named_after_the_entity()
+    {
+        $this->delete("{$this->testBaseUrl}/2", ['user' => 1])->assertForbidden();
+        $this->delete("{$this->testBaseUrl}/2?user=1")->assertForbidden();
+
+        $this->assertNotNull(User::find(1));
+        $this->assertNotNull(User::find(2));
+    }
 }
