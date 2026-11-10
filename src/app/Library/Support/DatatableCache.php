@@ -101,7 +101,7 @@ final class DatatableCache extends SetupCache
 
         $instance = new self();
         \Illuminate\Support\Facades\Cache::put(
-            $instance->cachePrefix.$tableId.'_back_url',
+            $instance->generateCacheKey($tableId.'_back_url'),
             $url,
             now()->addMinutes($instance->cacheDuration)
         );
@@ -122,7 +122,7 @@ final class DatatableCache extends SetupCache
             return false;
         }
 
-        if ($backUrl = \Illuminate\Support\Facades\Cache::get($instance->cachePrefix.$tableId.'_back_url')) {
+        if ($backUrl = \Illuminate\Support\Facades\Cache::get($instance->generateCacheKey($tableId.'_back_url'))) {
             $crud->setOperationSetting('backToAllEntriesUrl', $backUrl);
         }
 

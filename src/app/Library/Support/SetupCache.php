@@ -14,7 +14,23 @@ abstract class SetupCache
      */
     protected function generateCacheKey($identifier): string
     {
-        return $this->cachePrefix.$identifier;
+        return $this->cachePrefix.$identifier.$this->getCacheScope();
+    }
+
+    /**
+     * The cached setup is only reused in the same session that stored it.
+     */
+    protected function getCacheScope(): string
+    {
+        $request = request();
+
+        if (! $request || ! $request->hasSession()) {
+            return '';
+        }
+
+        $sessionId = $request->session()->getId();
+
+        return $sessionId ? '_'.hash('sha256', $sessionId) : '';
     }
 
     /**
