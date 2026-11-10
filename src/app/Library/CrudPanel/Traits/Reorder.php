@@ -27,15 +27,21 @@ trait Reorder
         // sent in the request that are not in the database
         $itemKeys = $this->getModelWithCrudPanelQuery()->select($primaryKey)->get()->pluck($primaryKey);
 
+        // compare the keys as strings, so that only the exact keys in the database match
+        $existingKeys = $itemKeys->map(fn ($key) => (string) $key)->all();
+        $isExistingKey = function ($key) use ($existingKeys) {
+            return (is_int($key) || is_string($key)) && in_array((string) $key, $existingKeys, true);
+        };
+
         // filter the items that are not in the database and map the request
-        $reorderItems = collect($request)->filter(function ($item) use ($itemKeys) {
-            return $item['item_id'] !== '' && $item['item_id'] !== null && $itemKeys->contains($item['item_id']);
-        })->map(function ($item) use ($primaryKey, $columns, $itemKeys) {
+        $reorderItems = collect($request)->filter(function ($item) use ($isExistingKey) {
+            return is_array($item) && $isExistingKey($item['item_id'] ?? null);
+        })->map(function ($item) use ($primaryKey, $columns, $isExistingKey) {
             $item[$primaryKey] = $item['item_id'];
             $item[$columns['parent_id']] = empty($item['parent_id']) ? null : $item['parent_id'];
 
             // only allow re-parenting under items the current user can actually see
-            if ($item[$columns['parent_id']] !== null && ! $itemKeys->contains($item[$columns['parent_id']])) {
+            if ($item[$columns['parent_id']] !== null && ! $isExistingKey($item[$columns['parent_id']])) {
                 $item[$columns['parent_id']] = null;
             }
 

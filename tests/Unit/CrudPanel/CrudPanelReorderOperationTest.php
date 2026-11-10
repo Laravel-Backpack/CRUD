@@ -58,6 +58,30 @@ class CrudPanelReorderOperationTest extends BaseDBCrudPanel
         ]);
     }
 
+    public function testSaveReorderTreeOnlyAcceptsExactKeysInScope()
+    {
+        $this->createReorderItems();
+        $this->crudPanel->setModel(Reorder::class);
+        $this->crudPanel->addClause('whereIn', 'id', [2, 3]);
+
+        $this->crudPanel->setOperationSetting('reorderColumnNames', [
+            'parent_id' => 'parent_id',
+            'depth' => 'depth',
+            'lft' => 'lft',
+            'rgt' => 'rgt',
+        ]);
+
+        $this->crudPanel->updateTreeOrder([
+            ['item_id' => 2, 'parent_id' => true, 'depth' => 2, 'left' => 2, 'right' => 3],
+            ['item_id' => 3, 'parent_id' => '1', 'depth' => 2, 'left' => 4, 'right' => 5],
+            ['item_id' => true, 'parent_id' => null, 'depth' => 1, 'left' => 6, 'right' => 7],
+        ]);
+
+        $this->assertDatabaseHas('reorders', ['id' => 1, 'parent_id' => null, 'lft' => null]);
+        $this->assertDatabaseHas('reorders', ['id' => 2, 'parent_id' => null, 'lft' => 2]);
+        $this->assertDatabaseHas('reorders', ['id' => 3, 'parent_id' => null, 'lft' => 4]);
+    }
+
     private function createReorderItems()
     {
         DB::table('reorders')->insert([
