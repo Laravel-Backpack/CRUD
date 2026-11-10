@@ -2016,6 +2016,66 @@ class CrudPanelCreateTest extends \Backpack\CRUD\Tests\config\CrudPanel\BaseDBCr
         $this->assertSame($entry->id, (int) $comment->commentable_id);
     }
 
+    public function testBelongsToSubfieldOfHasOneEntryRejectsValueOutsideOptionsConstraint()
+    {
+        $this->crudPanel->setModel(User::class);
+        $this->crudPanel->setOperation('create');
+        $this->crudPanel->addFields($this->userInputFieldsNoRelationships);
+        $this->crudPanel->addField([
+            'name' => 'accountDetails',
+            'subfields' => [
+                ['name' => 'nickname'],
+                ['name' => 'profile_picture'],
+                ['name' => 'article', 'options' => fn ($query) => $query->where('id', 1)],
+            ],
+        ]);
+
+        $faker = Factory::create();
+        $inputData = [
+            'name' => $faker->name,
+            'email' => $faker->safeEmail,
+            'password' => Hash::make($faker->password()),
+            'remember_token' => null,
+            'accountDetails' => [['nickname' => 'nick', 'profile_picture' => 'pic.jpg', 'article' => 1]],
+        ];
+
+        $entry = $this->crudPanel->create($inputData);
+        $this->assertEquals(1, $entry->accountDetails->article_id);
+
+        $this->expectException(\Illuminate\Validation\ValidationException::class);
+
+        $inputData['email'] = $faker->safeEmail;
+        $inputData['accountDetails'][0]['article'] = 2;
+        $this->crudPanel->create($inputData);
+    }
+
+    public function testBelongsToSubfieldOfRelatedEntryRejectsForeignKeyOutsideOptionsConstraint()
+    {
+        $this->crudPanel->setModel(User::class);
+        $this->crudPanel->setOperation('create');
+        $this->crudPanel->addFields($this->userInputFieldsNoRelationships);
+        $this->crudPanel->addField([
+            'name' => 'accountDetails',
+            'subfields' => [
+                ['name' => 'nickname'],
+                ['name' => 'profile_picture'],
+                ['name' => 'article', 'options' => fn ($query) => $query->where('id', 1)],
+            ],
+        ]);
+
+        $faker = Factory::create();
+
+        $this->expectException(\Illuminate\Validation\ValidationException::class);
+
+        $this->crudPanel->create([
+            'name' => $faker->name,
+            'email' => $faker->safeEmail,
+            'password' => Hash::make($faker->password()),
+            'remember_token' => null,
+            'accountDetails' => [['nickname' => 'nick', 'profile_picture' => 'pic.jpg', 'article_id' => 2]],
+        ]);
+    }
+
     public function testAjaxHasManyRelationshipUsesFetchQueryOfItsEntity()
     {
         $this->crudPanel->setModel(User::class);

@@ -477,6 +477,15 @@ trait Create
      */
     private function getVerifiedBelongsToInputs($input, $fields = [])
     {
+        if (! empty($fields)) {
+            // the related entry inputs can also come from the subfields (eg. a repeatable relation field)
+            foreach ($fields as $field) {
+                if (isset($field['subfields']) && is_array($field['subfields'])) {
+                    $fields = array_merge($field['subfields'], $fields);
+                }
+            }
+        }
+
         $belongsToFields = empty($fields)
             ? $this->getFieldsWithRelationType('BelongsTo')
             : array_filter($fields, fn ($field) => ($field['relation_type'] ?? null) === 'BelongsTo');
