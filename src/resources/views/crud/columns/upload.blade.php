@@ -6,7 +6,7 @@
         $column['wrapper']['target'] = $column['wrapper']['target'] ?? '_blank';
         $column_wrapper_href = $column['wrapper']['href'] ?? function($file_path, $disk, $prefix) use ($column) { 
             if (is_null($disk)) {
-                return asset($prefix.$file_path);
+                return backpack_safe_link_url(asset($prefix.$file_path));
             }
             if (isset($column['temporary'])) {
                 return asset(\Storage::disk($disk)->temporaryUrl($file_path, Carbon\Carbon::now()->addMinutes($column['expiration'] ?? $column['temporary'])));

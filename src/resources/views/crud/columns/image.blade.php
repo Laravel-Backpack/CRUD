@@ -29,7 +29,7 @@
       }
 
     } else { // plain-old image, from a local disk
-      $href = $src = asset($column['prefix'] . $column['value']);
+      $href = $src = backpack_safe_link_url(asset($column['prefix'] . $column['value']));
     }
 
     $column['wrapper']['element'] = $column['wrapper']['element'] ?? 'a';
