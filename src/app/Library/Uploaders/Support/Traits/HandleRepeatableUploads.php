@@ -107,6 +107,9 @@ trait HandleRepeatableUploads
     {
         $entryValue = $this->getFilesFromEntry($entry);
 
+        // the uploader is shared by all the related entries, start fresh for each one
+        $this->updatedPreviousFiles = null;
+
         if ($this->handleMultipleFiles && is_string($entryValue)) {
             try {
                 $entryValue = json_decode($entryValue, true);
@@ -128,6 +131,9 @@ trait HandleRepeatableUploads
 
         if ($this->shouldUploadFiles($entryValue)) {
             $entry->{$this->getAttributeName()} = $this->uploadFiles($entry, $entryValue);
+        } elseif (! $entry->exists) {
+            // a new entry does not have any files yet, a value that is not an upload can't reference one
+            $entry->{$this->getAttributeName()} = null;
         }
 
         return $entry;

@@ -18,7 +18,7 @@ class SingleFile extends Uploader
             return null;
         }
 
-        if ($value && is_file($value) && $value->isValid()) {
+        if ($value instanceof UploadedFile && $value->isValid()) {
             // get the name first, so a file that is not allowed does not remove the previous one
             $fileName = $this->getFileName($value);
 

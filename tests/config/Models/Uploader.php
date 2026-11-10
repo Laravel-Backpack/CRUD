@@ -20,4 +20,9 @@ class Uploader extends Model
     ];
 
     public $timestamps = false;
+
+    public function relatedUploaders()
+    {
+        return $this->hasMany(RelatedUploader::class);
+    }
 }

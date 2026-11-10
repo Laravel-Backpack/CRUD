@@ -41,7 +41,7 @@ class MultipleFiles extends Uploader
         $filesToStore = [];
 
         foreach ($value as $file) {
-            if ($file && is_file($file)) {
+            if ($file instanceof UploadedFile && $file->isValid()) {
                 $filesToStore[] = [$file, $this->getFileName($file)];
             }
         }

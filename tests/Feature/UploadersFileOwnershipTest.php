@@ -3,6 +3,7 @@
 namespace Backpack\CRUD\Tests\Feature;
 
 use Backpack\CRUD\Tests\config\CrudPanel\BaseDBCrudPanel;
+use Backpack\CRUD\Tests\config\Http\Controllers\RelationshipUploaderCrudController;
 use Backpack\CRUD\Tests\config\Http\Controllers\RepeatableUploaderCrudController;
 use Backpack\CRUD\Tests\config\Http\Controllers\RepeatableUploaderPathCrudController;
 use Backpack\CRUD\Tests\config\Http\Controllers\UploaderPathCrudController;
@@ -32,6 +33,7 @@ class UploadersFileOwnershipTest extends BaseDBCrudPanel
         $router->crud(config('backpack.base.route_prefix').'/repeatable-uploader', RepeatableUploaderCrudController::class);
         $router->crud(config('backpack.base.route_prefix').'/repeatable-uploader-path', RepeatableUploaderPathCrudController::class);
         $router->crud(config('backpack.base.route_prefix').'/uploader-path', UploaderPathCrudController::class);
+        $router->crud(config('backpack.base.route_prefix').'/relationship-uploader', RelationshipUploaderCrudController::class);
     }
 
     protected function setUp(): void
@@ -67,6 +69,29 @@ class UploadersFileOwnershipTest extends BaseDBCrudPanel
         $this->assertNull($this->rawRepeatable()[0]['upload'] ?? null);
 
         $this->updateRepeatable('repeatable-uploader', [$this->emptyRow()], [[]]);
+        $this->assertTrue(Storage::disk('uploaders')->exists(self::FOREIGN_FILE));
+    }
+
+    public function test_new_related_entry_image_cannot_reference_foreign_files()
+    {
+        $this->insertEntry([]);
+
+        $this->updateRelatedUploaders([['image' => self::FOREIGN_FILE, 'upload' => null]]);
+        $this->assertNull(DB::table('related_uploaders')->where('uploader_id', 1)->value('image'));
+
+        $this->updateRelatedUploaders(null);
+        $this->assertSame(0, DB::table('related_uploaders')->where('uploader_id', 1)->count());
+        $this->assertTrue(Storage::disk('uploaders')->exists(self::FOREIGN_FILE));
+    }
+
+    public function test_new_related_entry_upload_cannot_reference_foreign_files()
+    {
+        $this->insertEntry([]);
+
+        $this->updateRelatedUploaders([['image' => null, 'upload' => self::FOREIGN_FILE]]);
+        $this->assertNull(DB::table('related_uploaders')->where('uploader_id', 1)->value('upload'));
+
+        $this->updateRelatedUploaders(null);
         $this->assertTrue(Storage::disk('uploaders')->exists(self::FOREIGN_FILE));
     }
 
@@ -286,6 +311,11 @@ class UploadersFileOwnershipTest extends BaseDBCrudPanel
         }
 
         $this->put(config('backpack.base.route_prefix').'/'.$route.'/1', $data)->assertStatus(302);
+    }
+
+    private function updateRelatedUploaders(?array $rows): void
+    {
+        $this->put(config('backpack.base.route_prefix').'/relationship-uploader/1', ['relatedUploaders' => $rows])->assertStatus(302);
     }
 
     private function emptyRow(array $values = []): array
