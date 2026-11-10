@@ -1,5 +1,5 @@
 @php
-    $column['escaped'] = $column['escaped'] ?? false;
+    $column['escaped'] = $column['escaped'] ?? true;
     $column['value'] = $column['value'] ?? data_get($entry, $column['name']);
     if(!empty($column['value'])) {
         $column['wrapper']['element'] = $column['wrapper']['element'] ?? 'a';
