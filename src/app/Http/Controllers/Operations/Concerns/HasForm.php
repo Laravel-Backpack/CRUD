@@ -77,6 +77,8 @@ trait HasForm
             $this->data['entry'] = $this->crud->getEntryWithLocale($this->data['id']);
         }
 
+        $this->crud->hasAccessOrFail($this->crud->getCurrentOperation() ?? '', $this->data['entry'] ?? null);
+
         $this->crud->setOperationSetting('fields', $this->crud->fields());
 
         $this->data['crud'] = $this->crud;
@@ -107,6 +109,8 @@ trait HasForm
             $id = $this->crud->getCurrentEntryId() ?: $id;
             $entry = $this->crud->getEntryWithLocale($id);
         }
+
+        $this->crud->hasAccessOrFail($this->crud->getCurrentOperation() ?? '', $entry ?? null);
 
         // execute the FormRequest authorization and validation, if one is required
         $request = $this->crud->validateRequest();
