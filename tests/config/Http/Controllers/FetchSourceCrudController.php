@@ -36,6 +36,9 @@ class FetchSourceCrudController extends CrudController
             'fetchRoles' => function ($query) {
                 return $query->where('id', 1);
             },
+            'fetchSuperArticles' => function ($query) {
+                return $query->where('id', 1);
+            },
             'fetchModeratorUser' => function ($query) {
                 return $query->where('id', 1);
             },

@@ -2107,6 +2107,62 @@ class CrudPanelCreateTest extends \Backpack\CRUD\Tests\config\CrudPanel\BaseDBCr
         $this->assertEquals([1], $entry->fresh()->superArticles->pluck('id')->all());
     }
 
+    public function testHasManyRelationshipWithDataSourceUsesFetchQueryOfItsEntity()
+    {
+        $this->crudPanel->setModel(User::class);
+        $this->crudPanel->setController(FetchSourceCrudController::class);
+        $this->crudPanel->addFields($this->userInputFieldsNoRelationships, 'both');
+        $this->crudPanel->addField([
+            'name' => 'planets',
+            'force_delete' => false,
+            'fallback_id' => false,
+            'data_source' => 'fetch-source/fetch/planets',
+        ], 'both');
+
+        $faker = Factory::create();
+        $entry = $this->crudPanel->create([
+            'name' => $faker->name,
+            'email' => $faker->safeEmail,
+            'password' => Hash::make($faker->password()),
+            'remember_token' => null,
+            'planets' => [1, 2],
+        ]);
+
+        $this->assertEquals([1], $entry->planets->pluck('id')->all());
+    }
+
+    public function testManyToManyWithSubfieldsUsesFetchQueryOfAjaxPivotSelect()
+    {
+        $this->crudPanel->setModel(User::class);
+        $this->crudPanel->setController(FetchSourceCrudController::class);
+        $this->crudPanel->addFields($this->userInputFieldsNoRelationships, 'both');
+        $this->crudPanel->addField([
+            'name' => 'superArticles',
+            'subfields' => [
+                ['name' => 'notes'],
+            ],
+            'pivotSelect' => [
+                'ajax' => true,
+            ],
+        ], 'both');
+
+        $article = Article::create(['content' => 'other', 'user_id' => 2]);
+
+        $faker = Factory::create();
+        $entry = $this->crudPanel->create([
+            'name' => $faker->name,
+            'email' => $faker->safeEmail,
+            'password' => Hash::make($faker->password()),
+            'remember_token' => null,
+            'superArticles' => [
+                ['superArticles' => 1, 'notes' => 'allowed'],
+                ['superArticles' => $article->id, 'notes' => 'not allowed'],
+            ],
+        ]);
+
+        $this->assertEquals([1], $entry->fresh()->superArticles->pluck('id')->all());
+    }
+
     public function testAjaxHasManyRelationshipUsesFetchQueryOfItsEntity()
     {
         $this->crudPanel->setModel(User::class);
