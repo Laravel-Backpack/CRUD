@@ -129,14 +129,21 @@ trait Create
                 case 'HasMany':
                 case 'MorphMany':
                     $relationValues = $relationDetails['values'][$relationMethod];
+                    // fields with subfields create/update the related entries (repeatable),
+                    // fields without subfields only select existing entries
+                    $createsEntries = is_array($relationDetails['crudFields'][0]['subfields'] ?? null);
                     // if relation values are null we can only attach, also we check if we sent
                     // - a single dimensional array: [1,2,3]
                     // - an array of arrays: [[1][2][3]]
                     // if is as single dimensional array we can only attach.
-                    if ($relationValues === null || ! is_multidimensional_array($relationValues)) {
+                    if ($relationValues === null || (is_array($relationValues) && empty($relationValues))) {
                         $this->attachManyRelation($item, $relation, $relationDetails, $relationValues);
-                    } else {
-                        $this->createManyEntries($item, $relation, $relationMethod, $relationDetails);
+                    } elseif (is_array($relationValues) && is_multidimensional_array($relationValues)) {
+                        if ($createsEntries) {
+                            $this->createManyEntries($item, $relation, $relationMethod, $relationDetails);
+                        }
+                    } elseif (! $createsEntries) {
+                        $this->attachManyRelation($item, $relation, $relationDetails, $relationValues);
                     }
                     break;
                 case 'BelongsToMany':

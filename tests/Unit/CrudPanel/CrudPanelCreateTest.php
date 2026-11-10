@@ -1829,6 +1829,61 @@ class CrudPanelCreateTest extends \Backpack\CRUD\Tests\config\CrudPanel\BaseDBCr
         ]);
     }
 
+    public function testHasManySelectableRelationshipIgnoresEntryRows()
+    {
+        $this->crudPanel->setModel(User::class);
+        $this->crudPanel->addFields($this->userInputFieldsNoRelationships, 'both');
+        $this->crudPanel->addField([
+            'name' => 'planets',
+            'force_delete' => false,
+            'fallback_id' => false,
+            'options' => fn ($query) => $query->where('id', 1),
+        ], 'both');
+
+        $faker = Factory::create();
+        $inputData = [
+            'name' => $faker->name,
+            'email' => $faker->safeEmail,
+            'password' => Hash::make($faker->password()),
+            'remember_token' => null,
+            'planets' => [1],
+        ];
+
+        $entry = $this->crudPanel->create($inputData);
+        $planetCount = Planet::count();
+
+        $this->crudPanel->update($entry->id, array_merge($inputData, [
+            'planets' => [['title' => 'new planet'], ['id' => 2, 'title' => 'changed']],
+        ]));
+
+        $this->assertSame($planetCount, Planet::count());
+        $this->assertEquals([1], $entry->fresh()->planets->pluck('id')->all());
+        $this->assertNotEquals('changed', Planet::find(2)->title);
+    }
+
+    public function testHasManyCreatableRelationshipIgnoresListOfKeys()
+    {
+        $this->crudPanel->setModel(User::class);
+        $this->crudPanel->addFields($this->userInputFieldsNoRelationships, 'both');
+        $this->crudPanel->addField([
+            'name' => 'planets',
+            'subfields' => [
+                ['name' => 'title'],
+            ],
+        ], 'both');
+
+        $faker = Factory::create();
+        $entry = $this->crudPanel->create([
+            'name' => $faker->name,
+            'email' => $faker->safeEmail,
+            'password' => Hash::make($faker->password()),
+            'remember_token' => null,
+            'planets' => [1, 2],
+        ]);
+
+        $this->assertCount(0, $entry->fresh()->planets);
+    }
+
     public function testAjaxHasManyRelationshipUsesFetchQueryOfItsEntity()
     {
         $this->crudPanel->setModel(User::class);
