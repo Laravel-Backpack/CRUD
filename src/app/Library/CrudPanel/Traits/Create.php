@@ -173,7 +173,7 @@ trait Create
                             }
                             foreach ($values as $value) {
                                 // if it's an existing pivot, update it
-                                $attributes = $this->preparePivotAttributesForSave($value, $relation, $item->getKey(), $keyName, $relationMethod);
+                                $attributes = $this->preparePivotAttributesForSave($value, $relation, $item->getKey(), $keyName, $relationMethod, $field);
                                 if (isset($value[$keyName])) {
                                     $relation->newPivotQuery()->where($keyName, $value[$keyName])->update($attributes);
                                 } else {
@@ -187,7 +187,7 @@ trait Create
 
                         foreach ($values as $value) {
                             if (isset($value[$relationMethod])) {
-                                $relationToManyValues[$value[$relationMethod]] = Arr::except($value, $relationMethod);
+                                $relationToManyValues[$value[$relationMethod]] = $this->getPivotRowAttributes($value, $relation, $field, $relationMethod);
                             }
                         }
 
@@ -208,16 +208,77 @@ trait Create
         }
     }
 
-    private function preparePivotAttributesForSave(array $attributes, BelongsToMany|MorphToMany $relation, string|int $relatedItemKey, $pivotKeyName, $relationMethod): array
+    private function preparePivotAttributesForSave(array $row, BelongsToMany|MorphToMany $relation, string|int $relatedItemKey, $pivotKeyName, $relationMethod, array $field = []): array
     {
+        $attributes = Arr::except($this->getPivotRowAttributes($row, $relation, $field, $relationMethod), [$pivotKeyName]);
+
         $attributes[$relation->getForeignPivotKeyName()] = $relatedItemKey;
-        $attributes[$relation->getRelatedPivotKeyName()] = $attributes[$relationMethod];
+        $attributes[$relation->getRelatedPivotKeyName()] = $row[$relationMethod];
 
         if ($relation instanceof MorphToMany) {
             $attributes[$relation->getMorphType()] = $relation->getMorphClass();
         }
 
-        return Arr::except($attributes, [$relationMethod, $pivotKeyName]);
+        return $attributes;
+    }
+
+    /**
+     * Get the extra pivot attributes that can be saved from a submitted BelongsToMany/MorphToMany row.
+     * Only the attributes of the field subfields are kept. The keys that connect the pivot row to
+     * both sides of the relation are always set by the relation itself.
+     *
+     * @param  array  $row  The submitted pivot row.
+     * @param  BelongsToMany|MorphToMany  $relation
+     * @param  array  $field  The crud field that defines the relation.
+     * @param  string  $relationMethod  The relation method name (holds the related id in pivot rows).
+     * @return array
+     */
+    private function getPivotRowAttributes(array $row, BelongsToMany|MorphToMany $relation, array $field, $relationMethod): array
+    {
+        $attributes = Arr::only($row, $this->getSubfieldAttributeNames($field));
+
+        $connectingAttributes = [$relationMethod, $relation->getForeignPivotKeyName(), $relation->getRelatedPivotKeyName()];
+
+        if ($relation instanceof MorphToMany) {
+            $connectingAttributes[] = $relation->getMorphType();
+        }
+
+        return Arr::except($attributes, $connectingAttributes);
+    }
+
+    /**
+     * Get the attribute names that a field with subfields can save on a related entry or pivot row.
+     *
+     * @param  array  $field
+     * @return array<string>
+     */
+    private function getSubfieldAttributeNames(array $field): array
+    {
+        $allowedAttributes = [];
+
+        foreach (is_array($field['subfields'] ?? null) ? $field['subfields'] : [] as $subfield) {
+            if (! isset($subfield['name']) || ! is_string($subfield['name'])) {
+                continue;
+            }
+
+            foreach (explode(',', $subfield['name']) as $subfieldName) {
+                $allowedAttributes[] = Str::afterLast($subfieldName, '.');
+            }
+
+            if ($subfield['fake'] ?? false) {
+                $allowedAttributes[] = $subfield['store_in'] ?? 'extras';
+            }
+
+            if (($subfield['relation_type'] ?? null) === 'BelongsTo') {
+                try {
+                    $allowedAttributes[] = $this->getOverwrittenNameForBelongsTo($subfield);
+                } catch (\Throwable) {
+                    // not a resolvable relation, the subfield name is all we have
+                }
+            }
+        }
+
+        return $allowedAttributes;
     }
 
     /**
@@ -298,31 +359,7 @@ trait Create
         });
 
         if ($field) {
-            $allowedAttributes = [];
-
-            foreach ($field['subfields'] as $subfield) {
-                if (! isset($subfield['name']) || ! is_string($subfield['name'])) {
-                    continue;
-                }
-
-                foreach (explode(',', $subfield['name']) as $subfieldName) {
-                    $allowedAttributes[] = Str::afterLast($subfieldName, '.');
-                }
-
-                if ($subfield['fake'] ?? false) {
-                    $allowedAttributes[] = $subfield['store_in'] ?? 'extras';
-                }
-
-                if (($subfield['relation_type'] ?? null) === 'BelongsTo') {
-                    try {
-                        $allowedAttributes[] = $this->getOverwrittenNameForBelongsTo($subfield);
-                    } catch (\Throwable) {
-                        // not a resolvable relation, the subfield name is all we have
-                    }
-                }
-            }
-
-            $directInputs = Arr::only($directInputs, $allowedAttributes);
+            $directInputs = Arr::only($directInputs, $this->getSubfieldAttributeNames($field));
         }
 
         $connectingAttributes = [$relation->getForeignKeyName(), $relation->getRelated()->getKeyName()];
