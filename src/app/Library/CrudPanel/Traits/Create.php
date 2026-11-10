@@ -154,7 +154,7 @@ trait Create
                     $field = $relationDetails['crudFields'][0] ?? [];
 
                     // keep only the keys that were actually selectable in the field
-                    $values = $this->getVerifiedPivotValues($relation->getRelated(), $field, $values, $relationMethod);
+                    $values = $this->getVerifiedPivotValues($relation->getRelated(), $this->getPivotSelectorConstraintField($field), $values, $relationMethod);
 
                     // if the values are multidimensional, we have additional pivot data.
                     if (is_array($values) && is_multidimensional_array($values)) {
@@ -547,6 +547,34 @@ trait Create
         return array_values(array_filter($values, function ($key) use ($allowedKeys) {
             return $key !== null && $key !== '' && in_array((string) $key, $allowedKeys, true);
         }));
+    }
+
+    /**
+     * For BelongsToMany/MorphToMany fields with pivot subfields, the selectable entries are listed by
+     * the pivot selector, configured through `pivotSelect`. Return the field definition that holds
+     * the options constraint: the pivot selector when it defines one, otherwise the field itself.
+     *
+     * @param  array  $field
+     * @return array
+     */
+    private function getPivotSelectorConstraintField(array $field)
+    {
+        if (! is_array($field['subfields'] ?? null) || ! is_array($field['pivotSelect'] ?? null)) {
+            return $field;
+        }
+
+        $pivotSelectorField = array_merge(
+            Arr::only($field, ['name', 'entity', 'model', 'relation_type', 'baseModel', 'baseEntity']),
+            $field['pivotSelect']
+        );
+
+        // inline create on the pivot selector makes it an ajax field
+        if (isset($pivotSelectorField['inline_create']) && $pivotSelectorField['inline_create'] !== false) {
+            $pivotSelectorField['ajax'] = true;
+        }
+        unset($pivotSelectorField['inline_create']);
+
+        return $this->getRelationOptionsConstraint($pivotSelectorField) !== null ? $pivotSelectorField : $field;
     }
 
     /**
