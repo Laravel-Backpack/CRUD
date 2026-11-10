@@ -14,6 +14,7 @@ use Backpack\CRUD\Tests\config\Models\User;
 use Faker\Factory;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
 /**
@@ -602,7 +603,7 @@ class CrudPanelCreateTest extends \Backpack\CRUD\Tests\config\CrudPanel\BaseDBCr
                 'text' => 'my pivot recommend field 1x1',
             ],
         ],
-        ], true, true);
+        ], true, true, [['name' => 'text']]);
 
         $entry = $this->crudPanel->create($inputData);
 
@@ -2107,6 +2108,102 @@ class CrudPanelCreateTest extends \Backpack\CRUD\Tests\config\CrudPanel\BaseDBCr
         $this->assertEquals([1], $entry->fresh()->superArticles->pluck('id')->all());
     }
 
+    public function testManyToManyPivotRowsOnlySaveSubfieldsAndKeepTheirRelationKeys()
+    {
+        $this->crudPanel->setModel(User::class);
+        $this->crudPanel->addFields($this->userInputFieldsNoRelationships, 'both');
+        $this->crudPanel->addField([
+            'name' => 'superArticles',
+            'subfields' => [
+                ['name' => 'notes'],
+            ],
+            'pivotSelect' => [
+                'options' => fn ($query) => $query->where('id', 1),
+            ],
+        ], 'both');
+
+        $faker = Factory::create();
+        $entry = $this->crudPanel->create([
+            'name' => $faker->name,
+            'email' => $faker->safeEmail,
+            'password' => Hash::make($faker->password()),
+            'remember_token' => null,
+            'superArticles' => [
+                [
+                    'superArticles' => 1,
+                    'notes' => 'allowed',
+                    'user_id' => 1,
+                    'article_id' => 2,
+                    'start_date' => '2020-01-01',
+                ],
+            ],
+        ]);
+
+        $pivotRows = DB::table('articles_user')->get();
+
+        $this->assertCount(1, $pivotRows);
+        $this->assertEquals($entry->id, $pivotRows[0]->user_id);
+        $this->assertEquals(1, $pivotRows[0]->article_id);
+        $this->assertEquals('allowed', $pivotRows[0]->notes);
+        $this->assertNull($pivotRows[0]->start_date);
+    }
+
+    public function testMorphToManyPivotRowsKeepTheirMorphKeys()
+    {
+        $this->crudPanel->setModel(User::class);
+        $this->crudPanel->addFields($this->userInputFieldsNoRelationships, 'both');
+        $this->crudPanel->addField(['name' => 'recommends', 'subfields' => [
+            ['name' => 'text'],
+        ]], 'both');
+
+        $faker = Factory::create();
+        $entry = $this->crudPanel->create([
+            'name' => $faker->name,
+            'email' => $faker->safeEmail,
+            'password' => Hash::make($faker->password()),
+            'remember_token' => null,
+            'recommends' => [
+                [
+                    'recommends' => 1,
+                    'text' => 'my pivot recommend field',
+                    'recommendable_type' => Article::class,
+                    'recommendable_id' => 1,
+                    'recommend_id' => 2,
+                ],
+            ],
+        ]);
+
+        $pivotRows = DB::table('recommendables')->get();
+
+        $this->assertCount(1, $pivotRows);
+        $this->assertEquals($entry->getMorphClass(), $pivotRows[0]->recommendable_type);
+        $this->assertEquals($entry->id, $pivotRows[0]->recommendable_id);
+        $this->assertEquals(1, $pivotRows[0]->recommend_id);
+        $this->assertEquals('my pivot recommend field', $pivotRows[0]->text);
+    }
+
+    public function testDuplicatePivotRowsOnlySaveSubfields()
+    {
+        $inputData = $this->getPivotInputData(['superArticlesDuplicates' => [
+            [
+                'superArticlesDuplicates' => 1,
+                'notes' => 'my article note',
+                'start_date' => '2020-01-01',
+                'id' => null,
+            ],
+        ]], true, true);
+
+        $entry = $this->crudPanel->create($inputData);
+
+        $pivotRows = DB::table('articles_user')->get();
+
+        $this->assertCount(1, $pivotRows);
+        $this->assertEquals($entry->id, $pivotRows[0]->user_id);
+        $this->assertEquals(1, $pivotRows[0]->article_id);
+        $this->assertEquals('my article note', $pivotRows[0]->notes);
+        $this->assertNull($pivotRows[0]->start_date);
+    }
+
     public function testHasManyRelationshipWithDataSourceUsesFetchQueryOfItsEntity()
     {
         $this->crudPanel->setModel(User::class);
@@ -2809,7 +2906,7 @@ class CrudPanelCreateTest extends \Backpack\CRUD\Tests\config\CrudPanel\BaseDBCr
         $this->assertEquals($entry->dynamicRelation()->first()->name, Bang::find(1)->name);
     }
 
-    private function getPivotInputData(array $pivotRelationData, bool $initCrud = true, bool $allowDuplicates = false)
+    private function getPivotInputData(array $pivotRelationData, bool $initCrud = true, bool $allowDuplicates = false, array $subfields = [['name' => 'notes']])
     {
         $faker = Factory::create();
 
@@ -2820,12 +2917,7 @@ class CrudPanelCreateTest extends \Backpack\CRUD\Tests\config\CrudPanel\BaseDBCr
                 'name' => array_key_first($pivotRelationData),
                 'allow_duplicate_pivots' => $allowDuplicates,
                 'pivot_key_name' => 'id',
-                'subfields' => [
-                    [
-                        'name' => 'notes',
-                    ],
-
-                ],
+                'subfields' => $subfields,
             ]);
 
             $article = Article::create([
