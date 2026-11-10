@@ -5,7 +5,9 @@ namespace Backpack\CRUD\app\Http\Controllers;
 use Alert;
 use Backpack\CRUD\app\Http\Requests\AccountInfoRequest;
 use Backpack\CRUD\app\Http\Requests\ChangePasswordRequest;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Hash;
 
 class MyAccountController extends Controller
@@ -35,7 +37,23 @@ class MyAccountController extends Controller
      */
     public function postAccountInfoForm(AccountInfoRequest $request)
     {
-        $result = $this->guard()->user()->update($request->validated());
+        $user = $this->guard()->user();
+        $user->fill(Arr::except($request->validated(), ['current_password']));
+
+        // a new email address needs to be verified again
+        $verifyNewEmail = config('backpack.base.setup_email_verification_routes', false)
+            && $user instanceof MustVerifyEmail
+            && $user->isDirty(config('backpack.base.email_column', 'email'));
+
+        if ($verifyNewEmail) {
+            $user->forceFill(['email_verified_at' => null]);
+        }
+
+        $result = $user->save();
+
+        if ($result && $verifyNewEmail) {
+            $user->sendEmailVerificationNotification();
+        }
 
         if ($result) {
             Alert::success(trans('backpack::base.account_updated'))->flash();

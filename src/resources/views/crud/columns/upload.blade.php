@@ -1,12 +1,12 @@
 @php
-    $column['escaped'] = $column['escaped'] ?? false;
+    $column['escaped'] = $column['escaped'] ?? true;
     $column['value'] = $column['value'] ?? data_get($entry, $column['name']);
     if(!empty($column['value'])) {
         $column['wrapper']['element'] = $column['wrapper']['element'] ?? 'a';
         $column['wrapper']['target'] = $column['wrapper']['target'] ?? '_blank';
         $column_wrapper_href = $column['wrapper']['href'] ?? function($file_path, $disk, $prefix) use ($column) { 
             if (is_null($disk)) {
-                return asset($prefix.$file_path);
+                return backpack_safe_link_url(asset($prefix.$file_path));
             }
             if (isset($column['temporary'])) {
                 return asset(\Storage::disk($disk)->temporaryUrl($file_path, Carbon\Carbon::now()->addMinutes($column['expiration'] ?? $column['temporary'])));

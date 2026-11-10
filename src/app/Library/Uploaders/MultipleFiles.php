@@ -41,7 +41,7 @@ class MultipleFiles extends Uploader
         $filesToStore = [];
 
         foreach ($value as $file) {
-            if ($file && is_file($file)) {
+            if ($file instanceof UploadedFile && $file->isValid()) {
                 $filesToStore[] = [$file, $this->getFileName($file)];
             }
         }
@@ -132,7 +132,7 @@ class MultipleFiles extends Uploader
     {
         $value = $entry->{$this->getAttributeName()};
 
-        return isset($entry->getCasts()[$this->getName()]) ? $value : json_encode($value);
+        return isset($entry->getCasts()[$this->getName()]) || is_string($value) ? $value : json_encode($value);
     }
 
     private function getFilesToDeleteFromRequest(): array

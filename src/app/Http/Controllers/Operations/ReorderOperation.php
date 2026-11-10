@@ -87,9 +87,13 @@ trait ReorderOperation
     {
         $this->crud->hasAccessOrFail('reorder');
 
-        $all_entries = json_decode(\Request::input('tree'), true);
+        if (! $this->crud->isReorderEnabled()) {
+            abort(403, 'Reorder is disabled.');
+        }
 
-        if (count($all_entries)) {
+        $all_entries = json_decode((string) \Request::input('tree'), true);
+
+        if (is_array($all_entries) && count($all_entries)) {
             $count = $this->crud->updateTreeOrder($all_entries);
         } else {
             return false;

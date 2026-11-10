@@ -4,6 +4,7 @@ namespace Backpack\CRUD\app\Library\CrudPanel\Traits;
 
 use Backpack\CRUD\app\Library\Validation\Rules\BackpackCustomRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 
 trait Validation
@@ -138,16 +139,79 @@ trait Validation
         if ($formRequest) {
             // when there is no validation in the fields, just validate the form request.
             if (empty($rules)) {
-                return app($formRequest);
+                $request = app($formRequest);
+
+                $this->validateJsonEncodedInputs($request, $this->getRequestRulesAsArray($request), $request->messages(), $request->attributes());
+
+                return $request;
             }
 
             [$formRequest, $extendedRules, $extendedMessages, $extendedAttributes] = $this->mergeRequestAndFieldRules($formRequest, $rules, $messages, $attributes);
 
             // validate the complete request with FormRequest + controller validation + field validation (our anonymous class)
-            return $this->checkRequestValidity($extendedRules, $extendedMessages, $extendedAttributes, $formRequest);
+            $request = $this->checkRequestValidity($extendedRules, $extendedMessages, $extendedAttributes, $formRequest);
+
+            $this->validateJsonEncodedInputs($request, $extendedRules, $extendedMessages, $extendedAttributes);
+
+            return $request;
         }
 
-        return ! empty($rules) ? $this->checkRequestValidity($rules, $messages, $attributes) : $this->getRequest();
+        if (empty($rules)) {
+            return $this->getRequest();
+        }
+
+        $request = $this->checkRequestValidity($rules, $messages, $attributes);
+
+        $this->validateJsonEncodedInputs($request, $rules, $messages, $attributes);
+
+        return $request;
+    }
+
+    /**
+     * Some fields send their value as a JSON string (eg. checklist, repeatable), that is only decoded
+     * when saving. Rules for the items inside those values (eg. "field.*" or "field.*.name") don't
+     * match anything in a string, so validate those rules against the decoded values too.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  array  $rules
+     * @param  array  $messages
+     * @param  array  $attributes
+     *
+     * @throws \Illuminate\Validation\ValidationException
+     */
+    private function validateJsonEncodedInputs($request, $rules, $messages = [], $attributes = []): void
+    {
+        $data = $request->all();
+        $nestedRules = [];
+
+        foreach ($data as $inputName => $value) {
+            if (! is_string($inputName) || ! is_string($value) || $value === '') {
+                continue;
+            }
+
+            $inputNestedRules = array_filter($rules, function ($ruleKey) use ($inputName) {
+                return is_string($ruleKey) && Str::startsWith($ruleKey, $inputName.'.');
+            }, ARRAY_FILTER_USE_KEY);
+
+            if (empty($inputNestedRules)) {
+                continue;
+            }
+
+            $decodedValue = json_decode($value, true);
+
+            if (! is_array($decodedValue)) {
+                continue;
+            }
+
+            $data[$inputName] = $decodedValue;
+            $nestedRules = array_merge($nestedRules, $inputNestedRules);
+        }
+
+        if (empty($nestedRules)) {
+            return;
+        }
+
+        Validator::make($data, $nestedRules, $messages, $attributes)->validate();
     }
 
     /**

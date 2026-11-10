@@ -23,12 +23,13 @@ trait Read
             return $this->entry->getKey();
         }
 
-        $params = Route::current()?->parameters() ?? [];
+        $route = Route::current();
+        $params = $route?->parameters() ?? [];
 
-        return  // use the entity name to get the current entry
+        return  // use the route parameter named after the entity, if there is one
                 // this makes sure the ID is current even for nested resources
-                $this->getRequest()?->input($this->entity_name) ??
-                // otherwise use the next to last parameter
+                ($this->entity_name ? $route?->parameter($this->entity_name) : null) ??
+                // otherwise use the last route parameter
                 array_values($params)[count($params) - 1] ??
                 // otherwise return false
                 false;

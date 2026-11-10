@@ -2,7 +2,7 @@
     $column['value'] = $column['value'] ?? data_get($entry, $column['name']);
     $column['wrapper']['element'] = $column['wrapper']['element'] ?? $column['element'] ?? 'a';
     $column['wrapper']['target'] = $column['wrapper']['target'] ?? $column['target'] ?? '_blank';
-    $column['wrapper']['href'] = $column['value'];
+    $column['wrapper']['href'] = $column['value'] instanceof \Closure ? $column['value'] : backpack_safe_link_url($column['value']);
     $rel = $column['wrapper']['rel'] ?? $column['rel'] ?? null;
 
     if($rel !== false)  {

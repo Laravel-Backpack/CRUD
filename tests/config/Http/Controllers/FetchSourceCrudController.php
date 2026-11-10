@@ -29,6 +29,16 @@ class FetchSourceCrudController extends CrudController
             'fetchRole' => function ($query) {
                 return $query->where('id', 1);
             },
+            // the methods ajax fields resolve to, by their entity
+            'fetchPlanets' => function ($query) {
+                return $query->where('id', 1);
+            },
+            'fetchRoles' => function ($query) {
+                return $query->where('id', 1);
+            },
+            'fetchSuperArticles' => function ($query) {
+                return $query->where('id', 1);
+            },
             'fetchModeratorUser' => function ($query) {
                 return $query->where('id', 1);
             },

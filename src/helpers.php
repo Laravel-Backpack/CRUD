@@ -67,6 +67,34 @@ if (! function_exists('backpack_safe_redirect_url')) {
     }
 }
 
+if (! function_exists('backpack_safe_link_url')) {
+    /**
+     * Return the given URL when it can be safely used as a link (href), or null otherwise.
+     * Relative URLs and URLs using the http, https, ftp, mailto or tel schemes are allowed.
+     *
+     * @param  mixed  $url
+     * @return string|null
+     */
+    function backpack_safe_link_url($url)
+    {
+        if (! is_string($url) && ! $url instanceof Stringable) {
+            return null;
+        }
+
+        $url = (string) $url;
+
+        // browsers ignore control chars and whitespace around/inside the scheme (eg. " java\tscript:")
+        $normalizedUrl = preg_replace('/[\x00-\x20\x7F]/', '', $url);
+
+        if (preg_match('/^([a-z][a-z0-9+.\-]*):/i', $normalizedUrl, $matches) &&
+            ! in_array(strtolower($matches[1]), ['http', 'https', 'ftp', 'mailto', 'tel'], true)) {
+            return null;
+        }
+
+        return $url;
+    }
+}
+
 if (! function_exists('backpack_authentication_column')) {
     /**
      * Return the username column name.

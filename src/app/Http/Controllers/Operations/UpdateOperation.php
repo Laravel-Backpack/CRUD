@@ -103,9 +103,9 @@ trait UpdateOperation
 
         // register any Model Events defined on fields
         $this->crud->registerFieldEvents();
-        // update the row in the db
+        // update the row in the db, the same entry that the access was checked against
         $item = $this->crud->update(
-            $request->input($this->crud->model->getKeyName()),
+            $this->crud->getCurrentEntryId() ?: $request->input($this->crud->model->getKeyName()),
             $this->crud->getStrippedSaveRequest($request)
         );
         $this->data['entry'] = $this->crud->entry = $item;

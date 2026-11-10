@@ -317,4 +317,55 @@ class CrudPanelValidationTest extends \Backpack\CRUD\Tests\config\CrudPanel\Base
             throw $e;
         }
     }
+
+    public function testItValidatesNestedRulesAgainstJsonEncodedInputs()
+    {
+        $this->crudPanel->setModel(User::class);
+        $this->crudPanel->setValidation([
+            'roles.*' => 'integer|max:2',
+        ]);
+
+        $this->crudPanel->setRequest(request()->create('users/', 'POST', [
+            'roles' => json_encode([1, 2]),
+        ]));
+        $this->crudPanel->validateRequest();
+
+        $this->crudPanel->setRequest(request()->create('users/', 'POST', [
+            'roles' => json_encode([1, 5]),
+        ]));
+
+        try {
+            $this->crudPanel->validateRequest();
+            $this->fail('The JSON encoded input should have been validated.');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            $this->assertArrayHasKey('roles.1', $e->errors());
+        }
+    }
+
+    public function testItValidatesNestedRulesOfFormRequestAgainstJsonEncodedInputs()
+    {
+        $this->crudPanel->setModel(User::class);
+        $this->crudPanel->setValidation(UserRequest::class);
+        $this->crudPanel->setValidation([
+            'name' => 'required',
+            'roles.*.name' => 'required|string',
+        ]);
+
+        $request = request()->create('users/', 'POST', [
+            'name' => 'test name',
+            'email' => 'test@test.com',
+            'password' => 'test',
+            'roles' => json_encode([['name' => 'admin'], ['other' => 'x']]),
+        ]);
+
+        $request->setRouteResolver(function () use ($request) {
+            return (new Route('POST', 'users', ['Backpack\CRUD\Tests\Config\Http\Controllers\UserCrudController', 'create']))->bind($request);
+        });
+
+        $this->crudPanel->setRequest($request);
+
+        $this->expectException(\Illuminate\Validation\ValidationException::class);
+
+        $this->crudPanel->validateRequest();
+    }
 }

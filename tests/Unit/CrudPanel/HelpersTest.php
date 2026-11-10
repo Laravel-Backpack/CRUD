@@ -193,4 +193,44 @@ class HelpersTest extends BaseCrudPanel
     {
         $this->assertNull(backpack_safe_redirect_url('https://evil.com'));
     }
+
+    #[\PHPUnit\Framework\Attributes\DataProvider('safeLinkUrlProvider')]
+    public function testBackpackSafeLinkUrlKeepsSafeUrls($url)
+    {
+        $this->assertSame($url, backpack_safe_link_url($url));
+    }
+
+    public static function safeLinkUrlProvider(): array
+    {
+        return [
+            'https' => ['https://example.com/path?query=1'],
+            'http' => ['http://example.com'],
+            'protocol relative' => ['//example.com/image.jpg'],
+            'absolute path' => ['/storage/image.jpg'],
+            'relative path' => ['storage/image.jpg'],
+            'mailto' => ['mailto:someone@example.com'],
+            'tel' => ['tel:+123456789'],
+        ];
+    }
+
+    #[\PHPUnit\Framework\Attributes\DataProvider('unsafeLinkUrlProvider')]
+    public function testBackpackSafeLinkUrlRejectsUnsafeUrls($url)
+    {
+        $this->assertNull(backpack_safe_link_url($url));
+    }
+
+    public static function unsafeLinkUrlProvider(): array
+    {
+        return [
+            'javascript' => ['javascript:alert(1)'],
+            'javascript uppercase' => ['JAVASCRIPT:alert(1)'],
+            'javascript with leading whitespace' => ["  \tjavascript:alert(1)"],
+            'javascript with tab inside the scheme' => ["java\tscript:alert(1)"],
+            'javascript with newline inside the scheme' => ["java\nscript:alert(1)"],
+            'javascript with slashes' => ['javascript://%0aalert(1)'],
+            'vbscript' => ['vbscript:msgbox(1)'],
+            'data' => ['data:text/html,<script>alert(1)</script>'],
+            'not a string' => [['javascript:alert(1)']],
+        ];
+    }
 }
