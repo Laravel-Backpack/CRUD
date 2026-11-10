@@ -69,6 +69,8 @@ trait Reorder
             return $item;
         })->toArray();
 
+        $this->abortIfTreeIsNotAllowed($reorderItems, $primaryKey, $columns['parent_id']);
+
         $sentIds = array_column($reorderItems, $primaryKey);
 
         $itemKeys = $itemKeys->filter(function ($id) use ($sentIds) {
@@ -102,6 +104,42 @@ trait Reorder
         });
 
         return count($reorderItems);
+    }
+
+    /**
+     * Make sure the submitted tree has no loops and does not go deeper than the maximum level allowed.
+     *
+     * @param  array  $items  The reorder items, already mapped to the database columns.
+     * @param  string  $primaryKey
+     * @param  string  $parentColumn
+     */
+    private function abortIfTreeIsNotAllowed(array $items, $primaryKey, $parentColumn): void
+    {
+        $maxLevel = (int) ($this->get('reorder.max_level') ?? 3);
+
+        $parents = [];
+        foreach ($items as $item) {
+            $parents[(string) $item[$primaryKey]] = $item[$parentColumn] === null ? null : (string) $item[$parentColumn];
+        }
+
+        foreach ($parents as $key => $parent) {
+            $depth = 1;
+            $visited = [(string) $key => true];
+
+            while ($parent !== null) {
+                if (isset($visited[$parent])) {
+                    abort(422, 'The reorder tree is not valid.');
+                }
+
+                $visited[$parent] = true;
+                $depth++;
+                $parent = $parents[$parent] ?? null;
+            }
+
+            if ($maxLevel > 0 && $depth > $maxLevel) {
+                abort(422, 'The reorder tree exceeds the maximum level allowed.');
+            }
+        }
     }
 
     /**
