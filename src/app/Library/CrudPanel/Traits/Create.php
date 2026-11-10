@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
+use Illuminate\Database\Eloquent\Relations\MorphOneOrMany;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Database\Query\Builder as QueryBuilder;
@@ -269,11 +270,68 @@ trait Create
         $input = $relationMethodValue ?? $relationDetails['values'];
         [$directInputs, $relationInputs] = $this->splitInputIntoDirectAndRelations($input, $relationDetails, $relationMethod);
 
-        $item = $relation->updateOrCreate([], $directInputs);
+        $item = $relation->updateOrCreate([], $this->getRelatedEntryInputs($directInputs, $relation, $relationDetails, $relationMethod));
 
         $this->createRelationsForItem($item, $relationInputs);
 
         return $item;
+    }
+
+    /**
+     * Get the attributes that can be saved on a related entry (HasOne, MorphOne, HasMany, MorphMany).
+     * When the field defines subfields, only the attributes of those subfields are kept. The keys
+     * that connect the related entry to its parent are always set by the relation itself.
+     *
+     * @param  array  $directInputs
+     * @param  \Illuminate\Database\Eloquent\Relations\HasOneOrMany  $relation
+     * @param  array  $relationDetails
+     * @param  string  $relationMethod
+     * @return array
+     */
+    private function getRelatedEntryInputs($directInputs, $relation, $relationDetails, $relationMethod)
+    {
+        // the field that represents the whole related entry (eg. a repeatable with subfields)
+        $field = Arr::first($relationDetails['crudFields'] ?? [], function ($field) use ($relationMethod) {
+            return is_array($field['subfields'] ?? null)
+                && is_string($field['name'] ?? null)
+                && Str::afterLast($field['name'], '.') === $relationMethod;
+        });
+
+        if ($field) {
+            $allowedAttributes = [];
+
+            foreach ($field['subfields'] as $subfield) {
+                if (! isset($subfield['name']) || ! is_string($subfield['name'])) {
+                    continue;
+                }
+
+                foreach (explode(',', $subfield['name']) as $subfieldName) {
+                    $allowedAttributes[] = Str::afterLast($subfieldName, '.');
+                }
+
+                if ($subfield['fake'] ?? false) {
+                    $allowedAttributes[] = $subfield['store_in'] ?? 'extras';
+                }
+
+                if (($subfield['relation_type'] ?? null) === 'BelongsTo') {
+                    try {
+                        $allowedAttributes[] = $this->getOverwrittenNameForBelongsTo($subfield);
+                    } catch (\Throwable) {
+                        // not a resolvable relation, the subfield name is all we have
+                    }
+                }
+            }
+
+            $directInputs = Arr::only($directInputs, $allowedAttributes);
+        }
+
+        $connectingAttributes = [$relation->getForeignKeyName(), $relation->getRelated()->getKeyName()];
+
+        if ($relation instanceof MorphOneOrMany) {
+            $connectingAttributes[] = $relation->getMorphType();
+        }
+
+        return Arr::except($directInputs, $connectingAttributes);
     }
 
     /**
@@ -671,13 +729,22 @@ trait Create
 
         foreach ($items as $item) {
             [$directInputs, $relationInputs] = $this->splitInputIntoDirectAndRelations($item, $relationDetails, $relationMethod);
+            $directInputs = $this->getRelatedEntryInputs($directInputs, $relation, $relationDetails, $relationMethod);
             // for each item we get the inputs to create and the relations of it.
             $relatedModelLocalKeyValue = $item[$relatedModelLocalKey] ?? null;
 
-            // we either find the matched entry by local_key (usually `id`)
-            // and update the values from the input
-            // or create a new item from input
-            $item = $entry->{$relationMethod}()->updateOrCreate([$relatedModelLocalKey => $relatedModelLocalKeyValue], $directInputs);
+            // we either find the matched entry by local_key (usually `id`), among the entries of this relation,
+            // and update the values from the input or create a new item from input
+            $relatedEntry = is_scalar($relatedModelLocalKeyValue) && $relatedModelLocalKeyValue !== ''
+                ? $entry->{$relationMethod}()->where($relatedModelLocalKey, $relatedModelLocalKeyValue)->first()
+                : null;
+
+            if ($relatedEntry) {
+                $relatedEntry->fill($directInputs)->save();
+                $item = $relatedEntry;
+            } else {
+                $item = $entry->{$relationMethod}()->create($directInputs);
+            }
 
             // we store the item local key so we can match them with database and check if any item was deleted
             $relatedItemsSent[] = $item->{$relatedModelLocalKey};

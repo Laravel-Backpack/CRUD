@@ -1884,6 +1884,138 @@ class CrudPanelCreateTest extends \Backpack\CRUD\Tests\config\CrudPanel\BaseDBCr
         $this->assertCount(0, $entry->fresh()->planets);
     }
 
+    public function testHasManyEntriesOnlySaveTheirSubfields()
+    {
+        $this->crudPanel->setModel(User::class);
+        $this->crudPanel->addFields($this->userInputFieldsNoRelationships, 'both');
+        $this->crudPanel->addField([
+            'name' => 'articles',
+            'subfields' => [
+                ['name' => 'content'],
+            ],
+        ], 'both');
+
+        $faker = Factory::create();
+        $inputData = [
+            'name' => $faker->name,
+            'email' => $faker->safeEmail,
+            'password' => Hash::make($faker->password()),
+            'remember_token' => null,
+            'articles' => [['content' => 'first']],
+        ];
+
+        $entry = $this->crudPanel->create($inputData);
+        $article = $entry->articles()->first();
+
+        $this->crudPanel->update($entry->id, array_merge($inputData, [
+            'articles' => [
+                ['id' => $article->id, 'content' => 'changed', 'user_id' => 2, 'tags' => 'injected'],
+                ['content' => 'second', 'user_id' => 2, 'tags' => 'injected'],
+            ],
+        ]));
+
+        $articles = $entry->fresh()->articles;
+
+        $this->assertCount(2, $articles);
+        $this->assertEquals(['changed', 'second'], $articles->pluck('content')->sort()->values()->all());
+        $this->assertEquals([null, null], $articles->pluck('tags')->all());
+        $this->assertSame($entry->id, (int) $article->fresh()->user_id);
+    }
+
+    public function testHasManyEntriesOnlyUpdateEntriesOfTheirParent()
+    {
+        $this->crudPanel->setModel(User::class);
+        $this->crudPanel->addFields($this->userInputFieldsNoRelationships, 'both');
+        $this->crudPanel->addField([
+            'name' => 'articles',
+            'subfields' => [
+                ['name' => 'content'],
+            ],
+        ], 'both');
+
+        $otherArticle = Article::create(['content' => 'other', 'user_id' => 2]);
+
+        $faker = Factory::create();
+        $entry = $this->crudPanel->create([
+            'name' => $faker->name,
+            'email' => $faker->safeEmail,
+            'password' => Hash::make($faker->password()),
+            'remember_token' => null,
+            'articles' => [['id' => $otherArticle->id, 'content' => 'changed']],
+        ]);
+
+        $this->assertSame('other', $otherArticle->fresh()->content);
+        $this->assertSame(2, (int) $otherArticle->fresh()->user_id);
+        $this->assertNotEquals($otherArticle->id, $entry->articles()->first()->id);
+    }
+
+    public function testHasOneEntryCannotChangeItsParent()
+    {
+        $this->crudPanel->setModel(User::class);
+        $this->crudPanel->addFields($this->userInputFieldsNoRelationships, 'both');
+        $this->crudPanel->addField([
+            'name' => 'accountDetails',
+            'subfields' => [
+                ['name' => 'nickname'],
+                ['name' => 'profile_picture'],
+            ],
+        ], 'both');
+
+        $faker = Factory::create();
+        $inputData = [
+            'name' => $faker->name,
+            'email' => $faker->safeEmail,
+            'password' => Hash::make($faker->password()),
+            'remember_token' => null,
+            'accountDetails' => [['nickname' => 'nick', 'profile_picture' => 'pic.jpg']],
+        ];
+
+        $entry = $this->crudPanel->create($inputData);
+
+        $this->crudPanel->update($entry->id, array_merge($inputData, [
+            'accountDetails' => [['nickname' => 'changed', 'profile_picture' => 'pic.jpg', 'user_id' => 2, 'article_id' => 1]],
+        ]));
+
+        $accountDetails = $entry->fresh()->accountDetails;
+
+        $this->assertSame('changed', $accountDetails->nickname);
+        $this->assertNull($accountDetails->article_id);
+        $this->assertNull(User::find(2)->accountDetails);
+    }
+
+    public function testMorphOneEntryCannotChangeItsParent()
+    {
+        $this->crudPanel->setModel(User::class);
+        $this->crudPanel->addFields($this->userInputFieldsNoRelationships, 'both');
+        $this->crudPanel->addField([
+            'name' => 'comment',
+            'subfields' => [
+                ['name' => 'text'],
+            ],
+        ], 'both');
+
+        $faker = Factory::create();
+        $inputData = [
+            'name' => $faker->name,
+            'email' => $faker->safeEmail,
+            'password' => Hash::make($faker->password()),
+            'remember_token' => null,
+            'comment' => [['text' => 'hello']],
+        ];
+
+        $entry = $this->crudPanel->create($inputData);
+
+        $this->crudPanel->update($entry->id, array_merge($inputData, [
+            'comment' => [['text' => 'changed', 'commentable_id' => 2, 'commentable_type' => Article::class]],
+        ]));
+
+        $comment = $entry->fresh()->comment;
+
+        $this->assertSame('changed', $comment->text);
+        $this->assertSame($entry->getMorphClass(), $comment->commentable_type);
+        $this->assertSame($entry->id, (int) $comment->commentable_id);
+    }
+
     public function testAjaxHasManyRelationshipUsesFetchQueryOfItsEntity()
     {
         $this->crudPanel->setModel(User::class);
