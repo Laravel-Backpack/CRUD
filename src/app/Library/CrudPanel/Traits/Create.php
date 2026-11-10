@@ -514,6 +514,20 @@ trait Create
             return $this->getRelationOptionsConstraintFromFetchSource($field['relation_options_query_source']);
         }
 
+        // ajax fields (and fields with inline create) get their options from the fetch method
+        // named after the field entity, the same one the field's fetch route points to
+        if (($field['ajax'] ?? false) || isset($field['data_source']) || isset($field['inline_create'])) {
+            $entity = isset($field['entity']) && is_string($field['entity']) ? $field['entity'] : ($field['name'] ?? null);
+
+            try {
+                $entity = $this->getOnlyRelationEntity($field);
+            } catch (\Throwable) {
+                // keep the entity as defined
+            }
+
+            return $this->getRelationOptionsConstraintFromFetchSource($entity);
+        }
+
         return null;
     }
 

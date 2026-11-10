@@ -1829,6 +1829,73 @@ class CrudPanelCreateTest extends \Backpack\CRUD\Tests\config\CrudPanel\BaseDBCr
         ]);
     }
 
+    public function testAjaxHasManyRelationshipUsesFetchQueryOfItsEntity()
+    {
+        $this->crudPanel->setModel(User::class);
+        $this->crudPanel->setController(FetchSourceCrudController::class);
+        $this->crudPanel->addFields($this->userInputFieldsNoRelationships, 'both');
+        $this->crudPanel->addField([
+            'name' => 'planets',
+            'force_delete' => false,
+            'fallback_id' => false,
+            'ajax' => true,
+        ], 'both');
+
+        $faker = Factory::create();
+        $entry = $this->crudPanel->create([
+            'name' => $faker->name,
+            'email' => $faker->safeEmail,
+            'password' => Hash::make($faker->password()),
+            'remember_token' => null,
+            'planets' => [1, 2],
+        ]);
+
+        $this->assertEquals([1], $entry->planets->pluck('id')->all());
+    }
+
+    public function testAjaxManyToManyRelationshipUsesFetchQueryOfItsEntity()
+    {
+        $this->crudPanel->setModel(User::class);
+        $this->crudPanel->setController(FetchSourceCrudController::class);
+        $this->crudPanel->addFields($this->userInputFieldsNoRelationships, 'both');
+        $this->crudPanel->addField([
+            'name' => 'roles',
+            'entity' => 'roles',
+            'attribute' => 'name',
+            'pivot' => true,
+            'inline_create' => true,
+        ], 'both');
+
+        $faker = Factory::create();
+        $entry = $this->crudPanel->create([
+            'name' => $faker->name,
+            'email' => $faker->safeEmail,
+            'password' => Hash::make($faker->password()),
+            'remember_token' => null,
+            'roles' => [1, 2],
+        ]);
+
+        $this->assertEquals([1], $entry->roles->pluck('id')->all());
+    }
+
+    public function testAjaxBelongsToRelationshipUsesFetchQueryOfItsEntity()
+    {
+        $this->crudPanel->setModel(Article::class);
+        $this->crudPanel->setController(FetchSourceCrudController::class);
+        $this->crudPanel->addFields($this->articleInputFieldsOneToMany);
+        $this->crudPanel->modifyField('user_id', ['ajax' => true]);
+
+        $faker = Factory::create();
+
+        $this->expectException(\Illuminate\Validation\ValidationException::class);
+
+        $this->crudPanel->create([
+            'content' => $faker->text(),
+            'tags' => null,
+            'user_id' => 2,
+        ]);
+    }
+
     public function testRelationOptionsQuerySourceWithUnknownFetchMethodLeavesFieldUnconstrained()
     {
         $this->crudPanel->setModel(User::class);
