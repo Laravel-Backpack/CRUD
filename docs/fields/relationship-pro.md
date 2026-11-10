@@ -170,6 +170,8 @@ CRUD::field([
 ]);
 ```
 
+The `options` (or `relation_options_query`) of the `pivotSelect` are also enforced when saving: entries the pivot select would not list are dropped from the submitted rows. When the pivot select is `ajax` (or uses `inline_create`), the `query` of the matching `fetchXxx()` method is used.
+
 #### Manage related entries inline (create, update, delete)
 
 For `hasMany` / `morphMany` where the secondary entry has no standalone form, define `subfields` to manage everything inside the parent form:
@@ -211,7 +213,9 @@ CRUD::field([
 ]);
 ```
 
-Backpack handles create/update/delete of the related entries on save.
+Backpack handles create/update/delete of the related entries on save. Only the attributes defined as `subfields` are saved on the related entries, and the keys that connect them to the parent entry (the foreign key, and the morph type/id for `morphOne`/`morphMany`) are always set by the relationship, never by the submitted values. If you need to save an attribute on the related entry, add a subfield for it (a `hidden` field works too).
+
+A field **without** `subfields` only selects existing entries (it submits a list of keys), and a field **with** `subfields` only creates/updates the entries it manages. Anything else submitted to the field is ignored.
 
 #### Delete related entries or fall back to default
 

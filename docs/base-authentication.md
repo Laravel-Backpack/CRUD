@@ -274,3 +274,5 @@ protected $middlewareAliases = [
 ```
 
 **Step 4** - Enable the functionality in `config/backpack/base.php` by changing `setup_email_validation_routes` to `true`. If you don't have this config key there, now is a good time to add it.
+
+> When email verification is enabled and an admin changes their email address in "My Account", the new address is marked as not verified and a verification email is sent to it. Make sure your user model uses the `Illuminate\Notifications\Notifiable` trait (Laravel's default `User` model already does).

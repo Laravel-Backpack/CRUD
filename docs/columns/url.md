@@ -12,3 +12,5 @@ Show a link which opens in the new tab by default.
     //'rel' => false OR 'rel' => 'noopener' // let's you disable or change the rel attribute of the link.
 ],
 ```
+
+Only relative URLs and `http`, `https`, `ftp`, `mailto` or `tel` URLs are used as the link. Any other URL (eg. `javascript:`) is not used as the link target.
