@@ -223,113 +223,155 @@
     <script>
       function bpFieldInitChecklistDependencyElement(element) {
 
-          var unique_name = element.data('entity');
+          var unique_name = element[0].dataset.entity;
           var dependencyJson = window[unique_name];
-          var thisField = element;
+          var thisField = element[0];
           var handleCheckInput = function(el, field, dependencyJson) {
-            let idCurrent = el.data('id');
+            let idCurrent = el.dataset.id;
             //add hidden field with this value
-            let nameInput = field.find('.hidden_fields_primary').data('name');
-            if(field.find('input.primary_hidden[value="'+idCurrent+'"]').length === 0) {
-              let inputToAdd = $('<input type="hidden" class="primary_hidden" name="'+nameInput+'[]" value="'+idCurrent+'">');
+            let nameInput = field.querySelector('.hidden_fields_primary').dataset.name;
+            if(field.querySelectorAll('input.primary_hidden[value="'+idCurrent+'"]').length === 0) {
+              let inputToAdd = document.createElement('input');
+              inputToAdd.type = 'hidden';
+              inputToAdd.className = 'primary_hidden';
+              inputToAdd.name = nameInput+'[]';
+              inputToAdd.value = idCurrent;
 
-              field.find('.hidden_fields_primary').append(inputToAdd);
-              field.find('.hidden_fields_primary').find('input.primary_hidden[value="'+idCurrent+'"]').trigger('change');
+              field.querySelector('.hidden_fields_primary').append(inputToAdd);
+              inputToAdd.dispatchEvent(new Event('change'));
             }
-            $.each(dependencyJson[idCurrent], function(key, value){
-              //check and disable secondies checkbox
-              field.find('input.secondary_list[value="'+value+'"]').prop( "checked", true );
-              field.find('input.secondary_list[value="'+value+'"]').prop( "disabled", true );
-              field.find('input.secondary_list[value="'+value+'"]').attr('forced-select', 'true');
+            (dependencyJson[idCurrent] || []).forEach(function(value){
+              //check and disable secondary checkboxes
+              var secondaryCheckbox = field.querySelector('input.secondary_list[value="'+value+'"]');
+              if (secondaryCheckbox) {
+                  secondaryCheckbox.checked = true;
+                  secondaryCheckbox.disabled = true;
+                  secondaryCheckbox.setAttribute('forced-select', 'true');
+              }
               //remove hidden fields with secondary dependency if was set
-              var hidden = field.find('input.secondary_hidden[value="'+value+'"]');
+              var hidden = field.querySelector('input.secondary_hidden[value="'+value+'"]');
               if(hidden)
                 hidden.remove();
             });
           };
           
-          thisField.find('div.hidden_fields_primary').children('input').first().on('CrudField:disable', function(e) {
-              let input = $(e.target);
-              input.parent().parent().find('input[type=checkbox]').attr('disabled', 'disabled');
-              input.siblings('input').attr('disabled','disabled');
-          });
+          var primaryHiddenFirst = thisField.querySelector('div.hidden_fields_primary > input');
+          if (primaryHiddenFirst) {
+              primaryHiddenFirst.addEventListener('CrudField:disable', function(e) {
+                  let input = e.target;
+                  var checkboxContainer = input.closest('.hidden_fields_primary').parentElement;
+                  checkboxContainer.querySelectorAll('input[type=checkbox]').forEach(function(cb) {
+                      cb.setAttribute('disabled', 'disabled');
+                  });
+                  Array.from(input.parentElement.querySelectorAll('input')).forEach(function(sibling) {
+                      if (sibling !== input) sibling.setAttribute('disabled', 'disabled');
+                  });
+              });
 
-          thisField.find('div.hidden_fields_primary').children('input').first().on('CrudField:enable', function(e) {
-              let input = $(e.target);
-              input.parent().parent().find('input[type=checkbox]').not('[forced-select]').removeAttr('disabled');
-              input.siblings('input').removeAttr('disabled');
-          });
+              primaryHiddenFirst.addEventListener('CrudField:enable', function(e) {
+                  let input = e.target;
+                  var checkboxContainer = input.closest('.hidden_fields_primary').parentElement;
+                  checkboxContainer.querySelectorAll('input[type=checkbox]:not([forced-select])').forEach(function(cb) {
+                      cb.removeAttribute('disabled');
+                  });
+                  Array.from(input.parentElement.querySelectorAll('input')).forEach(function(sibling) {
+                      if (sibling !== input) sibling.removeAttribute('disabled');
+                  });
+              });
+          }
 
-          thisField.find('div.hidden_fields_secondary').children('input').first().on('CrudField:disable', function(e) {
-              let input = $(e.target);
-              input.parent().parent().find('input[type=checkbox]').attr('disabled', 'disabled');
-              input.siblings('input').attr('disabled','disabled');
-          });
+          var secondaryHiddenFirst = thisField.querySelector('div.hidden_fields_secondary > input');
+          if (secondaryHiddenFirst) {
+              secondaryHiddenFirst.addEventListener('CrudField:disable', function(e) {
+                  let input = e.target;
+                  var checkboxContainer = input.closest('.hidden_fields_secondary').parentElement;
+                  checkboxContainer.querySelectorAll('input[type=checkbox]').forEach(function(cb) {
+                      cb.setAttribute('disabled', 'disabled');
+                  });
+                  Array.from(input.parentElement.querySelectorAll('input')).forEach(function(sibling) {
+                      if (sibling !== input) sibling.setAttribute('disabled', 'disabled');
+                  });
+              });
 
-          thisField.find('div.hidden_fields_secondary').children('input').first().on('CrudField:enable', function(e) {
-              let input = $(e.target);
-              input.parent().parent().find('input[type=checkbox]').not('[forced-select]').removeAttr('disabled');
-              input.siblings('input').removeAttr('disabled');
-          });
+              secondaryHiddenFirst.addEventListener('CrudField:enable', function(e) {
+                  let input = e.target;
+                  var checkboxContainer = input.closest('.hidden_fields_secondary').parentElement;
+                  checkboxContainer.querySelectorAll('input[type=checkbox]:not([forced-select])').forEach(function(cb) {
+                      cb.removeAttribute('disabled');
+                  });
+                  Array.from(input.parentElement.querySelectorAll('input')).forEach(function(sibling) {
+                      if (sibling !== input) sibling.removeAttribute('disabled');
+                  });
+              });
+          }
 
-          thisField.find('.primary_list').each(function() {
-            var checkbox = $(this);
+          thisField.querySelectorAll('.primary_list').forEach(function(checkbox) {
             // re-check the secondary boxes in case the primary is re-checked from old.
-            if(checkbox.is(':checked')){
+            if(checkbox.checked){
                handleCheckInput(checkbox, thisField, dependencyJson);
             }
             // register the change event to handle subsequent checkbox state changes.
-            checkbox.change(function(){
-              if(checkbox.is(':checked')){
+            checkbox.addEventListener('change', function(){
+              if(checkbox.checked){
                 handleCheckInput(checkbox, thisField, dependencyJson);
               }else{
-                let idCurrent = checkbox.data('id');
+                let idCurrent = checkbox.dataset.id;
                 //remove hidden field with this value.
-                thisField.find('input.primary_hidden[value="'+idCurrent+'"]').remove();
+                var primaryHidden = thisField.querySelector('input.primary_hidden[value="'+idCurrent+'"]');
+                if (primaryHidden) primaryHidden.remove();
 
-                // uncheck and active secondary checkboxs if are not in other selected primary.
+                // uncheck and active secondary checkboxes if are not in other selected primary.
                 var secondary = dependencyJson[idCurrent];
 
                 var selected = [];
-                thisField.find('input.primary_hidden').each(function (index, input){
-                  selected.push( $(this).val() );
+                thisField.querySelectorAll('input.primary_hidden').forEach(function(input){
+                  selected.push(input.value);
                 });
 
-                $.each(secondary, function(index, secondaryItem){
+                (secondary || []).forEach(function(secondaryItem){
                   var ok = 1;
 
-                  $.each(selected, function(index2, selectedItem){
-                    if( dependencyJson[selectedItem].indexOf(secondaryItem) != -1 ){
+                  selected.forEach(function(selectedItem){
+                    if( (dependencyJson[selectedItem] || []).indexOf(secondaryItem) != -1 ){
                       ok =0;
                     }
                   });
 
                   if(ok){
-                    thisField.find('input.secondary_list[value="'+secondaryItem+'"]').prop('checked', false);
-                    thisField.find('input.secondary_list[value="'+secondaryItem+'"]').prop('disabled', false);
-                    thisField.find('input.secondary_list[value="'+secondaryItem+'"]').removeAttr('forced-select');
+                    var secondaryCheckbox = thisField.querySelector('input.secondary_list[value="'+secondaryItem+'"]');
+                    if (secondaryCheckbox) {
+                        secondaryCheckbox.checked = false;
+                        secondaryCheckbox.disabled = false;
+                        secondaryCheckbox.removeAttribute('forced-select');
+                    }
                   }
                 });
 
               }
-              });
+            });
           });
 
 
-          thisField.find('.secondary_list').click(function(){
+          thisField.querySelectorAll('.secondary_list').forEach(function(secondaryCheckbox) {
+              secondaryCheckbox.addEventListener('click', function(){
+                var idCurrent = this.dataset.id;
+                if(this.checked){
+                  //add hidden field with this value
+                  var nameInput = thisField.querySelector('.hidden_fields_secondary').dataset.name;
+                  var inputToAdd = document.createElement('input');
+                  inputToAdd.type = 'hidden';
+                  inputToAdd.className = 'secondary_hidden';
+                  inputToAdd.name = nameInput+'[]';
+                  inputToAdd.value = idCurrent;
 
-            var idCurrent = $(this).data('id');
-            if($(this).is(':checked')){
-              //add hidden field with this value
-              var nameInput = thisField.find('.hidden_fields_secondary').data('name');
-              var inputToAdd = $('<input type="hidden" class="secondary_hidden" name="'+nameInput+'[]" value="'+idCurrent+'">');
+                  thisField.querySelector('.hidden_fields_secondary').append(inputToAdd);
 
-              thisField.find('.hidden_fields_secondary').append(inputToAdd);
-
-            }else{
-              //remove hidden field with this value
-              thisField.find('input.secondary_hidden[value="'+idCurrent+'"]').remove();
-            }
+                }else{
+                  //remove hidden field with this value
+                  var hidden = thisField.querySelector('input.secondary_hidden[value="'+idCurrent+'"]');
+                  if (hidden) hidden.remove();
+                }
+              });
           });
 
       }
