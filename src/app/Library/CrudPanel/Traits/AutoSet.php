@@ -7,6 +7,10 @@ trait AutoSet
     protected $autoset = [];
 
     /**
+     * @deprecated v6.5.2
+     * The `setFromDb` method should not be used.
+     * Please use the `addColumn`/`addField` methods instead.
+     *
      * For a simple CRUD Panel, there should be no need to add/define the fields.
      * The public columns in the database will be converted to be fields.
      *
