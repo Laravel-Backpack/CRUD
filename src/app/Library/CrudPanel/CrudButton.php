@@ -56,7 +56,7 @@ class CrudButton implements Arrayable
         // - 'end' for all other stacks
         $this->position = $position ?? ($this->stack == 'line' ? 'beginning' : 'end');
 
-        return $this->save();
+        $this->save();
     }
 
     // ------
