@@ -11,4 +11,5 @@ use Attribute;
 #[Attribute(Attribute::TARGET_METHOD)]
 class DeprecatedIgnoreOnRuntime
 {
+    public function __construct(protected string $reason = '') {}
 }
