@@ -37,6 +37,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Request as RequestFacade;
 use Illuminate\Support\Facades\Route;
 
 class CrudPanel
@@ -96,7 +97,7 @@ class CrudPanel
      */
     public function setRequest($request = null): self
     {
-        $this->request = $request ?? \Request::instance();
+        $this->request = $request ?? RequestFacade::instance();
 
         return $this;
     }
@@ -232,7 +233,7 @@ class CrudPanel
 
         $complete_route = $route.'.index';
 
-        if (! \Route::has($complete_route)) {
+        if (! Route::has($complete_route)) {
             throw new Exception('There are no routes for this route name.', 404);
         }
 

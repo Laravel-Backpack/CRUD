@@ -2,8 +2,8 @@
 
 namespace Backpack\CRUD\app\Console\Commands\Traits;
 
-use Artisan;
-use Illuminate\Console\Command;
+use Exception;
+use Illuminate\Support\Facades\Artisan;
 use Symfony\Component\Console\Terminal;
 use Symfony\Component\Process\Exception\ProcessFailedException;
 use Symfony\Component\Process\Process;

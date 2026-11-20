@@ -3,6 +3,7 @@
 namespace Backpack\CRUD\app\Library\CrudPanel\Traits;
 
 use Backpack\CRUD\app\Library\CrudPanel\Hooks\Facades\LifecycleHook;
+use Illuminate\Support\Facades\Route;
 
 trait Operations
 {
@@ -42,7 +43,7 @@ trait Operations
      */
     public function getCurrentOperation()
     {
-        return $this->currentOperation ?? \Route::getCurrentRoute()->action['operation'] ?? null;
+        return $this->currentOperation ?? Route::getCurrentRoute()->action['operation'] ?? null;
     }
 
     /**

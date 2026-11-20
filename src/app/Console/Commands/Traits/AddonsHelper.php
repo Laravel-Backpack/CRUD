@@ -3,8 +3,9 @@
 namespace Backpack\CRUD\app\Console\Commands\Traits;
 
 use Exception;
-use File;
-use Str;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use Symfony\Component\Process\Process;
 
 trait AddonsHelper
@@ -160,7 +161,7 @@ trait AddonsHelper
         $process->setTimeout(300);
         $process->run(function ($type, $buffer) use ($process) {
             if ($type === Process::ERR) {
-                \Log::error($buffer);
+                Log::error($buffer);
             }
 
             if (strpos($buffer, 'Permission denied') !== false) {
