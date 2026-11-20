@@ -6,6 +6,7 @@ use Closure;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Contracts\Auth\Factory as AuthFactory;
 use Illuminate\Session\Middleware\AuthenticateSession as LaravelAuthenticateSession;
+use Prologue\Alerts\Facades\Alert;
 
 class AuthenticateSession extends LaravelAuthenticateSession
 {
@@ -127,7 +128,7 @@ class AuthenticateSession extends LaravelAuthenticateSession
 
         $request->session()->flush();
 
-        \Alert::error(trans('backpack::base.session_expired_error'))->flash();
+        Alert::error(trans('backpack::base.session_expired_error'))->flash();
 
         throw new AuthenticationException('Unauthenticated.', [backpack_guard_name()], backpack_url('login'));
     }

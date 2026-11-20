@@ -5,6 +5,8 @@ namespace Backpack\CRUD\app\Library\Support;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanel;
 use Backpack\CRUD\app\Library\Widget;
 use Backpack\CRUD\CrudManager;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 
 final class DatatableCache extends SetupCache
 {
@@ -100,7 +102,7 @@ final class DatatableCache extends SetupCache
         }
 
         $instance = new self();
-        \Illuminate\Support\Facades\Cache::put(
+        Cache::put(
             $instance->generateCacheKey($tableId.'_back_url'),
             $url,
             now()->addMinutes($instance->cacheDuration)
@@ -122,7 +124,7 @@ final class DatatableCache extends SetupCache
             return false;
         }
 
-        if ($backUrl = \Illuminate\Support\Facades\Cache::get($instance->generateCacheKey($tableId.'_back_url'))) {
+        if ($backUrl = Cache::get($instance->generateCacheKey($tableId.'_back_url'))) {
             $crud->setOperationSetting('backToAllEntriesUrl', $backUrl);
         }
 
@@ -233,7 +235,7 @@ final class DatatableCache extends SetupCache
 
             return false;
         } catch (\Exception $e) {
-            \Log::error('Error applying cached datatable config: '.$e->getMessage(), [
+            Log::error('Error applying cached datatable config: '.$e->getMessage(), [
                 'exception' => $e,
             ]);
 

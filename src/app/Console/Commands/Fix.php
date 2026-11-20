@@ -2,8 +2,8 @@
 
 namespace Backpack\CRUD\app\Console\Commands;
 
-use Artisan;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Artisan;
 
 class Fix extends Command
 {

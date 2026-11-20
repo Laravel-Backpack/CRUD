@@ -5,6 +5,7 @@ namespace Backpack\CRUD\app\Console\Commands;
 use Backpack\CRUD\BackpackServiceProvider;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -75,7 +76,7 @@ class Install extends Command
         $this->progressBlock('Creating users table');
         try {
             if (! $this->option('no-interaction')) {
-                \Illuminate\Support\Facades\DB::connection()->getPdo();
+                DB::connection()->getPdo();
             }
         } catch (\Throwable $e) {
             $this->closeProgressBlock();

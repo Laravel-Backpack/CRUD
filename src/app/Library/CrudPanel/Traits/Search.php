@@ -5,6 +5,7 @@ namespace Backpack\CRUD\app\Library\CrudPanel\Traits;
 use Backpack\CRUD\ViewNamespaces;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\View;
 
 trait Search
 {
@@ -271,7 +272,7 @@ trait Search
         if ($this->buttons()->where('stack', 'line')->count()) {
             $crudTableId = request()->input('datatable_id', 'crudTable');
 
-            $row_items[] = \View::make('crud::inc.button_stack', ['stack' => 'line'])
+            $row_items[] = View::make('crud::inc.button_stack', ['stack' => 'line'])
                                 ->with('crud', $this)
                                 ->with('entry', $entry)
                                 ->with('row_number', $rowNumber)
@@ -307,13 +308,13 @@ trait Search
 
         // add the bulk actions checkbox to the first visible column - but only if we have columns
         if ($this->getOperationSetting('bulkActions') && ! empty($row_items)) {
-            $bulk_actions_checkbox = \View::make('crud::columns.inc.bulk_actions_checkbox', ['entry' => $entry])->render();
+            $bulk_actions_checkbox = View::make('crud::columns.inc.bulk_actions_checkbox', ['entry' => $entry])->render();
             $row_items[$firstVisibleColumnIndex] = $bulk_actions_checkbox.$row_items[$firstVisibleColumnIndex];
         }
 
         // add the details_row button to the first visible column - but only if we have columns
         if ($this->getOperationSetting('detailsRow') && ! empty($row_items)) {
-            $details_row_button = \View::make('crud::columns.inc.details_row_button')
+            $details_row_button = View::make('crud::columns.inc.details_row_button')
                                            ->with('crud', $this)
                                            ->with('entry', $entry)
                                            ->with('row_number', $rowNumber)
@@ -407,7 +408,7 @@ trait Search
             $view = 'crud::columns.text'; // fallback to text column
         }
 
-        return \View::make($view)
+        return View::make($view)
             ->with('crud', $this)
             ->with('column', $column)
             ->with('entry', $entry)

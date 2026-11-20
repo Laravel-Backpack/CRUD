@@ -2,7 +2,9 @@
 
 use Backpack\Basset\Facades\Basset;
 use Creativeorange\Gravatar\Facades\Gravatar;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
 if (! function_exists('backpack_url')) {
@@ -219,7 +221,7 @@ if (! function_exists('backpack_users_have_email')) {
         $column = config('backpack.base.email_column') ?? 'email';
 
         // the variables captured by the closure are part of the once() cache key
-        return once(fn () => \Schema::connection($connection)->hasColumn($table, $column));
+        return once(fn () => Schema::connection($connection)->hasColumn($table, $column));
     }
 }
 
@@ -285,7 +287,7 @@ if (! function_exists('backpack_auth')) {
      */
     function backpack_auth()
     {
-        return \Auth::guard(backpack_guard_name());
+        return Auth::guard(backpack_guard_name());
     }
 }
 

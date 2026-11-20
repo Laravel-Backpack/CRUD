@@ -2,13 +2,13 @@
 
 namespace Backpack\CRUD\app\Http\Controllers;
 
-use Alert;
 use Backpack\CRUD\app\Http\Requests\AccountInfoRequest;
 use Backpack\CRUD\app\Http\Requests\ChangePasswordRequest;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Hash;
+use Prologue\Alerts\Facades\Alert;
 
 class MyAccountController extends Controller
 {
