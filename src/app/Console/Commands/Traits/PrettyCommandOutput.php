@@ -114,7 +114,7 @@ trait PrettyCommandOutput
     /**
      * List choice element.
      *
-     * @return void
+     * @return mixed
      */
     public function listChoice(string $question, array $options, string $default = 'no', ?string $hint = null)
     {
@@ -146,7 +146,8 @@ trait PrettyCommandOutput
                 $text = "$text <fg=gray>[<fg=$background>$title</>]</>";
             }
 
-            return $this->line("  $text");
+            $this->line("  $text");
+            return;
         }
 
         $this->line(sprintf("  <fg=$foreground;bg=$background> %s </> $text", strtoupper($title)));

@@ -7,10 +7,8 @@ trait Stats
     /**
      * Check if the application is running in normal conditions
      * (production env, not in console, not in unit tests).
-     *
-     * @return void
      */
-    private function runningInProduction()
+    private function runningInProduction(): bool
     {
         if ($this->app->environment('local')) {
             return false;
