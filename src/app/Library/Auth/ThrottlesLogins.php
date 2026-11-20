@@ -42,7 +42,7 @@ trait ThrottlesLogins
      * Redirect the user after determining they are locked out.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @return void
+     * @return never
      *
      * @throws \Illuminate\Validation\ValidationException
      */

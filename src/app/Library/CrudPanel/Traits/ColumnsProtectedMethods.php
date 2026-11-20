@@ -237,7 +237,6 @@ trait ColumnsProtectedMethods
      * Infer the attribute for the column when needed.
      *
      * @param  array  $column
-     * @return void
      */
     protected function makeSureColumnHasAttribute(array $column)
     {

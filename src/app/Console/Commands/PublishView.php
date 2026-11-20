@@ -61,7 +61,7 @@ class PublishView extends Command
     {
         $this->file = strtolower($this->argument('subpath'));
 
-        return $this->publishFile($this->file);
+        $this->publishFile($this->file);
     }
 
     /**
@@ -76,11 +76,12 @@ class PublishView extends Command
         $copiedFile = $this->destinationPath.$file.'.blade.php';
 
         if (! file_exists($sourceFile)) {
-            return $this->error(
+            $this->error(
                 'Cannot find source view file at '
                 .$sourceFile.
                 ' - make sure you\'ve picked an existing view file'
             );
+            return;
         } else {
             $canCopy = true;
 
@@ -102,13 +103,14 @@ class PublishView extends Command
                 if (copy($sourceFile, $copiedFile)) {
                     $this->info('Copied to '.$copiedFile);
                 } else {
-                    return $this->error(
+                    $this->error(
                         'Failed to copy '
                         .$sourceFile.
                         ' to '
                         .$copiedFile.
                         ' for unknown reason'
                     );
+                    return;
                 }
             }
         }
