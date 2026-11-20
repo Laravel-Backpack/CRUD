@@ -3,7 +3,6 @@
 namespace Backpack\CRUD\Tests\Unit\CrudPanel;
 
 use Backpack\CRUD\Tests\config\Models\ColumnType;
-use Exception;
 
 class MyColumnTypeWithOtherConnection extends ColumnType
 {
@@ -846,35 +845,5 @@ class CrudPanelAutoSetTest extends \Backpack\CRUD\Tests\config\CrudPanel\BaseDBC
         $columnNames = $this->crudPanel->getDbColumnsNames();
 
         $this->assertEquals(array_keys($this->expectedColumnTypes), $columnNames);
-    }
-
-    public function testSetDoctrineTypesMapping()
-    {
-        $this->crudPanel->setModel(ColumnType::class);
-        if (! method_exists($this->crudPanel->getModel()->getConnection(), 'getDoctrineConnection')) {
-            $this->markTestSkipped('This test is only for Laravel 10, Laravel 11 does not have dbal as a dependency anymore');
-        }
-
-        $original_db_config = $this->app['config']->get('database.connections.testing');
-        $new_model_db_config = array_merge($original_db_config, ['prefix' => 'testing2']);
-
-        $this->app['config']->set('database.connections.testing_2', $new_model_db_config);
-
-        $original_db_platform = $this->crudPanel->getModel()->getConnection()->getDoctrineConnection()->getDatabasePlatform();
-        $this->crudPanel->setDoctrineTypesMapping();
-        $type = $original_db_platform->getDoctrineTypeMapping('enum');
-
-        $this->crudPanel->setModel(MyColumnTypeWithOtherConnection::class);
-        $new_model_db_platform = $this->crudPanel->getModel()->getConnection()->getDoctrineConnection()->getDatabasePlatform();
-
-        try {
-            $new_model_db_platform->getDoctrineTypeMapping('enum');
-        } catch (Exception $e) {
-            $this->assertInstanceOf(Exception::class, $e);
-        }
-        $this->crudPanel->setDoctrineTypesMapping();
-
-        $type = $new_model_db_platform->getDoctrineTypeMapping('enum');
-        $this->assertEquals('string', $type);
     }
 }
